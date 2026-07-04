@@ -2,25 +2,35 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #050a35;
+  --color-brand-navy: #050a35;
+  --color-brand-purple: #5a2dff;
+  --color-brand-purple-dark: #3d13db;
+  --color-brand-soft: #f2efff;
+  --color-brand-border: #ded8f4;
+  --color-brand-muted: #77718f;
+  --color-brand-gold: #ffc247;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(90, 45, 255, 0.08), transparent 28rem),
+    linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+input,
+textarea {
+  letter-spacing: 0;
 }

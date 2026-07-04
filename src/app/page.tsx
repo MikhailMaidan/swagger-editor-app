@@ -1,65 +1,79 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="mx-auto flex w-full max-w-[1600px] flex-1 px-4 py-8 md:px-8 lg:px-10">
+      <section className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
+        <div className="min-h-[520px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+          <div className="flex items-center justify-between border-b border-[color:var(--color-brand-border)] px-5 py-4">
+            <div>
+              <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
+                Editor
+              </p>
+              <h1 className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                OpenAPI schema
+              </h1>
+            </div>
+            <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-purple)]">
+              YAML
+            </span>
+          </div>
+          <textarea
+            className="h-[420px] w-full resize-none rounded-b-[28px] bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
+            defaultValue={`openapi: 3.0.0
+info:
+  title: RSSwag Demo API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      summary: Get users
+      responses:
+        '200':
+          description: Successful response`}
+            aria-label="OpenAPI schema editor"
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="min-h-[520px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+          <div>
+            <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
+              Viewer
+            </p>
+            <h2 className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+              API Reference
+            </h2>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-4">
+            <article className="rounded-2xl border border-[color:var(--color-brand-border)] p-4">
+              <div className="flex items-center gap-3">
+                <span className="rounded-xl bg-emerald-100 px-3 py-1 text-sm font-extrabold text-emerald-700">
+                  GET
+                </span>
+                <span className="font-mono text-base font-bold text-[color:var(--color-brand-navy)]">
+                  /users
+                </span>
+              </div>
+              <p className="mt-3 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
+                Successful response with a list of users.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-[color:var(--color-brand-border)] p-4">
+              <div className="flex items-center gap-3">
+                <span className="rounded-xl bg-sky-100 px-3 py-1 text-sm font-extrabold text-sky-700">
+                  POST
+                </span>
+                <span className="font-mono text-base font-bold text-[color:var(--color-brand-navy)]">
+                  /users
+                </span>
+              </div>
+              <p className="mt-3 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
+                Request body and response preview will appear here.
+              </p>
+            </article>
+          </div>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
