@@ -1,7 +1,7 @@
 export default function Home() {
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-1 px-4 py-8 md:px-8 lg:px-10">
-      <section className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
+    <div className="flex w-full flex-1 px-4 py-8 md:px-8 lg:px-10">
+      <section className="mx-auto grid w-full max-w-[1600px] gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
         <div className="min-h-[520px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
           <div className="flex items-center justify-between border-b border-[color:var(--color-brand-border)] px-5 py-4">
             <div>

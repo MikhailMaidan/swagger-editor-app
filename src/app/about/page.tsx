@@ -1,14 +1,14 @@
 export default function AboutPage() {
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 py-10 md:px-8">
-      <section className="rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+    <div className="w-full px-4 py-10 md:px-8 lg:px-10">
+      <section className="mx-auto w-full max-w-[1600px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
         <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
           About
         </p>
         <h1 className="mt-3 text-4xl font-extrabold text-[color:var(--color-brand-navy)]">
           RSSwag OpenAPI UI
         </h1>
-        <p className="mt-5 max-w-3xl text-base font-medium leading-8 text-[color:var(--color-brand-muted)]">
+        <p className="mt-5 max-w-4xl text-base font-medium leading-8 text-[color:var(--color-brand-muted)]">
           RSSwag is a team project for the RS School React course. The app is
           being built as an OpenAPI editor, viewer, REST client, and request
           history workspace.
@@ -20,7 +20,16 @@ export default function AboutPage() {
               Course
             </h2>
             <p className="mt-3 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
-              RS School React module final task.
+              RS School React module final task. Learn more at{" "}
+              <a
+                className="font-extrabold text-[color:var(--color-brand-purple)]"
+                href="https://rs.school/"
+                rel="noreferrer"
+                target="_blank"
+              >
+                RS School
+              </a>
+              .
             </p>
           </article>
 
@@ -29,8 +38,20 @@ export default function AboutPage() {
               Team
             </h2>
             <p className="mt-3 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
-              Team member cards and GitHub links can be filled in during the
-              About page feature.
+              <span className="block font-extrabold text-[color:var(--color-brand-navy)]">
+                Mikhail Maidan
+              </span>
+              Role: responsible for everything.
+              <br />
+              GitHub:{" "}
+              <a
+                className="font-extrabold text-[color:var(--color-brand-purple)]"
+                href="https://github.com/MikhailMaidan"
+                rel="noreferrer"
+                target="_blank"
+              >
+                MikhailMaidan
+              </a>
             </p>
           </article>
 

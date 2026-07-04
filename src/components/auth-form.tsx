@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import {
+  AuthFormErrors,
+  hasAuthFormErrors,
+  validateAuthForm,
+} from "@/lib/auth-validation";
 import { saveClientAuth } from "@/lib/client-auth";
 
 type AuthFormProps = {
@@ -13,6 +18,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<AuthFormErrors>({});
 
   const isSignIn = mode === "sign-in";
   const title = isSignIn ? "Sign In" : "Sign Up";
@@ -22,6 +28,14 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const formErrors = validateAuthForm(email, password);
+    setErrors(formErrors);
+
+    if (hasAuthFormErrors(formErrors)) {
+      return;
+    }
+
     saveClientAuth(email);
     router.push("/");
     router.refresh();
@@ -31,6 +45,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <section className="mx-auto flex w-full max-w-[520px] flex-1 items-center px-4 py-12">
       <form
         className="w-full rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.12)]"
+        noValidate
         onSubmit={handleSubmit}
       >
         <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
@@ -50,10 +65,27 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="h-12 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setErrors((currentErrors) => ({
+                  ...currentErrors,
+                  email: undefined,
+                }));
+              }}
               placeholder="alex@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
               required
             />
+            {errors.email ? (
+              <span
+                className="text-sm font-semibold text-red-600"
+                id="email-error"
+                role="alert"
+              >
+                {errors.email}
+              </span>
+            ) : null}
           </label>
 
           <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
@@ -62,11 +94,28 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="h-12 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setErrors((currentErrors) => ({
+                  ...currentErrors,
+                  password: undefined,
+                }));
+              }}
               placeholder="Password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
               minLength={8}
               required
             />
+            {errors.password ? (
+              <span
+                className="text-sm font-semibold text-red-600"
+                id="password-error"
+                role="alert"
+              >
+                {errors.password}
+              </span>
+            ) : null}
           </label>
         </div>
 
