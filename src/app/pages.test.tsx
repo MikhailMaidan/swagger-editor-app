@@ -45,7 +45,15 @@ describe("app pages", () => {
     render(<HistoryPage />);
 
     expect(screen.getByRole("heading", { name: "History" })).toBeVisible();
-    expect(screen.getByText(/protected by token validation/i)).toBeVisible();
+    expect(screen.getByText(/not executed any requests yet/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open Editor" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByRole("link", { name: "API Reference" })).toHaveAttribute(
+      "href",
+      "/api-reference",
+    );
   });
 
   it("renders secondary placeholder pages", () => {

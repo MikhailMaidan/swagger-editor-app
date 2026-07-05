@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
 import { SwaggerWorkspace } from "./swagger-workspace";
 
 describe("SwaggerWorkspace", () => {
@@ -90,5 +92,65 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByText("Version 2.0.0")).toBeVisible();
     expect(screen.getByText("/pets")).toBeVisible();
     expect(screen.getByText("List pets")).toBeVisible();
+  });
+
+  it("disables schema saving for guests", () => {
+    render(<SwaggerWorkspace />);
+
+    expect(
+      screen.getByText("Sign in to save and restore schemas."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save schema" })).toBeDisabled();
+  });
+
+  it("saves a valid schema for authenticated users", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    render(<SwaggerWorkspace />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Save schema" }),
+      ).not.toBeDisabled();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Save schema" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Schema saved.");
+    expect(window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY)).toContain(
+      "RSSwag Demo API",
+    );
+  });
+
+  it("restores a saved schema for authenticated users", async () => {
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+    window.localStorage.setItem(
+      SAVED_SCHEMA_STORAGE_KEY,
+      `openapi: 3.0.0
+info:
+  title: Saved API
+  version: 9.0.0
+paths:
+  /saved:
+    get:
+      summary: Saved endpoint
+      responses:
+        '200':
+          description: OK`,
+    );
+
+    render(<SwaggerWorkspace />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Saved API" }),
+    ).toBeVisible();
+    expect(screen.getByText("/saved")).toBeVisible();
   });
 });
