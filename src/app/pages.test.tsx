@@ -17,8 +17,10 @@ describe("app pages", () => {
     });
 
     expect((editor as HTMLTextAreaElement).value).toContain("openapi: 3.0.0");
-    expect(screen.getByRole("heading", { name: "API Reference" })).toBeVisible();
-    expect(screen.getAllByText("/users")).toHaveLength(2);
+    expect(
+      screen.getByRole("heading", { name: "RSSwag Demo API" }),
+    ).toBeVisible();
+    expect(screen.getAllByText("/users/{id}")).toHaveLength(2);
   });
 
   it("renders the complete About page content", () => {

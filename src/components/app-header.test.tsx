@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
@@ -62,5 +62,24 @@ describe("AppHeader", () => {
     expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBeNull();
     expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).toHaveBeenCalledWith("/");
     expect(globalThis.__NEXT_NAVIGATION_MOCK__.refresh).toHaveBeenCalled();
+  });
+
+  it("animates into a compact sticky state after scrolling", () => {
+    render(
+      <AppHeader initialIsAuthenticated={false} initialUserName="User" />,
+    );
+
+    const headerShell = screen.getByTestId("app-header-shell");
+
+    expect(headerShell.className).toContain("py-3");
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 80,
+    });
+    fireEvent.scroll(window);
+
+    expect(headerShell.className).toContain("py-2");
+    expect(headerShell.className).toContain("border-[color:var(--color-brand-purple)]");
   });
 });
