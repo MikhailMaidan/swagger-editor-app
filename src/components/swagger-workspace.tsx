@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AUTH_CHANGE_EVENT } from "@/lib/auth";
+import { getClientAuth } from "@/lib/client-auth";
 import {
   DEFAULT_OPENAPI_SCHEMA,
   EndpointParameter,
@@ -9,6 +11,7 @@ import {
   parseOpenApiSchema,
   SchemaFormat,
 } from "@/lib/openapi";
+import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
 
 const methodColorClasses: Record<string, string> = {
   DELETE: "bg-red-100 text-red-700",
@@ -112,6 +115,8 @@ function EndpointCard({ endpoint }: { endpoint: EndpointSummary }) {
 
 export function SwaggerWorkspace() {
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const parseResult = useMemo(() => parseOpenApiSchema(schemaText), [schemaText]);
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
@@ -119,12 +124,45 @@ export function SwaggerWorkspace() {
   const targetFormat: SchemaFormat =
     detectedFormat === "yaml" ? "json" : "yaml";
 
+  useEffect(() => {
+    const syncAuthAndSavedSchema = () => {
+      const authState = getClientAuth();
+
+      setIsAuthenticated(authState.isAuthenticated);
+
+      if (authState.isAuthenticated) {
+        const savedSchema = readSavedSchema();
+
+        if (savedSchema) {
+          setSchemaText(savedSchema);
+        }
+      }
+    };
+
+    syncAuthAndSavedSchema();
+
+    window.addEventListener(AUTH_CHANGE_EVENT, syncAuthAndSavedSchema);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthAndSavedSchema);
+    };
+  }, []);
+
   function handleFormatSwitch() {
     if (!parseResult.ok) {
       return;
     }
 
     setSchemaText(formatOpenApiSchema(parseResult.value.schema, targetFormat));
+  }
+
+  function handleSaveSchema() {
+    if (!isAuthenticated || !parseResult.ok) {
+      return;
+    }
+
+    saveSchema(schemaText);
+    setSaveMessage("Schema saved.");
   }
 
   return (
@@ -160,14 +198,38 @@ export function SwaggerWorkspace() {
             >
               Convert to {targetFormat.toUpperCase()}
             </button>
+            <button
+              className="rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.2)] transition disabled:cursor-not-allowed disabled:bg-none disabled:bg-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)] disabled:shadow-none"
+              disabled={!isAuthenticated || !parseResult.ok}
+              type="button"
+              onClick={handleSaveSchema}
+            >
+              Save schema
+            </button>
           </div>
         </div>
         <textarea
           className="h-[430px] w-full resize-none bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
           value={schemaText}
           aria-label="OpenAPI schema editor"
-          onChange={(event) => setSchemaText(event.target.value)}
+          onChange={(event) => {
+            setSchemaText(event.target.value);
+            setSaveMessage("");
+          }}
         />
+        {!isAuthenticated ? (
+          <p className="border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            Sign in to save and restore schemas.
+          </p>
+        ) : null}
+        {saveMessage ? (
+          <p
+            className="border-t border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700"
+            role="status"
+          >
+            {saveMessage}
+          </p>
+        ) : null}
         {!parseResult.ok ? (
           <p
             className="border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
