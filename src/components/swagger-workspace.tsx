@@ -9,6 +9,7 @@ import {
   EndpointSummary,
   formatOpenApiSchema,
   parseOpenApiSchema,
+  SchemaDetails as SchemaDetailsSummary,
   SchemaFormat,
 } from "@/lib/openapi";
 import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
@@ -44,6 +45,35 @@ function groupParameters(parameters: EndpointParameter[]) {
       path: [],
       query: [],
     },
+  );
+}
+
+function SchemaDetailsBlock({
+  schema,
+}: {
+  schema: SchemaDetailsSummary | null;
+}) {
+  if (!schema) {
+    return (
+      <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+        None
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-1 space-y-1 font-medium text-[color:var(--color-brand-muted)]">
+      <p>Type: {schema.type}</p>
+      <p>
+        Properties:{" "}
+        {schema.properties.length > 0 ? schema.properties.join(", ") : "None"}
+      </p>
+      {schema.example ? (
+        <pre className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
+          {schema.example}
+        </pre>
+      ) : null}
+    </div>
   );
 }
 
@@ -87,27 +117,63 @@ function EndpointCard({ endpoint }: { endpoint: EndpointSummary }) {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+      <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
         <div>
           <p className="font-extrabold text-[color:var(--color-brand-navy)]">
             Request body
           </p>
-          <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-            {endpoint.requestContentTypes.length > 0
-              ? endpoint.requestContentTypes.join(", ")
-              : "None"}
-          </p>
+          {endpoint.requestBodies.length > 0 ? (
+            <div className="mt-2 space-y-3">
+              {endpoint.requestBodies.map((requestBody) => (
+                <div key={requestBody.contentType}>
+                  <p className="font-bold text-[color:var(--color-brand-purple)]">
+                    {requestBody.contentType}
+                  </p>
+                  <SchemaDetailsBlock schema={requestBody.schema} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <SchemaDetailsBlock schema={null} />
+          )}
         </div>
         <div>
           <p className="font-extrabold text-[color:var(--color-brand-navy)]">
             Responses
           </p>
-          <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-            {endpoint.responseStatuses.length > 0
-              ? endpoint.responseStatuses.join(", ")
-              : "None"}
-          </p>
+          {endpoint.responses.length > 0 ? (
+            <div className="mt-2 space-y-3">
+              {endpoint.responses.map((response) => (
+                <div key={response.status}>
+                  <p className="font-bold text-[color:var(--color-brand-purple)]">
+                    {response.status} - {response.description}
+                  </p>
+                  <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                    Content:{" "}
+                    {response.contentTypes.length > 0
+                      ? response.contentTypes.join(", ")
+                      : "None"}
+                  </p>
+                  <SchemaDetailsBlock schema={response.schema} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <SchemaDetailsBlock schema={null} />
+          )}
         </div>
+      </div>
+
+      <div className="mt-4">
+        <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+          cURL
+        </p>
+        <pre
+          aria-label={`cURL ${endpoint.method} ${endpoint.path}`}
+          className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
+        >
+          {endpoint.curl}
+        </pre>
       </div>
     </article>
   );

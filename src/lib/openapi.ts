@@ -7,13 +7,34 @@ export type EndpointParameter = {
   location: "path" | "query" | "header" | "cookie";
 };
 
+export type SchemaDetails = {
+  type: string;
+  properties: string[];
+  example: string;
+};
+
+export type RequestBodySummary = {
+  contentType: string;
+  schema: SchemaDetails;
+};
+
+export type ResponseSummary = {
+  status: string;
+  description: string;
+  contentTypes: string[];
+  schema: SchemaDetails | null;
+};
+
 export type EndpointSummary = {
+  curl: string;
   method: string;
   path: string;
   summary: string;
   description: string;
   parameters: EndpointParameter[];
+  requestBodies: RequestBodySummary[];
   requestContentTypes: string[];
+  responses: ResponseSummary[];
   responseStatuses: string[];
 };
 
@@ -77,6 +98,18 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+              example:
+                id: "42"
+                name: "Alex Smith"
         '404':
           description: User not found
     post:
@@ -89,9 +122,20 @@ paths:
               properties:
                 name:
                   type: string
+            example:
+              name: "Alex Smith"
       responses:
         '200':
-          description: Updated user`;
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -110,8 +154,29 @@ function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
-function readStringKeys(value: unknown) {
-  return isRecord(value) ? Object.keys(value) : [];
+function formatExample(value: unknown) {
+  if (value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value, null, 2);
+}
+
+function readSchemaDetails(value: unknown, example?: unknown): SchemaDetails {
+  const schema = isRecord(value) ? value : {};
+  const properties = isRecord(schema.properties)
+    ? Object.keys(schema.properties)
+    : [];
+
+  return {
+    example: formatExample(example ?? schema.example),
+    properties,
+    type: readString(schema.type, properties.length > 0 ? "object" : "unknown"),
+  };
 }
 
 function normalizeParameters(value: unknown): EndpointParameter[] {
@@ -131,6 +196,89 @@ function normalizeParameters(value: unknown): EndpointParameter[] {
 
     return parameters;
   }, []);
+}
+
+function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  const content = isRecord(value.content) ? value.content : {};
+
+  return Object.entries(content).reduce<RequestBodySummary[]>(
+    (requestBodies, [contentType, contentConfig]) => {
+      if (!isRecord(contentConfig)) {
+        return requestBodies;
+      }
+
+      requestBodies.push({
+        contentType,
+        schema: readSchemaDetails(contentConfig.schema, contentConfig.example),
+      });
+
+      return requestBodies;
+    },
+    [],
+  );
+}
+
+function normalizeResponses(value: unknown): ResponseSummary[] {
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  return Object.entries(value).reduce<ResponseSummary[]>(
+    (responses, [status, responseConfig]) => {
+      if (!isRecord(responseConfig)) {
+        return responses;
+      }
+
+      const content = isRecord(responseConfig.content)
+        ? responseConfig.content
+        : {};
+      const contentTypes = Object.keys(content);
+      const firstContentType = contentTypes[0];
+      const firstContent =
+        firstContentType && isRecord(content[firstContentType])
+          ? content[firstContentType]
+          : null;
+
+      if (firstContent && !isRecord(firstContent)) {
+        return responses;
+      }
+
+      const firstContentConfig = firstContent as Record<string, unknown> | null;
+
+      responses.push({
+        contentTypes,
+        description: readString(responseConfig.description, "No description"),
+        schema: firstContentConfig
+          ? readSchemaDetails(
+              firstContentConfig.schema,
+              firstContentConfig.example,
+            )
+          : null,
+        status,
+      });
+
+      return responses;
+    },
+    [],
+  );
+}
+
+export function createCurlPreview(
+  method: string,
+  path: string,
+  hasRequestBody: boolean,
+) {
+  const parts = [`curl -X ${method}`, `"https://api.example.com${path}"`];
+
+  if (hasRequestBody) {
+    parts.push('-H "Content-Type: application/json"', "-d '{...}'");
+  }
+
+  return parts.join(" \\\n  ");
 }
 
 export function detectSchemaFormat(schemaText: string): SchemaFormat {
@@ -163,14 +311,15 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           return endpoints;
         }
 
-        const requestBody = isRecord(operation.requestBody)
-          ? operation.requestBody
-          : {};
-        const requestBodyContent = isRecord(requestBody.content)
-          ? requestBody.content
-          : {};
+        const requestBodies = normalizeRequestBodies(operation.requestBody);
+        const responses = normalizeResponses(operation.responses);
 
         endpoints.push({
+          curl: createCurlPreview(
+            method.toUpperCase(),
+            path,
+            requestBodies.length > 0,
+          ),
           description: readString(operation.description),
           method: method.toUpperCase(),
           parameters: [
@@ -178,8 +327,12 @@ export function extractEndpoints(schema: Record<string, unknown>) {
             ...normalizeParameters(operation.parameters),
           ],
           path,
-          requestContentTypes: Object.keys(requestBodyContent),
-          responseStatuses: readStringKeys(operation.responses),
+          requestBodies,
+          requestContentTypes: requestBodies.map(
+            (requestBody) => requestBody.contentType,
+          ),
+          responses,
+          responseStatuses: responses.map((response) => response.status),
           summary: readString(operation.summary, "Untitled endpoint"),
         });
 
