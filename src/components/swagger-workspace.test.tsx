@@ -20,7 +20,17 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByText("search")).toBeVisible();
     expect(screen.getByText("X-Trace-Id")).toBeVisible();
     expect(screen.getByText("sessionId")).toBeVisible();
-    expect(screen.getByText("200, 404")).toBeVisible();
+    expect(screen.getByText("200 - Successful response")).toBeVisible();
+    expect(screen.getByText("404 - User not found")).toBeVisible();
+    expect(screen.getAllByText("Content: application/json")).toHaveLength(2);
+    expect(screen.getAllByText("Properties: id, name")).toHaveLength(2);
+    expect(screen.getByText("Properties: name")).toBeVisible();
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toHaveTextContent(
+      "curl -X GET",
+    );
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toHaveTextContent(
+      "-d '{...}'",
+    );
   });
 
   it("shows validation errors and disables conversion for invalid schemas", () => {

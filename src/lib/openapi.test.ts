@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_OPENAPI_SCHEMA,
+  createCurlPreview,
   detectSchemaFormat,
   extractEndpoints,
   formatOpenApiSchema,
@@ -27,10 +28,28 @@ describe("openapi helpers", () => {
     expect(result.value.format).toBe("yaml");
     expect(result.value.endpoints).toHaveLength(2);
     expect(result.value.endpoints[0]).toMatchObject({
+      curl: 'curl -X GET \\\n  "https://api.example.com/users/{id}"',
       method: "GET",
       path: "/users/{id}",
       responseStatuses: ["200", "404"],
     });
+    expect(result.value.endpoints[0].responses[0]).toMatchObject({
+      contentTypes: ["application/json"],
+      description: "Successful response",
+      status: "200",
+    });
+    expect(result.value.endpoints[0].responses[0].schema?.properties).toEqual([
+      "id",
+      "name",
+    ]);
+    expect(result.value.endpoints[1].requestBodies[0]).toMatchObject({
+      contentType: "application/json",
+      schema: {
+        properties: ["name"],
+        type: "object",
+      },
+    });
+    expect(result.value.endpoints[1].curl).toContain("-d '{...}'");
     expect(result.value.endpoints[0].parameters).toEqual(
       expect.arrayContaining([
         { location: "path", name: "id" },
@@ -38,6 +57,15 @@ describe("openapi helpers", () => {
         { location: "header", name: "X-Trace-Id" },
         { location: "cookie", name: "sessionId" },
       ]),
+    );
+  });
+
+  it("creates cURL previews with optional request bodies", () => {
+    expect(createCurlPreview("GET", "/users", false)).toBe(
+      'curl -X GET \\\n  "https://api.example.com/users"',
+    );
+    expect(createCurlPreview("POST", "/users", true)).toContain(
+      '-H "Content-Type: application/json"',
     );
   });
 
