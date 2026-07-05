@@ -88,6 +88,7 @@ export function AppHeader({
     initialIsAuthenticated,
   );
   const [userName, setUserName] = useState(initialUserName);
+  const [isStickyCompact, setIsStickyCompact] = useState(false);
 
   useEffect(() => {
     const syncAuthState = () => {
@@ -110,6 +111,19 @@ export function AppHeader({
     };
   }, []);
 
+  useEffect(() => {
+    const syncStickyState = () => {
+      setIsStickyCompact(window.scrollY > 12);
+    };
+
+    syncStickyState();
+    window.addEventListener("scroll", syncStickyState, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", syncStickyState);
+    };
+  }, []);
+
   function handleSignOut() {
     clearClientAuth();
     setIsAuthenticated(false);
@@ -119,7 +133,14 @@ export function AppHeader({
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-5 md:px-8 lg:px-10">
-      <div className="mx-auto flex max-w-[1600px] flex-nowrap items-center gap-5 rounded-[28px] border border-[color:var(--color-brand-border)] bg-white/95 px-5 py-3 shadow-[0_18px_45px_rgba(64,45,137,0.12)] backdrop-blur lg:px-7">
+      <div
+        className={`mx-auto flex max-w-[1600px] flex-nowrap items-center gap-5 rounded-[28px] border px-5 shadow-[0_18px_45px_rgba(64,45,137,0.12)] backdrop-blur transition-all duration-300 lg:px-7 ${
+          isStickyCompact
+            ? "border-[color:var(--color-brand-purple)] bg-white/98 py-2"
+            : "border-[color:var(--color-brand-border)] bg-white/95 py-3"
+        }`}
+        data-testid="app-header-shell"
+      >
         <Link
           href="/"
           className="flex shrink-0 items-center gap-3"
@@ -130,7 +151,11 @@ export function AppHeader({
             alt=""
             width={108}
             height={108}
-            className="h-[84px] w-[84px] object-contain lg:h-[102px] lg:w-[102px]"
+            className={`object-contain transition-all duration-300 ${
+              isStickyCompact
+                ? "h-[72px] w-[72px] lg:h-[88px] lg:w-[88px]"
+                : "h-[84px] w-[84px] lg:h-[102px] lg:w-[102px]"
+            }`}
             priority
           />
           <span className="text-[28px] font-extrabold text-[color:var(--color-brand-navy)] lg:text-[40px]">

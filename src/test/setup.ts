@@ -95,6 +95,10 @@ beforeEach(() => {
   nextMocks.navigation.refresh.mockClear();
   nextMocks.navigation.replace.mockClear();
   window.localStorage.clear();
+  Object.defineProperty(window, "scrollY", {
+    configurable: true,
+    value: 0,
+  });
 
   document.cookie.split(";").forEach((cookie) => {
     const cookieName = cookie.split("=")[0].trim();
