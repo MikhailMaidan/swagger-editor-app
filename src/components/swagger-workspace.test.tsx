@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
@@ -70,6 +70,27 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor.value).toContain("title: RSSwag Demo API");
     expect(screen.getByText("YAML")).toBeVisible();
+  });
+
+  it("copies generated cURL commands", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText,
+      },
+    });
+
+    render(<SwaggerWorkspace />);
+
+    await user.click(screen.getAllByRole("button", { name: "Copy cURL" })[0]);
+
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining("curl -X GET"),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
   });
 
   it("updates the viewer when a JSON schema is entered", () => {

@@ -123,6 +123,12 @@ function EndpointCard({
     savedToHistory: boolean;
     status: string;
   } | null>(null);
+  const [isCurlCopied, setIsCurlCopied] = useState(false);
+
+  async function handleCopyCurl() {
+    await navigator.clipboard?.writeText(endpoint.curl);
+    setIsCurlCopied(true);
+  }
 
   function handleTryItOut() {
     const response = getMockResponse(
@@ -241,13 +247,22 @@ function EndpointCard({
           <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
             {t("workspace.curl")}
           </p>
-          <button
-            className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px]"
-            type="button"
-            onClick={handleTryItOut}
-          >
-            {t("workspace.tryItOut")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
+              onClick={handleCopyCurl}
+            >
+              {t("workspace.copyCurl")}
+            </button>
+            <button
+              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px]"
+              type="button"
+              onClick={handleTryItOut}
+            >
+              {t("workspace.tryItOut")}
+            </button>
+          </div>
         </div>
         <pre
           aria-label={`cURL ${endpoint.method} ${endpoint.path}`}
@@ -255,6 +270,14 @@ function EndpointCard({
         >
           {endpoint.curl}
         </pre>
+        {isCurlCopied ? (
+          <p
+            className="mt-2 text-sm font-bold text-emerald-700"
+            role="status"
+          >
+            {t("workspace.curlCopied")}
+          </p>
+        ) : null}
       </div>
 
       {mockResult ? (
