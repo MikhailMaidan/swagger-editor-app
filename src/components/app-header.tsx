@@ -30,12 +30,12 @@ const navLinks = [
 }[];
 
 const languageOptions = [
-  { code: "en", label: "EN", labelKey: "i18n.english" },
-  { code: "ru", label: "RU", labelKey: "i18n.russian" },
+  { code: "en", labelKey: "i18n.english", shortLabelKey: "i18n.enShort" },
+  { code: "ru", labelKey: "i18n.russian", shortLabelKey: "i18n.ruShort" },
 ] satisfies {
   code: "en" | "ru";
-  label: string;
   labelKey: TranslationKey;
+  shortLabelKey: TranslationKey;
 }[];
 
 function ClockIcon() {
@@ -227,7 +227,7 @@ export function AppHeader({
                   type="button"
                   onClick={() => setLanguage(option.code)}
                 >
-                  {option.label}
+                  {t(option.shortLabelKey)}
                 </button>
               );
             })}
