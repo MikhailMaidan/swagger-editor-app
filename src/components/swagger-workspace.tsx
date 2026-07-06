@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/components/i18n-provider";
 import { AUTH_CHANGE_EVENT } from "@/lib/auth";
 import { getClientAuth } from "@/lib/client-auth";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/lib/openapi";
 import { saveRequestHistoryRecord } from "@/lib/request-history";
 import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
+import type { TranslationKey } from "@/lib/translations";
 
 const methodColorClasses: Record<string, string> = {
   DELETE: "bg-red-100 text-red-700",
@@ -23,11 +25,22 @@ const methodColorClasses: Record<string, string> = {
   PUT: "bg-violet-100 text-violet-700",
 };
 
-const parameterLabels: Record<EndpointParameter["location"], string> = {
-  cookie: "Cookie",
-  header: "Header",
-  path: "Path",
-  query: "Query",
+const parameterLabelKeys: Record<
+  EndpointParameter["location"],
+  TranslationKey
+> = {
+  cookie: "workspace.cookie",
+  header: "workspace.header",
+  path: "workspace.path",
+  query: "workspace.query",
+};
+
+const schemaErrorKeys: Record<string, TranslationKey> = {
+  "Schema info.title is required.": "workspace.errors.infoTitleRequired",
+  "Schema must be an object.": "workspace.errors.schemaObject",
+  "Schema must include an openapi or swagger version.":
+    "workspace.errors.versionRequired",
+  "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
 
 function getMethodClass(method: string) {
@@ -49,15 +62,13 @@ function groupParameters(parameters: EndpointParameter[]) {
   );
 }
 
-function getMockResponse(endpoint: EndpointSummary) {
+function getMockResponse(endpoint: EndpointSummary, fallbackBody: string) {
   const response =
     endpoint.responses.find((item) => item.status === "200") ||
     endpoint.responses[0];
 
   return {
-    body:
-      response?.schema?.example ||
-      `No response example available for ${endpoint.method} ${endpoint.path}.`,
+    body: response?.schema?.example || fallbackBody,
     status: response?.status || "200",
   };
 }
@@ -67,20 +78,26 @@ function SchemaDetailsBlock({
 }: {
   schema: SchemaDetailsSummary | null;
 }) {
+  const { t } = useI18n();
+
   if (!schema) {
     return (
       <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-        None
+        {t("workspace.none")}
       </p>
     );
   }
 
   return (
     <div className="mt-1 space-y-1 font-medium text-[color:var(--color-brand-muted)]">
-      <p>Type: {schema.type}</p>
       <p>
-        Properties:{" "}
-        {schema.properties.length > 0 ? schema.properties.join(", ") : "None"}
+        {t("workspace.type")} {schema.type}
+      </p>
+      <p>
+        {t("workspace.properties")}{" "}
+        {schema.properties.length > 0
+          ? schema.properties.join(", ")
+          : t("workspace.none")}
       </p>
       {schema.example ? (
         <pre className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
@@ -98,6 +115,7 @@ function EndpointCard({
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
 }) {
+  const { t } = useI18n();
   const groupedParameters = groupParameters(endpoint.parameters);
   const [mockResult, setMockResult] = useState<{
     body: string;
@@ -107,7 +125,13 @@ function EndpointCard({
   } | null>(null);
 
   function handleTryItOut() {
-    const response = getMockResponse(endpoint);
+    const response = getMockResponse(
+      endpoint,
+      t("workspace.noResponseExample", {
+        method: endpoint.method,
+        path: endpoint.path,
+      }),
+    );
     const durationMs =
       30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8;
 
@@ -155,11 +179,11 @@ function EndpointCard({
         {Object.entries(groupedParameters).map(([location, names]) => (
           <div key={location}>
             <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-              {parameterLabels[location as EndpointParameter["location"]]}{" "}
-              parameters
+              {t(parameterLabelKeys[location as EndpointParameter["location"]])}{" "}
+              {t("workspace.parameters")}
             </p>
             <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-              {names.length > 0 ? names.join(", ") : "None"}
+              {names.length > 0 ? names.join(", ") : t("workspace.none")}
             </p>
           </div>
         ))}
@@ -168,7 +192,7 @@ function EndpointCard({
       <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
         <div>
           <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-            Request body
+            {t("workspace.requestBody")}
           </p>
           {endpoint.requestBodies.length > 0 ? (
             <div className="mt-2 space-y-3">
@@ -187,7 +211,7 @@ function EndpointCard({
         </div>
         <div>
           <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-            Responses
+            {t("workspace.responses")}
           </p>
           {endpoint.responses.length > 0 ? (
             <div className="mt-2 space-y-3">
@@ -197,10 +221,10 @@ function EndpointCard({
                     {response.status} - {response.description}
                   </p>
                   <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                    Content:{" "}
+                    {t("workspace.content")}{" "}
                     {response.contentTypes.length > 0
                       ? response.contentTypes.join(", ")
-                      : "None"}
+                      : t("workspace.none")}
                   </p>
                   <SchemaDetailsBlock schema={response.schema} />
                 </div>
@@ -215,14 +239,14 @@ function EndpointCard({
       <div className="mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-            cURL
+            {t("workspace.curl")}
           </p>
           <button
             className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px]"
             type="button"
             onClick={handleTryItOut}
           >
-            Try It Out
+            {t("workspace.tryItOut")}
           </button>
         </div>
         <pre
@@ -240,7 +264,7 @@ function EndpointCard({
         >
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="font-extrabold text-[color:var(--color-brand-navy)]">
-              Response
+              {t("workspace.response")}
             </span>
             <span className="rounded-xl bg-emerald-100 px-3 py-1 font-extrabold text-emerald-700">
               {mockResult.status}
@@ -249,7 +273,9 @@ function EndpointCard({
               {mockResult.durationMs} ms
             </span>
             <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {mockResult.savedToHistory ? "Saved to history" : "Guest run"}
+              {mockResult.savedToHistory
+                ? t("workspace.savedToHistory")
+                : t("workspace.guestRun")}
             </span>
           </div>
           <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
@@ -262,6 +288,7 @@ function EndpointCard({
 }
 
 export function SwaggerWorkspace() {
+  const { t } = useI18n();
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -310,7 +337,13 @@ export function SwaggerWorkspace() {
     }
 
     saveSchema(schemaText);
-    setSaveMessage("Schema saved.");
+    setSaveMessage(t("workspace.schemaSaved"));
+  }
+
+  function getSchemaErrorMessage(error: string) {
+    const errorKey = schemaErrorKeys[error];
+
+    return errorKey ? t(errorKey) : error;
   }
 
   return (
@@ -319,10 +352,10 @@ export function SwaggerWorkspace() {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[color:var(--color-brand-border)] px-5 py-4">
           <div>
             <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
-              Editor
+              {t("workspace.editor")}
             </p>
             <h1 className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
-              OpenAPI schema
+              {t("workspace.openApiSchema")}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -333,7 +366,7 @@ export function SwaggerWorkspace() {
                   : "bg-red-100 text-red-700"
               }`}
             >
-              {parseResult.ok ? "Valid" : "Invalid"}
+              {parseResult.ok ? t("workspace.valid") : t("workspace.invalid")}
             </span>
             <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-bold uppercase text-[color:var(--color-brand-purple)]">
               {detectedFormat.toUpperCase()}
@@ -344,7 +377,9 @@ export function SwaggerWorkspace() {
               type="button"
               onClick={handleFormatSwitch}
             >
-              Convert to {targetFormat.toUpperCase()}
+              {t("workspace.convertTo", {
+                format: targetFormat.toUpperCase(),
+              })}
             </button>
             <button
               className="rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.2)] transition disabled:cursor-not-allowed disabled:bg-none disabled:bg-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)] disabled:shadow-none"
@@ -352,7 +387,7 @@ export function SwaggerWorkspace() {
               type="button"
               onClick={handleSaveSchema}
             >
-              Save schema
+              {t("workspace.saveSchema")}
             </button>
           </div>
         </div>
@@ -367,7 +402,7 @@ export function SwaggerWorkspace() {
         />
         {!isAuthenticated ? (
           <p className="border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-            Sign in to save and restore schemas.
+            {t("workspace.signInToSave")}
           </p>
         ) : null}
         {saveMessage ? (
@@ -383,7 +418,7 @@ export function SwaggerWorkspace() {
             className="border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
             role="alert"
           >
-            {parseResult.error}
+            {getSchemaErrorMessage(parseResult.error)}
           </p>
         ) : null}
       </div>
@@ -391,14 +426,16 @@ export function SwaggerWorkspace() {
       <div className="min-h-[560px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
         <div>
           <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
-            Viewer
+            {t("workspace.viewer")}
           </p>
           <h2 className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
-            {parseResult.ok ? parseResult.value.title : "API Reference"}
+            {parseResult.ok ? parseResult.value.title : t("nav.apiReference")}
           </h2>
           {parseResult.ok ? (
             <p className="mt-2 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-              Version {parseResult.value.version}
+              {t("workspace.version", {
+                version: parseResult.value.version,
+              })}
             </p>
           ) : null}
         </div>
@@ -414,7 +451,7 @@ export function SwaggerWorkspace() {
             ))
           ) : (
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-              Add a valid OpenAPI schema to populate the viewer.
+              {t("workspace.addValidSchema")}
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useI18n } from "@/components/i18n-provider";
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -8,23 +9,24 @@ type ErrorPageProps = {
 };
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
+  const { t } = useI18n();
+
   return (
     <div className="w-full px-4 py-10 md:px-8 lg:px-10">
       <section className="mx-auto w-full max-w-[1600px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
         <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
-          Error
+          {t("error.label")}
         </p>
         <h1 className="mt-3 text-4xl font-extrabold text-[color:var(--color-brand-navy)]">
-          Something went wrong
+          {t("error.title")}
         </h1>
         <p className="mt-5 max-w-4xl text-base font-medium leading-8 text-[color:var(--color-brand-muted)]">
-          The app could not finish this action. Try again or return to the main
-          editor page.
+          {t("error.description")}
         </p>
 
         {error.digest ? (
           <p className="mt-4 rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-            Error ID: {error.digest}
+            {t("error.errorId", { digest: error.digest })}
           </p>
         ) : null}
 
@@ -34,13 +36,13 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
             type="button"
             onClick={reset}
           >
-            Try Again
+            {t("error.tryAgain")}
           </button>
           <Link
             className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"
             href="/"
           >
-            Go Home
+            {t("common.goHome")}
           </Link>
         </div>
       </section>
