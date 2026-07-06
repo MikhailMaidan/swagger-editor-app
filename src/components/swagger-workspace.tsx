@@ -12,6 +12,7 @@ import {
   SchemaDetails as SchemaDetailsSummary,
   SchemaFormat,
 } from "@/lib/openapi";
+import { saveRequestHistoryRecord } from "@/lib/request-history";
 import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
 
 const methodColorClasses: Record<string, string> = {
@@ -48,6 +49,19 @@ function groupParameters(parameters: EndpointParameter[]) {
   );
 }
 
+function getMockResponse(endpoint: EndpointSummary) {
+  const response =
+    endpoint.responses.find((item) => item.status === "200") ||
+    endpoint.responses[0];
+
+  return {
+    body:
+      response?.schema?.example ||
+      `No response example available for ${endpoint.method} ${endpoint.path}.`,
+    status: response?.status || "200",
+  };
+}
+
 function SchemaDetailsBlock({
   schema,
 }: {
@@ -77,8 +91,42 @@ function SchemaDetailsBlock({
   );
 }
 
-function EndpointCard({ endpoint }: { endpoint: EndpointSummary }) {
+function EndpointCard({
+  canSaveHistory,
+  endpoint,
+}: {
+  canSaveHistory: boolean;
+  endpoint: EndpointSummary;
+}) {
   const groupedParameters = groupParameters(endpoint.parameters);
+  const [mockResult, setMockResult] = useState<{
+    body: string;
+    durationMs: number;
+    savedToHistory: boolean;
+    status: string;
+  } | null>(null);
+
+  function handleTryItOut() {
+    const response = getMockResponse(endpoint);
+    const durationMs =
+      30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8;
+
+    if (canSaveHistory) {
+      saveRequestHistoryRecord({
+        durationMs,
+        method: endpoint.method,
+        path: endpoint.path,
+        status: Number(response.status) || 200,
+        summary: endpoint.summary,
+      });
+    }
+
+    setMockResult({
+      ...response,
+      durationMs,
+      savedToHistory: canSaveHistory,
+    });
+  }
 
   return (
     <article className="rounded-2xl border border-[color:var(--color-brand-border)] p-4">
@@ -165,9 +213,18 @@ function EndpointCard({ endpoint }: { endpoint: EndpointSummary }) {
       </div>
 
       <div className="mt-4">
-        <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-          cURL
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+            cURL
+          </p>
+          <button
+            className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px]"
+            type="button"
+            onClick={handleTryItOut}
+          >
+            Try It Out
+          </button>
+        </div>
         <pre
           aria-label={`cURL ${endpoint.method} ${endpoint.path}`}
           className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
@@ -175,6 +232,31 @@ function EndpointCard({ endpoint }: { endpoint: EndpointSummary }) {
           {endpoint.curl}
         </pre>
       </div>
+
+      {mockResult ? (
+        <div
+          className="mt-4 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-4"
+          role="status"
+        >
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="font-extrabold text-[color:var(--color-brand-navy)]">
+              Response
+            </span>
+            <span className="rounded-xl bg-emerald-100 px-3 py-1 font-extrabold text-emerald-700">
+              {mockResult.status}
+            </span>
+            <span className="font-bold text-[color:var(--color-brand-muted)]">
+              {mockResult.durationMs} ms
+            </span>
+            <span className="font-bold text-[color:var(--color-brand-muted)]">
+              {mockResult.savedToHistory ? "Saved to history" : "Guest run"}
+            </span>
+          </div>
+          <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
+            {mockResult.body}
+          </pre>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -325,6 +407,7 @@ export function SwaggerWorkspace() {
           {parseResult.ok && parseResult.value.endpoints.length > 0 ? (
             parseResult.value.endpoints.map((endpoint) => (
               <EndpointCard
+                canSaveHistory={isAuthenticated}
                 key={`${endpoint.method}-${endpoint.path}`}
                 endpoint={endpoint}
               />

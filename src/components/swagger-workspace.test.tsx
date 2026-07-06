@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
 import { SwaggerWorkspace } from "./swagger-workspace";
 
@@ -162,5 +163,42 @@ paths:
       await screen.findByRole("heading", { name: "Saved API" }),
     ).toBeVisible();
     expect(screen.getByText("/saved")).toBeVisible();
+  });
+
+  it("executes a mock response and saves history for authenticated users", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    render(<SwaggerWorkspace />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Save schema" }),
+      ).not.toBeDisabled();
+    });
+
+    await user.click(screen.getAllByRole("button", { name: "Try It Out" })[0]);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Response");
+    expect(screen.getByRole("status")).toHaveTextContent("200");
+    expect(screen.getByRole("status")).toHaveTextContent("Alex Smith");
+    expect(screen.getByRole("status")).toHaveTextContent("Saved to history");
+    expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toContain(
+      "Get user by id",
+    );
+  });
+
+  it("shows guest mock execution without saving history", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    await user.click(screen.getAllByRole("button", { name: "Try It Out" })[0]);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Guest run");
+    expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
   });
 });
