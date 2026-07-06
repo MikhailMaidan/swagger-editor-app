@@ -31,7 +31,8 @@ describe("RootLayout", () => {
       children: <p>Page content</p>,
     });
     const body = tree.props.children;
-    const [header, main, footer] = body.props.children;
+    const provider = body.props.children;
+    const [header, main, footer] = provider.props.children;
 
     expect(tree.type).toBe("html");
     expect(header.props.initialIsAuthenticated).toBe(true);

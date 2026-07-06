@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/components/i18n-provider";
 import { AUTH_CHANGE_EVENT } from "@/lib/auth";
 import { clearClientAuth, getClientAuth } from "@/lib/client-auth";
+import type { TranslationKey } from "@/lib/translations";
 
 type AppHeaderProps = {
   initialIsAuthenticated: boolean;
@@ -13,11 +15,28 @@ type AppHeaderProps = {
 };
 
 const navLinks = [
-  { href: "/", label: "Home", isDesktopOnly: false },
-  { href: "/api-reference", label: "API Reference", isDesktopOnly: true },
-  { href: "/schemas", label: "Schemas", isDesktopOnly: true },
-  { href: "/about", label: "About", isDesktopOnly: false },
-];
+  { href: "/", labelKey: "nav.home", isDesktopOnly: false },
+  {
+    href: "/api-reference",
+    labelKey: "nav.apiReference",
+    isDesktopOnly: true,
+  },
+  { href: "/schemas", labelKey: "nav.schemas", isDesktopOnly: true },
+  { href: "/about", labelKey: "nav.about", isDesktopOnly: false },
+] satisfies {
+  href: string;
+  isDesktopOnly: boolean;
+  labelKey: TranslationKey;
+}[];
+
+const languageOptions = [
+  { code: "en", label: "EN", labelKey: "i18n.english" },
+  { code: "ru", label: "RU", labelKey: "i18n.russian" },
+] satisfies {
+  code: "en" | "ru";
+  label: string;
+  labelKey: TranslationKey;
+}[];
 
 function ClockIcon() {
   return (
@@ -82,6 +101,7 @@ export function AppHeader({
   initialIsAuthenticated,
   initialUserName,
 }: AppHeaderProps) {
+  const { language, setLanguage, t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -165,7 +185,7 @@ export function AppHeader({
 
         <nav
           className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-base font-bold leading-none text-[color:var(--color-brand-navy)] md:overflow-visible lg:gap-7"
-          aria-label="Main navigation"
+          aria-label={t("nav.mainNavigation")}
         >
           {navLinks.map((link) => {
             const isActive =
@@ -180,7 +200,7 @@ export function AppHeader({
                   isActive ? "text-[color:var(--color-brand-purple)]" : ""
                 }`}
               >
-                {link.label}
+                {t(link.labelKey)}
                 {isActive ? (
                   <span className="absolute bottom-0 left-0 h-1 w-full rounded-full bg-[color:var(--color-brand-purple)]" />
                 ) : null}
@@ -191,20 +211,26 @@ export function AppHeader({
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
           <div className="hidden items-center rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] p-1 text-sm font-extrabold text-[color:var(--color-brand-muted)] shadow-inner sm:flex">
-            <button
-              className="rounded-xl bg-white px-3 py-2 text-[color:var(--color-brand-purple)]"
-              type="button"
-              aria-pressed="true"
-            >
-              EN
-            </button>
-            <button
-              className="rounded-xl px-3 py-2"
-              type="button"
-              aria-pressed="false"
-            >
-              RU
-            </button>
+            {languageOptions.map((option) => {
+              const isActive = language === option.code;
+
+              return (
+                <button
+                  aria-label={t(option.labelKey)}
+                  aria-pressed={isActive}
+                  className={`rounded-xl px-3 py-2 transition ${
+                    isActive
+                      ? "bg-white text-[color:var(--color-brand-purple)]"
+                      : ""
+                  }`}
+                  key={option.code}
+                  type="button"
+                  onClick={() => setLanguage(option.code)}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
 
           {isAuthenticated ? (
@@ -228,14 +254,14 @@ export function AppHeader({
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-4 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               >
                 <ClockIcon />
-                <span className="hidden sm:inline">History</span>
+                <span className="hidden sm:inline">{t("history.history")}</span>
               </Link>
               <button
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
                 type="button"
                 onClick={handleSignOut}
               >
-                <span className="hidden sm:inline">Sign Out</span>
+                <span className="hidden sm:inline">{t("auth.signOut")}</span>
                 <SignOutIcon />
               </button>
             </>
@@ -245,13 +271,13 @@ export function AppHeader({
                 href="/sign-in"
                 className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               >
-                Sign In
+                {t("auth.signIn")}
               </Link>
               <Link
                 href="/sign-up"
                 className="inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
               >
-                Sign Up
+                {t("auth.signUp")}
               </Link>
             </>
           )}
