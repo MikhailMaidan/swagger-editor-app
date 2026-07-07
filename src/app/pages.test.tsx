@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import AboutPage from "./about/page";
 import ApiReferencePage from "./api-reference/page";
 import HistoryPage from "./history/page";
@@ -7,6 +7,12 @@ import Home from "./page";
 import SchemasPage from "./schemas/page";
 import SignInPage from "./sign-in/page";
 import SignUpPage from "./sign-up/page";
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    get: vi.fn(() => null),
+  })),
+}));
 
 describe("app pages", () => {
   it("renders the main Swagger editor and viewer placeholders", () => {
@@ -41,8 +47,8 @@ describe("app pages", () => {
     );
   });
 
-  it("renders the protected History placeholder", () => {
-    render(<HistoryPage />);
+  it("renders the protected History placeholder", async () => {
+    render(await HistoryPage());
 
     expect(screen.getByRole("heading", { name: "History" })).toBeVisible();
     expect(screen.getByText(/not executed any requests yet/i)).toBeVisible();

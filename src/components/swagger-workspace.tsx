@@ -15,7 +15,10 @@ import {
   SchemaDetails as SchemaDetailsSummary,
   SchemaFormat,
 } from "@/lib/openapi";
-import { saveRequestHistoryRecord } from "@/lib/request-history";
+import {
+  saveRequestHistoryRecord,
+  saveServerRequestHistoryRecord,
+} from "@/lib/request-history";
 import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -329,7 +332,7 @@ function EndpointCard({
     );
 
     if (canSaveHistory) {
-      saveRequestHistoryRecord({
+      const historyRecord = saveRequestHistoryRecord({
         durationMs: executionResult.durationMs,
         method: endpoint.method,
         path: endpoint.path,
@@ -338,6 +341,10 @@ function EndpointCard({
         status: Number(executionResult.status) || 200,
         summary: endpoint.summary,
       });
+
+      if (historyRecord) {
+        void saveServerRequestHistoryRecord(historyRecord);
+      }
     }
 
     setMockResult({
