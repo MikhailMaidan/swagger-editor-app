@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE, createDemoToken } from "@/lib/auth";
+import {
+  AUTH_TOKEN_COOKIE,
+  AUTH_USER_COOKIE,
+  createDemoToken,
+} from "@/lib/auth";
 import RootLayout, { metadata } from "./layout";
 
 describe("RootLayout", () => {

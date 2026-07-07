@@ -49,7 +49,9 @@ export function getDisplayName(email: string) {
     .join(" ");
 }
 
-export function getTokenPayload(token?: string | null): AuthTokenPayload | null {
+export function getTokenPayload(
+  token?: string | null,
+): AuthTokenPayload | null {
   if (!token) {
     return null;
   }

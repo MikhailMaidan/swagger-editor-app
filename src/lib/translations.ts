@@ -3,7 +3,8 @@ export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
 export const translations = {
   en: {
     "about.courseTextAfter": ".",
-    "about.courseTextBefore": "RS School React module final task. Learn more at ",
+    "about.courseTextBefore":
+      "RS School React module final task. Learn more at ",
     "about.courseTitle": "Course",
     "about.description":
       "RSSwag is a team project for the RS School React course. The app is being built as an OpenAPI editor, viewer, REST client, and request history workspace.",
@@ -148,8 +149,7 @@ export const translations = {
     "auth.errors.emailRequired": "Email обязателен.",
     "auth.errors.passwordDigit": "Пароль должен содержать хотя бы одну цифру.",
     "auth.errors.passwordLetter": "Пароль должен содержать хотя бы одну букву.",
-    "auth.errors.passwordLength":
-      "Пароль должен содержать минимум 8 символов.",
+    "auth.errors.passwordLength": "Пароль должен содержать минимум 8 символов.",
     "auth.errors.passwordRequired": "Пароль обязателен.",
     "auth.errors.passwordSpecial":
       "Пароль должен содержать хотя бы один специальный символ.",
@@ -179,7 +179,8 @@ export const translations = {
     "history.history": "История",
     "history.method": "Метод",
     "history.privateRoute": "Приватный маршрут",
-    "history.recent": "Последние выполненные запросы показаны от новых к старым.",
+    "history.recent":
+      "Последние выполненные запросы показаны от новых к старым.",
     "history.status": "Статус",
     "history.summary": "Описание",
     "history.timestamp": "Дата и время",
@@ -257,7 +258,9 @@ export function translate(
   key: TranslationKey,
   params: Record<string, string> = {},
 ): string {
-  const message = String(translations[language][key] || translations.en[key] || key);
+  const message = String(
+    translations[language][key] || translations.en[key] || key,
+  );
 
   return Object.entries(params).reduce<string>(
     (text, [paramKey, paramValue]) =>
