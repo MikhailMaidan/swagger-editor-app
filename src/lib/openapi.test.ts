@@ -71,6 +71,25 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("creates cURL previews from current request values", () => {
+    expect(
+      createCurlPreview(
+        "POST",
+        "/users/{id}",
+        true,
+        "https://api.example.com/",
+        [
+          { location: "path", name: "id", value: "42" },
+          { location: "query", name: "search", value: "Alex Smith" },
+          { location: "header", name: "X-Trace-Id", value: "trace-1" },
+        ],
+        '{"name":"Mikhail"}',
+      ),
+    ).toBe(
+      'curl -X POST \\\n  "https://api.example.com/users/42?search=Alex%20Smith" \\\n  -H "X-Trace-Id: trace-1" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"name":"Mikhail"}\'',
+    );
+  });
+
   it("parses JSON schemas and supports format conversion", () => {
     const jsonSchema = {
       info: {
