@@ -30,7 +30,7 @@ describe("SwaggerWorkspace", () => {
       "curl -X GET",
     );
     expect(screen.getByLabelText("cURL POST /users/{id}")).toHaveTextContent(
-      "-d '{...}'",
+      "Alex Smith",
     );
   });
 
@@ -85,10 +85,21 @@ describe("SwaggerWorkspace", () => {
 
     render(<SwaggerWorkspace />);
 
+    await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+    await user.type(screen.getByLabelText("Query parameter search"), "Alex");
+    await user.type(
+      screen.getByLabelText("Header parameter X-Trace-Id"),
+      "trace-1",
+    );
     await user.click(screen.getAllByRole("button", { name: "Copy cURL" })[0]);
 
     expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("curl -X GET"),
+      expect.stringContaining(
+        'curl -X GET \\\n  "https://jsonplaceholder.typicode.com/users/42?search=Alex" \\\n  -H "X-Trace-Id: trace-1"',
+      ),
+    );
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toHaveTextContent(
+      "/users/42?search=Alex",
     );
     expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
   });

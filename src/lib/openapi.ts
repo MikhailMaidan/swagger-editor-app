@@ -7,6 +7,10 @@ export type EndpointParameter = {
   location: "path" | "query" | "header" | "cookie";
 };
 
+export type CurlParameter = EndpointParameter & {
+  value: string;
+};
+
 export type SchemaDetails = {
   type: string;
   properties: string[];
@@ -292,18 +296,51 @@ export function createCurlPreview(
   path: string,
   hasRequestBody: boolean,
   serverUrl = "https://api.example.com",
+  parameters: CurlParameter[] = [],
+  requestBody = "",
 ) {
   const normalizedServerUrl = serverUrl.endsWith("/")
     ? serverUrl.slice(0, -1)
     : serverUrl;
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const parts = [
-    `curl -X ${method}`,
-    `"${normalizedServerUrl}${normalizedPath}"`,
-  ];
+  let normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  parameters
+    .filter((parameter) => parameter.location === "path")
+    .forEach((parameter) => {
+      normalizedPath = normalizedPath.replaceAll(
+        `{${parameter.name}}`,
+        encodeURIComponent(parameter.value),
+      );
+    });
+
+  const query = parameters
+    .filter((parameter) => parameter.location === "query")
+    .map(
+      (parameter) =>
+        `${encodeURIComponent(parameter.name)}=${encodeURIComponent(
+          parameter.value,
+        )}`,
+    )
+    .join("&");
+  const separator = normalizedPath.includes("?") ? "&" : "?";
+  const url = `${normalizedServerUrl}${normalizedPath}${
+    query ? `${separator}${query}` : ""
+  }`;
+  const parts = [`curl -X ${method}`, `"${url}"`];
+
+  parameters
+    .filter((parameter) => parameter.location === "header")
+    .forEach((parameter) => {
+      parts.push(`-H "${parameter.name}: ${parameter.value}"`);
+    });
 
   if (hasRequestBody) {
-    parts.push('-H "Content-Type: application/json"', "-d '{...}'");
+    const body = requestBody.trim() || "{...}";
+
+    parts.push(
+      '-H "Content-Type: application/json"',
+      `-d '${body.replaceAll("'", "'\\''")}'`,
+    );
   }
 
   return parts.join(" \\\n  ");

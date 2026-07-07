@@ -5,6 +5,8 @@ import { useI18n } from "@/components/i18n-provider";
 import { AUTH_CHANGE_EVENT } from "@/lib/auth";
 import { getClientAuth } from "@/lib/client-auth";
 import {
+  createCurlPreview,
+  CurlParameter,
   DEFAULT_OPENAPI_SCHEMA,
   EndpointParameter,
   EndpointSummary,
@@ -158,6 +160,19 @@ function getInitialRequestBody(endpoint: EndpointSummary) {
   return endpoint.requestBodies[0]?.schema.example || "";
 }
 
+function createRequestParameters(
+  endpoint: EndpointSummary,
+  values: Record<string, string>,
+) {
+  return endpoint.parameters
+    .map<CurlParameter>((parameter) => ({
+      location: parameter.location,
+      name: parameter.name,
+      value: (values[getParameterKey(parameter)] || "").trim(),
+    }))
+    .filter((parameter) => parameter.value);
+}
+
 function groupParameters(parameters: EndpointParameter[]) {
   return parameters.reduce<Record<EndpointParameter["location"], string[]>>(
     (groups, parameter) => {
@@ -246,9 +261,18 @@ function EndpointCard({
   const [requestBodyValue, setRequestBodyValue] = useState(() =>
     getInitialRequestBody(endpoint),
   );
+  const requestParameters = createRequestParameters(endpoint, parameterValues);
+  const currentCurl = createCurlPreview(
+    endpoint.method,
+    endpoint.path,
+    endpoint.requestBodies.length > 0,
+    endpoint.serverUrl,
+    requestParameters,
+    requestBodyValue,
+  );
 
   async function handleCopyCurl() {
-    await navigator.clipboard?.writeText(endpoint.curl);
+    await navigator.clipboard?.writeText(currentCurl);
     setIsCurlCopied(true);
   }
 
@@ -270,13 +294,6 @@ function EndpointCard({
         path: endpoint.path,
       }),
     );
-    const requestParameters = endpoint.parameters
-      .map((parameter) => ({
-        location: parameter.location,
-        name: parameter.name,
-        value: (parameterValues[getParameterKey(parameter)] || "").trim(),
-      }))
-      .filter((parameter) => parameter.value);
     const requestValues = requestParameters.map((parameter) => ({
       label: `${t(parameterLabelKeys[parameter.location])}: ${parameter.name}`,
       value: parameter.value,
@@ -488,7 +505,7 @@ function EndpointCard({
           aria-label={`cURL ${endpoint.method} ${endpoint.path}`}
           className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
         >
-          {endpoint.curl}
+          {currentCurl}
         </pre>
         {isCurlCopied ? (
           <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
