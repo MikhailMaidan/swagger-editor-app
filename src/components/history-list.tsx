@@ -79,7 +79,7 @@ export function HistoryList() {
       </p>
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-[color:var(--color-brand-border)]">
-        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[940px] border-collapse text-left text-sm">
           <thead className="bg-[#fbfaff] text-[color:var(--color-brand-navy)]">
             <tr>
               <th className="px-4 py-3 font-extrabold">
@@ -96,6 +96,12 @@ export function HistoryList() {
               </th>
               <th className="px-4 py-3 font-extrabold">
                 {t("history.duration")}
+              </th>
+              <th className="px-4 py-3 font-extrabold">
+                {t("history.requestSize")}
+              </th>
+              <th className="px-4 py-3 font-extrabold">
+                {t("history.responseSize")}
               </th>
               <th className="px-4 py-3 font-extrabold">
                 {t("history.timestamp")}
@@ -118,6 +124,12 @@ export function HistoryList() {
                 <td className="px-4 py-4 font-bold">{record.status}</td>
                 <td className="px-4 py-4 font-medium">
                   {record.durationMs} ms
+                </td>
+                <td className="px-4 py-4 font-medium">
+                  {record.requestSize ?? 0} B
+                </td>
+                <td className="px-4 py-4 font-medium">
+                  {record.responseSize ?? 0} B
                 </td>
                 <td className="px-4 py-4 font-medium">
                   {formatDate(

@@ -7,6 +7,8 @@ export type RequestHistoryRecord = {
   status: number;
   summary: string;
   durationMs: number;
+  requestSize?: number;
+  responseSize?: number;
   createdAt: string;
 };
 

@@ -247,6 +247,47 @@ paths:
     );
   });
 
+  it("uses server execution analytics when the try-it-out route responds", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          body: JSON.stringify({ ok: true }),
+          durationMs: 88,
+          requestSize: 123,
+          responseSize: 11,
+          status: "200",
+        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          status: 200,
+        },
+      ),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/try-it-out",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+      expect(screen.getByRole("status")).toHaveTextContent("88 ms");
+      expect(screen.getByRole("status")).toHaveTextContent("Request 123 B");
+      expect(screen.getByRole("status")).toHaveTextContent("Response 11 B");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("shows guest mock execution without saving history", async () => {
     const user = userEvent.setup();
 
