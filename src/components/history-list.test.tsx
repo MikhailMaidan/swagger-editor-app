@@ -18,6 +18,30 @@ describe("HistoryList", () => {
     );
   });
 
+  it("renders server-provided request records immediately", () => {
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            id: "server-record",
+            method: "GET",
+            path: "/server",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "Server record",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Server record")).toBeVisible();
+    expect(screen.getByText("/server")).toBeVisible();
+    expect(screen.getByText("52 ms")).toBeVisible();
+  });
+
   it("renders saved requests newest first", async () => {
     window.localStorage.setItem(
       REQUEST_HISTORY_STORAGE_KEY,

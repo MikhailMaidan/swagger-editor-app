@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import {
+  mergeRequestHistory,
   readRequestHistory,
   RequestHistoryRecord,
 } from "@/lib/request-history";
+
+const EMPTY_HISTORY: RequestHistoryRecord[] = [];
 
 function formatDate(value: string, locale: string) {
   const date = new Date(value);
@@ -18,12 +21,8 @@ function formatDate(value: string, locale: string) {
   return date.toLocaleString(locale);
 }
 
-function readSortedRequestHistory() {
-  return readRequestHistory().sort(
-    (firstRecord, secondRecord) =>
-      new Date(secondRecord.createdAt).getTime() -
-      new Date(firstRecord.createdAt).getTime(),
-  );
+function readSortedRequestHistory(initialRecords: RequestHistoryRecord[]) {
+  return mergeRequestHistory([...initialRecords, ...readRequestHistory()]);
 }
 
 function HistoryLinks() {
@@ -47,19 +46,25 @@ function HistoryLinks() {
   );
 }
 
-export function HistoryList() {
+export function HistoryList({
+  initialRecords = EMPTY_HISTORY,
+}: {
+  initialRecords?: RequestHistoryRecord[];
+}) {
   const { language, t } = useI18n();
-  const [records, setRecords] = useState<RequestHistoryRecord[]>([]);
+  const [records, setRecords] = useState<RequestHistoryRecord[]>(() =>
+    mergeRequestHistory(initialRecords),
+  );
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
-      setRecords(readSortedRequestHistory());
+      setRecords(readSortedRequestHistory(initialRecords));
     }, 0);
 
     return () => {
       window.clearTimeout(timerId);
     };
-  }, []);
+  }, [initialRecords]);
 
   if (records.length === 0) {
     return (

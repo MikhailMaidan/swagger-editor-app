@@ -1,22 +1,16 @@
-"use client";
+import { cookies } from "next/headers";
+import { HistoryPageContent } from "@/components/history-page-content";
+import {
+  parseRequestHistory,
+  SERVER_REQUEST_HISTORY_COOKIE,
+  sortRequestHistory,
+} from "@/lib/request-history";
 
-import { HistoryList } from "@/components/history-list";
-import { useI18n } from "@/components/i18n-provider";
-
-export default function HistoryPage() {
-  const { t } = useI18n();
-
-  return (
-    <div className="w-full px-4 py-10 md:px-8 lg:px-10">
-      <section className="mx-auto w-full max-w-[1600px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
-        <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
-          {t("history.privateRoute")}
-        </p>
-        <h1 className="mt-3 text-4xl font-extrabold text-[color:var(--color-brand-navy)]">
-          {t("history.history")}
-        </h1>
-        <HistoryList />
-      </section>
-    </div>
+export default async function HistoryPage() {
+  const cookieStore = await cookies();
+  const initialRecords = sortRequestHistory(
+    parseRequestHistory(cookieStore.get(SERVER_REQUEST_HISTORY_COOKIE)?.value),
   );
+
+  return <HistoryPageContent initialRecords={initialRecords} />;
 }
