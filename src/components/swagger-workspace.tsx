@@ -43,8 +43,31 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
   "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
 
+type MockRequestValue = {
+  label: string;
+  value: string;
+};
+
 function getMethodClass(method: string) {
   return methodColorClasses[method] || "bg-slate-100 text-slate-700";
+}
+
+function getParameterKey(parameter: EndpointParameter) {
+  return `${parameter.location}:${parameter.name}`;
+}
+
+function createInitialParameterValues(endpoint: EndpointSummary) {
+  return endpoint.parameters.reduce<Record<string, string>>(
+    (values, parameter) => {
+      values[getParameterKey(parameter)] = "";
+      return values;
+    },
+    {},
+  );
+}
+
+function getInitialRequestBody(endpoint: EndpointSummary) {
+  return endpoint.requestBodies[0]?.schema.example || "";
 }
 
 function groupParameters(parameters: EndpointParameter[]) {
@@ -120,14 +143,29 @@ function EndpointCard({
   const [mockResult, setMockResult] = useState<{
     body: string;
     durationMs: number;
+    requestBody: string;
+    requestValues: MockRequestValue[];
     savedToHistory: boolean;
     status: string;
   } | null>(null);
   const [isCurlCopied, setIsCurlCopied] = useState(false);
+  const [parameterValues, setParameterValues] = useState(() =>
+    createInitialParameterValues(endpoint),
+  );
+  const [requestBodyValue, setRequestBodyValue] = useState(() =>
+    getInitialRequestBody(endpoint),
+  );
 
   async function handleCopyCurl() {
     await navigator.clipboard?.writeText(endpoint.curl);
     setIsCurlCopied(true);
+  }
+
+  function handleParameterValueChange(parameter: EndpointParameter, value: string) {
+    setParameterValues((currentValues) => ({
+      ...currentValues,
+      [getParameterKey(parameter)]: value,
+    }));
   }
 
   function handleTryItOut() {
@@ -154,6 +192,15 @@ function EndpointCard({
     setMockResult({
       ...response,
       durationMs,
+      requestBody: requestBodyValue,
+      requestValues: endpoint.parameters
+        .map((parameter) => ({
+          label: `${t(
+            parameterLabelKeys[parameter.location],
+          )}: ${parameter.name}`,
+          value: parameterValues[getParameterKey(parameter)].trim(),
+        }))
+        .filter((parameter) => parameter.value),
       savedToHistory: canSaveHistory,
     });
   }
@@ -242,6 +289,53 @@ function EndpointCard({
         </div>
       </div>
 
+      <div className="mt-4 rounded-2xl bg-[#fbfaff] p-4">
+        <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+          {t("workspace.tryItOut")}
+        </p>
+        {endpoint.parameters.length > 0 ? (
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {endpoint.parameters.map((parameter) => {
+              const locationLabel = t(parameterLabelKeys[parameter.location]);
+
+              return (
+                <label
+                  className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
+                  key={getParameterKey(parameter)}
+                >
+                  {locationLabel}: {parameter.name}
+                  <input
+                    aria-label={t("workspace.parameterInputLabel", {
+                      location: locationLabel,
+                      name: parameter.name,
+                    })}
+                    className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                    placeholder={t("workspace.parameterValuePlaceholder")}
+                    type="text"
+                    value={parameterValues[getParameterKey(parameter)]}
+                    onChange={(event) =>
+                      handleParameterValueChange(parameter, event.target.value)
+                    }
+                  />
+                </label>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {endpoint.requestBodies.length > 0 ? (
+          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+            {t("workspace.requestBody")}
+            <textarea
+              aria-label={t("workspace.requestBodyInputLabel")}
+              className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
+              value={requestBodyValue}
+              onChange={(event) => setRequestBodyValue(event.target.value)}
+            />
+          </label>
+        ) : null}
+      </div>
+
       <div className="mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
@@ -301,6 +395,27 @@ function EndpointCard({
                 : t("workspace.guestRun")}
             </span>
           </div>
+          {mockResult.requestValues.length > 0 || mockResult.requestBody ? (
+            <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
+              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                {t("workspace.requestPreview")}
+              </p>
+              {mockResult.requestValues.length > 0 ? (
+                <ul className="mt-2 space-y-1 font-medium text-[color:var(--color-brand-muted)]">
+                  {mockResult.requestValues.map((requestValue) => (
+                    <li key={requestValue.label}>
+                      {requestValue.label}: {requestValue.value}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {mockResult.requestBody ? (
+                <pre className="mt-3 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
+                  {mockResult.requestBody}
+                </pre>
+              ) : null}
+            </div>
+          ) : null}
           <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
             {mockResult.body}
           </pre>

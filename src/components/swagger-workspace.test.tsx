@@ -93,6 +93,41 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
   });
 
+  it("shows filled parameter values in the mock request preview", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+    await user.type(
+      screen.getByLabelText("Header parameter X-Trace-Id"),
+      "trace-1",
+    );
+    await user.click(screen.getAllByRole("button", { name: "Try It Out" })[0]);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Request preview");
+    expect(screen.getByRole("status")).toHaveTextContent("Path: id: 42");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Header: X-Trace-Id: trace-1",
+    );
+  });
+
+  it("shows edited request body values in the mock request preview", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("Editable request body"), {
+      target: {
+        value: JSON.stringify({ name: "Mikhail" }, null, 2),
+      },
+    });
+    await user.click(screen.getAllByRole("button", { name: "Try It Out" })[1]);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Request preview");
+    expect(screen.getByRole("status")).toHaveTextContent("Mikhail");
+  });
+
   it("updates the viewer when a JSON schema is entered", () => {
     render(<SwaggerWorkspace />);
 
