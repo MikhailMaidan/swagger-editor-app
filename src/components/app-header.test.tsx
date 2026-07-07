@@ -6,9 +6,7 @@ import { AppHeader } from "./app-header";
 
 describe("AppHeader", () => {
   it("shows public navigation and auth links for non-authenticated users", () => {
-    render(
-      <AppHeader initialIsAuthenticated={false} initialUserName="User" />,
-    );
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
 
     expect(screen.getByLabelText("RSSwag home page")).toHaveAttribute(
       "href",
@@ -65,9 +63,7 @@ describe("AppHeader", () => {
   });
 
   it("animates into a compact sticky state after scrolling", () => {
-    render(
-      <AppHeader initialIsAuthenticated={false} initialUserName="User" />,
-    );
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
 
     const headerShell = screen.getByTestId("app-header-shell");
 
@@ -80,6 +76,8 @@ describe("AppHeader", () => {
     fireEvent.scroll(window);
 
     expect(headerShell.className).toContain("py-2");
-    expect(headerShell.className).toContain("border-[color:var(--color-brand-purple)]");
+    expect(headerShell.className).toContain(
+      "border-[color:var(--color-brand-purple)]",
+    );
   });
 });

@@ -36,9 +36,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const isSignIn = mode === "sign-in";
   const title = isSignIn ? t("auth.signIn") : t("auth.signUp");
-  const helperText = isSignIn
-    ? t("auth.signInHelper")
-    : t("auth.signUpHelper");
+  const helperText = isSignIn ? t("auth.signInHelper") : t("auth.signUpHelper");
 
   function getErrorMessage(error?: string) {
     if (!error) {
@@ -106,7 +104,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 className="text-sm font-semibold text-red-600"
                 id="email-error"
                 role="alert"
-          >
+              >
                 {getErrorMessage(errors.email)}
               </span>
             ) : null}
@@ -136,7 +134,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 className="text-sm font-semibold text-red-600"
                 id="password-error"
                 role="alert"
-          >
+              >
                 {getErrorMessage(errors.password)}
               </span>
             ) : null}

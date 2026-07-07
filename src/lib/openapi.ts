@@ -141,7 +141,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isParameterLocation(value: unknown): value is EndpointParameter["location"] {
+function isParameterLocation(
+  value: unknown,
+): value is EndpointParameter["location"] {
   return (
     value === "path" ||
     value === "query" ||

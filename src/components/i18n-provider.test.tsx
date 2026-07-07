@@ -35,9 +35,9 @@ describe("i18n", () => {
     expect(
       screen.getByRole("link", { name: "Зарегистрироваться" }),
     ).toHaveAttribute("href", "/sign-up");
-    expect(screen.getByRole("button", { name: "Английский" })).toHaveTextContent(
-      "АНГЛ",
-    );
+    expect(
+      screen.getByRole("button", { name: "Английский" }),
+    ).toHaveTextContent("АНГЛ");
     expect(screen.getByRole("button", { name: "Русский" })).toHaveTextContent(
       "РУС",
     );

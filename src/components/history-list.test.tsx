@@ -45,7 +45,11 @@ describe("HistoryList", () => {
 
     render(<HistoryList />);
 
-    expect(await screen.findByText("Recent executed requests are shown newest first.")).toBeVisible();
+    expect(
+      await screen.findByText(
+        "Recent executed requests are shown newest first.",
+      ),
+    ).toBeVisible();
 
     const rows = screen.getAllByRole("row");
 

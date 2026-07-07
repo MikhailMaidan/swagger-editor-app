@@ -161,7 +161,10 @@ function EndpointCard({
     setIsCurlCopied(true);
   }
 
-  function handleParameterValueChange(parameter: EndpointParameter, value: string) {
+  function handleParameterValueChange(
+    parameter: EndpointParameter,
+    value: string,
+  ) {
     setParameterValues((currentValues) => ({
       ...currentValues,
       [getParameterKey(parameter)]: value,
@@ -365,10 +368,7 @@ function EndpointCard({
           {endpoint.curl}
         </pre>
         {isCurlCopied ? (
-          <p
-            className="mt-2 text-sm font-bold text-emerald-700"
-            role="status"
-          >
+          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
             {t("workspace.curlCopied")}
           </p>
         ) : null}
@@ -430,7 +430,10 @@ export function SwaggerWorkspace() {
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const parseResult = useMemo(() => parseOpenApiSchema(schemaText), [schemaText]);
+  const parseResult = useMemo(
+    () => parseOpenApiSchema(schemaText),
+    [schemaText],
+  );
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
     : parseResult.format;

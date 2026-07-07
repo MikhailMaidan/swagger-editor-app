@@ -9,9 +9,7 @@ import {
 
 describe("auth helpers", () => {
   it("creates readable display names from email addresses", () => {
-    expect(getDisplayName("mikhail.maidan@example.com")).toBe(
-      "Mikhail Maidan",
-    );
+    expect(getDisplayName("mikhail.maidan@example.com")).toBe("Mikhail Maidan");
     expect(getDisplayName("@example.com")).toBe("User");
   });
 
