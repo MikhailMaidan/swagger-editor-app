@@ -48,6 +48,67 @@ type MockRequestValue = {
   value: string;
 };
 
+type TryItOutExecutionResult = {
+  body: string;
+  durationMs: number;
+  requestSize: number;
+  responseSize: number;
+  status: string;
+};
+
+type TryItOutPayload = {
+  method: string;
+  path: string;
+  requestBody: string;
+  requestValues: MockRequestValue[];
+  responseBody: string;
+  status: string;
+};
+
+function getTextSize(value: string) {
+  return new TextEncoder().encode(value).length;
+}
+
+async function executeTryItOut(
+  payload: TryItOutPayload,
+  fallback: TryItOutExecutionResult,
+) {
+  try {
+    const response = await fetch("/api/try-it-out", {
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      return fallback;
+    }
+
+    const data = (await response.json()) as Partial<TryItOutExecutionResult>;
+
+    return {
+      body: typeof data.body === "string" ? data.body : fallback.body,
+      durationMs:
+        typeof data.durationMs === "number"
+          ? data.durationMs
+          : fallback.durationMs,
+      requestSize:
+        typeof data.requestSize === "number"
+          ? data.requestSize
+          : fallback.requestSize,
+      responseSize:
+        typeof data.responseSize === "number"
+          ? data.responseSize
+          : fallback.responseSize,
+      status: typeof data.status === "string" ? data.status : fallback.status,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 function getMethodClass(method: string) {
   return methodColorClasses[method] || "bg-slate-100 text-slate-700";
 }
@@ -144,7 +205,9 @@ function EndpointCard({
     body: string;
     durationMs: number;
     requestBody: string;
+    requestSize: number;
     requestValues: MockRequestValue[];
+    responseSize: number;
     savedToHistory: boolean;
     status: string;
   } | null>(null);
@@ -171,7 +234,7 @@ function EndpointCard({
     }));
   }
 
-  function handleTryItOut() {
+  async function handleTryItOut() {
     const response = getMockResponse(
       endpoint,
       t("workspace.noResponseExample", {
@@ -179,31 +242,55 @@ function EndpointCard({
         path: endpoint.path,
       }),
     );
-    const durationMs =
-      30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8;
+    const requestValues = endpoint.parameters
+      .map((parameter) => ({
+        label: `${t(parameterLabelKeys[parameter.location])}: ${
+          parameter.name
+        }`,
+        value: parameterValues[getParameterKey(parameter)].trim(),
+      }))
+      .filter((parameter) => parameter.value);
+    const fallbackResult = {
+      body: response.body,
+      durationMs:
+        30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8,
+      requestSize: getTextSize(
+        JSON.stringify({
+          body: requestBodyValue,
+          values: requestValues,
+        }),
+      ),
+      responseSize: getTextSize(response.body),
+      status: response.status,
+    };
+    const executionResult = await executeTryItOut(
+      {
+        method: endpoint.method,
+        path: endpoint.path,
+        requestBody: requestBodyValue,
+        requestValues,
+        responseBody: response.body,
+        status: response.status,
+      },
+      fallbackResult,
+    );
 
     if (canSaveHistory) {
       saveRequestHistoryRecord({
-        durationMs,
+        durationMs: executionResult.durationMs,
         method: endpoint.method,
         path: endpoint.path,
-        status: Number(response.status) || 200,
+        requestSize: executionResult.requestSize,
+        responseSize: executionResult.responseSize,
+        status: Number(executionResult.status) || 200,
         summary: endpoint.summary,
       });
     }
 
     setMockResult({
-      ...response,
-      durationMs,
+      ...executionResult,
       requestBody: requestBodyValue,
-      requestValues: endpoint.parameters
-        .map((parameter) => ({
-          label: `${t(
-            parameterLabelKeys[parameter.location],
-          )}: ${parameter.name}`,
-          value: parameterValues[getParameterKey(parameter)].trim(),
-        }))
-        .filter((parameter) => parameter.value),
+      requestValues,
       savedToHistory: canSaveHistory,
     });
   }
@@ -388,6 +475,16 @@ function EndpointCard({
             </span>
             <span className="font-bold text-[color:var(--color-brand-muted)]">
               {mockResult.durationMs} ms
+            </span>
+            <span className="font-bold text-[color:var(--color-brand-muted)]">
+              {t("workspace.requestSize", {
+                size: String(mockResult.requestSize),
+              })}
+            </span>
+            <span className="font-bold text-[color:var(--color-brand-muted)]">
+              {t("workspace.responseSize", {
+                size: String(mockResult.responseSize),
+              })}
             </span>
             <span className="font-bold text-[color:var(--color-brand-muted)]">
               {mockResult.savedToHistory

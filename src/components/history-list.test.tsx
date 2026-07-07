@@ -28,6 +28,8 @@ describe("HistoryList", () => {
           id: "old-request",
           method: "GET",
           path: "/users/{id}",
+          requestSize: 84,
+          responseSize: 120,
           status: 200,
           summary: "Old request",
         },
@@ -37,6 +39,8 @@ describe("HistoryList", () => {
           id: "new-request",
           method: "POST",
           path: "/users/{id}",
+          requestSize: 96,
+          responseSize: 144,
           status: 201,
           summary: "New request",
         },
@@ -56,6 +60,8 @@ describe("HistoryList", () => {
     expect(within(rows[1]).getByText("POST")).toBeVisible();
     expect(within(rows[1]).getByText("New request")).toBeVisible();
     expect(within(rows[1]).getByText("38 ms")).toBeVisible();
+    expect(within(rows[1]).getByText("96 B")).toBeVisible();
+    expect(within(rows[1]).getByText("144 B")).toBeVisible();
     expect(within(rows[2]).getByText("GET")).toBeVisible();
     expect(within(rows[2]).getByText("Old request")).toBeVisible();
     expect(within(rows[2]).getByText("45 ms")).toBeVisible();
