@@ -254,6 +254,10 @@ paths:
         JSON.stringify({
           body: JSON.stringify({ ok: true }),
           durationMs: 88,
+          headers: {
+            "content-type": "application/json",
+            "x-demo": "server",
+          },
           requestSize: 123,
           responseSize: 11,
           status: "200",
@@ -280,9 +284,21 @@ paths:
           method: "POST",
         }),
       );
+      const requestBody = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+
+      expect(requestBody).toMatchObject({
+        method: "GET",
+        path: "/users/{id}",
+        requestParameters: [],
+        serverUrl: "https://jsonplaceholder.typicode.com",
+      });
       expect(screen.getByRole("status")).toHaveTextContent("88 ms");
       expect(screen.getByRole("status")).toHaveTextContent("Request 123 B");
       expect(screen.getByRole("status")).toHaveTextContent("Response 11 B");
+      expect(screen.getByRole("status")).toHaveTextContent("Response headers");
+      expect(screen.getByRole("status")).toHaveTextContent("x-demo: server");
     } finally {
       fetchMock.mockRestore();
     }

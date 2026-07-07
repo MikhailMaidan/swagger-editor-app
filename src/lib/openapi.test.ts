@@ -26,12 +26,14 @@ describe("openapi helpers", () => {
 
     expect(result.value.title).toBe("RSSwag Demo API");
     expect(result.value.format).toBe("yaml");
+    expect(result.value.serverUrl).toBe("https://jsonplaceholder.typicode.com");
     expect(result.value.endpoints).toHaveLength(2);
     expect(result.value.endpoints[0]).toMatchObject({
-      curl: 'curl -X GET \\\n  "https://api.example.com/users/{id}"',
+      curl: 'curl -X GET \\\n  "https://jsonplaceholder.typicode.com/users/{id}"',
       method: "GET",
       path: "/users/{id}",
       responseStatuses: ["200", "404"],
+      serverUrl: "https://jsonplaceholder.typicode.com",
     });
     expect(result.value.endpoints[0].responses[0]).toMatchObject({
       contentTypes: ["application/json"],
