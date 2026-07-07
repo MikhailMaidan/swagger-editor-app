@@ -29,6 +29,7 @@ export type EndpointSummary = {
   curl: string;
   method: string;
   path: string;
+  serverUrl: string;
   summary: string;
   description: string;
   parameters: EndpointParameter[];
@@ -42,6 +43,7 @@ export type ParsedOpenApiSchema = {
   format: SchemaFormat;
   title: string;
   version: string;
+  serverUrl: string;
   schema: Record<string, unknown>;
   endpoints: EndpointSummary[];
 };
@@ -72,6 +74,8 @@ export const DEFAULT_OPENAPI_SCHEMA = `openapi: 3.0.0
 info:
   title: RSSwag Demo API
   version: 1.0.0
+servers:
+  - url: https://jsonplaceholder.typicode.com
 paths:
   /users/{id}:
     parameters:
@@ -154,6 +158,20 @@ function isParameterLocation(
 
 function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
+}
+
+function readServerUrl(schema: Record<string, unknown>) {
+  if (!Array.isArray(schema.servers)) {
+    return "https://api.example.com";
+  }
+
+  const firstServer = schema.servers.find(isRecord);
+
+  if (!firstServer) {
+    return "https://api.example.com";
+  }
+
+  return readString(firstServer.url, "https://api.example.com");
 }
 
 function formatExample(value: unknown) {
@@ -273,8 +291,16 @@ export function createCurlPreview(
   method: string,
   path: string,
   hasRequestBody: boolean,
+  serverUrl = "https://api.example.com",
 ) {
-  const parts = [`curl -X ${method}`, `"https://api.example.com${path}"`];
+  const normalizedServerUrl = serverUrl.endsWith("/")
+    ? serverUrl.slice(0, -1)
+    : serverUrl;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const parts = [
+    `curl -X ${method}`,
+    `"${normalizedServerUrl}${normalizedPath}"`,
+  ];
 
   if (hasRequestBody) {
     parts.push('-H "Content-Type: application/json"', "-d '{...}'");
@@ -299,6 +325,7 @@ export function parseSchemaText(schemaText: string, format: SchemaFormat) {
 
 export function extractEndpoints(schema: Record<string, unknown>) {
   const paths = isRecord(schema.paths) ? schema.paths : {};
+  const serverUrl = readServerUrl(schema);
 
   return Object.entries(paths).flatMap(([path, pathConfig]) => {
     if (!isRecord(pathConfig)) {
@@ -321,6 +348,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
             method.toUpperCase(),
             path,
             requestBodies.length > 0,
+            serverUrl,
           ),
           description: readString(operation.description),
           method: method.toUpperCase(),
@@ -335,6 +363,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           ),
           responses,
           responseStatuses: responses.map((response) => response.status),
+          serverUrl,
           summary: readString(operation.summary, "Untitled endpoint"),
         });
 
@@ -382,6 +411,7 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
 
     const schema = parsedSchema as Record<string, unknown>;
     const info = schema.info as Record<string, unknown>;
+    const serverUrl = readServerUrl(schema);
 
     return {
       ok: true,
@@ -389,6 +419,7 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
         endpoints: extractEndpoints(schema),
         format,
         schema,
+        serverUrl,
         title: readString(info.title, "Untitled API"),
         version: readString(info.version, "0.0.0"),
       },

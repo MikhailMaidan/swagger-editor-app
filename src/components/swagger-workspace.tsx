@@ -48,9 +48,16 @@ type MockRequestValue = {
   value: string;
 };
 
+type StructuredRequestParameter = {
+  location: EndpointParameter["location"];
+  name: string;
+  value: string;
+};
+
 type TryItOutExecutionResult = {
   body: string;
   durationMs: number;
+  headers: Record<string, string>;
   requestSize: number;
   responseSize: number;
   status: string;
@@ -59,14 +66,33 @@ type TryItOutExecutionResult = {
 type TryItOutPayload = {
   method: string;
   path: string;
+  requestParameters: StructuredRequestParameter[];
   requestBody: string;
   requestValues: MockRequestValue[];
   responseBody: string;
+  serverUrl: string;
   status: string;
 };
 
 function getTextSize(value: string) {
   return new TextEncoder().encode(value).length;
+}
+
+function readResponseHeaders(value: unknown) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value).reduce<Record<string, string>>(
+    (headers, [header, headerValue]) => {
+      if (typeof headerValue === "string") {
+        headers[header] = headerValue;
+      }
+
+      return headers;
+    },
+    {},
+  );
 }
 
 async function executeTryItOut(
@@ -94,6 +120,7 @@ async function executeTryItOut(
         typeof data.durationMs === "number"
           ? data.durationMs
           : fallback.durationMs,
+      headers: readResponseHeaders(data.headers),
       requestSize:
         typeof data.requestSize === "number"
           ? data.requestSize
@@ -204,6 +231,7 @@ function EndpointCard({
   const [mockResult, setMockResult] = useState<{
     body: string;
     durationMs: number;
+    headers: Record<string, string>;
     requestBody: string;
     requestSize: number;
     requestValues: MockRequestValue[];
@@ -242,18 +270,24 @@ function EndpointCard({
         path: endpoint.path,
       }),
     );
-    const requestValues = endpoint.parameters
+    const requestParameters = endpoint.parameters
       .map((parameter) => ({
-        label: `${t(parameterLabelKeys[parameter.location])}: ${
-          parameter.name
-        }`,
-        value: parameterValues[getParameterKey(parameter)].trim(),
+        location: parameter.location,
+        name: parameter.name,
+        value: (parameterValues[getParameterKey(parameter)] || "").trim(),
       }))
       .filter((parameter) => parameter.value);
+    const requestValues = requestParameters.map((parameter) => ({
+      label: `${t(parameterLabelKeys[parameter.location])}: ${parameter.name}`,
+      value: parameter.value,
+    }));
     const fallbackResult = {
       body: response.body,
       durationMs:
         30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8,
+      headers: {
+        "content-type": "application/json",
+      },
       requestSize: getTextSize(
         JSON.stringify({
           body: requestBodyValue,
@@ -268,8 +302,10 @@ function EndpointCard({
         method: endpoint.method,
         path: endpoint.path,
         requestBody: requestBodyValue,
+        requestParameters,
         requestValues,
         responseBody: response.body,
+        serverUrl: endpoint.serverUrl,
         status: response.status,
       },
       fallbackResult,
@@ -492,6 +528,20 @@ function EndpointCard({
                 : t("workspace.guestRun")}
             </span>
           </div>
+          {Object.keys(mockResult.headers).length > 0 ? (
+            <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
+              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                {t("workspace.responseHeaders")}
+              </p>
+              <ul className="mt-2 space-y-1 font-mono text-xs leading-5 text-[color:var(--color-brand-muted)]">
+                {Object.entries(mockResult.headers).map(([header, value]) => (
+                  <li key={header}>
+                    {header}: {value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {mockResult.requestValues.length > 0 || mockResult.requestBody ? (
             <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
               <p className="font-extrabold text-[color:var(--color-brand-navy)]">
