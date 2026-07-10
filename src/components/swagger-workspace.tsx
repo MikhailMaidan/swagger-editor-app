@@ -19,7 +19,12 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
-import { readSavedSchema, saveSchema } from "@/lib/schema-storage";
+import {
+  readSavedSchema,
+  readServerSavedSchemas,
+  saveSchema,
+  saveServerSchemaRecord,
+} from "@/lib/schema-storage";
 import type { TranslationKey } from "@/lib/translations";
 
 const methodColorClasses: Record<string, string> = {
@@ -622,7 +627,16 @@ export function SwaggerWorkspace() {
 
         if (savedSchema) {
           setSchemaText(savedSchema);
+          return;
         }
+
+        void readServerSavedSchemas().then((savedSchemas) => {
+          const latestSchema = savedSchemas[0];
+
+          if (latestSchema) {
+            setSchemaText(latestSchema.schemaText);
+          }
+        });
       }
     };
 
@@ -648,7 +662,16 @@ export function SwaggerWorkspace() {
       return;
     }
 
-    saveSchema(schemaText);
+    const savedSchema = saveSchema(schemaText, {
+      format: parseResult.value.format,
+      title: parseResult.value.title,
+      version: parseResult.value.version,
+    });
+
+    if (savedSchema) {
+      void saveServerSchemaRecord(savedSchema);
+    }
+
     setSaveMessage(t("workspace.schemaSaved"));
   }
 

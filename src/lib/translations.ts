@@ -79,9 +79,15 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Page not found",
     "schemas.description":
-      "Authenticated schema saving will be connected during the editor feature.",
+      "Saved schemas from the editor are shown here newest first.",
+    "schemas.empty":
+      "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
+    "schemas.format": "Format",
     "schemas.label": "Schemas",
+    "schemas.schemaSize": "Size",
     "schemas.title": "Saved OpenAPI Schemas",
+    "schemas.updated": "Updated",
+    "schemas.version": "Version",
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
     "workspace.content": "Content:",
@@ -205,9 +211,15 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
     "schemas.description":
-      "Сохранение схем для авторизованных пользователей будет подключено в рамках функции редактора.",
+      "Сохраненные в редакторе схемы показаны здесь от новых к старым.",
+    "schemas.empty":
+      "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
+    "schemas.format": "Формат",
     "schemas.label": "Схемы",
+    "schemas.schemaSize": "Размер",
     "schemas.title": "Сохраненные схемы OpenAPI",
+    "schemas.updated": "Обновлено",
+    "schemas.version": "Версия",
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
     "workspace.content": "Контент:",

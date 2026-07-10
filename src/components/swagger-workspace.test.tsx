@@ -183,25 +183,40 @@ describe("SwaggerWorkspace", () => {
 
   it("saves a valid schema for authenticated users", async () => {
     const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
     window.localStorage.setItem(
       AUTH_TOKEN_COOKIE,
       createDemoToken("mikhail@example.com"),
     );
 
-    render(<SwaggerWorkspace />);
+    try {
+      render(<SwaggerWorkspace />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: "Save schema" }),
-      ).not.toBeDisabled();
-    });
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
 
-    await user.click(screen.getByRole("button", { name: "Save schema" }));
+      await user.click(screen.getByRole("button", { name: "Save schema" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Schema saved.");
-    expect(window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY)).toContain(
-      "RSSwag Demo API",
-    );
+      expect(screen.getByRole("status")).toHaveTextContent("Schema saved.");
+      expect(window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY)).toContain(
+        "RSSwag Demo API",
+      );
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/schemas",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("restores a saved schema for authenticated users", async () => {

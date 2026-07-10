@@ -62,13 +62,13 @@ describe("app pages", () => {
     );
   });
 
-  it("renders secondary placeholder pages", () => {
+  it("renders secondary placeholder pages", async () => {
     render(<ApiReferencePage />);
     expect(
       screen.getByRole("heading", { name: "Endpoint Documentation" }),
     ).toBeVisible();
 
-    render(<SchemasPage />);
+    render(await SchemasPage());
     expect(
       screen.getByRole("heading", { name: "Saved OpenAPI Schemas" }),
     ).toBeVisible();
