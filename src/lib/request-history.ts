@@ -6,18 +6,31 @@ export type RequestHistoryRecord = {
   id: string;
   method: string;
   path: string;
+  url: string;
   status: number;
   summary: string;
   durationMs: number;
-  requestSize?: number;
-  responseSize?: number;
+  requestSize: number;
+  responseSize: number;
+  errorDetails: string | null;
   createdAt: string;
 };
 
 export type RequestHistoryDraft = Omit<
   RequestHistoryRecord,
-  "id" | "createdAt"
->;
+  | "id"
+  | "createdAt"
+  | "errorDetails"
+  | "requestSize"
+  | "responseSize"
+  | "url"
+> &
+  Partial<
+    Pick<
+      RequestHistoryRecord,
+      "errorDetails" | "requestSize" | "responseSize" | "url"
+    >
+  >;
 
 function createId() {
   return `${Date.now()}-${Math.round(Math.random() * 10000)}`;
@@ -43,6 +56,21 @@ export function isRequestHistoryRecord(
   );
 }
 
+function normalizeRequestHistoryRecord(
+  record: RequestHistoryRecord,
+): RequestHistoryRecord {
+  return {
+    ...record,
+    errorDetails:
+      typeof record.errorDetails === "string" ? record.errorDetails : null,
+    requestSize:
+      typeof record.requestSize === "number" ? record.requestSize : 0,
+    responseSize:
+      typeof record.responseSize === "number" ? record.responseSize : 0,
+    url: typeof record.url === "string" ? record.url : record.path,
+  };
+}
+
 export function parseRequestHistory(value?: string | null) {
   if (!value) {
     return [];
@@ -52,7 +80,9 @@ export function parseRequestHistory(value?: string | null) {
     const parsedValue = JSON.parse(value);
 
     return Array.isArray(parsedValue)
-      ? parsedValue.filter(isRequestHistoryRecord)
+      ? parsedValue
+          .filter(isRequestHistoryRecord)
+          .map(normalizeRequestHistoryRecord)
       : [];
   } catch {
     return [];
@@ -102,7 +132,11 @@ export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
   const newRecord: RequestHistoryRecord = {
     ...record,
     createdAt: new Date().toISOString(),
+    errorDetails: record.errorDetails || null,
     id: createId(),
+    requestSize: record.requestSize || 0,
+    responseSize: record.responseSize || 0,
+    url: record.url || record.path,
   };
   const nextHistory = mergeRequestHistory([newRecord, ...readRequestHistory()]);
 

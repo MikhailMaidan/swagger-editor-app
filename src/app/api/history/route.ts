@@ -1,39 +1,53 @@
 import { NextResponse } from "next/server";
 import {
+  readHistoryFromDatabase,
+  saveHistoryToDatabase,
+} from "@/lib/database";
+import {
   isRequestHistoryRecord,
   mergeRequestHistory,
   parseRequestHistory,
   SERVER_REQUEST_HISTORY_COOKIE,
 } from "@/lib/request-history";
+import { getRequestUserId, readRequestCookie } from "@/lib/server-auth";
 
 const HISTORY_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
-function readCookie(request: Request, name: string) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const cookie = cookieHeader
-    .split("; ")
-    .find((item) => item.startsWith(`${name}=`));
-
-  if (!cookie) {
-    return null;
-  }
-
-  return decodeURIComponent(cookie.split("=").slice(1).join("="));
-}
-
 function readServerHistory(request: Request) {
   return parseRequestHistory(
-    readCookie(request, SERVER_REQUEST_HISTORY_COOKIE),
+    readRequestCookie(request, SERVER_REQUEST_HISTORY_COOKIE),
   );
 }
 
 export async function GET(request: Request) {
+  const userId = getRequestUserId(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  try {
+    const databaseRecords = await readHistoryFromDatabase(userId);
+
+    if (databaseRecords) {
+      return NextResponse.json({ records: databaseRecords });
+    }
+  } catch {
+    // The cookie fallback keeps the local demo usable if the database is down.
+  }
+
   return NextResponse.json({
     records: readServerHistory(request),
   });
 }
 
 export async function POST(request: Request) {
+  const userId = getRequestUserId(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   try {
     const record = await request.json();
 
@@ -52,6 +66,13 @@ export async function POST(request: Request) {
       record,
       ...readServerHistory(request),
     ]);
+
+    try {
+      await saveHistoryToDatabase(userId, record);
+    } catch {
+      // The record is still persisted in the server-readable fallback cookie.
+    }
+
     const response = NextResponse.json({
       records,
     });
@@ -61,8 +82,10 @@ export async function POST(request: Request) {
       JSON.stringify(records),
       {
         maxAge: HISTORY_COOKIE_MAX_AGE,
+        httpOnly: true,
         path: "/",
         sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
       },
     );
 
