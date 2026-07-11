@@ -74,6 +74,7 @@ async function readRows<T>(table: string, query: URLSearchParams) {
     {
       cache: "no-store",
       headers: createHeaders(config),
+      signal: AbortSignal.timeout(5_000),
     },
   );
 
@@ -98,6 +99,7 @@ async function saveRow(table: string, row: Record<string, unknown>) {
       "resolution=merge-duplicates,return=minimal",
     ),
     method: "POST",
+    signal: AbortSignal.timeout(5_000),
   });
 
   if (!response.ok) {

@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { SERVER_REQUEST_HISTORY_COOKIE } from "@/lib/request-history";
 import { GET, POST } from "./route";
 
 const authCookie = `${AUTH_TOKEN_COOKIE}=${createDemoToken("mikhail@example.com")}`;
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 const currentRecord = {
   createdAt: "2026-07-07T10:00:00.000Z",
@@ -88,5 +93,24 @@ describe("history route", () => {
     );
 
     expect(response.status).toBe(400);
+  });
+
+  it("does not duplicate database records in the fallback cookie", async () => {
+    vi.stubEnv("SUPABASE_URL", "https://project.supabase.co");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "secret-key");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(null, { status: 201 }),
+    );
+
+    const response = await POST(
+      new Request("http://localhost/api/history", {
+        body: JSON.stringify(currentRecord),
+        headers: { cookie: authCookie },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toBeNull();
   });
 });

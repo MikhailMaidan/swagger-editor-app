@@ -61,8 +61,10 @@ export async function POST(request: Request) {
 
     const schemas = mergeSavedSchemas([schema, ...readServerSchemas(request)]);
 
+    let savedToDatabase = false;
+
     try {
-      await saveSchemaToDatabase(userId, schema);
+      savedToDatabase = await saveSchemaToDatabase(userId, schema);
     } catch {
       // The schema is still persisted in the server-readable fallback cookie.
     }
@@ -71,13 +73,19 @@ export async function POST(request: Request) {
       schemas,
     });
 
-    response.cookies.set(SERVER_SAVED_SCHEMAS_COOKIE, JSON.stringify(schemas), {
-      maxAge: SCHEMAS_COOKIE_MAX_AGE,
-      httpOnly: true,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+    if (!savedToDatabase) {
+      response.cookies.set(
+        SERVER_SAVED_SCHEMAS_COOKIE,
+        JSON.stringify(schemas),
+        {
+          maxAge: SCHEMAS_COOKIE_MAX_AGE,
+          httpOnly: true,
+          path: "/",
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        },
+      );
+    }
 
     return response;
   } catch {
