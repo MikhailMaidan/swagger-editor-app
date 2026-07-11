@@ -23,11 +23,13 @@ type TryItOutPayload = {
 type TryItOutResult = {
   body: string;
   durationMs: number;
+  errorDetails: string | null;
   executedAt: string;
   headers: Record<string, string>;
   requestSize: number;
   responseSize: number;
   status: string;
+  url: string;
 };
 
 function getByteSize(value: string) {
@@ -193,6 +195,7 @@ function createFallbackResult({
   requestBody,
   requestValues,
   responseBody,
+  serverUrl,
   status,
 }: {
   method: string;
@@ -200,6 +203,7 @@ function createFallbackResult({
   requestBody: string;
   requestValues: { label: string; value: string }[];
   responseBody: string;
+  serverUrl: string;
   status: string;
 }): TryItOutResult {
   const requestSnapshot = JSON.stringify({
@@ -213,6 +217,7 @@ function createFallbackResult({
   return {
     body: responseBody,
     durationMs: 35 + Math.round(requestSize / 20),
+    errorDetails: null,
     executedAt: new Date().toISOString(),
     headers: {
       "content-type": "application/json",
@@ -220,6 +225,7 @@ function createFallbackResult({
     requestSize,
     responseSize: getByteSize(responseBody),
     status,
+    url: `${serverUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`,
   };
 }
 
@@ -259,12 +265,20 @@ async function executeServerRequest({
   return {
     body,
     durationMs: Math.max(1, Date.now() - startedAt),
+    errorDetails: response.ok
+      ? null
+      : `${response.status} ${response.statusText}`.trim(),
     executedAt: new Date().toISOString(),
     headers: collectResponseHeaders(response.headers),
     requestSize: getByteSize(requestSnapshot),
     responseSize: getByteSize(body),
     status: String(response.status),
+    url: targetUrl,
   };
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unable to execute request.";
 }
 
 export async function POST(request: Request) {
@@ -284,6 +298,7 @@ export async function POST(request: Request) {
       requestBody,
       requestValues,
       responseBody,
+      serverUrl,
       status,
     });
 
@@ -301,8 +316,16 @@ export async function POST(request: Request) {
         });
 
         return Response.json(serverResult);
-      } catch {
-        return Response.json(fallbackResult);
+      } catch (error) {
+        const errorDetails = getErrorMessage(error);
+
+        return Response.json({
+          ...fallbackResult,
+          body: JSON.stringify({ error: errorDetails }, null, 2),
+          errorDetails,
+          responseSize: getByteSize(errorDetails),
+          status: "0",
+        });
       }
     }
 

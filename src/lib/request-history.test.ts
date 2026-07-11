@@ -59,7 +59,13 @@ describe("request history storage", () => {
     };
 
     expect(parseRequestHistory(JSON.stringify([oldRecord, null]))).toEqual([
-      oldRecord,
+      {
+        ...oldRecord,
+        errorDetails: null,
+        requestSize: 0,
+        responseSize: 0,
+        url: "/old",
+      },
     ]);
     expect(mergeRequestHistory([oldRecord, newRecord])).toEqual([
       newRecord,
@@ -78,11 +84,15 @@ describe("request history storage", () => {
       await saveServerRequestHistoryRecord({
         createdAt: "2026-07-06T09:00:00.000Z",
         durationMs: 12,
+        errorDetails: null,
         id: "server-sync",
         method: "GET",
         path: "/users",
+        requestSize: 20,
+        responseSize: 40,
         status: 200,
         summary: "List users",
+        url: "https://api.example.com/users",
       });
 
       expect(fetchMock).toHaveBeenCalledWith(

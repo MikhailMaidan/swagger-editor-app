@@ -123,7 +123,15 @@ export function HistoryList({
                   {record.method}
                 </td>
                 <td className="px-4 py-4 font-mono font-bold text-[color:var(--color-brand-navy)]">
-                  {record.path}
+                  <Link
+                    aria-label={t("history.viewDetails", {
+                      summary: record.summary,
+                    })}
+                    className="text-[color:var(--color-brand-purple)] underline decoration-2 underline-offset-4"
+                    href={`/history/${encodeURIComponent(record.id)}`}
+                  >
+                    {record.url}
+                  </Link>
                 </td>
                 <td className="px-4 py-4 font-medium">{record.summary}</td>
                 <td className="px-4 py-4 font-bold">{record.status}</td>

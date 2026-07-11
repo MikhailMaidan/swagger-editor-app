@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RSSwag
 
-## Getting Started
+RSSwag is a responsive OpenAPI editor, viewer, and REST client built with
+Next.js, React, TypeScript, and Tailwind CSS.
 
-First, run the development server:
+## Demo
+
+[Open the deployed application](https://swagger-editor-app-two.vercel.app/)
+
+## Features
+
+- JSON and YAML OpenAPI editing, validation, and conversion
+- Generated endpoint documentation and Try It Out requests through the server
+- cURL generation from the current request values
+- Authentication-aware schema saving and request history
+- Server-rendered history analytics in English and Russian
+
+## Local Setup
+
+Install dependencies and start the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application supports Supabase persistence and falls back to secure,
+server-readable cookies during local development.
 
-## Learn More
+1. Create a Supabase project.
+2. Run [supabase/schema.sql](./supabase/schema.sql) in the Supabase SQL editor.
+3. Copy `.env.example` to `.env.local` and provide `SUPABASE_URL` and the
+   server-only `SUPABASE_SECRET_KEY`.
+4. Add the same variables to the Vercel project for Production and Preview.
 
-To learn more about Next.js, take a look at the following resources:
+Never expose `SUPABASE_SECRET_KEY` through a `NEXT_PUBLIC_` variable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Quality Checks
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run format:check
+npm run lint
+npm run test
+npm run coverage
+npm run build
+```
 
-## Deploy on Vercel
+Vitest enforces at least 80% coverage for statements, branches, functions,
+and lines. Husky runs formatting and lint checks before each commit.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Author
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Mikhail Maidan](https://github.com/MikhailMaidan) - responsible for everything.
+
+Built for the [RS School React final task](https://github.com/rolling-scopes-school/tasks/blob/master/react/modules/tasks/final.md).

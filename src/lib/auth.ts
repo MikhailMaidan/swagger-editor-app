@@ -70,9 +70,19 @@ export function getTokenPayload(
 }
 
 export function isTokenValid(token?: string | null) {
+  const tokenParts = token?.split(".");
+
+  if (!tokenParts || tokenParts.length !== 3 || tokenParts[2] !== "demo") {
+    return false;
+  }
+
   const payload = getTokenPayload(token);
 
-  if (!payload || typeof payload.exp !== "number") {
+  if (
+    !payload ||
+    typeof payload.exp !== "number" ||
+    (typeof payload.sub !== "string" && typeof payload.email !== "string")
+  ) {
     return false;
   }
 

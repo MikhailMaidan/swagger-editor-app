@@ -18,12 +18,7 @@ export type RequestHistoryRecord = {
 
 export type RequestHistoryDraft = Omit<
   RequestHistoryRecord,
-  | "id"
-  | "createdAt"
-  | "errorDetails"
-  | "requestSize"
-  | "responseSize"
-  | "url"
+  "id" | "createdAt" | "errorDetails" | "requestSize" | "responseSize" | "url"
 > &
   Partial<
     Pick<

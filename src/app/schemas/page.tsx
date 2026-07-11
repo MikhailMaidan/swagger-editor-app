@@ -21,8 +21,7 @@ export default async function SchemasPage() {
 
   if (userId) {
     try {
-      initialSchemas =
-        (await readSchemasFromDatabase(userId)) || cookieSchemas;
+      initialSchemas = (await readSchemasFromDatabase(userId)) || cookieSchemas;
     } catch {
       initialSchemas = cookieSchemas;
     }
