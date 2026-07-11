@@ -254,6 +254,7 @@ async function executeServerRequest({
     cache: "no-store",
     headers: buildRequestHeaders(requestParameters, hasRequestBody),
     method: normalizedMethod,
+    signal: AbortSignal.timeout(10_000),
   });
   const body = await response.text();
   const requestSnapshot = JSON.stringify({

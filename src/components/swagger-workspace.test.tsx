@@ -340,4 +340,47 @@ paths:
     expect(screen.getByRole("status")).toHaveTextContent("Guest run");
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
   });
+
+  it("prevents duplicate requests while an endpoint is executing", async () => {
+    let finishRequest: (response: Response) => void = () => {};
+    const requestPromise = new Promise<Response>((resolve) => {
+      finishRequest = resolve;
+    });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockReturnValue(requestPromise);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const executeButton = screen.getAllByRole("button", {
+        name: "Try It Out",
+      })[0];
+
+      fireEvent.click(executeButton);
+      fireEvent.click(executeButton);
+
+      expect(executeButton).toBeDisabled();
+      expect(executeButton).toHaveTextContent("Executing...");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      finishRequest(
+        Response.json({
+          body: "{}",
+          durationMs: 10,
+          errorDetails: null,
+          headers: {},
+          requestSize: 10,
+          responseSize: 2,
+          status: "200",
+          url: "https://example.com/users/42",
+        }),
+      );
+
+      await waitFor(() => expect(executeButton).not.toBeDisabled());
+      expect(executeButton).toHaveTextContent("Try It Out");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import {
   createCurlPreview,
@@ -227,7 +227,7 @@ function SchemaDetailsBlock({
   );
 }
 
-export function EndpointCard({
+function EndpointCardComponent({
   canSaveHistory,
   endpoint,
 }: {
@@ -235,7 +235,10 @@ export function EndpointCard({
   endpoint: EndpointSummary;
 }) {
   const { t } = useI18n();
-  const groupedParameters = groupParameters(endpoint.parameters);
+  const groupedParameters = useMemo(
+    () => groupParameters(endpoint.parameters),
+    [endpoint.parameters],
+  );
   const [mockResult, setMockResult] = useState<{
     body: string;
     durationMs: number;
@@ -250,20 +253,28 @@ export function EndpointCard({
     url: string;
   } | null>(null);
   const [isCurlCopied, setIsCurlCopied] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
   const [requestBodyValue, setRequestBodyValue] = useState(() =>
     getInitialRequestBody(endpoint),
   );
-  const requestParameters = createRequestParameters(endpoint, parameterValues);
-  const currentCurl = createCurlPreview(
-    endpoint.method,
-    endpoint.path,
-    endpoint.requestBodies.length > 0,
-    endpoint.serverUrl,
-    requestParameters,
-    requestBodyValue,
+  const requestParameters = useMemo(
+    () => createRequestParameters(endpoint, parameterValues),
+    [endpoint, parameterValues],
+  );
+  const currentCurl = useMemo(
+    () =>
+      createCurlPreview(
+        endpoint.method,
+        endpoint.path,
+        endpoint.requestBodies.length > 0,
+        endpoint.serverUrl,
+        requestParameters,
+        requestBodyValue,
+      ),
+    [endpoint, requestBodyValue, requestParameters],
   );
 
   async function handleCopyCurl() {
@@ -282,6 +293,11 @@ export function EndpointCard({
   }
 
   async function handleTryItOut() {
+    if (isExecuting) {
+      return;
+    }
+
+    setIsExecuting(true);
     const response = getMockResponse(
       endpoint,
       t("workspace.noResponseExample", {
@@ -352,6 +368,7 @@ export function EndpointCard({
       requestValues,
       savedToHistory,
     });
+    setIsExecuting(false);
   }
 
   return (
@@ -499,11 +516,13 @@ export function EndpointCard({
               {t("workspace.copyCurl")}
             </button>
             <button
-              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px]"
+              aria-busy={isExecuting}
+              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-wait disabled:opacity-70"
+              disabled={isExecuting}
               type="button"
               onClick={handleTryItOut}
             >
-              {t("workspace.tryItOut")}
+              {isExecuting ? t("workspace.executing") : t("workspace.tryItOut")}
             </button>
           </div>
         </div>
@@ -609,3 +628,5 @@ export function EndpointCard({
     </article>
   );
 }
+
+export const EndpointCard = memo(EndpointCardComponent);

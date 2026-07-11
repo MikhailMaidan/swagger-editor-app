@@ -64,8 +64,10 @@ export async function POST(request: Request) {
       ...readServerHistory(request),
     ]);
 
+    let savedToDatabase = false;
+
     try {
-      await saveHistoryToDatabase(userId, record);
+      savedToDatabase = await saveHistoryToDatabase(userId, record);
     } catch {
       // The record is still persisted in the server-readable fallback cookie.
     }
@@ -74,17 +76,19 @@ export async function POST(request: Request) {
       records,
     });
 
-    response.cookies.set(
-      SERVER_REQUEST_HISTORY_COOKIE,
-      JSON.stringify(records),
-      {
-        maxAge: HISTORY_COOKIE_MAX_AGE,
-        httpOnly: true,
-        path: "/",
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-      },
-    );
+    if (!savedToDatabase) {
+      response.cookies.set(
+        SERVER_REQUEST_HISTORY_COOKIE,
+        JSON.stringify(records),
+        {
+          maxAge: HISTORY_COOKIE_MAX_AGE,
+          httpOnly: true,
+          path: "/",
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        },
+      );
+    }
 
     return response;
   } catch {
