@@ -38,6 +38,9 @@ const languageOptions = [
   shortLabelKey: TranslationKey;
 }[];
 
+const COMPACT_SCROLL_POSITION = 28;
+const EXPANDED_SCROLL_POSITION = 10;
+
 function ClockIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -123,7 +126,15 @@ export function AppHeader({
 
   useEffect(() => {
     const syncStickyState = () => {
-      setIsStickyCompact(window.scrollY > 12);
+      setIsStickyCompact((currentState) => {
+        const scrollPosition = window.scrollY;
+
+        if (currentState) {
+          return scrollPosition > EXPANDED_SCROLL_POSITION;
+        }
+
+        return scrollPosition > COMPACT_SCROLL_POSITION;
+      });
     };
 
     syncStickyState();
@@ -142,13 +153,14 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-5 md:px-8 lg:px-10">
+    <header className="sticky top-0 z-50 min-h-[128px] px-4 pt-5 md:px-8 lg:min-h-[146px] lg:px-10">
       <div
-        className={`mx-auto flex max-w-[1600px] flex-nowrap items-center gap-5 rounded-[28px] border px-5 shadow-[0_18px_45px_rgba(64,45,137,0.12)] backdrop-blur transition-all duration-300 lg:px-7 ${
+        className={`mx-auto flex max-w-[1600px] transform-gpu flex-nowrap items-center gap-5 rounded-[28px] border px-5 backdrop-blur-md transition-[transform,padding,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transform-none motion-reduce:transition-none lg:px-7 ${
           isStickyCompact
-            ? "border-[color:var(--color-brand-purple)] bg-white/98 py-2"
-            : "border-[color:var(--color-brand-border)] bg-white/95 py-3"
+            ? "-translate-y-2 border-[color:var(--color-brand-purple)] bg-white/98 py-2 shadow-[0_14px_34px_rgba(64,45,137,0.16)]"
+            : "translate-y-0 border-[color:var(--color-brand-border)] bg-white/95 py-3 shadow-[0_18px_45px_rgba(64,45,137,0.12)]"
         }`}
+        data-sticky-state={isStickyCompact ? "compact" : "expanded"}
         data-testid="app-header-shell"
       >
         <Link
@@ -161,10 +173,10 @@ export function AppHeader({
             alt=""
             width={108}
             height={108}
-            className={`object-contain transition-all duration-300 ${
+            className={`object-contain transition-[width,height,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
               isStickyCompact
-                ? "h-[72px] w-[72px] lg:h-[88px] lg:w-[88px]"
-                : "h-[84px] w-[84px] lg:h-[102px] lg:w-[102px]"
+                ? "h-[72px] w-[72px] scale-[0.98] lg:h-[88px] lg:w-[88px]"
+                : "h-[84px] w-[84px] scale-100 lg:h-[102px] lg:w-[102px]"
             }`}
             priority
           />
