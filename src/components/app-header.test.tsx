@@ -68,6 +68,7 @@ describe("AppHeader", () => {
     const headerShell = screen.getByTestId("app-header-shell");
 
     expect(headerShell.className).toContain("py-3");
+    expect(headerShell).toHaveAttribute("data-sticky-state", "expanded");
 
     Object.defineProperty(window, "scrollY", {
       configurable: true,
@@ -76,8 +77,26 @@ describe("AppHeader", () => {
     fireEvent.scroll(window);
 
     expect(headerShell.className).toContain("py-2");
+    expect(headerShell.className).toContain("-translate-y-2");
+    expect(headerShell).toHaveAttribute("data-sticky-state", "compact");
     expect(headerShell.className).toContain(
       "border-[color:var(--color-brand-purple)]",
     );
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 18,
+    });
+    fireEvent.scroll(window);
+
+    expect(headerShell).toHaveAttribute("data-sticky-state", "compact");
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 0,
+    });
+    fireEvent.scroll(window);
+
+    expect(headerShell).toHaveAttribute("data-sticky-state", "expanded");
   });
 });
