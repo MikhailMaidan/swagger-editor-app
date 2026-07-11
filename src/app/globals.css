@@ -39,6 +39,17 @@ textarea {
   letter-spacing: 0;
 }
 
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--color-brand-gold);
+  outline-offset: 3px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  box-shadow: 0 0 0 3px rgba(90, 45, 255, 0.24);
+}
+
 .swagger-workspace {
   grid-template-columns: 1fr;
 }

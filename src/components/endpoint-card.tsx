@@ -252,7 +252,7 @@ function EndpointCardComponent({
     status: string;
     url: string;
   } | null>(null);
-  const [isCurlCopied, setIsCurlCopied] = useState(false);
+  const [copiedCurl, setCopiedCurl] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
@@ -276,10 +276,19 @@ function EndpointCardComponent({
       ),
     [endpoint, requestBodyValue, requestParameters],
   );
+  const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
 
   async function handleCopyCurl() {
-    await navigator.clipboard?.writeText(currentCurl);
-    setIsCurlCopied(true);
+    if (!navigator.clipboard) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(currentCurl);
+      setCopiedCurl(currentCurl);
+    } catch {
+      setCopiedCurl("");
+    }
   }
 
   function handleParameterValueChange(

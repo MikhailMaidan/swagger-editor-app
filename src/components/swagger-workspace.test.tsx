@@ -135,6 +135,10 @@ describe("SwaggerWorkspace", () => {
       "/users/42?search=Alex",
     );
     expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
+
+    await user.type(screen.getByLabelText("Query parameter search"), " Smith");
+
+    expect(screen.queryByText("cURL copied.")).not.toBeInTheDocument();
   });
 
   it("shows filled parameter values in the mock request preview", async () => {
