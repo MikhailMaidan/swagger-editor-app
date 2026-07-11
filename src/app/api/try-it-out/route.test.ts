@@ -61,8 +61,8 @@ describe("try-it-out route", () => {
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(data).toMatchObject({
-        body: "fallback response",
-        status: "200",
+        errorDetails: "Missing path parameter value.",
+        status: "0",
       });
     } finally {
       fetchMock.mockRestore();
@@ -112,14 +112,48 @@ describe("try-it-out route", () => {
       expect(requestHeaders.get("X-Trace-Id")).toBe("trace-1");
       expect(data).toMatchObject({
         body: '{"id":42}',
+        errorDetails: null,
         headers: {
           "content-type": "application/json",
           "x-demo": "server",
         },
         status: "200",
+        url: "https://example.com/users/42?search=alex",
       });
       expect(data.requestSize).toBeGreaterThan(0);
       expect(data.responseSize).toBeGreaterThan(0);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("returns external API errors inside the response data", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("User not found", {
+        status: 404,
+        statusText: "Not Found",
+      }),
+    );
+
+    try {
+      const response = await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users/404",
+            serverUrl: "https://example.com",
+          }),
+          method: "POST",
+        }),
+      );
+      const data = await response.json();
+
+      expect(data).toMatchObject({
+        body: "User not found",
+        errorDetails: "404 Not Found",
+        status: "404",
+        url: "https://example.com/users/404",
+      });
     } finally {
       fetchMock.mockRestore();
     }

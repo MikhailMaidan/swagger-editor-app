@@ -21,8 +21,7 @@ export default async function HistoryPage() {
 
   if (userId) {
     try {
-      initialRecords =
-        (await readHistoryFromDatabase(userId)) || cookieRecords;
+      initialRecords = (await readHistoryFromDatabase(userId)) || cookieRecords;
     } catch {
       initialRecords = cookieRecords;
     }

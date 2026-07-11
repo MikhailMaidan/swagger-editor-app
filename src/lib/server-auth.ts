@@ -1,8 +1,4 @@
-import {
-  AUTH_TOKEN_COOKIE,
-  getTokenPayload,
-  isTokenValid,
-} from "./auth";
+import { AUTH_TOKEN_COOKIE, getTokenPayload, isTokenValid } from "./auth";
 
 export function readRequestCookie(request: Request, name: string) {
   const cookieHeader = request.headers.get("cookie") || "";
@@ -28,7 +24,5 @@ export function getAuthenticatedUserId(token?: string | null) {
 }
 
 export function getRequestUserId(request: Request) {
-  return getAuthenticatedUserId(
-    readRequestCookie(request, AUTH_TOKEN_COOKIE),
-  );
+  return getAuthenticatedUserId(readRequestCookie(request, AUTH_TOKEN_COOKIE));
 }

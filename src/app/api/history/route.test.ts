@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { SERVER_REQUEST_HISTORY_COOKIE } from "@/lib/request-history";
 import { GET, POST } from "./route";
+
+const authCookie = `${AUTH_TOKEN_COOKIE}=${createDemoToken("mikhail@example.com")}`;
 
 const currentRecord = {
   createdAt: "2026-07-07T10:00:00.000Z",
@@ -12,6 +15,8 @@ const currentRecord = {
   responseSize: 120,
   status: 200,
   summary: "Current request",
+  url: "https://api.example.com/users/42",
+  errorDetails: null,
 };
 
 const oldRecord = {
@@ -24,15 +29,27 @@ const oldRecord = {
   responseSize: 130,
   status: 201,
   summary: "Old request",
+  url: "https://api.example.com/users/42",
+  errorDetails: null,
 };
 
 describe("history route", () => {
   it("returns an empty server history list", async () => {
-    const response = await GET(new Request("http://localhost/api/history"));
+    const response = await GET(
+      new Request("http://localhost/api/history", {
+        headers: { cookie: authCookie },
+      }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.records).toEqual([]);
+  });
+
+  it("returns 401 for an unauthenticated request", async () => {
+    const response = await GET(new Request("http://localhost/api/history"));
+
+    expect(response.status).toBe(401);
   });
 
   it("stores a request history record in a cookie", async () => {
@@ -40,7 +57,7 @@ describe("history route", () => {
       new Request("http://localhost/api/history", {
         body: JSON.stringify(currentRecord),
         headers: {
-          cookie: `${SERVER_REQUEST_HISTORY_COOKIE}=${encodeURIComponent(
+          cookie: `${authCookie}; ${SERVER_REQUEST_HISTORY_COOKIE}=${encodeURIComponent(
             JSON.stringify([oldRecord]),
           )}`,
         },
@@ -65,6 +82,7 @@ describe("history route", () => {
         body: JSON.stringify({
           method: "GET",
         }),
+        headers: { cookie: authCookie },
         method: "POST",
       }),
     );

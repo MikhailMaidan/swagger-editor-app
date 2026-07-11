@@ -27,6 +27,11 @@ describe("auth helpers", () => {
 
     expect(isTokenValid("wrong-token")).toBe(false);
     expect(isTokenValid(expiredToken)).toBe(false);
+    expect(
+      isTokenValid(
+        createDemoToken("mikhail@example.com").replace(/\.demo$/, ".forged"),
+      ),
+    ).toBe(false);
     expect(getTokenPayload("wrong-token")).toBeNull();
     expect(getUserNameFromToken("wrong-token")).toBe("User");
   });

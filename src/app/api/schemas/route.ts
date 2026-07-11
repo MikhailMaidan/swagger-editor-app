@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  readSchemasFromDatabase,
-  saveSchemaToDatabase,
-} from "@/lib/database";
+import { readSchemasFromDatabase, saveSchemaToDatabase } from "@/lib/database";
 import {
   isSavedSchemaRecord,
   mergeSavedSchemas,

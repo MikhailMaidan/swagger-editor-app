@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  readHistoryFromDatabase,
-  saveHistoryToDatabase,
-} from "@/lib/database";
+import { readHistoryFromDatabase, saveHistoryToDatabase } from "@/lib/database";
 import {
   isRequestHistoryRecord,
   mergeRequestHistory,

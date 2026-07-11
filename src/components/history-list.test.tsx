@@ -25,6 +25,7 @@ describe("HistoryList", () => {
           {
             createdAt: "2026-07-06T10:00:00.000Z",
             durationMs: 52,
+            errorDetails: null,
             id: "server-record",
             method: "GET",
             path: "/server",
@@ -32,6 +33,7 @@ describe("HistoryList", () => {
             responseSize: 140,
             status: 200,
             summary: "Server record",
+            url: "/server",
           },
         ]}
       />,
@@ -39,6 +41,9 @@ describe("HistoryList", () => {
 
     expect(screen.getByText("Server record")).toBeVisible();
     expect(screen.getByText("/server")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "View details for Server record" }),
+    ).toHaveAttribute("href", "/history/server-record");
     expect(screen.getByText("52 ms")).toBeVisible();
   });
 
