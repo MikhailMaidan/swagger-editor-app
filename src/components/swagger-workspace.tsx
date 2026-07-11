@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { AUTH_CHANGE_EVENT } from "@/lib/auth";
@@ -29,6 +29,7 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
 
 export function SwaggerWorkspace() {
   const { t } = useI18n();
+  const editorRef = useRef<HTMLTextAreaElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -41,6 +42,17 @@ export function SwaggerWorkspace() {
     : parseResult.format;
   const targetFormat: SchemaFormat =
     detectedFormat === "yaml" ? "json" : "yaml";
+
+  useLayoutEffect(() => {
+    const editor = editorRef.current;
+
+    if (!editor) {
+      return;
+    }
+
+    editor.style.height = "auto";
+    editor.style.height = `${Math.max(editor.scrollHeight, 430)}px`;
+  }, [schemaText]);
 
   useEffect(() => {
     const syncAuthAndSavedSchema = () => {
@@ -153,9 +165,11 @@ export function SwaggerWorkspace() {
           </div>
         </div>
         <textarea
-          className="h-[430px] w-full resize-none bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
+          ref={editorRef}
+          className="min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
           value={schemaText}
           aria-label="OpenAPI schema editor"
+          wrap="off"
           onChange={(event) => {
             setSchemaText(event.target.value);
             setSaveMessage("");

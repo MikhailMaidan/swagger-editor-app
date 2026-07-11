@@ -7,6 +7,39 @@ import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
 import { SwaggerWorkspace } from "./swagger-workspace";
 
 describe("SwaggerWorkspace", () => {
+  it("expands the schema editor instead of showing a vertical scrollbar", () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "scrollHeight",
+    );
+
+    Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => 780,
+    });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+
+      expect(editor).toHaveStyle({ height: "780px" });
+      expect(editor).toHaveAttribute("wrap", "off");
+      expect(editor.className).toContain("overflow-y-hidden");
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(
+          HTMLTextAreaElement.prototype,
+          "scrollHeight",
+          originalDescriptor,
+        );
+      } else {
+        delete (HTMLTextAreaElement.prototype as { scrollHeight?: number })
+          .scrollHeight;
+      }
+    }
+  });
+
   it("renders the default schema and dynamically populated endpoints", () => {
     render(<SwaggerWorkspace />);
 
