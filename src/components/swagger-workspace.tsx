@@ -121,7 +121,7 @@ export function SwaggerWorkspace() {
 
   return (
     <section className="swagger-workspace mx-auto grid w-full max-w-[1600px] gap-6">
-      <div className="min-h-[560px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+      <div className="min-h-[560px] overflow-hidden rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[color:var(--color-brand-border)] px-5 py-4">
           <div>
             <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
@@ -166,7 +166,7 @@ export function SwaggerWorkspace() {
         </div>
         <textarea
           ref={editorRef}
-          className="min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
+          className="block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
           value={schemaText}
           aria-label="OpenAPI schema editor"
           wrap="off"

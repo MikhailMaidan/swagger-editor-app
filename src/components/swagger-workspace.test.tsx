@@ -25,6 +25,7 @@ describe("SwaggerWorkspace", () => {
 
       expect(editor).toHaveStyle({ height: "780px" });
       expect(editor).toHaveAttribute("wrap", "off");
+      expect(editor.className).toContain("block");
       expect(editor.className).toContain("overflow-y-hidden");
     } finally {
       if (originalDescriptor) {
