@@ -184,6 +184,17 @@ export function AppHeader({
     viewer.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function handleHomeLinkClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/" || !activeHash) {
+      return;
+    }
+
+    event.preventDefault();
+    window.history.pushState(null, "", "/");
+    setActiveHash("");
+    window.scrollTo({ behavior: "smooth", top: 0 });
+  }
+
   return (
     <header className="sticky top-0 z-50 min-h-[128px] px-4 pt-5 md:px-8 lg:min-h-[146px] lg:px-10">
       <div
@@ -236,7 +247,13 @@ export function AppHeader({
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={isViewerLink ? handleViewerLinkClick : undefined}
+                onClick={
+                  isViewerLink
+                    ? handleViewerLinkClick
+                    : link.href === "/"
+                      ? handleHomeLinkClick
+                      : undefined
+                }
                 className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
                   shouldShowActive
                     ? "text-[color:var(--color-brand-purple)]"
