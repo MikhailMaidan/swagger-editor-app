@@ -2,17 +2,8 @@
 
 import Link from "next/link";
 import { useI18n } from "@/components/i18n-provider";
+import { formatEuropeanDateTime } from "@/lib/date-format";
 import type { SavedSchemaRecord } from "@/lib/schema-storage";
-
-function formatDate(value: string, locale: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString(locale);
-}
 
 function getSchemaSize(schemaText: string) {
   return new TextEncoder().encode(schemaText).length;
@@ -93,10 +84,7 @@ export function SchemasPageContent({
                       {t("schemas.updated")}
                     </dt>
                     <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                      {formatDate(
-                        schema.updatedAt,
-                        language === "ru" ? "ru-RU" : "en-US",
-                      )}
+                      {formatEuropeanDateTime(schema.updatedAt, language)}
                     </dd>
                   </div>
                 </dl>
