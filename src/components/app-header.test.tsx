@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { AppHeader } from "./app-header";
 
@@ -16,6 +16,10 @@ describe("AppHeader", () => {
       "href",
       "/about",
     );
+    expect(screen.getByRole("link", { name: "API Reference" })).toHaveAttribute(
+      "href",
+      "/#api-viewer",
+    );
     expect(screen.getByRole("link", { name: "Sign In" })).toHaveAttribute(
       "href",
       "/sign-in",
@@ -24,12 +28,40 @@ describe("AppHeader", () => {
       "href",
       "/sign-up",
     );
+    expect(screen.getByRole("button", { name: "English" }).className).toContain(
+      "cursor-pointer",
+    );
     expect(
       screen.getByRole("navigation", { name: "Main navigation" }).className,
     ).toContain("text-[19px]");
     expect(screen.getByRole("link", { name: "Sign In" }).className).toContain(
       "h-[58px]",
     );
+  });
+
+  it("activates and scrolls to the viewer when API Reference is selected", async () => {
+    const viewer = document.createElement("section");
+    viewer.id = "api-viewer";
+    viewer.scrollIntoView = vi.fn();
+    document.body.appendChild(viewer);
+
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
+
+    await userEvent.click(screen.getByRole("link", { name: "API Reference" }));
+
+    expect(window.location.hash).toBe("#api-viewer");
+    expect(
+      screen
+        .getByRole("link", { name: "API Reference" })
+        .className.split(/\s+/),
+    ).toContain("text-[color:var(--color-brand-purple)]");
+    expect(
+      screen.getByRole("link", { name: "Home" }).className.split(/\s+/),
+    ).not.toContain("text-[color:var(--color-brand-purple)]");
+    expect(viewer.scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
   });
 
   it("shows history and sign out controls for authenticated users", () => {
