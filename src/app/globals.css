@@ -39,6 +39,14 @@ textarea {
   letter-spacing: 0;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 a:focus-visible,
 button:focus-visible {
   outline: 3px solid var(--color-brand-gold);

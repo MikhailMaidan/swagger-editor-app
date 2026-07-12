@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { MouseEvent } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { AUTH_CHANGE_EVENT } from "@/lib/auth";
 import { clearClientAuth, getClientAuth } from "@/lib/client-auth";
@@ -102,6 +103,7 @@ export function AppHeader({
   );
   const [userName, setUserName] = useState(initialUserName);
   const [isStickyCompact, setIsStickyCompact] = useState(false);
+  const [activeHash, setActiveHash] = useState("");
 
   useEffect(() => {
     const syncAuthState = () => {
@@ -121,6 +123,19 @@ export function AppHeader({
       window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthState);
       window.removeEventListener("storage", syncAuthState);
       window.removeEventListener("focus", syncAuthState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncHash = () => {
+      setActiveHash(window.location.hash);
+    };
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
     };
   }, []);
 
@@ -150,6 +165,23 @@ export function AppHeader({
     setIsAuthenticated(false);
     router.push("/");
     router.refresh();
+  }
+
+  function handleViewerLinkClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/") {
+      return;
+    }
+
+    const viewer = document.getElementById("api-viewer");
+
+    if (!viewer) {
+      return;
+    }
+
+    event.preventDefault();
+    window.history.pushState(null, "", "/#api-viewer");
+    setActiveHash("#api-viewer");
+    viewer.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -190,22 +222,29 @@ export function AppHeader({
           aria-label={t("nav.mainNavigation")}
         >
           {navLinks.map((link) => {
-            const isActive =
-              pathname === link.href ||
-              (link.href !== "/" &&
-                !link.href.includes("#") &&
-                pathname.startsWith(link.href));
+            const isViewerLink = link.href === "/#api-viewer";
+            const isActive = isViewerLink
+              ? pathname === "/" && activeHash === "#api-viewer"
+              : pathname === link.href ||
+                (link.href !== "/" &&
+                  !link.href.includes("#") &&
+                  pathname.startsWith(link.href));
+            const isHomeLink = link.href === "/";
+            const shouldShowActive = isActive && !(isHomeLink && activeHash);
 
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={isViewerLink ? handleViewerLinkClick : undefined}
                 className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
-                  isActive ? "text-[color:var(--color-brand-purple)]" : ""
+                  shouldShowActive
+                    ? "text-[color:var(--color-brand-purple)]"
+                    : ""
                 }`}
               >
                 {t(link.labelKey)}
-                {isActive ? (
+                {shouldShowActive ? (
                   <span className="absolute bottom-0 left-0 h-1 w-full rounded-full bg-[color:var(--color-brand-purple)]" />
                 ) : null}
               </Link>
@@ -222,7 +261,7 @@ export function AppHeader({
                 <button
                   aria-label={t(option.labelKey)}
                   aria-pressed={isActive}
-                  className={`rounded-xl px-4 py-2.5 transition ${
+                  className={`cursor-pointer rounded-xl px-4 py-2.5 transition hover:bg-white/80 hover:text-[color:var(--color-brand-purple)] active:scale-95 ${
                     isActive
                       ? "bg-white text-[color:var(--color-brand-purple)]"
                       : ""
