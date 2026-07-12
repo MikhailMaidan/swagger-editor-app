@@ -70,6 +70,14 @@ function getTextSize(value: string) {
   return new TextEncoder().encode(value).length;
 }
 
+function formatResponseBody(value: string) {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
+}
+
 function readResponseHeaders(value: unknown) {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return {};
@@ -629,8 +637,11 @@ function EndpointCardComponent({
               ) : null}
             </div>
           ) : null}
-          <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
-            {mockResult.body}
+          <pre
+            aria-label={t("workspace.responseBody")}
+            className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
+          >
+            {formatResponseBody(mockResult.body)}
           </pre>
         </div>
       ) : null}
