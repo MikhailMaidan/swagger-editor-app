@@ -43,7 +43,7 @@ const EXPANDED_SCROLL_POSITION = 10;
 
 function ClockIcon() {
   return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24">
+    <svg aria-hidden="true" className="h-6 w-6" fill="none" viewBox="0 0 24 24">
       <path
         d="M12 7v5l3 2"
         stroke="currentColor"
@@ -71,7 +71,7 @@ function ClockIcon() {
 
 function SignOutIcon() {
   return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24">
+    <svg aria-hidden="true" className="h-6 w-6" fill="none" viewBox="0 0 24 24">
       <path
         d="M14 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2"
         stroke="currentColor"
@@ -186,7 +186,7 @@ export function AppHeader({
         </Link>
 
         <nav
-          className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-base font-bold leading-none text-[color:var(--color-brand-navy)] md:overflow-visible lg:gap-7"
+          className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] md:overflow-visible lg:gap-7"
           aria-label={t("nav.mainNavigation")}
         >
           {navLinks.map((link) => {
@@ -198,7 +198,7 @@ export function AppHeader({
               <Link
                 key={link.href}
                 href={link.href}
-                className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-11 shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
+                className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
                   isActive ? "text-[color:var(--color-brand-purple)]" : ""
                 }`}
               >
@@ -212,7 +212,7 @@ export function AppHeader({
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
-          <div className="hidden items-center rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] p-1 text-sm font-extrabold text-[color:var(--color-brand-muted)] shadow-inner sm:flex">
+          <div className="hidden items-center rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] p-1 text-[17px] font-extrabold text-[color:var(--color-brand-muted)] shadow-inner sm:flex">
             {languageOptions.map((option) => {
               const isActive = language === option.code;
 
@@ -220,7 +220,7 @@ export function AppHeader({
                 <button
                   aria-label={t(option.labelKey)}
                   aria-pressed={isActive}
-                  className={`rounded-xl px-3 py-2 transition ${
+                  className={`rounded-xl px-4 py-2.5 transition ${
                     isActive
                       ? "bg-white text-[color:var(--color-brand-purple)]"
                       : ""
@@ -238,28 +238,28 @@ export function AppHeader({
           {isAuthenticated ? (
             <>
               <div className="hidden items-center gap-2 lg:flex">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--color-brand-soft)]">
+                <span className="flex h-[53px] w-[53px] items-center justify-center rounded-2xl bg-[color:var(--color-brand-soft)]">
                   <Image
                     src="/user.svg"
                     alt=""
                     width={24}
                     height={24}
-                    className="h-6 w-6"
+                    className="h-7 w-7"
                   />
                 </span>
-                <span className="max-w-32 truncate text-base font-extrabold text-[color:var(--color-brand-navy)]">
+                <span className="max-w-32 truncate text-[19px] font-extrabold text-[color:var(--color-brand-navy)]">
                   {userName}
                 </span>
               </div>
               <Link
                 href="/history"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-4 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               >
                 <ClockIcon />
                 <span className="hidden sm:inline">{t("history.history")}</span>
               </Link>
               <button
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
+                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
                 type="button"
                 onClick={handleSignOut}
               >
@@ -271,13 +271,13 @@ export function AppHeader({
             <>
               <Link
                 href="/sign-in"
-                className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                className="inline-flex h-[58px] items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-6 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               >
                 {t("auth.signIn")}
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
+                className="inline-flex h-[58px] items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-6 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
               >
                 {t("auth.signUp")}
               </Link>

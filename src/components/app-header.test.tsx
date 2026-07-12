@@ -24,6 +24,12 @@ describe("AppHeader", () => {
       "href",
       "/sign-up",
     );
+    expect(
+      screen.getByRole("navigation", { name: "Main navigation" }).className,
+    ).toContain("text-[19px]");
+    expect(screen.getByRole("link", { name: "Sign In" }).className).toContain(
+      "h-[58px]",
+    );
   });
 
   it("shows history and sign out controls for authenticated users", () => {
