@@ -2,13 +2,8 @@
 
 import Link from "next/link";
 import { useI18n } from "@/components/i18n-provider";
+import { formatEuropeanDateTime } from "@/lib/date-format";
 import type { RequestHistoryRecord } from "@/lib/request-history";
-
-function formatDate(value: string, locale: string) {
-  const date = new Date(value);
-
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(locale);
-}
 
 export function HistoryDetails({
   record,
@@ -43,10 +38,7 @@ export function HistoryDetails({
             />
             <Detail
               label={t("history.timestamp")}
-              value={formatDate(
-                record.createdAt,
-                language === "ru" ? "ru-RU" : "en-US",
-              )}
+              value={formatEuropeanDateTime(record.createdAt, language)}
             />
             <Detail
               label={t("history.requestSize")}

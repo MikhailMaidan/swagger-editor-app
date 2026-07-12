@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { formatEuropeanDateTime } from "@/lib/date-format";
 import {
   mergeRequestHistory,
   readRequestHistory,
@@ -10,16 +11,6 @@ import {
 } from "@/lib/request-history";
 
 const EMPTY_HISTORY: RequestHistoryRecord[] = [];
-
-function formatDate(value: string, locale: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString(locale);
-}
 
 function readSortedRequestHistory(initialRecords: RequestHistoryRecord[]) {
   return mergeRequestHistory([...initialRecords, ...readRequestHistory()]);
@@ -145,10 +136,7 @@ export function HistoryList({
                   {record.responseSize ?? 0} B
                 </td>
                 <td className="px-4 py-4 font-medium">
-                  {formatDate(
-                    record.createdAt,
-                    language === "ru" ? "ru-RU" : "en-US",
-                  )}
+                  {formatEuropeanDateTime(record.createdAt, language)}
                 </td>
               </tr>
             ))}
