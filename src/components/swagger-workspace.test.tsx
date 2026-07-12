@@ -362,6 +362,9 @@ paths:
       expect(screen.getByRole("status")).toHaveTextContent("Response 11 B");
       expect(screen.getByRole("status")).toHaveTextContent("Response headers");
       expect(screen.getByRole("status")).toHaveTextContent("x-demo: server");
+      expect(screen.getByLabelText("Response body").textContent).toBe(
+        '{\n  "ok": true\n}',
+      );
     } finally {
       fetchMock.mockRestore();
     }
