@@ -11,6 +11,7 @@ type NavigationMock = {
   push: ReturnType<typeof vi.fn>;
   refresh: ReturnType<typeof vi.fn>;
   replace: ReturnType<typeof vi.fn>;
+  redirect: ReturnType<typeof vi.fn>;
 };
 
 const nextMocks = vi.hoisted(() => ({
@@ -20,6 +21,7 @@ const nextMocks = vi.hoisted(() => ({
     push: vi.fn(),
     refresh: vi.fn(),
     replace: vi.fn(),
+    redirect: vi.fn(),
   },
 }));
 
@@ -42,6 +44,7 @@ vi.mock("next/navigation", () => ({
     refresh: nextMocks.navigation.refresh,
     replace: nextMocks.navigation.replace,
   }),
+  redirect: nextMocks.navigation.redirect,
 }));
 
 vi.mock("next/link", () => ({
@@ -94,6 +97,7 @@ beforeEach(() => {
   nextMocks.navigation.push.mockClear();
   nextMocks.navigation.refresh.mockClear();
   nextMocks.navigation.replace.mockClear();
+  nextMocks.navigation.redirect.mockClear();
   window.localStorage.clear();
   Object.defineProperty(window, "scrollY", {
     configurable: true,

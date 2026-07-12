@@ -17,7 +17,7 @@ type AppHeaderProps = {
 const navLinks = [
   { href: "/", labelKey: "nav.home", isDesktopOnly: false },
   {
-    href: "/api-reference",
+    href: "/#api-viewer",
     labelKey: "nav.apiReference",
     isDesktopOnly: true,
   },
@@ -192,7 +192,9 @@ export function AppHeader({
           {navLinks.map((link) => {
             const isActive =
               pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
+              (link.href !== "/" &&
+                !link.href.includes("#") &&
+                pathname.startsWith(link.href));
 
             return (
               <Link

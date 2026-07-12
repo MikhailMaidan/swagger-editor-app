@@ -14,7 +14,7 @@ describe("HistoryList", () => {
     );
     expect(screen.getByRole("link", { name: "API Reference" })).toHaveAttribute(
       "href",
-      "/api-reference",
+      "/#api-viewer",
     );
   });
 

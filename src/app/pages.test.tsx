@@ -58,15 +58,15 @@ describe("app pages", () => {
     );
     expect(screen.getByRole("link", { name: "API Reference" })).toHaveAttribute(
       "href",
-      "/api-reference",
+      "/#api-viewer",
     );
   });
 
-  it("renders secondary placeholder pages", async () => {
+  it("redirects the legacy API reference route to the real viewer", async () => {
     render(<ApiReferencePage />);
-    expect(
-      screen.getByRole("heading", { name: "Endpoint Documentation" }),
-    ).toBeVisible();
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.redirect).toHaveBeenCalledWith(
+      "/#api-viewer",
+    );
 
     render(await SchemasPage());
     expect(

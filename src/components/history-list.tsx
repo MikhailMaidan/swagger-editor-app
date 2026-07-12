@@ -29,7 +29,7 @@ function HistoryLinks() {
       </Link>
       <Link
         className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"
-        href="/api-reference"
+        href="/#api-viewer"
       >
         {t("nav.apiReference")}
       </Link>

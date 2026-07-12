@@ -198,7 +198,10 @@ export function SwaggerWorkspace() {
         ) : null}
       </div>
 
-      <div className="min-h-[560px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+      <div
+        id="api-viewer"
+        className="min-h-[560px] scroll-mt-40 rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]"
+      >
         <div>
           <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
             {t("workspace.viewer")}
