@@ -64,6 +64,30 @@ describe("AppHeader", () => {
     });
   });
 
+  it("restores the Home active state after leaving the viewer anchor", async () => {
+    const scrollToMock = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation(() => undefined);
+    window.history.replaceState(null, "", "/#api-viewer");
+
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
+
+    await userEvent.click(screen.getByRole("link", { name: "Home" }));
+
+    expect(window.location.pathname).toBe("/");
+    expect(window.location.hash).toBe("");
+    expect(
+      screen.getByRole("link", { name: "Home" }).className.split(/\s+/),
+    ).toContain("text-[color:var(--color-brand-purple)]");
+    expect(
+      screen
+        .getByRole("link", { name: "API Reference" })
+        .className.split(/\s+/),
+    ).not.toContain("text-[color:var(--color-brand-purple)]");
+
+    scrollToMock.mockRestore();
+  });
+
   it("shows history and sign out controls for authenticated users", () => {
     window.localStorage.setItem(
       AUTH_TOKEN_COOKIE,
