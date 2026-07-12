@@ -49,6 +49,7 @@ describe("SwaggerWorkspace", () => {
     expect(
       screen.getByRole("heading", { name: "RSSwag Demo API" }),
     ).toBeVisible();
+    expect(document.getElementById("api-viewer")).toBeVisible();
     expect(screen.getAllByText("/users/{id}")).toHaveLength(2);
     expect(screen.getAllByText("Path parameters")).toHaveLength(2);
     expect(screen.getAllByText("id")).toHaveLength(2);
