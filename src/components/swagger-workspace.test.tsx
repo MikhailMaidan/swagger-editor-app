@@ -178,6 +178,63 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Mikhail");
   });
 
+  it("keeps a newly added parameter input controlled and usable after a live schema edit", async () => {
+    const user = userEvent.setup();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: RSSwag Demo API
+  version: 1.0.0
+servers:
+  - url: https://jsonplaceholder.typicode.com
+paths:
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get user by id
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response`,
+      },
+    });
+
+    const sortInput = screen.getByLabelText("Query parameter sort");
+
+    await user.type(sortInput, "asc");
+
+    const loggedControlledInputWarning = consoleError.mock.calls.some(
+      (call) =>
+        typeof call[0] === "string" &&
+        call[0].includes("changing an uncontrolled input"),
+    );
+
+    expect(loggedControlledInputWarning).toBe(false);
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toHaveTextContent(
+      "sort=asc",
+    );
+
+    consoleError.mockRestore();
+  });
+
   it("updates the viewer when a JSON schema is entered", () => {
     render(<SwaggerWorkspace />);
 

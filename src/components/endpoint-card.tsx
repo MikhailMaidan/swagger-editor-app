@@ -495,7 +495,7 @@ function EndpointCardComponent({
                     className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
                     placeholder={t("workspace.parameterValuePlaceholder")}
                     type="text"
-                    value={parameterValues[getParameterKey(parameter)]}
+                    value={parameterValues[getParameterKey(parameter)] ?? ""}
                     onChange={(event) =>
                       handleParameterValueChange(parameter, event.target.value)
                     }
