@@ -262,16 +262,8 @@ function normalizeResponses(value: unknown): ResponseSummary[] {
         : {};
       const contentTypes = Object.keys(content);
       const firstContentType = contentTypes[0];
-      const firstContent =
-        firstContentType && isRecord(content[firstContentType])
-          ? content[firstContentType]
-          : null;
-
-      if (firstContent && !isRecord(firstContent)) {
-        return responses;
-      }
-
-      const firstContentConfig = firstContent as Record<string, unknown> | null;
+      const firstContent = firstContentType ? content[firstContentType] : null;
+      const firstContentConfig = isRecord(firstContent) ? firstContent : null;
 
       responses.push({
         contentTypes,

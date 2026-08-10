@@ -127,6 +127,41 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("blocks requests to private and local network addresses", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    try {
+      for (const serverUrl of [
+        "http://localhost:8080",
+        "http://127.0.0.1",
+        "http://169.254.169.254/latest/meta-data",
+        "http://10.0.0.5",
+        "http://192.168.1.1",
+        "http://172.16.0.1",
+      ]) {
+        const response = await POST(
+          new Request("http://localhost/api/try-it-out", {
+            body: JSON.stringify({
+              method: "GET",
+              path: "/",
+              responseBody: "fallback",
+              serverUrl,
+              status: "200",
+            }),
+            method: "POST",
+          }),
+        );
+        const data = await response.json();
+
+        expect(data).toMatchObject({ body: "fallback" });
+      }
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("returns external API errors inside the response data", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("User not found", {
