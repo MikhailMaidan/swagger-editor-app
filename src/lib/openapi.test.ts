@@ -15,6 +15,47 @@ describe("openapi helpers", () => {
     expect(detectSchemaFormat("openapi: 3.0.0")).toBe("yaml");
   });
 
+  it("resolves the server url for legacy Swagger 2.0 documents", () => {
+    const result = parseOpenApiSchema(
+      JSON.stringify({
+        basePath: "/v2",
+        host: "legacy.example.com",
+        info: { title: "Legacy API", version: "1.0.0" },
+        paths: {},
+        schemes: ["https"],
+        swagger: "2.0",
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.serverUrl).toBe("https://legacy.example.com/v2");
+  });
+
+  it("defaults to http when Swagger 2.0 only advertises http", () => {
+    const result = parseOpenApiSchema(
+      JSON.stringify({
+        host: "legacy.example.com",
+        info: { title: "Legacy API", version: "1.0.0" },
+        paths: {},
+        schemes: ["http"],
+        swagger: "2.0",
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.serverUrl).toBe("http://legacy.example.com");
+  });
+
   it("parses the default YAML schema and extracts endpoints", () => {
     const result = parseOpenApiSchema(DEFAULT_OPENAPI_SCHEMA);
 

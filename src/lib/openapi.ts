@@ -164,18 +164,41 @@ function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
+const DEFAULT_SERVER_URL = "https://api.example.com";
+
+function readSwagger2ServerUrl(schema: Record<string, unknown>) {
+  const host = readString(schema.host);
+
+  if (!host) {
+    return null;
+  }
+
+  const schemes = Array.isArray(schema.schemes)
+    ? schema.schemes.filter((scheme) => scheme === "http" || scheme === "https")
+    : [];
+  const scheme = schemes.includes("https")
+    ? "https"
+    : schemes[0] === "http"
+      ? "http"
+      : "https";
+  const basePath = readString(schema.basePath);
+  const normalizedBasePath = basePath && !basePath.startsWith("/")
+    ? `/${basePath}`
+    : basePath;
+
+  return `${scheme}://${host}${normalizedBasePath}`;
+}
+
 function readServerUrl(schema: Record<string, unknown>) {
-  if (!Array.isArray(schema.servers)) {
-    return "https://api.example.com";
+  if (Array.isArray(schema.servers)) {
+    const firstServer = schema.servers.find(isRecord);
+
+    if (firstServer) {
+      return readString(firstServer.url, DEFAULT_SERVER_URL);
+    }
   }
 
-  const firstServer = schema.servers.find(isRecord);
-
-  if (!firstServer) {
-    return "https://api.example.com";
-  }
-
-  return readString(firstServer.url, "https://api.example.com");
+  return readSwagger2ServerUrl(schema) ?? DEFAULT_SERVER_URL;
 }
 
 function formatExample(value: unknown) {
