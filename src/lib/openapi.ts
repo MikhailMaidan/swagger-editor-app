@@ -349,6 +349,17 @@ export function createCurlPreview(
       parts.push(`-H "${parameter.name}: ${parameter.value}"`);
     });
 
+  const cookieHeader = parameters
+    .filter((parameter) => parameter.location === "cookie")
+    .map(
+      (parameter) => `${parameter.name}=${encodeURIComponent(parameter.value)}`,
+    )
+    .join("; ");
+
+  if (cookieHeader) {
+    parts.push(`-H "Cookie: ${cookieHeader}"`);
+  }
+
   if (hasRequestBody) {
     const body = requestBody.trim() || "{...}";
 

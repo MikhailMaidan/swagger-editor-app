@@ -131,6 +131,24 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("includes cookie parameters in cURL previews, matching the server-side request", () => {
+    expect(
+      createCurlPreview(
+        "GET",
+        "/users/{id}",
+        false,
+        "https://api.example.com",
+        [
+          { location: "path", name: "id", value: "42" },
+          { location: "cookie", name: "sessionId", value: "abc 123" },
+          { location: "cookie", name: "theme", value: "dark" },
+        ],
+      ),
+    ).toBe(
+      'curl -X GET \\\n  "https://api.example.com/users/42" \\\n  -H "Cookie: sessionId=abc%20123; theme=dark"',
+    );
+  });
+
   it("parses JSON schemas and supports format conversion", () => {
     const jsonSchema = {
       info: {
