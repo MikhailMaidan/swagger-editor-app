@@ -56,6 +56,42 @@ describe("openapi helpers", () => {
     expect(result.value.serverUrl).toBe("http://legacy.example.com");
   });
 
+  it("lets an operation-level parameter override a shared path-level parameter of the same name and location", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/items/{id}": {
+          get: {
+            parameters: [
+              {
+                description: "Overridden: item id must be numeric",
+                in: "path",
+                name: "id",
+                required: true,
+                schema: { pattern: "^[0-9]+$", type: "string" },
+              },
+            ],
+            responses: {
+              "200": { description: "OK" },
+            },
+          },
+          parameters: [
+            {
+              description: "Shared: any item id",
+              in: "path",
+              name: "id",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(endpoints[0].parameters).toEqual([
+      { location: "path", name: "id" },
+    ]);
+  });
+
   it("parses the default YAML schema and extracts endpoints", () => {
     const result = parseOpenApiSchema(DEFAULT_OPENAPI_SCHEMA);
 

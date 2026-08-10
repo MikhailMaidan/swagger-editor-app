@@ -245,6 +245,19 @@ function normalizeParameters(value: unknown): EndpointParameter[] {
   }, []);
 }
 
+function mergeParameters(
+  sharedParameters: EndpointParameter[],
+  operationParameters: EndpointParameter[],
+): EndpointParameter[] {
+  const parametersByKey = new Map<string, EndpointParameter>();
+
+  [...sharedParameters, ...operationParameters].forEach((parameter) => {
+    parametersByKey.set(`${parameter.location}:${parameter.name}`, parameter);
+  });
+
+  return Array.from(parametersByKey.values());
+}
+
 function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
   if (!isRecord(value)) {
     return [];
@@ -415,10 +428,10 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           ),
           description: readString(operation.description),
           method: method.toUpperCase(),
-          parameters: [
-            ...sharedParameters,
-            ...normalizeParameters(operation.parameters),
-          ],
+          parameters: mergeParameters(
+            sharedParameters,
+            normalizeParameters(operation.parameters),
+          ),
           path,
           requestBodies,
           requestContentTypes: requestBodies.map(
