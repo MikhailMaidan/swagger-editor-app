@@ -1,3 +1,10 @@
+import {
+  buildCookieHeaderValue,
+  hasUnresolvedPathParameters,
+  normalizeServerUrl,
+  resolvePathParameters,
+} from "@/lib/request-url";
+
 type RequestParameterLocation = "path" | "query" | "header" | "cookie";
 
 type RequestParameter = {
@@ -169,25 +176,15 @@ function buildTargetUrl(
   path: string,
   requestParameters: RequestParameter[],
 ) {
-  const normalizedServerUrl = serverUrl.endsWith("/")
-    ? serverUrl.slice(0, -1)
-    : serverUrl;
-  let normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const normalizedPath = resolvePathParameters(path, requestParameters);
 
-  requestParameters
-    .filter((parameter) => parameter.location === "path")
-    .forEach((parameter) => {
-      normalizedPath = normalizedPath.replaceAll(
-        `{${parameter.name}}`,
-        encodeURIComponent(parameter.value),
-      );
-    });
-
-  if (normalizedPath.includes("{") || normalizedPath.includes("}")) {
+  if (hasUnresolvedPathParameters(normalizedPath)) {
     throw new Error("Missing path parameter value.");
   }
 
-  const targetUrl = new URL(`${normalizedServerUrl}${normalizedPath}`);
+  const targetUrl = new URL(
+    `${normalizeServerUrl(serverUrl)}${normalizedPath}`,
+  );
 
   requestParameters
     .filter((parameter) => parameter.location === "query")
@@ -214,12 +211,7 @@ function buildRequestHeaders(
       headers.set(parameter.name, parameter.value);
     });
 
-  const cookieHeader = requestParameters
-    .filter((parameter) => parameter.location === "cookie")
-    .map(
-      (parameter) => `${parameter.name}=${encodeURIComponent(parameter.value)}`,
-    )
-    .join("; ");
+  const cookieHeader = buildCookieHeaderValue(requestParameters);
 
   if (cookieHeader) {
     headers.set("Cookie", cookieHeader);
@@ -242,6 +234,7 @@ function createFallbackResult({
   method,
   path,
   requestBody,
+  requestParameters,
   requestValues,
   responseBody,
   serverUrl,
@@ -250,6 +243,7 @@ function createFallbackResult({
   method: string;
   path: string;
   requestBody: string;
+  requestParameters: RequestParameter[];
   requestValues: { label: string; value: string }[];
   responseBody: string;
   serverUrl: string;
@@ -274,7 +268,7 @@ function createFallbackResult({
     requestSize,
     responseSize: getByteSize(responseBody),
     status,
-    url: `${serverUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`,
+    url: `${normalizeServerUrl(serverUrl)}${resolvePathParameters(path, requestParameters)}`,
   };
 }
 
@@ -346,6 +340,7 @@ export async function POST(request: Request) {
       method,
       path,
       requestBody,
+      requestParameters,
       requestValues,
       responseBody,
       serverUrl,

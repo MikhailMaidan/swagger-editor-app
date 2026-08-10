@@ -429,6 +429,28 @@ paths:
     }
   });
 
+  it("shows the substituted target url when the try-it-out request itself fails", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("network error"));
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "https://jsonplaceholder.typicode.com/users/42",
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("shows guest mock execution without saving history", async () => {
     const user = userEvent.setup();
 

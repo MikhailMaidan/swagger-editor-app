@@ -1,4 +1,9 @@
 import YAML from "yaml";
+import {
+  buildCookieHeaderValue,
+  normalizeServerUrl,
+  resolvePathParameters,
+} from "./request-url";
 
 export type SchemaFormat = "json" | "yaml";
 
@@ -327,20 +332,7 @@ export function createCurlPreview(
   parameters: CurlParameter[] = [],
   requestBody = "",
 ) {
-  const normalizedServerUrl = serverUrl.endsWith("/")
-    ? serverUrl.slice(0, -1)
-    : serverUrl;
-  let normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-  parameters
-    .filter((parameter) => parameter.location === "path")
-    .forEach((parameter) => {
-      normalizedPath = normalizedPath.replaceAll(
-        `{${parameter.name}}`,
-        encodeURIComponent(parameter.value),
-      );
-    });
-
+  const normalizedPath = resolvePathParameters(path, parameters);
   const query = parameters
     .filter((parameter) => parameter.location === "query")
     .map(
@@ -351,7 +343,7 @@ export function createCurlPreview(
     )
     .join("&");
   const separator = normalizedPath.includes("?") ? "&" : "?";
-  const url = `${normalizedServerUrl}${normalizedPath}${
+  const url = `${normalizeServerUrl(serverUrl)}${normalizedPath}${
     query ? `${separator}${query}` : ""
   }`;
   const parts = [`curl -X ${method}`, `"${url}"`];
@@ -362,12 +354,7 @@ export function createCurlPreview(
       parts.push(`-H "${parameter.name}: ${parameter.value}"`);
     });
 
-  const cookieHeader = parameters
-    .filter((parameter) => parameter.location === "cookie")
-    .map(
-      (parameter) => `${parameter.name}=${encodeURIComponent(parameter.value)}`,
-    )
-    .join("; ");
+  const cookieHeader = buildCookieHeaderValue(parameters);
 
   if (cookieHeader) {
     parts.push(`-H "Cookie: ${cookieHeader}"`);

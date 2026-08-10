@@ -13,6 +13,7 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
+import { normalizeServerUrl, resolvePathParameters } from "@/lib/request-url";
 import type { TranslationKey } from "@/lib/translations";
 
 const methodColorClasses: Record<string, string> = {
@@ -342,7 +343,7 @@ function EndpointCardComponent({
       ),
       responseSize: getTextSize(response.body),
       status: response.status,
-      url: `${endpoint.serverUrl.replace(/\/$/, "")}${endpoint.path}`,
+      url: `${normalizeServerUrl(endpoint.serverUrl)}${resolvePathParameters(endpoint.path, requestParameters)}`,
     };
     const executionResult = await executeTryItOut(
       {

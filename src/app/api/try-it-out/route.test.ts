@@ -162,6 +162,40 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("reports the substituted target url when the upstream request throws", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("fetch failed"));
+
+    try {
+      const response = await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users/{id}",
+            requestParameters: [
+              { location: "path", name: "id", value: "42" },
+              { location: "query", name: "search", value: "alex" },
+            ],
+            responseBody: "fallback",
+            serverUrl: "https://example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+      const data = await response.json();
+
+      expect(data).toMatchObject({
+        errorDetails: "fetch failed",
+        status: "0",
+        url: "https://example.com/users/42",
+      });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("returns external API errors inside the response data", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("User not found", {
