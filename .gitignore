@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local-only editor/assistant settings (never shared/tracked)
+.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
