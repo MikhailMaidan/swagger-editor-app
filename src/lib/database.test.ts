@@ -98,8 +98,40 @@ describe("database", () => {
       savedSchema,
     ]);
     expect(fetchMock.mock.calls[0][0]).toContain("rest/v1/rsswagger_history");
-    expect((fetchMock.mock.calls[0][1]?.headers as Headers).get("apikey")).toBe(
-      "secret-key",
+
+    const requestHeaders = fetchMock.mock.calls[0][1]?.headers as Headers;
+
+    expect(requestHeaders.get("apikey")).toBe("secret-key");
+    expect(requestHeaders.get("Authorization")).toBe("Bearer secret-key");
+  });
+
+  it("authenticates as the service role via a bearer token, not just the apikey header", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 201 }));
+
+    await saveHistoryToDatabase("user@example.com", historyRecord);
+
+    const requestHeaders = fetchMock.mock.calls[0][1]?.headers as Headers;
+
+    expect(requestHeaders.get("Authorization")).toBe("Bearer secret-key");
+  });
+
+  it("falls back to the legacy NEXT_PUBLIC_SUPABASE_URL variable name", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://legacy-project.supabase.co");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "secret-key");
+
+    expect(isDatabaseConfigured()).toBe(true);
+
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json([]));
+
+    await readHistoryFromDatabase("user@example.com");
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      "https://legacy-project.supabase.co",
     );
   });
 

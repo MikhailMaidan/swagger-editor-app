@@ -31,7 +31,10 @@ type SchemaRow = {
 };
 
 function getDatabaseConfig(): DatabaseConfig | null {
-  const url = process.env.SUPABASE_URL;
+  // NEXT_PUBLIC_SUPABASE_URL is a legacy fallback: older .env.example
+  // revisions documented that name by mistake, so deployments configured
+  // against it are kept working even though SUPABASE_URL is now correct.
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const apiKey =
     process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -52,6 +55,7 @@ export function isDatabaseConfigured() {
 function createHeaders(config: DatabaseConfig, prefer?: string) {
   const headers = new Headers({
     apikey: config.apiKey,
+    Authorization: `Bearer ${config.apiKey}`,
     "Content-Type": "application/json",
   });
 

@@ -37,7 +37,11 @@ server-readable cookies during local development.
    server-only `SUPABASE_SECRET_KEY`.
 4. Add the same variables to the Vercel project for Production and Preview.
 
-Never expose `SUPABASE_SECRET_KEY` through a `NEXT_PUBLIC_` variable.
+Never expose `SUPABASE_SECRET_KEY` through a `NEXT_PUBLIC_` variable. An
+older revision of `.env.example` mistakenly documented the project URL as
+`NEXT_PUBLIC_SUPABASE_URL`; the app still reads that name as a fallback so
+deployments configured against it keep working, but `SUPABASE_URL` is the
+correct name going forward.
 
 ## Quality Checks
 
