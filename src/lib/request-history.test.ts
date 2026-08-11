@@ -8,6 +8,7 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "./request-history";
+import type { RequestHistoryRecord } from "./request-history";
 
 describe("request history storage", () => {
   it("saves newest request records first", () => {
@@ -67,10 +68,24 @@ describe("request history storage", () => {
         url: "/old",
       },
     ]);
-    expect(mergeRequestHistory([oldRecord, newRecord])).toEqual([
-      newRecord,
-      oldRecord,
-    ]);
+    const oldHistoryRecord: RequestHistoryRecord = {
+      ...oldRecord,
+      errorDetails: null,
+      requestSize: 0,
+      responseSize: 0,
+      url: oldRecord.path,
+    };
+    const newHistoryRecord: RequestHistoryRecord = {
+      ...newRecord,
+      errorDetails: null,
+      requestSize: 0,
+      responseSize: 0,
+      url: newRecord.path,
+    };
+
+    expect(
+      mergeRequestHistory([oldHistoryRecord, newHistoryRecord]),
+    ).toEqual([newHistoryRecord, oldHistoryRecord]);
   });
 
   it("syncs saved records to the server history route", async () => {
