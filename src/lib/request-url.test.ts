@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCookieHeaderValue,
+  buildQueryString,
+  buildRequestUrl,
   hasUnresolvedPathParameters,
   normalizePath,
   normalizeServerUrl,
@@ -63,5 +65,30 @@ describe("request-url helpers", () => {
 
   it("returns an empty string when there are no cookie parameters", () => {
     expect(buildCookieHeaderValue([])).toBe("");
+  });
+
+  it("percent-encodes query string spaces instead of using form-encoded plus signs", () => {
+    expect(
+      buildQueryString([
+        { location: "query", name: "search", value: "Alex Smith" },
+      ]),
+    ).toBe("search=Alex%20Smith");
+  });
+
+  it("builds a full request url with substituted path and encoded query values", () => {
+    expect(
+      buildRequestUrl("https://api.example.com/", "/users/{id}", [
+        { location: "path", name: "id", value: "42" },
+        { location: "query", name: "search", value: "Alex Smith" },
+      ]),
+    ).toBe("https://api.example.com/users/42?search=Alex%20Smith");
+  });
+
+  it("omits the query separator entirely when there are no query parameters", () => {
+    expect(
+      buildRequestUrl("https://api.example.com", "/users/{id}", [
+        { location: "path", name: "id", value: "42" },
+      ]),
+    ).toBe("https://api.example.com/users/42");
   });
 });

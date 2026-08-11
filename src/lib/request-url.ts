@@ -34,6 +34,32 @@ export function hasUnresolvedPathParameters(path: string) {
   return path.includes("{") || path.includes("}");
 }
 
+export function buildQueryString(parameters: UrlParameter[]) {
+  return parameters
+    .filter((parameter) => parameter.location === "query")
+    .map(
+      (parameter) =>
+        `${encodeURIComponent(parameter.name)}=${encodeURIComponent(
+          parameter.value,
+        )}`,
+    )
+    .join("&");
+}
+
+export function buildRequestUrl(
+  serverUrl: string,
+  path: string,
+  parameters: UrlParameter[],
+) {
+  const normalizedPath = resolvePathParameters(path, parameters);
+  const query = buildQueryString(parameters);
+  const separator = normalizedPath.includes("?") ? "&" : "?";
+
+  return `${normalizeServerUrl(serverUrl)}${normalizedPath}${
+    query ? `${separator}${query}` : ""
+  }`;
+}
+
 export function buildCookieHeaderValue(parameters: UrlParameter[]) {
   return parameters
     .filter((parameter) => parameter.location === "cookie")

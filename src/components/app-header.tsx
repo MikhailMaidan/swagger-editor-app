@@ -16,18 +16,35 @@ type AppHeaderProps = {
 };
 
 const navLinks = [
-  { href: "/", labelKey: "nav.home", isDesktopOnly: false },
+  {
+    href: "/",
+    labelKey: "nav.home",
+    isDesktopOnly: false,
+    requiresAuth: false,
+  },
   {
     href: "/#api-viewer",
     labelKey: "nav.apiReference",
     isDesktopOnly: true,
+    requiresAuth: false,
   },
-  { href: "/schemas", labelKey: "nav.schemas", isDesktopOnly: true },
-  { href: "/about", labelKey: "nav.about", isDesktopOnly: false },
+  {
+    href: "/schemas",
+    labelKey: "nav.schemas",
+    isDesktopOnly: true,
+    requiresAuth: true,
+  },
+  {
+    href: "/about",
+    labelKey: "nav.about",
+    isDesktopOnly: false,
+    requiresAuth: false,
+  },
 ] satisfies {
   href: string;
   isDesktopOnly: boolean;
   labelKey: TranslationKey;
+  requiresAuth: boolean;
 }[];
 
 const languageOptions = [
@@ -232,41 +249,43 @@ export function AppHeader({
           className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] md:overflow-visible lg:gap-7"
           aria-label={t("nav.mainNavigation")}
         >
-          {navLinks.map((link) => {
-            const isViewerLink = link.href === "/#api-viewer";
-            const isActive = isViewerLink
-              ? pathname === "/" && activeHash === "#api-viewer"
-              : pathname === link.href ||
-                (link.href !== "/" &&
-                  !link.href.includes("#") &&
-                  pathname.startsWith(link.href));
-            const isHomeLink = link.href === "/";
-            const shouldShowActive = isActive && !(isHomeLink && activeHash);
+          {navLinks
+            .filter((link) => !link.requiresAuth || isAuthenticated)
+            .map((link) => {
+              const isViewerLink = link.href === "/#api-viewer";
+              const isActive = isViewerLink
+                ? pathname === "/" && activeHash === "#api-viewer"
+                : pathname === link.href ||
+                  (link.href !== "/" &&
+                    !link.href.includes("#") &&
+                    pathname.startsWith(link.href));
+              const isHomeLink = link.href === "/";
+              const shouldShowActive = isActive && !(isHomeLink && activeHash);
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={
-                  isViewerLink
-                    ? handleViewerLinkClick
-                    : link.href === "/"
-                      ? handleHomeLinkClick
-                      : undefined
-                }
-                className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
-                  shouldShowActive
-                    ? "text-[color:var(--color-brand-purple)]"
-                    : ""
-                }`}
-              >
-                {t(link.labelKey)}
-                {shouldShowActive ? (
-                  <span className="absolute bottom-0 left-0 h-1 w-full rounded-full bg-[color:var(--color-brand-purple)]" />
-                ) : null}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={
+                    isViewerLink
+                      ? handleViewerLinkClick
+                      : link.href === "/"
+                        ? handleHomeLinkClick
+                        : undefined
+                  }
+                  className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
+                    shouldShowActive
+                      ? "text-[color:var(--color-brand-purple)]"
+                      : ""
+                  }`}
+                >
+                  {t(link.labelKey)}
+                  {shouldShowActive ? (
+                    <span className="absolute bottom-0 left-0 h-1 w-full rounded-full bg-[color:var(--color-brand-purple)]" />
+                  ) : null}
+                </Link>
+              );
+            })}
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-3">

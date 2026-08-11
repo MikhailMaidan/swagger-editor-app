@@ -1,7 +1,7 @@
 import {
   buildCookieHeaderValue,
+  buildRequestUrl,
   hasUnresolvedPathParameters,
-  normalizeServerUrl,
   resolvePathParameters,
 } from "@/lib/request-url";
 
@@ -182,17 +182,7 @@ function buildTargetUrl(
     throw new Error("Missing path parameter value.");
   }
 
-  const targetUrl = new URL(
-    `${normalizeServerUrl(serverUrl)}${normalizedPath}`,
-  );
-
-  requestParameters
-    .filter((parameter) => parameter.location === "query")
-    .forEach((parameter) => {
-      targetUrl.searchParams.set(parameter.name, parameter.value);
-    });
-
-  return targetUrl.toString();
+  return buildRequestUrl(serverUrl, path, requestParameters);
 }
 
 function buildRequestHeaders(
@@ -268,7 +258,7 @@ function createFallbackResult({
     requestSize,
     responseSize: getByteSize(responseBody),
     status,
-    url: `${normalizeServerUrl(serverUrl)}${resolvePathParameters(path, requestParameters)}`,
+    url: buildRequestUrl(serverUrl, path, requestParameters),
   };
 }
 

@@ -162,6 +162,37 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("percent-encodes query string spaces the same way the cURL preview does", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    try {
+      await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users",
+            requestParameters: [
+              { location: "query", name: "search", value: "Alex Smith" },
+            ],
+            responseBody: "fallback",
+            serverUrl: "https://example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com/users?search=Alex%20Smith",
+        expect.anything(),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("reports the substituted target url when the upstream request throws", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -189,7 +220,7 @@ describe("try-it-out route", () => {
       expect(data).toMatchObject({
         errorDetails: "fetch failed",
         status: "0",
-        url: "https://example.com/users/42",
+        url: "https://example.com/users/42?search=alex",
       });
     } finally {
       fetchMock.mockRestore();

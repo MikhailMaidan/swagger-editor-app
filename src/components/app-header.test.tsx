@@ -37,6 +37,9 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: "Sign In" }).className).toContain(
       "h-[58px]",
     );
+    expect(
+      screen.queryByRole("link", { name: "Schemas" }),
+    ).not.toBeInTheDocument();
   });
 
   it("activates and scrolls to the viewer when API Reference is selected", async () => {
@@ -104,6 +107,10 @@ describe("AppHeader", () => {
       "/history",
     );
     expect(screen.getByRole("button", { name: /sign out/i })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Schemas" })).toHaveAttribute(
+      "href",
+      "/schemas",
+    );
   });
 
   it("clears auth state and redirects to main page on sign out", async () => {

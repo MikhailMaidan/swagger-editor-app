@@ -1,9 +1,5 @@
 import YAML from "yaml";
-import {
-  buildCookieHeaderValue,
-  normalizeServerUrl,
-  resolvePathParameters,
-} from "./request-url";
+import { buildCookieHeaderValue, buildRequestUrl } from "./request-url";
 
 export type SchemaFormat = "json" | "yaml";
 
@@ -332,20 +328,7 @@ export function createCurlPreview(
   parameters: CurlParameter[] = [],
   requestBody = "",
 ) {
-  const normalizedPath = resolvePathParameters(path, parameters);
-  const query = parameters
-    .filter((parameter) => parameter.location === "query")
-    .map(
-      (parameter) =>
-        `${encodeURIComponent(parameter.name)}=${encodeURIComponent(
-          parameter.value,
-        )}`,
-    )
-    .join("&");
-  const separator = normalizedPath.includes("?") ? "&" : "?";
-  const url = `${normalizeServerUrl(serverUrl)}${normalizedPath}${
-    query ? `${separator}${query}` : ""
-  }`;
+  const url = buildRequestUrl(serverUrl, path, parameters);
   const parts = [`curl -X ${method}`, `"${url}"`];
 
   parameters
