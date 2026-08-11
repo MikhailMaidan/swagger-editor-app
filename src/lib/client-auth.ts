@@ -75,6 +75,11 @@ export function clearClientAuth() {
     window.localStorage.removeItem(key);
   });
 
+  void fetch("/api/sign-out", { method: "POST" }).catch(() => {
+    // Client-readable cookies are already cleared above; the httpOnly
+    // server-fallback cookies will simply expire on their own if this fails.
+  });
+
   notifyAuthChange();
 }
 

@@ -25,6 +25,21 @@ describe("proxy", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
+  it("redirects unauthenticated visitors away from saved schemas", () => {
+    const response = proxy(createRequest("/schemas"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("http://localhost/");
+  });
+
+  it("allows authenticated visitors to view saved schemas", () => {
+    const response = proxy(
+      createRequest("/schemas", createDemoToken("mikhail@example.com")),
+    );
+
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
   it("redirects authenticated users away from auth routes", () => {
     const response = proxy(
       createRequest("/sign-in", createDemoToken("mikhail@example.com")),

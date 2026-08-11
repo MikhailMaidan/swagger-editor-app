@@ -11,20 +11,23 @@ import { getAuthenticatedUserId } from "@/lib/server-auth";
 
 export default async function SchemasPage() {
   const cookieStore = await cookies();
-  const cookieSchemas = sortSavedSchemas(
-    parseSavedSchemas(cookieStore.get(SERVER_SAVED_SCHEMAS_COOKIE)?.value),
-  );
   const userId = getAuthenticatedUserId(
     cookieStore.get(AUTH_TOKEN_COOKIE)?.value,
   );
+
+  if (!userId) {
+    return <SchemasPageContent initialSchemas={[]} />;
+  }
+
+  const cookieSchemas = sortSavedSchemas(
+    parseSavedSchemas(cookieStore.get(SERVER_SAVED_SCHEMAS_COOKIE)?.value),
+  );
   let initialSchemas = cookieSchemas;
 
-  if (userId) {
-    try {
-      initialSchemas = (await readSchemasFromDatabase(userId)) || cookieSchemas;
-    } catch {
-      initialSchemas = cookieSchemas;
-    }
+  try {
+    initialSchemas = (await readSchemasFromDatabase(userId)) || cookieSchemas;
+  } catch {
+    initialSchemas = cookieSchemas;
   }
 
   return <SchemasPageContent initialSchemas={initialSchemas} />;

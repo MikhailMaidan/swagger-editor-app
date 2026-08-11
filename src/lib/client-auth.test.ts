@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE, createDemoToken } from "./auth";
 import { clearClientAuth, getClientAuth, saveClientAuth } from "./client-auth";
 
@@ -29,6 +29,24 @@ describe("client auth helpers", () => {
       userName: "User",
     });
     expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBeNull();
+  });
+
+  it("asks the server to clear its httpOnly fallback cookies on sign out", () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    try {
+      saveClientAuth("mikhail@example.com");
+      clearClientAuth();
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/sign-out",
+        expect.objectContaining({ method: "POST" }),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("removes an expired token when auth state is read", () => {

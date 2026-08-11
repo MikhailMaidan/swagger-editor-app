@@ -15,23 +15,24 @@ export default async function HistoryDetailsPage({
 }) {
   const { id } = await params;
   const cookieStore = await cookies();
-  const cookieRecord = parseRequestHistory(
-    cookieStore.get(SERVER_REQUEST_HISTORY_COOKIE)?.value,
-  ).find((record) => record.id === id);
   const userId = getAuthenticatedUserId(
     cookieStore.get(AUTH_TOKEN_COOKIE)?.value,
   );
+
+  if (!userId) {
+    return <HistoryDetails record={null} />;
+  }
+
+  const cookieRecord = parseRequestHistory(
+    cookieStore.get(SERVER_REQUEST_HISTORY_COOKIE)?.value,
+  ).find((record) => record.id === id);
   let record = cookieRecord || null;
 
-  if (userId) {
-    try {
-      record =
-        (await readHistoryRecordFromDatabase(userId, id)) ||
-        cookieRecord ||
-        null;
-    } catch {
-      record = cookieRecord || null;
-    }
+  try {
+    record =
+      (await readHistoryRecordFromDatabase(userId, id)) || cookieRecord || null;
+  } catch {
+    record = cookieRecord || null;
   }
 
   return <HistoryDetails record={record} />;

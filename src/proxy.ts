@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE, isTokenValid } from "./lib/auth";
 
-const PRIVATE_ROUTES = ["/history"];
+const PRIVATE_ROUTES = ["/history", "/schemas"];
 const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 
 function isRouteMatch(pathname: string, routes: string[]) {
@@ -37,5 +37,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/history/:path*", "/sign-in", "/sign-up"],
+  matcher: ["/history/:path*", "/schemas/:path*", "/sign-in", "/sign-up"],
 };
