@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE, createDemoToken } from "./auth";
 import { clearClientAuth, getClientAuth, saveClientAuth } from "./client-auth";
+import {
+  REQUEST_HISTORY_STORAGE_KEY,
+  saveRequestHistoryRecord,
+} from "./request-history";
+import { readSavedSchema, saveSchema } from "./schema-storage";
 
 describe("client auth helpers", () => {
   it("saves and reads authenticated client state", () => {
@@ -29,6 +34,23 @@ describe("client auth helpers", () => {
       userName: "User",
     });
     expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBeNull();
+  });
+
+  it("clears the previous user's local request history and saved schema on sign out", () => {
+    saveClientAuth("first-user@example.com");
+    saveRequestHistoryRecord({
+      durationMs: 12,
+      method: "GET",
+      path: "/users",
+      status: 200,
+      summary: "List users",
+    });
+    saveSchema("openapi: 3.0.0\ninfo:\n  title: First User's API");
+
+    clearClientAuth();
+
+    expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
+    expect(readSavedSchema()).toBeNull();
   });
 
   it("asks the server to clear its httpOnly fallback cookies on sign out", () => {

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { RequestHistoryRecord } from "@/lib/request-history";
 import { HistoryDetails } from "./history-details";
 
 describe("HistoryDetails", () => {
@@ -33,6 +34,31 @@ describe("HistoryDetails", () => {
     expect(
       screen.getByRole("link", { name: "Back to History" }),
     ).toHaveAttribute("href", "/history");
+  });
+
+  it("shows 0 B instead of literal 'null B' when sizes are missing from the record", () => {
+    render(
+      <HistoryDetails
+        record={
+          {
+            createdAt: "2026-07-11T08:00:00.000Z",
+            durationMs: 42,
+            errorDetails: null,
+            id: "history-2",
+            method: "GET",
+            path: "/users/{id}",
+            requestSize: null,
+            responseSize: undefined,
+            status: 200,
+            summary: "Get user",
+            url: "https://api.example.com/users/42",
+          } as unknown as RequestHistoryRecord
+        }
+      />,
+    );
+
+    expect(screen.getAllByText("0 B")).toHaveLength(2);
+    expect(screen.queryByText(/null B|undefined B/)).not.toBeInTheDocument();
   });
 
   it("shows a friendly message for a missing record", () => {

@@ -14,6 +14,7 @@ export function formatEuropeanDateTime(value: string, language: Language) {
     minute: "2-digit",
     month: "2-digit",
     second: "2-digit",
+    timeZone: "UTC",
     year: "numeric",
   }).format(date);
 }

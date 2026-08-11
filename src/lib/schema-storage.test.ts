@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  clearSavedSchema,
   createSavedSchemaRecord,
   mergeSavedSchemas,
   parseSavedSchemas,
@@ -18,6 +19,14 @@ describe("schema storage", () => {
       "openapi: 3.0.0",
     );
     expect(readSavedSchema()).toBe("openapi: 3.0.0");
+  });
+
+  it("clears the locally saved schema", () => {
+    saveSchema("openapi: 3.0.0");
+
+    clearSavedSchema();
+
+    expect(readSavedSchema()).toBeNull();
   });
 
   it("creates, parses, and sorts saved schema records", () => {

@@ -8,6 +8,8 @@ import {
   getUserNameFromToken,
   isTokenValid,
 } from "./auth";
+import { clearRequestHistory } from "./request-history";
+import { clearSavedSchema } from "./schema-storage";
 
 type ClientAuthState = {
   isAuthenticated: boolean;
@@ -74,6 +76,11 @@ export function clearClientAuth() {
   TOKEN_STORAGE_KEYS.forEach((key) => {
     window.localStorage.removeItem(key);
   });
+
+  // Otherwise the next person to sign in on this browser would inherit the
+  // previous user's request history and saved schema.
+  clearRequestHistory();
+  clearSavedSchema();
 
   void fetch("/api/sign-out", { method: "POST" }).catch(() => {
     // Client-readable cookies are already cleared above; the httpOnly

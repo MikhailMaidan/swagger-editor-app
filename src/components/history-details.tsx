@@ -42,11 +42,11 @@ export function HistoryDetails({
             />
             <Detail
               label={t("history.requestSize")}
-              value={`${record.requestSize} B`}
+              value={`${record.requestSize ?? 0} B`}
             />
             <Detail
               label={t("history.responseSize")}
-              value={`${record.responseSize} B`}
+              value={`${record.responseSize ?? 0} B`}
             />
             <Detail
               label={t("history.errorDetails")}

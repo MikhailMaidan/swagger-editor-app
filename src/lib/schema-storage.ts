@@ -104,6 +104,14 @@ export function readSavedSchema() {
   return window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY);
 }
 
+export function clearSavedSchema() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(SAVED_SCHEMA_STORAGE_KEY);
+}
+
 export function saveSchema(schemaText: string, meta?: SavedSchemaMeta) {
   if (typeof window === "undefined") {
     return null;
