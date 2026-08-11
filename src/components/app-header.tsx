@@ -258,7 +258,7 @@ export function AppHeader({
             }`}
             priority
           />
-          <span className="text-[28px] font-extrabold text-[color:var(--color-brand-navy)] lg:text-[40px]">
+          <span className="text-[28px] font-extrabold tracking-tight text-[color:var(--color-brand-navy)] lg:text-[40px]">
             RSSwag
           </span>
         </Link>

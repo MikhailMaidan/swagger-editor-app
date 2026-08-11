@@ -74,6 +74,14 @@ vi.mock("next/link", () => ({
     ),
 }));
 
+vi.mock("next/font/google", () => ({
+  Inter: () => ({
+    className: "mock-font-inter",
+    style: { fontFamily: "mock-font-inter" },
+    variable: "mock-font-inter",
+  }),
+}));
+
 vi.mock("next/image", () => ({
   default: ({
     src,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import { AppFooter } from "@/components/app-footer";
 import { AppHeader } from "@/components/app-header";
@@ -10,6 +11,12 @@ import {
   isTokenValid,
 } from "@/lib/auth";
 import "./globals.css";
+
+const inter = Inter({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "RSSwag",
@@ -28,7 +35,7 @@ export default async function RootLayout({
     cookieStore.get(AUTH_USER_COOKIE)?.value || getUserNameFromToken(token);
 
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className={`h-full antialiased ${inter.variable}`}>
       <body className="flex min-h-full flex-col">
         <I18nProvider>
           <AppHeader
