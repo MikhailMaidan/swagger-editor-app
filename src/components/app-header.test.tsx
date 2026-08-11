@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
@@ -131,7 +131,7 @@ describe("AppHeader", () => {
     expect(globalThis.__NEXT_NAVIGATION_MOCK__.refresh).toHaveBeenCalled();
   });
 
-  it("animates into a compact sticky state after scrolling", () => {
+  it("animates into a compact sticky state after scrolling", async () => {
     render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
 
     const headerShell = screen.getByTestId("app-header-shell");
@@ -145,9 +145,11 @@ describe("AppHeader", () => {
     });
     fireEvent.scroll(window);
 
+    await waitFor(() =>
+      expect(headerShell).toHaveAttribute("data-sticky-state", "compact"),
+    );
     expect(headerShell.className).toContain("py-2");
     expect(headerShell.className).toContain("-translate-y-2");
-    expect(headerShell).toHaveAttribute("data-sticky-state", "compact");
     expect(headerShell.className).toContain(
       "border-[color:var(--color-brand-purple)]",
     );
@@ -158,7 +160,9 @@ describe("AppHeader", () => {
     });
     fireEvent.scroll(window);
 
-    expect(headerShell).toHaveAttribute("data-sticky-state", "compact");
+    await waitFor(() =>
+      expect(headerShell).toHaveAttribute("data-sticky-state", "compact"),
+    );
 
     Object.defineProperty(window, "scrollY", {
       configurable: true,
@@ -166,6 +170,34 @@ describe("AppHeader", () => {
     });
     fireEvent.scroll(window);
 
-    expect(headerShell).toHaveAttribute("data-sticky-state", "expanded");
+    await waitFor(() =>
+      expect(headerShell).toHaveAttribute("data-sticky-state", "expanded"),
+    );
+  });
+
+  it("coalesces rapid scroll events into a single update per animation frame", async () => {
+    const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
+    rafSpy.mockClear();
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 80,
+    });
+    fireEvent.scroll(window);
+    fireEvent.scroll(window);
+    fireEvent.scroll(window);
+
+    expect(rafSpy).toHaveBeenCalledTimes(1);
+
+    await waitFor(() =>
+      expect(screen.getByTestId("app-header-shell")).toHaveAttribute(
+        "data-sticky-state",
+        "compact",
+      ),
+    );
+
+    rafSpy.mockRestore();
   });
 });

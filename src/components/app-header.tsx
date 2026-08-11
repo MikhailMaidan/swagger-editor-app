@@ -157,7 +157,10 @@ export function AppHeader({
   }, []);
 
   useEffect(() => {
+    let pendingFrame: number | null = null;
+
     const syncStickyState = () => {
+      pendingFrame = null;
       setIsStickyCompact((currentState) => {
         const scrollPosition = window.scrollY;
 
@@ -169,11 +172,26 @@ export function AppHeader({
       });
     };
 
+    // Scroll fires far more often than the display can repaint, so the
+    // handler is coalesced to one check per animation frame instead of
+    // running (and re-rendering) on every raw scroll event.
+    const handleScroll = () => {
+      if (pendingFrame !== null) {
+        return;
+      }
+
+      pendingFrame = window.requestAnimationFrame(syncStickyState);
+    };
+
     syncStickyState();
-    window.addEventListener("scroll", syncStickyState, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", syncStickyState);
+      window.removeEventListener("scroll", handleScroll);
+
+      if (pendingFrame !== null) {
+        window.cancelAnimationFrame(pendingFrame);
+      }
     };
   }, []);
 
@@ -215,7 +233,7 @@ export function AppHeader({
   return (
     <header className="sticky top-0 z-50 min-h-[128px] px-4 pt-5 md:px-8 lg:min-h-[146px] lg:px-10">
       <div
-        className={`mx-auto flex max-w-[1600px] transform-gpu flex-nowrap items-center gap-5 rounded-[28px] border px-5 backdrop-blur-md transition-[transform,padding,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transform-none motion-reduce:transition-none lg:px-7 ${
+        className={`mx-auto flex max-w-[1600px] transform-gpu flex-nowrap items-center gap-5 rounded-[28px] border px-5 backdrop-blur-md transition-[transform,padding,background-color,border-color,box-shadow] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transform-none motion-reduce:transition-none lg:px-7 ${
           isStickyCompact
             ? "-translate-y-2 border-[color:var(--color-brand-purple)] bg-white/98 py-2 shadow-[0_14px_34px_rgba(64,45,137,0.16)]"
             : "translate-y-0 border-[color:var(--color-brand-border)] bg-white/95 py-3 shadow-[0_18px_45px_rgba(64,45,137,0.12)]"
@@ -233,7 +251,7 @@ export function AppHeader({
             alt=""
             width={108}
             height={108}
-            className={`object-contain transition-[width,height,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+            className={`object-contain transition-[width,height,transform] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transition-none ${
               isStickyCompact
                 ? "h-[72px] w-[72px] scale-[0.98] lg:h-[88px] lg:w-[88px]"
                 : "h-[84px] w-[84px] scale-100 lg:h-[102px] lg:w-[102px]"
@@ -273,16 +291,19 @@ export function AppHeader({
                         ? handleHomeLinkClick
                         : undefined
                   }
-                  className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors hover:text-[color:var(--color-brand-purple)] ${
+                  className={`${link.isDesktopOnly ? "hidden xl:inline-flex" : "inline-flex"} relative h-[53px] shrink-0 items-center justify-center pt-1 transition-colors duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:text-[color:var(--color-brand-purple)] motion-reduce:transition-none ${
                     shouldShowActive
                       ? "text-[color:var(--color-brand-purple)]"
                       : ""
                   }`}
                 >
                   {t(link.labelKey)}
-                  {shouldShowActive ? (
-                    <span className="absolute bottom-0 left-0 h-1 w-full rounded-full bg-[color:var(--color-brand-purple)]" />
-                  ) : null}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute bottom-0 left-0 h-1 w-full origin-center scale-x-0 rounded-full bg-[color:var(--color-brand-purple)] opacity-0 transition-[transform,opacity] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transition-none ${
+                      shouldShowActive ? "scale-x-100 opacity-100" : ""
+                    }`}
+                  />
                 </Link>
               );
             })}
@@ -297,7 +318,7 @@ export function AppHeader({
                 <button
                   aria-label={t(option.labelKey)}
                   aria-pressed={isActive}
-                  className={`cursor-pointer rounded-xl px-4 py-2.5 transition hover:bg-white/80 hover:text-[color:var(--color-brand-purple)] active:scale-95 ${
+                  className={`cursor-pointer rounded-xl px-4 py-2.5 transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:bg-white/80 hover:text-[color:var(--color-brand-purple)] active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
                     isActive
                       ? "bg-white text-[color:var(--color-brand-purple)]"
                       : ""
@@ -330,13 +351,13 @@ export function AppHeader({
               </div>
               <Link
                 href="/history"
-                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:bg-[color:var(--color-brand-soft)] motion-reduce:transition-none"
               >
                 <ClockIcon />
                 <span className="hidden sm:inline">{t("history.history")}</span>
               </Link>
               <button
-                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
+                className="inline-flex h-[58px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:translate-y-[-1px] motion-reduce:transition-none motion-reduce:transform-none"
                 type="button"
                 onClick={handleSignOut}
               >
@@ -348,13 +369,13 @@ export function AppHeader({
             <>
               <Link
                 href="/sign-in"
-                className="inline-flex h-[58px] items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-6 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                className="inline-flex h-[58px] items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-6 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:bg-[color:var(--color-brand-soft)] motion-reduce:transition-none"
               >
                 {t("auth.signIn")}
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex h-[58px] items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-6 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
+                className="inline-flex h-[58px] items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-6 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:translate-y-[-1px] motion-reduce:transition-none motion-reduce:transform-none"
               >
                 {t("auth.signUp")}
               </Link>

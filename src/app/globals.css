@@ -10,6 +10,9 @@
   --color-brand-border: #ded8f4;
   --color-brand-muted: #77718f;
   --color-brand-gold: #ffc247;
+  --ease-header: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-header: 280ms;
+  --duration-header-fast: 180ms;
 }
 
 @theme inline {

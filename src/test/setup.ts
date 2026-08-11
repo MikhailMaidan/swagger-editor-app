@@ -2,6 +2,14 @@ import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, vi } from "vitest";
 
+// jsdom does not implement requestAnimationFrame; components that throttle
+// scroll/resize handlers through it need this to run in tests at all.
+if (typeof window.requestAnimationFrame === "undefined") {
+  window.requestAnimationFrame = (callback: FrameRequestCallback) =>
+    window.setTimeout(() => callback(Date.now()), 0);
+  window.cancelAnimationFrame = (handle: number) => window.clearTimeout(handle);
+}
+
 type CookieMock = {
   get: ReturnType<typeof vi.fn>;
 };
