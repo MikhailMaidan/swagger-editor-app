@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  deleteSchemaFromDatabase,
   isDatabaseConfigured,
   readHistoryFromDatabase,
   readHistoryRecordFromDatabase,
@@ -189,6 +190,34 @@ describe("database", () => {
     expect(fetchMock.mock.calls[1][0]).toContain("rest/v1/rsswagger_schemas");
   });
 
+  it("deletes a schema scoped to both its id and the owning user", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await expect(
+      deleteSchemaFromDatabase("user@example.com", "schema-1"),
+    ).resolves.toBe(true);
+
+    const requestUrl = String(fetchMock.mock.calls[0][0]);
+    const requestOptions = fetchMock.mock.calls[0][1] as RequestInit;
+
+    expect(requestUrl).toContain("rest/v1/rsswagger_schemas");
+    expect(requestUrl).toContain("id=eq.schema-1");
+    expect(requestUrl).toContain("user_id=eq.user%40example.com");
+    expect(requestOptions.method).toBe("DELETE");
+  });
+
+  it("skips the delete request when the database is not configured", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    await expect(
+      deleteSchemaFromDatabase("user@example.com", "schema-1"),
+    ).resolves.toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("throws when the database returns an error", async () => {
     configureDatabase();
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -201,5 +230,8 @@ describe("database", () => {
     await expect(
       saveSchemaToDatabase("user@example.com", savedSchema),
     ).rejects.toThrow("Database write failed");
+    await expect(
+      deleteSchemaFromDatabase("user@example.com", "schema-1"),
+    ).rejects.toThrow("Database delete failed");
   });
 });

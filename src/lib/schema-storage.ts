@@ -159,3 +159,15 @@ export async function saveServerSchemaRecord(record: SavedSchemaRecord) {
     // Local schema storage is still available if the server sync fails.
   }
 }
+
+export async function deleteServerSchemaRecord(id: string) {
+  try {
+    const response = await fetch(`/api/schemas/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

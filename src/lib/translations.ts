@@ -85,6 +85,10 @@ export const translations = {
       "The page does not exist or the link is no longer available.",
     "notFound.label": "404",
     "notFound.title": "Page not found",
+    "schemas.delete": "Delete",
+    "schemas.deleteConfirm": 'Delete "{title}"? This cannot be undone.',
+    "schemas.deleteError": "Could not delete this schema. Try again.",
+    "schemas.deleting": "Deleting...",
     "schemas.description":
       "Saved schemas from the editor are shown here newest first.",
     "schemas.empty":
@@ -226,6 +230,10 @@ export const translations = {
       "Страница не существует или ссылка больше недоступна.",
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
+    "schemas.delete": "Удалить",
+    "schemas.deleteConfirm": 'Удалить "{title}"? Это действие необратимо.',
+    "schemas.deleteError": "Не удалось удалить схему. Попробуйте снова.",
+    "schemas.deleting": "Удаление...",
     "schemas.description":
       "Сохраненные в редакторе схемы показаны здесь от новых к старым.",
     "schemas.empty":

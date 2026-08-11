@@ -113,6 +113,33 @@ async function saveRow(table: string, row: Record<string, unknown>) {
   return true;
 }
 
+async function deleteRow(table: string, userId: string, id: string) {
+  const config = getDatabaseConfig();
+
+  if (!config) {
+    return false;
+  }
+
+  const query = new URLSearchParams({
+    id: `eq.${id}`,
+    user_id: `eq.${userId}`,
+  });
+  const response = await fetch(
+    `${config.url}/rest/v1/${table}?${query.toString()}`,
+    {
+      headers: createHeaders(config),
+      method: "DELETE",
+      signal: AbortSignal.timeout(5_000),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Database delete failed with status ${response.status}.`);
+  }
+
+  return true;
+}
+
 function historyRowToRecord(row: HistoryRow): RequestHistoryRecord {
   return {
     createdAt: row.created_at,
@@ -214,4 +241,8 @@ export function saveSchemaToDatabase(
     user_id: userId,
     version: schema.version,
   });
+}
+
+export function deleteSchemaFromDatabase(userId: string, id: string) {
+  return deleteRow("rsswagger_schemas", userId, id);
 }

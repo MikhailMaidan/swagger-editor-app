@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
-import type { SavedSchemaRecord } from "@/lib/schema-storage";
+import {
+  deleteServerSchemaRecord,
+  SavedSchemaRecord,
+} from "@/lib/schema-storage";
 
 function getSchemaSize(schemaText: string) {
   return new TextEncoder().encode(schemaText).length;
@@ -15,6 +19,30 @@ export function SchemasPageContent({
   initialSchemas: SavedSchemaRecord[];
 }) {
   const { language, t } = useI18n();
+  const [schemas, setSchemas] = useState(initialSchemas);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorId, setErrorId] = useState<string | null>(null);
+
+  async function handleDelete(schema: SavedSchemaRecord) {
+    if (!window.confirm(t("schemas.deleteConfirm", { title: schema.title }))) {
+      return;
+    }
+
+    setDeletingId(schema.id);
+    setErrorId(null);
+
+    const deleted = await deleteServerSchemaRecord(schema.id);
+
+    if (deleted) {
+      setSchemas((currentSchemas) =>
+        currentSchemas.filter((current) => current.id !== schema.id),
+      );
+    } else {
+      setErrorId(schema.id);
+    }
+
+    setDeletingId(null);
+  }
 
   return (
     <div className="w-full px-4 py-10 md:px-8 lg:px-10">
@@ -29,7 +57,7 @@ export function SchemasPageContent({
           {t("schemas.description")}
         </p>
 
-        {initialSchemas.length === 0 ? (
+        {schemas.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-5">
             <p className="text-base font-semibold leading-7 text-[color:var(--color-brand-muted)]">
               {t("schemas.empty")}
@@ -43,7 +71,7 @@ export function SchemasPageContent({
           </div>
         ) : (
           <div className="mt-8 grid gap-4">
-            {initialSchemas.map((schema) => (
+            {schemas.map((schema) => (
               <article
                 className="rounded-2xl border border-[color:var(--color-brand-border)] p-5"
                 key={schema.id}
@@ -57,10 +85,31 @@ export function SchemasPageContent({
                       {t("schemas.version")} {schema.version}
                     </p>
                   </div>
-                  <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
-                    {schema.format}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
+                      {schema.format}
+                    </span>
+                    <button
+                      className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={deletingId === schema.id}
+                      type="button"
+                      onClick={() => handleDelete(schema)}
+                    >
+                      {deletingId === schema.id
+                        ? t("schemas.deleting")
+                        : t("schemas.delete")}
+                    </button>
+                  </div>
                 </div>
+
+                {errorId === schema.id ? (
+                  <p
+                    className="mt-3 text-sm font-semibold text-red-600"
+                    role="alert"
+                  >
+                    {t("schemas.deleteError")}
+                  </p>
+                ) : null}
 
                 <dl className="mt-5 grid gap-4 text-sm md:grid-cols-3">
                   <div>
