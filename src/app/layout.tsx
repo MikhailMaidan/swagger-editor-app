@@ -43,7 +43,10 @@ export default async function RootLayout({
             initialUserName={userName}
           />
           <main className="flex flex-1 flex-col">{children}</main>
-          <AppFooter />
+          <AppFooter
+            initialIsAuthenticated={isAuthenticated}
+            initialUserName={userName}
+          />
         </I18nProvider>
       </body>
     </html>

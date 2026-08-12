@@ -1,6 +1,12 @@
+import { renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE, createDemoToken } from "./auth";
-import { clearClientAuth, getClientAuth, saveClientAuth } from "./client-auth";
+import {
+  clearClientAuth,
+  getClientAuth,
+  saveClientAuth,
+  useClientAuthState,
+} from "./client-auth";
 import {
   REQUEST_HISTORY_STORAGE_KEY,
   saveRequestHistoryRecord,
@@ -82,5 +88,56 @@ describe("client auth helpers", () => {
       userName: "User",
     });
     expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBeNull();
+  });
+
+  describe("useClientAuthState", () => {
+    it("accepts a server-rendered initial state matching an already-authenticated user", () => {
+      saveClientAuth("mikhail.maidan@example.com");
+
+      const { result } = renderHook(() =>
+        useClientAuthState({
+          isAuthenticated: true,
+          userName: "Mikhail Maidan",
+        }),
+      );
+
+      expect(result.current).toEqual({
+        isAuthenticated: true,
+        userName: "Mikhail Maidan",
+      });
+    });
+
+    it("defaults to a signed-out state when no initial state is given", () => {
+      const { result } = renderHook(() => useClientAuthState());
+
+      expect(result.current).toEqual({
+        isAuthenticated: false,
+        userName: "User",
+      });
+    });
+
+    it("updates when auth state changes elsewhere in the app", async () => {
+      const { result } = renderHook(() => useClientAuthState());
+
+      expect(result.current.isAuthenticated).toBe(false);
+
+      saveClientAuth("mikhail.maidan@example.com");
+
+      await waitFor(() =>
+        expect(result.current).toEqual({
+          isAuthenticated: true,
+          userName: "Mikhail Maidan",
+        }),
+      );
+
+      clearClientAuth();
+
+      await waitFor(() =>
+        expect(result.current).toEqual({
+          isAuthenticated: false,
+          userName: "User",
+        }),
+      );
+    });
   });
 });

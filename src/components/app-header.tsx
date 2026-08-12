@@ -6,8 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { useI18n } from "@/components/i18n-provider";
-import { AUTH_CHANGE_EVENT } from "@/lib/auth";
-import { clearClientAuth, getClientAuth } from "@/lib/client-auth";
+import { clearClientAuth, useClientAuthState } from "@/lib/client-auth";
 import type { TranslationKey } from "@/lib/translations";
 
 type AppHeaderProps = {
@@ -15,7 +14,7 @@ type AppHeaderProps = {
   initialUserName: string;
 };
 
-const navLinks = [
+export const navLinks = [
   {
     href: "/",
     labelKey: "nav.home",
@@ -115,33 +114,12 @@ export function AppHeader({
   const { language, setLanguage, t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    initialIsAuthenticated,
-  );
-  const [userName, setUserName] = useState(initialUserName);
+  const { isAuthenticated, userName } = useClientAuthState({
+    isAuthenticated: initialIsAuthenticated,
+    userName: initialUserName,
+  });
   const [isStickyCompact, setIsStickyCompact] = useState(false);
   const [activeHash, setActiveHash] = useState("");
-
-  useEffect(() => {
-    const syncAuthState = () => {
-      const authState = getClientAuth();
-
-      setIsAuthenticated(authState.isAuthenticated);
-      setUserName(authState.userName);
-    };
-
-    syncAuthState();
-
-    window.addEventListener(AUTH_CHANGE_EVENT, syncAuthState);
-    window.addEventListener("storage", syncAuthState);
-    window.addEventListener("focus", syncAuthState);
-
-    return () => {
-      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthState);
-      window.removeEventListener("storage", syncAuthState);
-      window.removeEventListener("focus", syncAuthState);
-    };
-  }, []);
 
   useEffect(() => {
     const syncHash = () => {
@@ -197,7 +175,6 @@ export function AppHeader({
 
   function handleSignOut() {
     clearClientAuth();
-    setIsAuthenticated(false);
     router.push("/");
     router.refresh();
   }

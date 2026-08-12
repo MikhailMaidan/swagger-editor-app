@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   AUTH_CHANGE_EVENT,
   AUTH_TOKEN_COOKIE,
@@ -11,9 +12,14 @@ import {
 import { clearRequestHistory } from "./request-history";
 import { clearSavedSchema } from "./schema-storage";
 
-type ClientAuthState = {
+export type ClientAuthState = {
   isAuthenticated: boolean;
   userName: string;
+};
+
+const DEFAULT_CLIENT_AUTH_STATE: ClientAuthState = {
+  isAuthenticated: false,
+  userName: "User",
 };
 
 const COOKIE_LIFETIME = 60 * 60 * 24 * 7;
@@ -132,4 +138,30 @@ export function saveClientAuth(email: string) {
     token,
     userName,
   };
+}
+
+export function useClientAuthState(
+  initialState: ClientAuthState = DEFAULT_CLIENT_AUTH_STATE,
+) {
+  const [authState, setAuthState] = useState<ClientAuthState>(initialState);
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setAuthState(getClientAuth());
+    };
+
+    syncAuthState();
+
+    window.addEventListener(AUTH_CHANGE_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+    window.addEventListener("focus", syncAuthState);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+      window.removeEventListener("focus", syncAuthState);
+    };
+  }, []);
+
+  return authState;
 }
