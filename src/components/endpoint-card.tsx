@@ -14,6 +14,7 @@ import {
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
 import { buildRequestUrl } from "@/lib/request-url";
+import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
 
 const methodColorClasses: Record<string, string> = {
@@ -66,10 +67,6 @@ type TryItOutPayload = {
   serverUrl: string;
   status: string;
 };
-
-function getTextSize(value: string) {
-  return new TextEncoder().encode(value).length;
-}
 
 function formatResponseBody(value: string) {
   try {
@@ -335,13 +332,13 @@ function EndpointCardComponent({
       headers: {
         "content-type": "application/json",
       },
-      requestSize: getTextSize(
+      requestSize: getByteSize(
         JSON.stringify({
           body: requestBodyValue,
           values: requestValues,
         }),
       ),
-      responseSize: getTextSize(response.body),
+      responseSize: getByteSize(response.body),
       status: response.status,
       url: buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
     };

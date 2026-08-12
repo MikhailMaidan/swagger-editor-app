@@ -1,3 +1,5 @@
+import { decodeUtf8, encodeUtf8 } from "./text-encoding";
+
 export const AUTH_TOKEN_COOKIE = "rsswagger-token";
 export const AUTH_USER_COOKIE = "rsswagger-user";
 export const AUTH_CHANGE_EVENT = "rsswagger-auth-change";
@@ -13,7 +15,7 @@ export type AuthTokenPayload = {
 const DEFAULT_TOKEN_LIFETIME = 60 * 60 * 24 * 7;
 
 function encodeBase64Url(value: string) {
-  const bytes = new TextEncoder().encode(value);
+  const bytes = encodeUtf8(value);
   let binaryValue = "";
 
   bytes.forEach((byte) => {
@@ -33,7 +35,7 @@ function decodeBase64Url(value: string) {
   const binaryValue = atob(paddedValue);
   const bytes = Uint8Array.from(binaryValue, (char) => char.charCodeAt(0));
 
-  return new TextDecoder().decode(bytes);
+  return decodeUtf8(bytes);
 }
 
 export function getDisplayName(email: string) {

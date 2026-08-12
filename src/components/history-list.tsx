@@ -22,13 +22,13 @@ function HistoryLinks() {
   return (
     <div className="mt-8 flex flex-wrap gap-3">
       <Link
-        className="inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)]"
+        className="inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
         href="/"
       >
         {t("common.openEditor")}
       </Link>
       <Link
-        className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"
+        className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
         href="/#api-viewer"
       >
         {t("nav.apiReference")}
@@ -107,7 +107,7 @@ export function HistoryList({
           <tbody>
             {records.map((record) => (
               <tr
-                className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)]"
+                className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)] transition-colors hover:bg-[color:var(--color-brand-soft)]/60 motion-reduce:transition-none"
                 key={record.id}
               >
                 <td className="px-4 py-4 font-extrabold text-[color:var(--color-brand-purple)]">

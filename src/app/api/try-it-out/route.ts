@@ -4,6 +4,7 @@ import {
   hasUnresolvedPathParameters,
   resolvePathParameters,
 } from "@/lib/request-url";
+import { getByteSize } from "@/lib/text-encoding";
 
 type RequestParameterLocation = "path" | "query" | "header" | "cookie";
 
@@ -38,10 +39,6 @@ type TryItOutResult = {
   status: string;
   url: string;
 };
-
-function getByteSize(value: string) {
-  return new TextEncoder().encode(value).length;
-}
 
 function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;

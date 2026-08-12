@@ -8,10 +8,7 @@ import {
   deleteServerSchemaRecord,
   SavedSchemaRecord,
 } from "@/lib/schema-storage";
-
-function getSchemaSize(schemaText: string) {
-  return new TextEncoder().encode(schemaText).length;
-}
+import { getByteSize } from "@/lib/text-encoding";
 
 export function SchemasPageContent({
   initialSchemas,
@@ -63,7 +60,7 @@ export function SchemasPageContent({
               {t("schemas.empty")}
             </p>
             <Link
-              className="mt-5 inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)]"
+              className="mt-5 inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-5 text-base font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition hover:translate-y-[-1px]"
               href="/"
             >
               {t("common.openEditor")}
@@ -73,7 +70,7 @@ export function SchemasPageContent({
           <div className="mt-8 grid gap-4">
             {schemas.map((schema) => (
               <article
-                className="rounded-2xl border border-[color:var(--color-brand-border)] p-5"
+                className="rounded-2xl border border-[color:var(--color-brand-border)] p-5 transition-[border-color,box-shadow] duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:border-[color:var(--color-brand-purple)] hover:shadow-[0_12px_26px_rgba(64,45,137,0.1)] motion-reduce:transition-none"
                 key={schema.id}
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -125,7 +122,7 @@ export function SchemasPageContent({
                       {t("schemas.schemaSize")}
                     </dt>
                     <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                      {getSchemaSize(schema.schemaText)} B
+                      {getByteSize(schema.schemaText)} B
                     </dd>
                   </div>
                   <div>
