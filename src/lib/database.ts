@@ -1,4 +1,6 @@
+import { MAX_REQUEST_HISTORY_RECORDS } from "./request-history";
 import type { RequestHistoryRecord } from "./request-history";
+import { MAX_SAVED_SCHEMAS } from "./schema-storage";
 import type { SavedSchemaRecord } from "./schema-storage";
 
 type DatabaseConfig = {
@@ -170,7 +172,7 @@ function schemaRowToRecord(row: SchemaRow): SavedSchemaRecord {
 
 export async function readHistoryFromDatabase(userId: string) {
   const query = new URLSearchParams({
-    limit: "20",
+    limit: String(MAX_REQUEST_HISTORY_RECORDS),
     order: "created_at.desc",
     select: "*",
     user_id: `eq.${userId}`,
@@ -217,7 +219,7 @@ export function saveHistoryToDatabase(
 
 export async function readSchemasFromDatabase(userId: string) {
   const query = new URLSearchParams({
-    limit: "10",
+    limit: String(MAX_SAVED_SCHEMAS),
     order: "updated_at.desc",
     select: "*",
     user_id: `eq.${userId}`,

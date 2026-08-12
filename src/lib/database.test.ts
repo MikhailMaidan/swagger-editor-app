@@ -8,6 +8,8 @@ import {
   saveHistoryToDatabase,
   saveSchemaToDatabase,
 } from "./database";
+import { MAX_REQUEST_HISTORY_RECORDS } from "./request-history";
+import { MAX_SAVED_SCHEMAS } from "./schema-storage";
 
 const historyRecord = {
   createdAt: "2026-07-11T08:00:00.000Z",
@@ -104,6 +106,23 @@ describe("database", () => {
 
     expect(requestHeaders.get("apikey")).toBe("secret-key");
     expect(requestHeaders.get("Authorization")).toBe("Bearer secret-key");
+  });
+
+  it("caps history and schema reads at the same limits the local storage caches enforce", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => Response.json([]));
+
+    await readHistoryFromDatabase("user@example.com");
+    await readSchemasFromDatabase("user@example.com");
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      `limit=${MAX_REQUEST_HISTORY_RECORDS}`,
+    );
+    expect(String(fetchMock.mock.calls[1][0])).toContain(
+      `limit=${MAX_SAVED_SCHEMAS}`,
+    );
   });
 
   it("authenticates as the service role via a bearer token, not just the apikey header", async () => {
