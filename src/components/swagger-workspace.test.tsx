@@ -115,6 +115,110 @@ describe("SwaggerWorkspace", () => {
     await waitFor(() => expect(screen.getByText("YAML")).toBeVisible());
   });
 
+  it("imports a schema from a local file", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const file = new File(
+      [
+        `openapi: 3.0.0
+info:
+  title: Imported API
+  version: 3.0.0
+paths:
+  /imported:
+    get:
+      summary: Imported endpoint
+      responses:
+        '200':
+          description: OK`,
+      ],
+      "schema.yaml",
+      { type: "application/yaml" },
+    );
+
+    await user.upload(
+      screen.getByLabelText("Import OpenAPI schema file"),
+      file,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Imported API" }),
+    ).toBeVisible();
+    expect(screen.getByText("/imported")).toBeVisible();
+  });
+
+  it("shows an error instead of silently failing when the imported file can't be read", async () => {
+    const user = userEvent.setup();
+    const readAsTextSpy = vi
+      .spyOn(FileReader.prototype, "readAsText")
+      .mockImplementation(function (this: FileReader) {
+        this.onerror?.(new ProgressEvent("error") as unknown as ProgressEvent<FileReader>);
+      });
+
+    render(<SwaggerWorkspace />);
+
+    const file = new File(["openapi: 3.0.0"], "schema.yaml", {
+      type: "application/yaml",
+    });
+
+    await user.upload(
+      screen.getByLabelText("Import OpenAPI schema file"),
+      file,
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Could not read that file.",
+    );
+
+    readAsTextSpy.mockRestore();
+  });
+
+  it("downloads the current schema with a filename derived from its title", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn((_blob: Blob) => "blob:mock-url");
+    const revokeObjectURL = vi.fn((_url: string) => {});
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const anchors: HTMLAnchorElement[] = [];
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Download" }));
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const blobArg = createObjectURL.mock.calls[0][0] as Blob;
+      expect(blobArg.type).toBe("application/yaml");
+      const downloadAnchor = anchors[0];
+      expect(downloadAnchor?.download).toBe("rsswag-demo-api.yaml");
+      expect(downloadAnchor?.getAttribute("href")).toBe("blob:mock-url");
+      expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("copies generated cURL commands", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);

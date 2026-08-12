@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChangeEvent } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
@@ -27,6 +28,15 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
   "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
 
+function slugifyTitle(title: string) {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "openapi-schema";
+}
+
 // Parsing (YAML/JSON + endpoint extraction) is real work for larger
 // documents, so it's debounced off the raw keystroke: typing itself stays
 // instant since the textarea always renders the undebounced schemaText.
@@ -41,6 +51,7 @@ export function SwaggerWorkspace({
 }: SwaggerWorkspaceProps = {}) {
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const hasEditedSchemaRef = useRef(false);
   const { isAuthenticated } = useClientAuthState({
@@ -48,6 +59,7 @@ export function SwaggerWorkspace({
     userName: "User",
   });
   const [saveMessage, setSaveMessage] = useState("");
+  const [importError, setImportError] = useState("");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -118,6 +130,51 @@ export function SwaggerWorkspace({
     setSchemaText(formatOpenApiSchema(parseResult.value.schema, targetFormat));
   }
 
+  function handleDownloadSchema() {
+    const extension = detectedFormat === "json" ? "json" : "yaml";
+    const filename = `${
+      parseResult.ok ? slugifyTitle(parseResult.value.title) : "openapi-schema"
+    }.${extension}`;
+    const mimeType =
+      extension === "json" ? "application/json" : "application/yaml";
+    const url = URL.createObjectURL(
+      new Blob([schemaText], { type: mimeType }),
+    );
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      hasEditedSchemaRef.current = true;
+      setSchemaText(String(reader.result));
+      setSaveMessage("");
+      setImportError("");
+    };
+    reader.onerror = () => {
+      setImportError(t("workspace.errors.fileReadFailed"));
+    };
+    reader.readAsText(file);
+  }
+
   function handleSaveSchema() {
     if (!isAuthenticated || !parseResult.ok) {
       return;
@@ -167,6 +224,28 @@ export function SwaggerWorkspace({
             <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-bold uppercase text-[color:var(--color-brand-purple)]">
               {detectedFormat.toUpperCase()}
             </span>
+            <input
+              ref={fileInputRef}
+              className="hidden"
+              type="file"
+              accept=".yaml,.yml,.json,.txt"
+              aria-label="Import OpenAPI schema file"
+              onChange={handleFileSelected}
+            />
+            <button
+              className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
+              onClick={handleImportClick}
+            >
+              {t("workspace.import")}
+            </button>
+            <button
+              className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
+              onClick={handleDownloadSchema}
+            >
+              {t("workspace.download")}
+            </button>
             <button
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
               disabled={!parseResult.ok}
@@ -197,6 +276,7 @@ export function SwaggerWorkspace({
             hasEditedSchemaRef.current = true;
             setSchemaText(event.target.value);
             setSaveMessage("");
+            setImportError("");
           }}
         />
         {!isAuthenticated ? (
@@ -210,6 +290,14 @@ export function SwaggerWorkspace({
             role="status"
           >
             {saveMessage}
+          </p>
+        ) : null}
+        {importError ? (
+          <p
+            className="border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+            role="alert"
+          >
+            {importError}
           </p>
         ) : null}
         {!parseResult.ok ? (
