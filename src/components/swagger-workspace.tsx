@@ -3,8 +3,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
-import { AUTH_CHANGE_EVENT } from "@/lib/auth";
-import { getClientAuth } from "@/lib/client-auth";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useClientAuthState } from "@/lib/client-auth";
 import {
   DEFAULT_OPENAPI_SCHEMA,
   formatOpenApiSchema,
@@ -27,15 +27,24 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
   "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
 
+// Parsing (YAML/JSON + endpoint extraction) is real work for larger
+// documents, so it's debounced off the raw keystroke: typing itself stays
+// instant since the textarea always renders the undebounced schemaText.
+const SCHEMA_PARSE_DEBOUNCE_MS = 200;
+
 export function SwaggerWorkspace() {
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated } = useClientAuthState();
   const [saveMessage, setSaveMessage] = useState("");
+  const debouncedSchemaText = useDebouncedValue(
+    schemaText,
+    SCHEMA_PARSE_DEBOUNCE_MS,
+  );
   const parseResult = useMemo(
-    () => parseOpenApiSchema(schemaText),
-    [schemaText],
+    () => parseOpenApiSchema(debouncedSchemaText),
+    [debouncedSchemaText],
   );
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
@@ -55,37 +64,25 @@ export function SwaggerWorkspace() {
   }, [schemaText]);
 
   useEffect(() => {
-    const syncAuthAndSavedSchema = () => {
-      const authState = getClientAuth();
+    if (!isAuthenticated) {
+      return;
+    }
 
-      setIsAuthenticated(authState.isAuthenticated);
+    const savedSchema = readSavedSchema();
 
-      if (authState.isAuthenticated) {
-        const savedSchema = readSavedSchema();
+    if (savedSchema) {
+      setSchemaText(savedSchema);
+      return;
+    }
 
-        if (savedSchema) {
-          setSchemaText(savedSchema);
-          return;
-        }
+    void readServerSavedSchemas().then((savedSchemas) => {
+      const latestSchema = savedSchemas[0];
 
-        void readServerSavedSchemas().then((savedSchemas) => {
-          const latestSchema = savedSchemas[0];
-
-          if (latestSchema) {
-            setSchemaText(latestSchema.schemaText);
-          }
-        });
+      if (latestSchema) {
+        setSchemaText(latestSchema.schemaText);
       }
-    };
-
-    syncAuthAndSavedSchema();
-
-    window.addEventListener(AUTH_CHANGE_EVENT, syncAuthAndSavedSchema);
-
-    return () => {
-      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthAndSavedSchema);
-    };
-  }, []);
+    });
+  }, [isAuthenticated]);
 
   function handleFormatSwitch() {
     if (!parseResult.ok) {

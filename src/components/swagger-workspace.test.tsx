@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
@@ -69,14 +75,14 @@ describe("SwaggerWorkspace", () => {
     );
   });
 
-  it("shows validation errors and disables conversion for invalid schemas", () => {
+  it("shows validation errors and disables conversion for invalid schemas", async () => {
     render(<SwaggerWorkspace />);
 
     fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
       target: { value: "openapi: 3.0.0" },
     });
 
-    expect(screen.getByText("Invalid")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("Invalid")).toBeVisible());
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Schema info.title is required.",
     );
@@ -99,12 +105,14 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor.value.trim().startsWith("{")).toBe(true);
     expect(editor.value).toContain('"title": "RSSwag Demo API"');
-    expect(screen.getByText("JSON")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("JSON")).toBeVisible());
 
-    await user.click(screen.getByRole("button", { name: "Convert to YAML" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Convert to YAML" }),
+    );
 
     expect(editor.value).toContain("title: RSSwag Demo API");
-    expect(screen.getByText("YAML")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("YAML")).toBeVisible());
   });
 
   it("copies generated cURL commands", async () => {
@@ -217,7 +225,7 @@ paths:
       },
     });
 
-    const sortInput = screen.getByLabelText("Query parameter sort");
+    const sortInput = await screen.findByLabelText("Query parameter sort");
 
     await user.type(sortInput, "asc");
 
@@ -235,7 +243,7 @@ paths:
     consoleError.mockRestore();
   });
 
-  it("updates the viewer when a JSON schema is entered", () => {
+  it("updates the viewer when a JSON schema is entered", async () => {
     render(<SwaggerWorkspace />);
 
     fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
@@ -262,10 +270,42 @@ paths:
       },
     });
 
-    expect(screen.getByRole("heading", { name: "Pets API" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "Pets API" }),
+    ).toBeVisible();
     expect(screen.getByText("Version 2.0.0")).toBeVisible();
     expect(screen.getByText("/pets")).toBeVisible();
     expect(screen.getByText("List pets")).toBeVisible();
+  });
+
+  it("debounces re-parsing the schema instead of reparsing on every keystroke", () => {
+    vi.useFakeTimers();
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: "openapi: 3.0.0" },
+      });
+
+      // The textarea updates instantly (typing must never feel blocked)...
+      expect(
+        (screen.getByLabelText("OpenAPI schema editor") as HTMLTextAreaElement)
+          .value,
+      ).toBe("openapi: 3.0.0");
+      // ...but the expensive re-parse and its "Invalid" feedback shouldn't
+      // have landed yet.
+      expect(screen.queryByText("Invalid")).not.toBeInTheDocument();
+      expect(screen.getByText("Valid")).toBeVisible();
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      expect(screen.getByText("Invalid")).toBeVisible();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("disables schema saving for guests", () => {
