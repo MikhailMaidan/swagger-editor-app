@@ -32,11 +32,21 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
 // instant since the textarea always renders the undebounced schemaText.
 const SCHEMA_PARSE_DEBOUNCE_MS = 200;
 
-export function SwaggerWorkspace() {
+type SwaggerWorkspaceProps = {
+  initialIsAuthenticated?: boolean;
+};
+
+export function SwaggerWorkspace({
+  initialIsAuthenticated = false,
+}: SwaggerWorkspaceProps = {}) {
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
-  const { isAuthenticated } = useClientAuthState();
+  const hasEditedSchemaRef = useRef(false);
+  const { isAuthenticated } = useClientAuthState({
+    isAuthenticated: initialIsAuthenticated,
+    userName: "User",
+  });
   const [saveMessage, setSaveMessage] = useState("");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
@@ -68,6 +78,8 @@ export function SwaggerWorkspace() {
       return;
     }
 
+    hasEditedSchemaRef.current = false;
+
     const savedSchema = readSavedSchema();
 
     if (savedSchema) {
@@ -75,13 +87,26 @@ export function SwaggerWorkspace() {
       return;
     }
 
+    let cancelled = false;
+
+    // The server round-trip below can take long enough for the user to
+    // start typing before it resolves; applying it unconditionally would
+    // silently discard whatever they'd already typed in the meantime.
     void readServerSavedSchemas().then((savedSchemas) => {
+      if (cancelled || hasEditedSchemaRef.current) {
+        return;
+      }
+
       const latestSchema = savedSchemas[0];
 
       if (latestSchema) {
         setSchemaText(latestSchema.schemaText);
       }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
   function handleFormatSwitch() {
@@ -89,6 +114,7 @@ export function SwaggerWorkspace() {
       return;
     }
 
+    hasEditedSchemaRef.current = true;
     setSchemaText(formatOpenApiSchema(parseResult.value.schema, targetFormat));
   }
 
@@ -168,6 +194,7 @@ export function SwaggerWorkspace() {
           aria-label="OpenAPI schema editor"
           wrap="off"
           onChange={(event) => {
+            hasEditedSchemaRef.current = true;
             setSchemaText(event.target.value);
             setSaveMessage("");
           }}

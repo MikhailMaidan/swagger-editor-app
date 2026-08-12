@@ -91,25 +91,57 @@ async function readRows<T>(table: string, query: URLSearchParams) {
   return (await response.json()) as T[];
 }
 
-async function saveRow(table: string, row: Record<string, unknown>) {
+async function saveRow(table: string, userId: string, row: Record<string, unknown>) {
   const config = getDatabaseConfig();
 
   if (!config) {
     return false;
   }
 
-  const response = await fetch(`${config.url}/rest/v1/${table}`, {
+  // Client-generated ids (Date.now() + a random suffix) aren't guaranteed
+  // unique across users, and a plain upsert-by-id would let anyone silently
+  // overwrite another user's row by re-POSTing with a guessed/colliding id.
+  // Updating scoped to `id` *and* `user_id` first means an existing row only
+  // changes when it's actually owned by the requester; if nothing matched
+  // (new id, or an id owned by someone else) we fall through to a plain
+  // insert, which the primary key constraint rejects on a real collision.
+  const updateQuery = new URLSearchParams({
+    id: `eq.${row.id as string}`,
+    user_id: `eq.${userId}`,
+  });
+  const updateResponse = await fetch(
+    `${config.url}/rest/v1/${table}?${updateQuery.toString()}`,
+    {
+      body: JSON.stringify(row),
+      headers: createHeaders(config, "return=representation"),
+      method: "PATCH",
+      signal: AbortSignal.timeout(5_000),
+    },
+  );
+
+  if (!updateResponse.ok) {
+    throw new Error(
+      `Database write failed with status ${updateResponse.status}.`,
+    );
+  }
+
+  const updatedRows = (await updateResponse.json()) as unknown[];
+
+  if (updatedRows.length > 0) {
+    return true;
+  }
+
+  const insertResponse = await fetch(`${config.url}/rest/v1/${table}`, {
     body: JSON.stringify(row),
-    headers: createHeaders(
-      config,
-      "resolution=merge-duplicates,return=minimal",
-    ),
+    headers: createHeaders(config, "return=minimal"),
     method: "POST",
     signal: AbortSignal.timeout(5_000),
   });
 
-  if (!response.ok) {
-    throw new Error(`Database write failed with status ${response.status}.`);
+  if (!insertResponse.ok) {
+    throw new Error(
+      `Database write failed with status ${insertResponse.status}.`,
+    );
   }
 
   return true;
@@ -201,7 +233,7 @@ export function saveHistoryToDatabase(
   userId: string,
   record: RequestHistoryRecord,
 ) {
-  return saveRow("rsswagger_history", {
+  return saveRow("rsswagger_history", userId, {
     created_at: record.createdAt,
     duration_ms: record.durationMs,
     error_details: record.errorDetails,
@@ -233,7 +265,7 @@ export function saveSchemaToDatabase(
   userId: string,
   schema: SavedSchemaRecord,
 ) {
-  return saveRow("rsswagger_schemas", {
+  return saveRow("rsswagger_schemas", userId, {
     created_at: schema.createdAt,
     format: schema.format,
     id: schema.id,

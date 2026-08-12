@@ -1,12 +1,11 @@
 import { cookies } from "next/headers";
 import { HistoryDetails } from "@/components/history-details";
-import { AUTH_TOKEN_COOKIE } from "@/lib/auth";
 import { readHistoryRecordFromDatabase } from "@/lib/database";
 import {
   parseRequestHistory,
   SERVER_REQUEST_HISTORY_COOKIE,
 } from "@/lib/request-history";
-import { getAuthenticatedUserId } from "@/lib/server-auth";
+import { getAuthenticatedUserIdFromCookies } from "@/lib/server-auth";
 
 export default async function HistoryDetailsPage({
   params,
@@ -15,9 +14,7 @@ export default async function HistoryDetailsPage({
 }) {
   const { id } = await params;
   const cookieStore = await cookies();
-  const userId = getAuthenticatedUserId(
-    cookieStore.get(AUTH_TOKEN_COOKIE)?.value,
-  );
+  const userId = getAuthenticatedUserIdFromCookies(cookieStore);
 
   if (!userId) {
     return <HistoryDetails record={null} />;

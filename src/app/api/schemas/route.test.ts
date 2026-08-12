@@ -90,8 +90,8 @@ describe("schemas route", () => {
   it("does not duplicate database schemas in the fallback cookie", async () => {
     vi.stubEnv("SUPABASE_URL", "https://project.supabase.co");
     vi.stubEnv("SUPABASE_SECRET_KEY", "secret-key");
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(null, { status: 201 }),
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      Response.json([]),
     );
 
     const response = await POST(

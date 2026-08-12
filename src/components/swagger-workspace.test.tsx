@@ -355,6 +355,64 @@ paths:
     }
   });
 
+  it("keeps in-progress edits instead of overwriting them once a slower saved-schema fetch resolves", async () => {
+    let resolveFetch: (response: Response) => void = () => {};
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockReturnValue(fetchPromise);
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(fetchMock).toHaveBeenCalledWith("/api/schemas");
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: "openapi: 3.0.0" },
+      });
+
+      await act(async () => {
+        resolveFetch(
+          Response.json({
+            schemas: [
+              {
+                createdAt: "2026-01-01T00:00:00.000Z",
+                format: "yaml",
+                id: "server-1",
+                schemaText:
+                  "openapi: 3.0.0\ninfo:\n  title: Server Saved API\n  version: 1.0.0\npaths: {}",
+                title: "Server Saved API",
+                updatedAt: "2026-01-01T00:00:00.000Z",
+                version: "1.0.0",
+              },
+            ],
+          }),
+        );
+        // Gives the response.json() + .then() microtask chain room to settle
+        // so a still-present bug would have had its chance to overwrite the
+        // edit before this assertion runs.
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      expect(
+        (
+          screen.getByLabelText(
+            "OpenAPI schema editor",
+          ) as HTMLTextAreaElement
+        ).value,
+      ).toBe("openapi: 3.0.0");
+      expect(screen.queryByText("Server Saved API")).not.toBeInTheDocument();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("restores a saved schema for authenticated users", async () => {
     window.localStorage.setItem(
       AUTH_TOKEN_COOKIE,

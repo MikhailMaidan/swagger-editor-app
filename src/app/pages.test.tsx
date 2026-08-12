@@ -15,8 +15,8 @@ vi.mock("next/headers", () => ({
 }));
 
 describe("app pages", () => {
-  it("renders the main Swagger editor and viewer placeholders", () => {
-    render(<Home />);
+  it("renders the main Swagger editor and viewer placeholders", async () => {
+    render(await Home());
 
     const editor = screen.getByRole("textbox", {
       name: "OpenAPI schema editor",

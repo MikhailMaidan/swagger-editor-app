@@ -26,3 +26,11 @@ export function getAuthenticatedUserId(token?: string | null) {
 export function getRequestUserId(request: Request) {
   return getAuthenticatedUserId(readRequestCookie(request, AUTH_TOKEN_COOKIE));
 }
+
+type CookieReader = {
+  get(name: string): { value: string } | undefined;
+};
+
+export function getAuthenticatedUserIdFromCookies(cookieStore: CookieReader) {
+  return getAuthenticatedUserId(cookieStore.get(AUTH_TOKEN_COOKIE)?.value);
+}

@@ -1,19 +1,16 @@
 import { cookies } from "next/headers";
 import { HistoryPageContent } from "@/components/history-page-content";
-import { AUTH_TOKEN_COOKIE } from "@/lib/auth";
 import { readHistoryFromDatabase } from "@/lib/database";
 import {
   parseRequestHistory,
   SERVER_REQUEST_HISTORY_COOKIE,
   sortRequestHistory,
 } from "@/lib/request-history";
-import { getAuthenticatedUserId } from "@/lib/server-auth";
+import { getAuthenticatedUserIdFromCookies } from "@/lib/server-auth";
 
 export default async function HistoryPage() {
   const cookieStore = await cookies();
-  const userId = getAuthenticatedUserId(
-    cookieStore.get(AUTH_TOKEN_COOKIE)?.value,
-  );
+  const userId = getAuthenticatedUserIdFromCookies(cookieStore);
 
   if (!userId) {
     return <HistoryPageContent initialRecords={[]} />;

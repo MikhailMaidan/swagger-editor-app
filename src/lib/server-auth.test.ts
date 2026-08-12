@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "./auth";
 import {
   getAuthenticatedUserId,
+  getAuthenticatedUserIdFromCookies,
   getRequestUserId,
   readRequestCookie,
 } from "./server-auth";
@@ -26,6 +27,22 @@ describe("server auth", () => {
     ).toBeNull();
     expect(
       readRequestCookie(new Request("http://localhost"), AUTH_TOKEN_COOKIE),
+    ).toBeNull();
+  });
+
+  it("resolves the authenticated user id from a next/headers-style cookie store", () => {
+    const token = createDemoToken("mikhail@example.com");
+    const cookieStore = {
+      get: vi.fn((name: string) =>
+        name === AUTH_TOKEN_COOKIE ? { value: token } : undefined,
+      ),
+    };
+
+    expect(getAuthenticatedUserIdFromCookies(cookieStore)).toBe(
+      "mikhail@example.com",
+    );
+    expect(
+      getAuthenticatedUserIdFromCookies({ get: () => undefined }),
     ).toBeNull();
   });
 });

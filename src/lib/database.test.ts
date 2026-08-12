@@ -129,7 +129,7 @@ describe("database", () => {
     configureDatabase();
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(null, { status: 201 }));
+      .mockImplementation(async () => Response.json([]));
 
     await saveHistoryToDatabase("user@example.com", historyRecord);
 
@@ -187,9 +187,12 @@ describe("database", () => {
 
   it("writes history and schemas with a server-only API key", async () => {
     configureDatabase();
+    // An empty array from the scoped update means no existing row matched
+    // (this is a brand-new record), so saveRow falls through to an insert -
+    // both requests below need to resolve as ok, JSON-parsable responses.
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(null, { status: 201 }));
+      .mockImplementation(async () => Response.json([]));
 
     await expect(
       saveHistoryToDatabase("user@example.com", historyRecord),
@@ -198,15 +201,61 @@ describe("database", () => {
       saveSchemaToDatabase("user@example.com", savedSchema),
     ).resolves.toBe(true);
 
-    const historyBody = JSON.parse(
-      String((fetchMock.mock.calls[0][1] as RequestInit).body),
+    const [historyUpdateCall, historyInsertCall, schemaUpdateCall, schemaInsertCall] =
+      fetchMock.mock.calls;
+
+    expect(String(historyUpdateCall[0])).toContain("rest/v1/rsswagger_history");
+    expect((historyUpdateCall[1] as RequestInit).method).toBe("PATCH");
+
+    const historyInsertBody = JSON.parse(
+      String((historyInsertCall[1] as RequestInit).body),
     );
-    expect(historyBody).toMatchObject({
+    expect((historyInsertCall[1] as RequestInit).method).toBe("POST");
+    expect(historyInsertBody).toMatchObject({
       error_details: null,
       url: historyRecord.url,
       user_id: "user@example.com",
     });
-    expect(fetchMock.mock.calls[1][0]).toContain("rest/v1/rsswagger_schemas");
+
+    expect(String(schemaUpdateCall[0])).toContain("rest/v1/rsswagger_schemas");
+    expect(String(schemaInsertCall[0])).toContain("rest/v1/rsswagger_schemas");
+    expect((schemaInsertCall[1] as RequestInit).method).toBe("POST");
+  });
+
+  it("updates an existing row in place without a fallback insert when the requester already owns it", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(Response.json([{ id: savedSchema.id }]));
+
+    await expect(
+      saveSchemaToDatabase("user@example.com", savedSchema),
+    ).resolves.toBe(true);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(String(url)).toContain(`id=eq.${savedSchema.id}`);
+    expect(String(url)).toContain("user_id=eq.user%40example.com");
+    expect((options as RequestInit).method).toBe("PATCH");
+  });
+
+  it("refuses to hijack another user's record instead of silently overwriting it", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      // The scoped update matches nothing because "schema-1" belongs to a
+      // different user_id, so saveRow falls through to a plain insert - the
+      // primary key constraint on `id` then rejects it as a conflict.
+      .mockResolvedValueOnce(Response.json([]))
+      .mockResolvedValueOnce(new Response(null, { status: 409 }));
+
+    await expect(
+      saveSchemaToDatabase("attacker@example.com", savedSchema),
+    ).rejects.toThrow("Database write failed");
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe("PATCH");
+    expect((fetchMock.mock.calls[1][1] as RequestInit).method).toBe("POST");
   });
 
   it("deletes a schema scoped to both its id and the owning user", async () => {
