@@ -166,3 +166,30 @@ export function clearRequestHistory() {
 
   window.localStorage.removeItem(REQUEST_HISTORY_STORAGE_KEY);
 }
+
+export function removeRequestHistoryRecord(id: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const remainingHistory = readRequestHistory().filter(
+    (record) => record.id !== id,
+  );
+
+  window.localStorage.setItem(
+    REQUEST_HISTORY_STORAGE_KEY,
+    JSON.stringify(remainingHistory),
+  );
+}
+
+export async function deleteServerHistoryRecord(id: string) {
+  try {
+    const response = await fetch(`/api/history/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

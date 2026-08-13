@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  deleteHistoryFromDatabase,
   deleteSchemaFromDatabase,
   isDatabaseConfigured,
   readHistoryFromDatabase,
@@ -273,6 +274,25 @@ describe("database", () => {
 
     expect(requestUrl).toContain("rest/v1/rsswagger_schemas");
     expect(requestUrl).toContain("id=eq.schema-1");
+    expect(requestUrl).toContain("user_id=eq.user%40example.com");
+    expect(requestOptions.method).toBe("DELETE");
+  });
+
+  it("deletes a history record scoped to both its id and the owning user", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await expect(
+      deleteHistoryFromDatabase("user@example.com", "history-1"),
+    ).resolves.toBe(true);
+
+    const requestUrl = String(fetchMock.mock.calls[0][0]);
+    const requestOptions = fetchMock.mock.calls[0][1] as RequestInit;
+
+    expect(requestUrl).toContain("rest/v1/rsswagger_history");
+    expect(requestUrl).toContain("id=eq.history-1");
     expect(requestUrl).toContain("user_id=eq.user%40example.com");
     expect(requestOptions.method).toBe("DELETE");
   });

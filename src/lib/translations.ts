@@ -62,6 +62,10 @@ export const translations = {
     "history.duration": "Duration",
     "history.analytics": "History Analytics",
     "history.backToHistory": "Back to History",
+    "history.delete": "Delete",
+    "history.deleteConfirm": 'Delete "{summary}"? This cannot be undone.',
+    "history.deleteError": "Could not delete this record. Try again.",
+    "history.deleting": "Deleting...",
     "history.detailsTitle": "Request Details",
     "history.empty":
       "You have not executed any requests yet. Start from the editor or open the API reference to explore the current schema.",
@@ -216,6 +220,10 @@ export const translations = {
     "history.duration": "Длительность",
     "history.analytics": "Аналитика истории",
     "history.backToHistory": "Вернуться к истории",
+    "history.delete": "Удалить",
+    "history.deleteConfirm": 'Удалить "{summary}"? Это действие необратимо.',
+    "history.deleteError": "Не удалось удалить запись. Попробуйте снова.",
+    "history.deleting": "Удаление...",
     "history.detailsTitle": "Детали запроса",
     "history.empty":
       "Вы еще не выполняли запросы. Начните с редактора или откройте API справочник, чтобы изучить текущую схему.",

@@ -249,6 +249,10 @@ export function saveHistoryToDatabase(
   });
 }
 
+export function deleteHistoryFromDatabase(userId: string, id: string) {
+  return deleteRow("rsswagger_history", userId, id);
+}
+
 export async function readSchemasFromDatabase(userId: string) {
   const query = new URLSearchParams({
     limit: String(MAX_SAVED_SCHEMAS),

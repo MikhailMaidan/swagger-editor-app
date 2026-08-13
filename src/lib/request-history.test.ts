@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   clearRequestHistory,
+  deleteServerHistoryRecord,
   mergeRequestHistory,
   parseRequestHistory,
   readRequestHistory,
+  removeRequestHistoryRecord,
   REQUEST_HISTORY_STORAGE_KEY,
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
@@ -133,5 +135,59 @@ describe("request history storage", () => {
     clearRequestHistory();
 
     expect(readRequestHistory()).toEqual([]);
+  });
+
+  it("removes a single record from the local history without touching the rest", () => {
+    const keptRecord = saveRequestHistoryRecord({
+      durationMs: 12,
+      method: "GET",
+      path: "/users",
+      status: 200,
+      summary: "List users",
+    });
+    const removedRecord = saveRequestHistoryRecord({
+      durationMs: 16,
+      method: "POST",
+      path: "/users",
+      status: 201,
+      summary: "Create user",
+    });
+
+    removeRequestHistoryRecord(removedRecord?.id ?? "");
+
+    expect(readRequestHistory()).toEqual([keptRecord]);
+  });
+
+  it("deletes a record from the server history route", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    try {
+      await expect(
+        deleteServerHistoryRecord("server-record"),
+      ).resolves.toBe(true);
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/history/server-record",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("reports a failed server history deletion instead of throwing", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("network error"));
+
+    try {
+      await expect(
+        deleteServerHistoryRecord("server-record"),
+      ).resolves.toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 });
