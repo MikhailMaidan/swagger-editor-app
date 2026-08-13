@@ -75,6 +75,44 @@ describe("SwaggerWorkspace", () => {
     );
   });
 
+  it("filters the endpoint list by method, path, or summary", () => {
+    render(<SwaggerWorkspace />);
+
+    const filterInput = screen.getByLabelText(
+      "Filter endpoints by method, path, or summary",
+    );
+
+    fireEvent.change(filterInput, { target: { value: "update" } });
+
+    expect(
+      screen.getByLabelText("cURL POST /users/{id}"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("cURL GET /users/{id}"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("No endpoints match your search."),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(filterInput, { target: { value: "does-not-exist" } });
+
+    expect(
+      screen.getByText("No endpoints match your search."),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText("cURL POST /users/{id}"),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(filterInput, { target: { value: "" } });
+
+    expect(
+      screen.getByLabelText("cURL GET /users/{id}"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("cURL POST /users/{id}"),
+    ).toBeInTheDocument();
+  });
+
   it("shows validation errors and disables conversion for invalid schemas", async () => {
     render(<SwaggerWorkspace />);
 

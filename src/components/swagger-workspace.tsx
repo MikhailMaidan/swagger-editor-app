@@ -60,6 +60,7 @@ export function SwaggerWorkspace({
   });
   const [saveMessage, setSaveMessage] = useState("");
   const [importError, setImportError] = useState("");
+  const [endpointFilter, setEndpointFilter] = useState("");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -73,6 +74,16 @@ export function SwaggerWorkspace({
     : parseResult.format;
   const targetFormat: SchemaFormat =
     detectedFormat === "yaml" ? "json" : "yaml";
+  const endpoints = parseResult.ok ? parseResult.value.endpoints : [];
+  const normalizedFilter = endpointFilter.trim().toLowerCase();
+  const filteredEndpoints = normalizedFilter
+    ? endpoints.filter(
+        (endpoint) =>
+          endpoint.method.toLowerCase().includes(normalizedFilter) ||
+          endpoint.path.toLowerCase().includes(normalizedFilter) ||
+          endpoint.summary.toLowerCase().includes(normalizedFilter),
+      )
+    : endpoints;
 
   useLayoutEffect(() => {
     const editor = editorRef.current;
@@ -330,19 +341,34 @@ export function SwaggerWorkspace({
           ) : null}
         </div>
 
+        {endpoints.length > 0 ? (
+          <input
+            className="mt-5 w-full rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-4 py-3 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+            type="search"
+            aria-label={t("workspace.filterEndpoints")}
+            placeholder={t("workspace.filterEndpoints")}
+            value={endpointFilter}
+            onChange={(event) => setEndpointFilter(event.target.value)}
+          />
+        ) : null}
+
         <div className="mt-6 flex flex-col gap-4">
-          {parseResult.ok && parseResult.value.endpoints.length > 0 ? (
-            parseResult.value.endpoints.map((endpoint) => (
+          {endpoints.length === 0 ? (
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+              {t("workspace.addValidSchema")}
+            </div>
+          ) : filteredEndpoints.length === 0 ? (
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+              {t("workspace.noEndpointsMatch")}
+            </div>
+          ) : (
+            filteredEndpoints.map((endpoint) => (
               <EndpointCard
                 canSaveHistory={isAuthenticated}
                 key={`${endpoint.method}-${endpoint.path}`}
                 endpoint={endpoint}
               />
             ))
-          ) : (
-            <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-              {t("workspace.addValidSchema")}
-            </div>
           )}
         </div>
       </div>

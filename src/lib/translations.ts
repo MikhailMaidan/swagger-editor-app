@@ -127,10 +127,12 @@ export const translations = {
     "workspace.errors.schemaObject": "Schema must be an object.",
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
+    "workspace.filterEndpoints": "Filter endpoints by method, path, or summary",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
     "workspace.import": "Import",
     "workspace.invalid": "Invalid",
+    "workspace.noEndpointsMatch": "No endpoints match your search.",
     "workspace.noResponseExample":
       "No response example available for {method} {path}.",
     "workspace.none": "None",
@@ -286,10 +288,12 @@ export const translations = {
     "workspace.errors.schemaObject": "Схема должна быть объектом.",
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
+    "workspace.filterEndpoints": "Фильтр по методу, пути или описанию",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
     "workspace.import": "Импорт",
     "workspace.invalid": "Невалидно",
+    "workspace.noEndpointsMatch": "Нет эндпоинтов, соответствующих запросу.",
     "workspace.noResponseExample":
       "Пример ответа недоступен для {method} {path}.",
     "workspace.none": "Нет",
