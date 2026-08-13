@@ -597,6 +597,52 @@ paths:
     }
   });
 
+  it("reuses the same saved-schema id across repeated saves instead of creating duplicates", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
+
+      await user.click(screen.getByRole("button", { name: "Save schema" }));
+      await user.click(screen.getByRole("button", { name: "Save schema" }));
+
+      const postCalls = fetchMock.mock.calls.filter(
+        ([url, options]) =>
+          url === "/api/schemas" &&
+          (options as RequestInit | undefined)?.method === "POST",
+      );
+
+      expect(postCalls).toHaveLength(2);
+
+      const firstBody = JSON.parse(
+        String((postCalls[0][1] as RequestInit).body),
+      );
+      const secondBody = JSON.parse(
+        String((postCalls[1][1] as RequestInit).body),
+      );
+
+      expect(secondBody.id).toBe(firstBody.id);
+      expect(secondBody.createdAt).toBe(firstBody.createdAt);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("keeps in-progress edits instead of overwriting them once a slower saved-schema fetch resolves", async () => {
     let resolveFetch: (response: Response) => void = () => {};
     const fetchPromise = new Promise<Response>((resolve) => {

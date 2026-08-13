@@ -10,6 +10,7 @@ import {
   getUserNameFromToken,
   isTokenValid,
 } from "@/lib/auth";
+import { isLanguage, LANGUAGE_COOKIE } from "@/lib/translations";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,11 +34,16 @@ export default async function RootLayout({
   const isAuthenticated = isTokenValid(token);
   const userName =
     cookieStore.get(AUTH_USER_COOKIE)?.value || getUserNameFromToken(token);
+  const languageCookie = cookieStore.get(LANGUAGE_COOKIE)?.value ?? null;
+  const initialLanguage = isLanguage(languageCookie) ? languageCookie : "en";
 
   return (
-    <html lang="en" className={`h-full antialiased ${inter.variable}`}>
+    <html
+      lang={initialLanguage}
+      className={`h-full antialiased ${inter.variable}`}
+    >
       <body className="flex min-h-full flex-col">
-        <I18nProvider>
+        <I18nProvider initialLanguage={initialLanguage}>
           <AppHeader
             initialIsAuthenticated={isAuthenticated}
             initialUserName={userName}

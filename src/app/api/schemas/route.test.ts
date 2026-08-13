@@ -73,6 +73,36 @@ describe("schemas route", () => {
     );
   });
 
+  it("persists a resave's fresh content instead of the stale cookie copy of the same id", async () => {
+    const staleCopy = {
+      ...currentSchema,
+      title: "Stale Title",
+      updatedAt: "2026-07-10T08:00:00.000Z",
+    };
+    const freshEdit = {
+      ...currentSchema,
+      title: "Fresh Title",
+      updatedAt: "2026-07-10T11:00:00.000Z",
+    };
+
+    const response = await POST(
+      new Request("http://localhost/api/schemas", {
+        body: JSON.stringify(freshEdit),
+        headers: {
+          cookie: `${authCookie}; ${SERVER_SAVED_SCHEMAS_COOKIE}=${encodeURIComponent(
+            JSON.stringify([staleCopy]),
+          )}`,
+        },
+        method: "POST",
+      }),
+    );
+    const data = await response.json();
+
+    expect(data.schemas).toMatchObject([
+      { id: "current-schema", title: "Fresh Title" },
+    ]);
+  });
+
   it("rejects malformed saved schemas", async () => {
     const response = await POST(
       new Request("http://localhost/api/schemas", {

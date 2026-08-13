@@ -148,6 +148,48 @@ describe("HistoryList", () => {
     expect(within(rows[2]).getByText("45 ms")).toBeVisible();
   });
 
+  it("gives each row's delete button a distinguishing accessible name", () => {
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            errorDetails: null,
+            id: "first-record",
+            method: "GET",
+            path: "/first",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "First request",
+            url: "/first",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 30,
+            errorDetails: null,
+            id: "second-record",
+            method: "GET",
+            path: "/second",
+            requestSize: 90,
+            responseSize: 130,
+            status: 200,
+            summary: "Second request",
+            url: "/second",
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Delete First request" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete Second request" }),
+    ).toBeVisible();
+  });
+
   it("removes a guest's locally-saved record without calling the server route", async () => {
     const user = userEvent.setup();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -161,7 +203,7 @@ describe("HistoryList", () => {
       render(<HistoryList />);
 
       await user.click(
-        await screen.findByRole("button", { name: "Delete" }),
+        await screen.findByRole("button", { name: "Delete Local request" }),
       );
 
       expect(confirmSpy).toHaveBeenCalledWith(
@@ -212,7 +254,9 @@ describe("HistoryList", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "Delete" }));
+      await user.click(
+        screen.getByRole("button", { name: "Delete Server record" }),
+      );
 
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/history/server-record",
@@ -240,7 +284,7 @@ describe("HistoryList", () => {
       render(<HistoryList />);
 
       await user.click(
-        await screen.findByRole("button", { name: "Delete" }),
+        await screen.findByRole("button", { name: "Delete Local request" }),
       );
 
       expect(fetchMock).not.toHaveBeenCalled();
@@ -283,10 +327,119 @@ describe("HistoryList", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "Delete" }));
+      await user.click(
+        screen.getByRole("button", { name: "Delete Server record" }),
+      );
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
         "Could not delete this record. Try again.",
+      );
+      expect(screen.getByText("Server record")).toBeVisible();
+    } finally {
+      confirmSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("clears every guest record at once without calling the server route", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([
+        localRecord,
+        { ...localRecord, id: "another-local-record", summary: "Another" },
+      ]),
+    );
+
+    try {
+      render(<HistoryList />);
+
+      await user.click(
+        await screen.findByRole("button", { name: "Clear all" }),
+      );
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        "Delete all 2 history records? This cannot be undone.",
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByText(/not executed any requests yet/i)).toBeVisible();
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY) || "[]",
+        ),
+      ).toEqual([]);
+    } finally {
+      confirmSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("does not clear anything when the confirmation is dismissed", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([localRecord]),
+    );
+
+    try {
+      render(<HistoryList />);
+
+      await user.click(
+        await screen.findByRole("button", { name: "Clear all" }),
+      );
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByText("Local request")).toBeVisible();
+    } finally {
+      confirmSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("clears a signed-in user's history via the server route and shows an error if it fails", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(
+        <HistoryList
+          initialRecords={[
+            {
+              createdAt: "2026-07-06T10:00:00.000Z",
+              durationMs: 52,
+              errorDetails: null,
+              id: "server-record",
+              method: "GET",
+              path: "/server",
+              requestSize: 100,
+              responseSize: 140,
+              status: 200,
+              summary: "Server record",
+              url: "/server",
+            },
+          ]}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Clear all" }));
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/history",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Could not clear history. Try again.",
       );
       expect(screen.getByText("Server record")).toBeVisible();
     } finally {

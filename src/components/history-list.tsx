@@ -6,6 +6,8 @@ import { useI18n } from "@/components/i18n-provider";
 import { getClientAuth } from "@/lib/client-auth";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import {
+  clearRequestHistory,
+  deleteAllServerHistory,
   deleteServerHistoryRecord,
   mergeRequestHistory,
   readRequestHistory,
@@ -52,6 +54,8 @@ export function HistoryList({
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
+  const [isClearingAll, setIsClearingAll] = useState(false);
+  const [clearAllError, setClearAllError] = useState(false);
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -92,6 +96,32 @@ export function HistoryList({
     setDeletingId(null);
   }
 
+  async function handleClearAll() {
+    if (
+      !window.confirm(
+        t("history.clearAllConfirm", { count: String(records.length) }),
+      )
+    ) {
+      return;
+    }
+
+    setIsClearingAll(true);
+    setClearAllError(false);
+
+    clearRequestHistory();
+    const cleared = getClientAuth().isAuthenticated
+      ? await deleteAllServerHistory()
+      : true;
+
+    if (cleared) {
+      setRecords([]);
+    } else {
+      setClearAllError(true);
+    }
+
+    setIsClearingAll(false);
+  }
+
   if (records.length === 0) {
     return (
       <>
@@ -105,9 +135,24 @@ export function HistoryList({
 
   return (
     <>
-      <p className="mt-5 max-w-4xl text-base font-medium leading-8 text-[color:var(--color-brand-muted)]">
-        {t("history.recent")}
-      </p>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+        <p className="max-w-4xl text-base font-medium leading-8 text-[color:var(--color-brand-muted)]">
+          {t("history.recent")}
+        </p>
+        <button
+          className="shrink-0 rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isClearingAll}
+          type="button"
+          onClick={handleClearAll}
+        >
+          {isClearingAll ? t("history.clearing") : t("history.clearAll")}
+        </button>
+      </div>
+      {clearAllError ? (
+        <p className="mt-3 text-sm font-semibold text-red-600" role="alert">
+          {t("history.clearAllError")}
+        </p>
+      ) : null}
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-[color:var(--color-brand-border)]">
         <table className="w-full min-w-[940px] border-collapse text-left text-sm">
@@ -182,6 +227,9 @@ export function HistoryList({
                 </td>
                 <td className="px-4 py-4">
                   <button
+                    aria-label={t("history.deleteAriaLabel", {
+                      summary: record.summary,
+                    })}
                     className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={deletingId === record.id}
                     type="button"

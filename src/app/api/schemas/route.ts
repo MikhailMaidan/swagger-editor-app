@@ -59,7 +59,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const schemas = mergeSavedSchemas([schema, ...readServerSchemas(request)]);
+    // The incoming schema must be spread last: mergeSavedSchemas dedupes by
+    // id with later entries winning, so putting it first would let a stale
+    // cookie snapshot of the same id (e.g. re-saving an already-saved
+    // schema) silently overwrite this request's fresh content.
+    const schemas = mergeSavedSchemas([...readServerSchemas(request), schema]);
 
     let savedToDatabase = false;
 

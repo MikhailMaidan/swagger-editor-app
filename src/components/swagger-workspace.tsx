@@ -17,6 +17,7 @@ import {
   readServerSavedSchemas,
   saveSchema,
   saveServerSchemaRecord,
+  SavedSchemaRecord,
 } from "@/lib/schema-storage";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -54,6 +55,7 @@ export function SwaggerWorkspace({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const hasEditedSchemaRef = useRef(false);
+  const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
     isAuthenticated: initialIsAuthenticated,
     userName: "User",
@@ -106,6 +108,7 @@ export function SwaggerWorkspace({
     const savedSchema = readSavedSchema();
 
     if (savedSchema) {
+      lastSavedSchemaRef.current = null;
       setSchemaText(savedSchema);
       return;
     }
@@ -123,6 +126,7 @@ export function SwaggerWorkspace({
       const latestSchema = savedSchemas[0];
 
       if (latestSchema) {
+        lastSavedSchemaRef.current = latestSchema;
         setSchemaText(latestSchema.schemaText);
       }
     });
@@ -176,6 +180,9 @@ export function SwaggerWorkspace({
 
     reader.onload = () => {
       hasEditedSchemaRef.current = true;
+      // An imported file is a different document, so the next save must
+      // create a new record instead of overwriting whatever was last saved.
+      lastSavedSchemaRef.current = null;
       setSchemaText(String(reader.result));
       setSaveMessage("");
       setImportError("");
@@ -192,12 +199,15 @@ export function SwaggerWorkspace({
     }
 
     const savedSchema = saveSchema(schemaText, {
+      createdAt: lastSavedSchemaRef.current?.createdAt,
       format: parseResult.value.format,
+      id: lastSavedSchemaRef.current?.id,
       title: parseResult.value.title,
       version: parseResult.value.version,
     });
 
     if (savedSchema) {
+      lastSavedSchemaRef.current = savedSchema;
       void saveServerSchemaRecord(savedSchema);
     }
 

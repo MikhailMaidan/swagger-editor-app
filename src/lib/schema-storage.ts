@@ -16,6 +16,8 @@ export type SavedSchemaMeta = {
   title: string;
   version: string;
   format: string;
+  id?: string;
+  createdAt?: string;
 };
 
 function createId() {
@@ -86,9 +88,14 @@ export function createSavedSchemaRecord(
   const currentDate = new Date().toISOString();
 
   return {
-    createdAt: currentDate,
+    // Reusing the caller-supplied id/createdAt turns a resave of the same
+    // record into an update instead of a fresh row - without this, every
+    // click of "Save schema" on a document already in the list created a
+    // duplicate entry, silently pushing older, genuinely different saved
+    // schemas out of the capped MAX_SAVED_SCHEMAS list.
+    createdAt: meta.createdAt || currentDate,
     format: meta.format,
-    id: createId(),
+    id: meta.id || createId(),
     schemaText,
     title: meta.title,
     updatedAt: currentDate,

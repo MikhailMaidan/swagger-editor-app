@@ -193,3 +193,15 @@ export async function deleteServerHistoryRecord(id: string) {
     return false;
   }
 }
+
+export async function deleteAllServerHistory() {
+  try {
+    const response = await fetch("/api/history", {
+      method: "DELETE",
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

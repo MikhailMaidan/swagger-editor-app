@@ -42,6 +42,11 @@ describe("i18n", () => {
       "РУС",
     );
     expect(document.documentElement.lang).toBe("ru");
+    // A server-readable cookie (not just localStorage) is required so the
+    // next page load's server render can pick the right language from the
+    // start instead of always rendering English and flashing to Russian
+    // after hydration.
+    expect(document.cookie).toContain("rsswagger-language=ru");
   });
 
   it("renders auth form text and validation messages in Russian", async () => {

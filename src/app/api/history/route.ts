@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { readHistoryFromDatabase, saveHistoryToDatabase } from "@/lib/database";
+import {
+  deleteAllHistoryFromDatabase,
+  readHistoryFromDatabase,
+  saveHistoryToDatabase,
+} from "@/lib/database";
 import {
   isRequestHistoryRecord,
   mergeRequestHistory,
@@ -59,9 +63,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // The incoming record must be spread last: mergeRequestHistory dedupes
+    // by id with later entries winning, so putting it first would let a
+    // stale cookie snapshot of the same id silently overwrite this
+    // request's fresh content (the same class of bug fixed in the schemas
+    // route's equivalent merge).
     const records = mergeRequestHistory([
-      record,
       ...readServerHistory(request),
+      record,
     ]);
 
     let savedToDatabase = false;
@@ -101,4 +110,31 @@ export async function POST(request: Request) {
       },
     );
   }
+}
+
+export async function DELETE(request: Request) {
+  const userId = getRequestUserId(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  try {
+    await deleteAllHistoryFromDatabase(userId);
+  } catch {
+    // The cookie fallback below is still cleared regardless, so history
+    // disappears from the UI even if the database delete failed.
+  }
+
+  const response = NextResponse.json({ records: [] });
+
+  response.cookies.set(SERVER_REQUEST_HISTORY_COOKIE, JSON.stringify([]), {
+    maxAge: HISTORY_COOKIE_MAX_AGE,
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return response;
 }

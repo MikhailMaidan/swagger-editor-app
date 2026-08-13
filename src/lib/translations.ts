@@ -1,4 +1,5 @@
 export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
+export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
@@ -62,7 +63,13 @@ export const translations = {
     "history.duration": "Duration",
     "history.analytics": "History Analytics",
     "history.backToHistory": "Back to History",
+    "history.clearAll": "Clear all",
+    "history.clearAllConfirm":
+      "Delete all {count} history records? This cannot be undone.",
+    "history.clearAllError": "Could not clear history. Try again.",
+    "history.clearing": "Clearing...",
     "history.delete": "Delete",
+    "history.deleteAriaLabel": "Delete {summary}",
     "history.deleteConfirm": 'Delete "{summary}"? This cannot be undone.',
     "history.deleteError": "Could not delete this record. Try again.",
     "history.deleting": "Deleting...",
@@ -97,6 +104,7 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Page not found",
     "schemas.delete": "Delete",
+    "schemas.deleteAriaLabel": "Delete {title}",
     "schemas.deleteConfirm": 'Delete "{title}"? This cannot be undone.',
     "schemas.deleteError": "Could not delete this schema. Try again.",
     "schemas.deleting": "Deleting...",
@@ -222,7 +230,13 @@ export const translations = {
     "history.duration": "Длительность",
     "history.analytics": "Аналитика истории",
     "history.backToHistory": "Вернуться к истории",
+    "history.clearAll": "Очистить всё",
+    "history.clearAllConfirm":
+      "Удалить все {count} записи истории? Это действие необратимо.",
+    "history.clearAllError": "Не удалось очистить историю. Попробуйте снова.",
+    "history.clearing": "Очистка...",
     "history.delete": "Удалить",
+    "history.deleteAriaLabel": "Удалить {summary}",
     "history.deleteConfirm": 'Удалить "{summary}"? Это действие необратимо.',
     "history.deleteError": "Не удалось удалить запись. Попробуйте снова.",
     "history.deleting": "Удаление...",
@@ -258,6 +272,7 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
     "schemas.delete": "Удалить",
+    "schemas.deleteAriaLabel": "Удалить {title}",
     "schemas.deleteConfirm": 'Удалить "{title}"? Это действие необратимо.',
     "schemas.deleteError": "Не удалось удалить схему. Попробуйте снова.",
     "schemas.deleting": "Удаление...",

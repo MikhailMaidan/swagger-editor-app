@@ -33,6 +33,32 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("14 B")).toBeVisible();
   });
 
+  it("gives each row's delete button a distinguishing accessible name", () => {
+    render(
+      <SchemasPageContent
+        initialSchemas={[
+          savedSchema,
+          {
+            createdAt: "2026-07-09T10:00:00.000Z",
+            format: "json",
+            id: "other-schema",
+            schemaText: '{"openapi":"3.0.0"}',
+            title: "Other API",
+            updatedAt: "2026-07-09T10:00:00.000Z",
+            version: "2.0.0",
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Delete Saved API" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete Other API" }),
+    ).toBeVisible();
+  });
+
   it("removes a schema from the list after a confirmed, successful delete", async () => {
     const user = userEvent.setup();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -43,7 +69,9 @@ describe("SchemasPageContent", () => {
     try {
       render(<SchemasPageContent initialSchemas={[savedSchema]} />);
 
-      await user.click(screen.getByRole("button", { name: "Delete" }));
+      await user.click(
+        screen.getByRole("button", { name: "Delete Saved API" }),
+      );
 
       expect(confirmSpy).toHaveBeenCalledWith(
         'Delete "Saved API"? This cannot be undone.',
@@ -70,7 +98,9 @@ describe("SchemasPageContent", () => {
     try {
       render(<SchemasPageContent initialSchemas={[savedSchema]} />);
 
-      await user.click(screen.getByRole("button", { name: "Delete" }));
+      await user.click(
+        screen.getByRole("button", { name: "Delete Saved API" }),
+      );
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
@@ -90,7 +120,9 @@ describe("SchemasPageContent", () => {
     try {
       render(<SchemasPageContent initialSchemas={[savedSchema]} />);
 
-      await user.click(screen.getByRole("button", { name: "Delete" }));
+      await user.click(
+        screen.getByRole("button", { name: "Delete Saved API" }),
+      );
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
         "Could not delete this schema. Try again.",

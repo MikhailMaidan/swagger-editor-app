@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   clearRequestHistory,
+  deleteAllServerHistory,
   deleteServerHistoryRecord,
   mergeRequestHistory,
   parseRequestHistory,
@@ -186,6 +187,35 @@ describe("request history storage", () => {
       await expect(
         deleteServerHistoryRecord("server-record"),
       ).resolves.toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("clears all history on the server", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    try {
+      await expect(deleteAllServerHistory()).resolves.toBe(true);
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/history",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("reports a failed bulk history clear instead of throwing", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("network error"));
+
+    try {
+      await expect(deleteAllServerHistory()).resolves.toBe(false);
     } finally {
       fetchMock.mockRestore();
     }

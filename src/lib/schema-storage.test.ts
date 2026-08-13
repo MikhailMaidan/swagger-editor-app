@@ -71,6 +71,40 @@ describe("schema storage", () => {
     });
   });
 
+  it("reuses the same id and original createdAt when resaving with an existing record's id", () => {
+    const firstSave = saveSchema("openapi: 3.0.0", {
+      format: "yaml",
+      title: "RSSwag Demo API",
+      version: "1.0.0",
+    });
+    const secondSave = saveSchema("openapi: 3.0.0\ninfo:\n  title: Edited", {
+      createdAt: firstSave?.createdAt,
+      format: "yaml",
+      id: firstSave?.id,
+      title: "Edited API",
+      version: "1.1.0",
+    });
+
+    expect(secondSave?.id).toBe(firstSave?.id);
+    expect(secondSave?.createdAt).toBe(firstSave?.createdAt);
+    expect(secondSave?.title).toBe("Edited API");
+  });
+
+  it("creates a new id when no existing record is referenced", () => {
+    const firstSave = saveSchema("openapi: 3.0.0", {
+      format: "yaml",
+      title: "First API",
+      version: "1.0.0",
+    });
+    const secondSave = saveSchema("openapi: 3.0.0", {
+      format: "yaml",
+      title: "Second API",
+      version: "1.0.0",
+    });
+
+    expect(secondSave?.id).not.toBe(firstSave?.id);
+  });
+
   it("reads saved schemas from the server route", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(

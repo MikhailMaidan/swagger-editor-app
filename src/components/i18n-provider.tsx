@@ -1,14 +1,26 @@
 "use client";
 
-import { ReactNode, useEffect, useSyncExternalStore } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 import {
   isLanguage,
+  LANGUAGE_COOKIE,
   LANGUAGE_STORAGE_KEY,
   translate,
 } from "@/lib/translations";
 import type { Language, TranslationKey } from "@/lib/translations";
 
 const LANGUAGE_CHANGE_EVENT = "rsswagger-language-change";
+const LANGUAGE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+// Defaults to "en" so components rendered outside a real I18nProvider (e.g.
+// in isolated tests) keep working; RootLayout supplies the real value.
+const InitialLanguageContext = createContext<Language>("en");
 
 function readLanguage(): Language {
   if (typeof window === "undefined") {
@@ -40,14 +52,21 @@ export function setAppLanguage(language: Language) {
   }
 
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  // A server-readable cookie lets the next page load render the right
+  // language from the start, the same way auth state avoids its own flash -
+  // without it, the server always renders "en" and the client swaps to the
+  // real language only after hydration, flashing English text on every load
+  // for a Russian-preferring visitor.
+  document.cookie = `${LANGUAGE_COOKIE}=${language}; path=/; max-age=${LANGUAGE_COOKIE_MAX_AGE}; SameSite=Lax`;
   window.dispatchEvent(new Event(LANGUAGE_CHANGE_EVENT));
 }
 
 export function useI18n() {
+  const initialLanguage = useContext(InitialLanguageContext);
   const language = useSyncExternalStore<Language>(
     subscribeToLanguageChange,
     readLanguage,
-    () => "en",
+    () => initialLanguage,
   );
 
   return {
@@ -58,12 +77,27 @@ export function useI18n() {
   };
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+function DocumentLanguageSync() {
   const { language } = useI18n();
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
-  return <>{children}</>;
+  return null;
+}
+
+export function I18nProvider({
+  children,
+  initialLanguage = "en",
+}: {
+  children: ReactNode;
+  initialLanguage?: Language;
+}) {
+  return (
+    <InitialLanguageContext.Provider value={initialLanguage}>
+      <DocumentLanguageSync />
+      {children}
+    </InitialLanguageContext.Provider>
+  );
 }
