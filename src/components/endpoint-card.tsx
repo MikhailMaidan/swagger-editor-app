@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import {
   createCurlPreview,
@@ -14,6 +14,7 @@ import {
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
 import { buildRequestUrl } from "@/lib/request-url";
+import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -263,9 +264,26 @@ function EndpointCardComponent({
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
-  const [requestBodyValue, setRequestBodyValue] = useState(() =>
-    getInitialRequestBody(endpoint),
-  );
+  const initialRequestBody = getInitialRequestBody(endpoint);
+  const [requestBodyValue, setRequestBodyValue] = useState(initialRequestBody);
+  const hasEditedRequestBodyRef = useRef(false);
+
+  // EndpointCard is keyed by method+path, so editing an endpoint's example
+  // body in the schema while keeping its method/path unchanged re-renders
+  // this same instance instead of remounting it - without this, the
+  // textarea and cURL preview would keep showing the pre-edit example
+  // forever. Only auto-sync while the user hasn't typed their own value, and
+  // key the effect off the example string itself (not the whole endpoint
+  // object, which is a new reference on every keystroke-triggered reparse)
+  // so it doesn't wipe out in-progress edits when unrelated schema text
+  // changes.
+  useEffect(() => {
+    if (hasEditedRequestBodyRef.current) {
+      return;
+    }
+
+    setRequestBodyValue(initialRequestBody);
+  }, [initialRequestBody]);
   const requestParameters = useMemo(
     () => createRequestParameters(endpoint, parameterValues),
     [endpoint, parameterValues],
@@ -366,7 +384,10 @@ function EndpointCardComponent({
         path: endpoint.path,
         requestSize: executionResult.requestSize,
         responseSize: executionResult.responseSize,
-        status: Number(executionResult.status) || 200,
+        // executionResult.status is the literal string "0" for a network
+        // failure - `|| 200` would treat that falsy 0 as "no status" and
+        // mislabel a failed request as a fake 200 success in history.
+        status: Number(executionResult.status),
         summary: endpoint.summary,
         url: executionResult.url,
       });
@@ -511,7 +532,10 @@ function EndpointCardComponent({
               aria-label={t("workspace.requestBodyInputLabel")}
               className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
               value={requestBodyValue}
-              onChange={(event) => setRequestBodyValue(event.target.value)}
+              onChange={(event) => {
+                hasEditedRequestBodyRef.current = true;
+                setRequestBodyValue(event.target.value);
+              }}
             />
           </label>
         ) : null}
@@ -564,11 +588,7 @@ function EndpointCardComponent({
               {t("workspace.response")}
             </span>
             <span
-              className={`rounded-xl px-3 py-1 font-extrabold ${
-                Number(mockResult.status) >= 400 || mockResult.status === "0"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-emerald-100 text-emerald-700"
-              }`}
+              className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(mockResult.status)}`}
             >
               {mockResult.status}
             </span>

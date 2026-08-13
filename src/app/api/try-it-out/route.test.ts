@@ -127,6 +127,59 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("executes a real request against a lookalike hostname instead of mistaking it for the demo placeholder", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("{}", { status: 200 }),
+    );
+
+    try {
+      await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users",
+            responseBody: "fallback",
+            serverUrl: "https://backend-api.example.com.br",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://backend-api.example.com.br/users",
+        expect.anything(),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("skips the network call for the exact demo placeholder host", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    try {
+      const response = await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users",
+            responseBody: "fallback",
+            serverUrl: "https://api.example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+      const data = await response.json();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(data).toMatchObject({ body: "fallback" });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("blocks requests to private and local network addresses", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch");
 

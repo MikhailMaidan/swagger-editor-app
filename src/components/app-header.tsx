@@ -241,7 +241,7 @@ export function AppHeader({
         </Link>
 
         <nav
-          className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] md:overflow-visible lg:gap-7"
+          className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] lg:gap-7"
           aria-label={t("nav.mainNavigation")}
         >
           {navLinks

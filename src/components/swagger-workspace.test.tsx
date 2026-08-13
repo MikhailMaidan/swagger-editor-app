@@ -385,6 +385,106 @@ paths:
     consoleError.mockRestore();
   });
 
+  it("syncs an untouched request body to a live schema edit that keeps the same endpoint", async () => {
+    render(<SwaggerWorkspace />);
+
+    expect(screen.getByLabelText("Editable request body")).toHaveValue(
+      '{\n  "name": "Alex Smith"\n}',
+    );
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: RSSwag Demo API
+  version: 1.0.0
+servers:
+  - url: https://jsonplaceholder.typicode.com
+paths:
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Update user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            example:
+              name: "Jordan Lee"
+      responses:
+        '200':
+          description: Updated user`,
+      },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{\n  "name": "Jordan Lee"\n}',
+      ),
+    );
+  });
+
+  it("keeps a user's own request body edit instead of overwriting it after a live schema edit", async () => {
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("Editable request body"), {
+      target: { value: '{"name":"Custom Edit"}' },
+    });
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: RSSwag Demo API
+  version: 1.0.0
+servers:
+  - url: https://jsonplaceholder.typicode.com
+paths:
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Update user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            example:
+              name: "Jordan Lee"
+      responses:
+        '200':
+          description: Updated user`,
+      },
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText("cURL GET /users/{id}"),
+      ).not.toBeInTheDocument(),
+    );
+
+    expect(screen.getByLabelText("Editable request body")).toHaveValue(
+      '{"name":"Custom Edit"}',
+    );
+  });
+
   it("updates the viewer when a JSON schema is entered", async () => {
     render(<SwaggerWorkspace />);
 
@@ -607,6 +707,55 @@ paths:
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toContain(
       "Get user by id",
     );
+  });
+
+  it("records a failed request in history with its real status instead of a fake 200", async () => {
+    const user = userEvent.setup();
+    // Mirrors what the /api/try-it-out route itself returns (status 200,
+    // its own fetch succeeded) when ITS upstream call to the real target
+    // API fails: a "0" status sentinel inside the JSON body.
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            body: JSON.stringify({ error: "network error" }),
+            durationMs: 12,
+            errorDetails: "network error",
+            headers: {},
+            requestSize: 10,
+            responseSize: 20,
+            status: "0",
+            url: "https://jsonplaceholder.typicode.com/users/42",
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 200 },
+        ),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
+
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+
+      const savedHistory = JSON.parse(
+        window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY) || "[]",
+      );
+
+      expect(savedHistory).toMatchObject([{ status: 0 }]);
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("uses server execution analytics when the try-it-out route responds", async () => {

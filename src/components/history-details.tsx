@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import type { RequestHistoryRecord } from "@/lib/request-history";
+import { getStatusColorClasses } from "@/lib/status-color";
 
 export function HistoryDetails({
   record,
@@ -29,7 +31,16 @@ export function HistoryDetails({
         ) : (
           <dl className="mt-8 grid gap-4 md:grid-cols-2">
             <Detail label={t("history.method")} value={record.method} />
-            <Detail label={t("history.status")} value={String(record.status)} />
+            <Detail
+              label={t("history.status")}
+              value={
+                <span
+                  className={`rounded-xl px-3 py-1 ${getStatusColorClasses(record.status)}`}
+                >
+                  {record.status}
+                </span>
+              }
+            />
             <Detail label={t("history.endpoint")} value={record.url} />
             <Detail label={t("history.summary")} value={record.summary} />
             <Detail
@@ -66,7 +77,7 @@ export function HistoryDetails({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-5">
       <dt className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">

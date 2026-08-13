@@ -61,6 +61,48 @@ describe("HistoryDetails", () => {
     expect(screen.queryByText(/null B|undefined B/)).not.toBeInTheDocument();
   });
 
+  it("color-codes the status badge red for an error status and green for success", () => {
+    const { rerender } = render(
+      <HistoryDetails
+        record={{
+          createdAt: "2026-07-11T08:00:00.000Z",
+          durationMs: 42,
+          errorDetails: "404 Not Found",
+          id: "history-1",
+          method: "GET",
+          path: "/users/{id}",
+          requestSize: 80,
+          responseSize: 120,
+          status: 404,
+          summary: "Get user",
+          url: "https://api.example.com/users/42",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("404").className).toContain("text-red-700");
+
+    rerender(
+      <HistoryDetails
+        record={{
+          createdAt: "2026-07-11T08:00:00.000Z",
+          durationMs: 42,
+          errorDetails: null,
+          id: "history-1",
+          method: "GET",
+          path: "/users/{id}",
+          requestSize: 80,
+          responseSize: 120,
+          status: 200,
+          summary: "Get user",
+          url: "https://api.example.com/users/42",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("200").className).toContain("text-emerald-700");
+  });
+
   it("shows a friendly message for a missing record", () => {
     render(<HistoryDetails record={null} />);
 

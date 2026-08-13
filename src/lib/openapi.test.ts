@@ -167,6 +167,26 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("escapes double quotes and shell metacharacters in header values", () => {
+    expect(
+      createCurlPreview(
+        "GET",
+        "/users",
+        false,
+        "https://api.example.com",
+        [
+          {
+            location: "header",
+            name: "X-Note",
+            value: 'say "hi" `whoami` $HOME',
+          },
+        ],
+      ),
+    ).toBe(
+      'curl -X GET \\\n  "https://api.example.com/users" \\\n  -H "X-Note: say \\"hi\\" \\`whoami\\` \\$HOME"',
+    );
+  });
+
   it("includes cookie parameters in cURL previews, matching the server-side request", () => {
     expect(
       createCurlPreview(

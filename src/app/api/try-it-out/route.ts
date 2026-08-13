@@ -1,3 +1,4 @@
+import { DEFAULT_SERVER_URL } from "@/lib/openapi";
 import {
   buildCookieHeaderValue,
   buildRequestUrl,
@@ -5,6 +6,8 @@ import {
   resolvePathParameters,
 } from "@/lib/request-url";
 import { getByteSize } from "@/lib/text-encoding";
+
+const DEFAULT_SERVER_HOSTNAME = new URL(DEFAULT_SERVER_URL).hostname;
 
 type RequestParameterLocation = "path" | "query" | "header" | "cookie";
 
@@ -336,7 +339,7 @@ export async function POST(request: Request) {
 
     if (
       isUsableServerUrl(serverUrl) &&
-      !serverUrl.includes("api.example.com")
+      new URL(serverUrl).hostname !== DEFAULT_SERVER_HOSTNAME
     ) {
       try {
         const serverResult = await executeServerRequest({

@@ -61,6 +61,44 @@ describe("HistoryList", () => {
     expect(screen.getByText("52 ms")).toBeVisible();
   });
 
+  it("color-codes the status badge by success or failure", () => {
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            errorDetails: null,
+            id: "ok-record",
+            method: "GET",
+            path: "/server",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "Successful request",
+            url: "/server",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 12,
+            errorDetails: "network error",
+            id: "failed-record",
+            method: "GET",
+            path: "/server",
+            requestSize: 40,
+            responseSize: 0,
+            status: 0,
+            summary: "Failed request",
+            url: "/server",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("200").className).toContain("text-emerald-700");
+    expect(screen.getByText("0").className).toContain("text-red-700");
+  });
+
   it("renders saved requests newest first", async () => {
     window.localStorage.setItem(
       REQUEST_HISTORY_STORAGE_KEY,

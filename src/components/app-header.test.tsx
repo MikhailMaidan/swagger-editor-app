@@ -42,6 +42,22 @@ describe("AppHeader", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("keeps the nav scrollable at every breakpoint instead of letting overflow bleed into the language switcher", () => {
+    render(<AppHeader initialIsAuthenticated={false} initialUserName="User" />);
+
+    const navClassName = screen.getByRole("navigation", {
+      name: "Main navigation",
+    }).className;
+
+    // A breakpoint-gated "overflow-visible" here previously let the desktop
+    // nav links (revealed only at xl:) overlap the language switcher at
+    // viewport widths where the flex-1 box couldn't fit them yet (~1024px
+    // and ~1280-1400px) - overflow-x-auto must stay active unconditionally
+    // so excess content scrolls within the nav instead of spilling out.
+    expect(navClassName).toContain("overflow-x-auto");
+    expect(navClassName).not.toMatch(/overflow-visible/);
+  });
+
   it("activates and scrolls to the viewer when API Reference is selected", async () => {
     const viewer = document.createElement("section");
     viewer.id = "api-viewer";

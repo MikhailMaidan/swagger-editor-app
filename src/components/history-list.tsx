@@ -12,6 +12,7 @@ import {
   removeRequestHistoryRecord,
   RequestHistoryRecord,
 } from "@/lib/request-history";
+import { getStatusColorClasses } from "@/lib/status-color";
 
 const EMPTY_HISTORY: RequestHistoryRecord[] = [];
 
@@ -160,7 +161,13 @@ export function HistoryList({
                   </Link>
                 </td>
                 <td className="px-4 py-4 font-medium">{record.summary}</td>
-                <td className="px-4 py-4 font-bold">{record.status}</td>
+                <td className="px-4 py-4">
+                  <span
+                    className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(record.status)}`}
+                  >
+                    {record.status}
+                  </span>
+                </td>
                 <td className="px-4 py-4 font-medium">
                   {record.durationMs} ms
                 </td>

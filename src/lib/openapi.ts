@@ -165,7 +165,7 @@ function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
-const DEFAULT_SERVER_URL = "https://api.example.com";
+export const DEFAULT_SERVER_URL = "https://api.example.com";
 
 function readSwagger2ServerUrl(schema: Record<string, unknown>) {
   const host = readString(schema.host);
@@ -320,6 +320,15 @@ function normalizeResponses(value: unknown): ResponseSummary[] {
   );
 }
 
+// Backslash, double quote, `$`, and backtick all have special meaning inside
+// a double-quoted shell string; left raw, a header value containing any of
+// them (e.g. `say "hi"`) produces a cURL command with an unterminated quote
+// or, worse, one that runs `$(...)`/backtick command substitution if pasted
+// into a real shell.
+function escapeCurlDoubleQuoted(value: string) {
+  return value.replace(/[\\"$`]/g, "\\$&");
+}
+
 export function createCurlPreview(
   method: string,
   path: string,
@@ -334,7 +343,9 @@ export function createCurlPreview(
   parameters
     .filter((parameter) => parameter.location === "header")
     .forEach((parameter) => {
-      parts.push(`-H "${parameter.name}: ${parameter.value}"`);
+      parts.push(
+        `-H "${escapeCurlDoubleQuoted(parameter.name)}: ${escapeCurlDoubleQuoted(parameter.value)}"`,
+      );
     });
 
   const cookieHeader = buildCookieHeaderValue(parameters);
