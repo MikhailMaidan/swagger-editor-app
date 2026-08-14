@@ -336,6 +336,7 @@ export function createCurlPreview(
   serverUrl = "https://api.example.com",
   parameters: CurlParameter[] = [],
   requestBody = "",
+  contentType = "application/json",
 ) {
   const url = buildRequestUrl(serverUrl, path, parameters);
   const parts = [`curl -X ${method}`, `"${url}"`];
@@ -358,7 +359,7 @@ export function createCurlPreview(
     const body = requestBody.trim() || "{...}";
 
     parts.push(
-      '-H "Content-Type: application/json"',
+      `-H "Content-Type: ${escapeCurlDoubleQuoted(contentType)}"`,
       `-d '${body.replaceAll("'", "'\\''")}'`,
     );
   }

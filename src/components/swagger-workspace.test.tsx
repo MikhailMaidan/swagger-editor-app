@@ -293,6 +293,23 @@ paths:
     expect(screen.queryByText("cURL copied.")).not.toBeInTheDocument();
   });
 
+  it("omits the request body and Content-Type from the cURL preview once the body textarea is cleared", () => {
+    render(<SwaggerWorkspace />);
+
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toHaveTextContent(
+      "Content-Type",
+    );
+
+    fireEvent.change(screen.getByLabelText("Editable request body"), {
+      target: { value: "" },
+    });
+
+    const curlPreview = screen.getByLabelText("cURL POST /users/{id}");
+
+    expect(curlPreview).not.toHaveTextContent("Content-Type");
+    expect(curlPreview.textContent).not.toContain("-d ");
+  });
+
   it("shows filled parameter values in the mock request preview", async () => {
     const user = userEvent.setup();
 

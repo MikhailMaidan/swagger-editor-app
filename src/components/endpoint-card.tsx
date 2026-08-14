@@ -13,7 +13,7 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
-import { buildRequestUrl } from "@/lib/request-url";
+import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
@@ -59,6 +59,7 @@ type TryItOutExecutionResult = {
 };
 
 type TryItOutPayload = {
+  contentType?: string;
   method: string;
   path: string;
   requestParameters: StructuredRequestParameter[];
@@ -293,10 +294,11 @@ function EndpointCardComponent({
       createCurlPreview(
         endpoint.method,
         endpoint.path,
-        endpoint.requestBodies.length > 0,
+        hasSendableRequestBody(endpoint.method, requestBodyValue),
         endpoint.serverUrl,
         requestParameters,
         requestBodyValue,
+        endpoint.requestBodies[0]?.contentType,
       ),
     [endpoint, requestBodyValue, requestParameters],
   );
@@ -362,6 +364,7 @@ function EndpointCardComponent({
     };
     const executionResult = await executeTryItOut(
       {
+        contentType: endpoint.requestBodies[0]?.contentType,
         method: endpoint.method,
         path: endpoint.path,
         requestBody: requestBodyValue,

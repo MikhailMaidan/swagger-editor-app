@@ -2,6 +2,7 @@ import { DEFAULT_SERVER_URL } from "@/lib/openapi";
 import {
   buildCookieHeaderValue,
   buildRequestUrl,
+  hasSendableRequestBody,
   hasUnresolvedPathParameters,
   resolvePathParameters,
 } from "@/lib/request-url";
@@ -18,6 +19,7 @@ type RequestParameter = {
 };
 
 type TryItOutPayload = {
+  contentType?: string;
   method?: string;
   path?: string;
   requestParameters?: RequestParameter[];
@@ -188,11 +190,12 @@ function buildTargetUrl(
 function buildRequestHeaders(
   requestParameters: RequestParameter[],
   hasRequestBody: boolean,
+  contentType: string,
 ) {
   const headers = new Headers();
 
   if (hasRequestBody) {
-    headers.set("Content-Type", "application/json");
+    headers.set("Content-Type", contentType);
   }
 
   requestParameters
@@ -263,12 +266,14 @@ function createFallbackResult({
 }
 
 async function executeServerRequest({
+  contentType,
   method,
   path,
   requestBody,
   requestParameters,
   serverUrl,
 }: {
+  contentType: string;
   method: string;
   path: string;
   requestBody: string;
@@ -276,16 +281,13 @@ async function executeServerRequest({
   serverUrl: string;
 }): Promise<TryItOutResult> {
   const normalizedMethod = method.toUpperCase();
-  const hasRequestBody =
-    Boolean(requestBody.trim()) &&
-    normalizedMethod !== "GET" &&
-    normalizedMethod !== "HEAD";
+  const hasRequestBody = hasSendableRequestBody(method, requestBody);
   const targetUrl = buildTargetUrl(serverUrl, path, requestParameters);
   const startedAt = Date.now();
   const response = await fetch(targetUrl, {
     body: hasRequestBody ? requestBody : undefined,
     cache: "no-store",
-    headers: buildRequestHeaders(requestParameters, hasRequestBody),
+    headers: buildRequestHeaders(requestParameters, hasRequestBody, contentType),
     method: normalizedMethod,
     signal: AbortSignal.timeout(10_000),
   });
@@ -318,6 +320,7 @@ function getErrorMessage(error: unknown) {
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as TryItOutPayload;
+    const contentType = readString(payload.contentType, "application/json");
     const method = readString(payload.method, "GET");
     const path = readString(payload.path, "/");
     const requestBody = readString(payload.requestBody);
@@ -343,6 +346,7 @@ export async function POST(request: Request) {
     ) {
       try {
         const serverResult = await executeServerRequest({
+          contentType,
           method,
           path,
           requestBody,

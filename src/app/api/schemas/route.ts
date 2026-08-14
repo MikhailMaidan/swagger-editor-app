@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { readSchemasFromDatabase, saveSchemaToDatabase } from "@/lib/database";
+import {
+  deleteAllSchemasFromDatabase,
+  readSchemasFromDatabase,
+  saveSchemaToDatabase,
+} from "@/lib/database";
 import {
   isSavedSchemaRecord,
   mergeSavedSchemas,
@@ -102,4 +106,31 @@ export async function POST(request: Request) {
       },
     );
   }
+}
+
+export async function DELETE(request: Request) {
+  const userId = getRequestUserId(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  try {
+    await deleteAllSchemasFromDatabase(userId);
+  } catch {
+    // The cookie fallback below is still cleared regardless, so the list
+    // disappears from the UI even if the database delete failed.
+  }
+
+  const response = NextResponse.json({ schemas: [] });
+
+  response.cookies.set(SERVER_SAVED_SCHEMAS_COOKIE, JSON.stringify([]), {
+    maxAge: SCHEMAS_COOKIE_MAX_AGE,
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return response;
 }

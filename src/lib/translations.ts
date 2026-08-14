@@ -103,6 +103,11 @@ export const translations = {
       "The page does not exist or the link is no longer available.",
     "notFound.label": "404",
     "notFound.title": "Page not found",
+    "schemas.clearAll": "Clear all",
+    "schemas.clearAllConfirm":
+      "Delete all {count} saved schemas? This cannot be undone.",
+    "schemas.clearAllError": "Could not clear saved schemas. Try again.",
+    "schemas.clearing": "Clearing...",
     "schemas.delete": "Delete",
     "schemas.deleteAriaLabel": "Delete {title}",
     "schemas.deleteConfirm": 'Delete "{title}"? This cannot be undone.',
@@ -271,6 +276,11 @@ export const translations = {
       "Страница не существует или ссылка больше недоступна.",
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
+    "schemas.clearAll": "Очистить всё",
+    "schemas.clearAllConfirm":
+      "Удалить все {count} сохраненные схемы? Это действие необратимо.",
+    "schemas.clearAllError": "Не удалось очистить схемы. Попробуйте снова.",
+    "schemas.clearing": "Очистка...",
     "schemas.delete": "Удалить",
     "schemas.deleteAriaLabel": "Удалить {title}",
     "schemas.deleteConfirm": 'Удалить "{title}"? Это действие необратимо.',

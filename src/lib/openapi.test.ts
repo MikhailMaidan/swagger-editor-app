@@ -167,6 +167,22 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("uses the endpoint's declared content type instead of always assuming JSON", () => {
+    expect(
+      createCurlPreview(
+        "POST",
+        "/users",
+        true,
+        "https://api.example.com",
+        [],
+        "<user><name>Mikhail</name></user>",
+        "application/xml",
+      ),
+    ).toBe(
+      'curl -X POST \\\n  "https://api.example.com/users" \\\n  -H "Content-Type: application/xml" \\\n  -d \'<user><name>Mikhail</name></user>\'',
+    );
+  });
+
   it("escapes double quotes and shell metacharacters in header values", () => {
     expect(
       createCurlPreview(

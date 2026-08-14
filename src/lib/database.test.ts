@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   deleteAllHistoryFromDatabase,
+  deleteAllSchemasFromDatabase,
   deleteHistoryFromDatabase,
   deleteSchemaFromDatabase,
   isDatabaseConfigured,
@@ -276,6 +277,27 @@ describe("database", () => {
     expect(requestUrl).toContain("rest/v1/rsswagger_schemas");
     expect(requestUrl).toContain("id=eq.schema-1");
     expect(requestUrl).toContain("user_id=eq.user%40example.com");
+    expect(requestOptions.method).toBe("DELETE");
+  });
+
+  it("deletes every saved schema for a user without an id filter", async () => {
+    configureDatabase();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await expect(
+      deleteAllSchemasFromDatabase("user@example.com"),
+    ).resolves.toBe(true);
+
+    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
+    const requestOptions = fetchMock.mock.calls[0][1] as RequestInit;
+
+    expect(requestUrl.pathname).toContain("rest/v1/rsswagger_schemas");
+    expect(requestUrl.searchParams.get("user_id")).toBe(
+      "eq.user@example.com",
+    );
+    expect(requestUrl.searchParams.has("id")).toBe(false);
     expect(requestOptions.method).toBe("DELETE");
   });
 

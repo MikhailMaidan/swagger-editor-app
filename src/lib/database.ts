@@ -312,3 +312,7 @@ export function saveSchemaToDatabase(
 export function deleteSchemaFromDatabase(userId: string, id: string) {
   return deleteRow("rsswagger_schemas", userId, id);
 }
+
+export function deleteAllSchemasFromDatabase(userId: string) {
+  return deleteAllRows("rsswagger_schemas", userId);
+}

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { SERVER_SAVED_SCHEMAS_COOKIE } from "@/lib/schema-storage";
-import { GET, POST } from "./route";
+import { DELETE, GET, POST } from "./route";
 
 const authCookie = `${AUTH_TOKEN_COOKIE}=${createDemoToken("mikhail@example.com")}`;
 
@@ -134,5 +134,56 @@ describe("schemas route", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("returns 401 when clearing schemas without authentication", async () => {
+    const response = await DELETE(
+      new Request("http://localhost/api/schemas", { method: "DELETE" }),
+    );
+
+    expect(response.status).toBe(401);
+  });
+
+  it("clears every schema from the fallback cookie", async () => {
+    const response = await DELETE(
+      new Request("http://localhost/api/schemas", {
+        headers: {
+          cookie: `${authCookie}; ${SERVER_SAVED_SCHEMAS_COOKIE}=${encodeURIComponent(
+            JSON.stringify([currentSchema, oldSchema]),
+          )}`,
+        },
+        method: "DELETE",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.schemas).toEqual([]);
+    expect(response.headers.get("set-cookie")).toContain(
+      `${SERVER_SAVED_SCHEMAS_COOKIE}=%5B%5D`,
+    );
+  });
+
+  it("scopes the bulk database delete to the authenticated user's id", async () => {
+    vi.stubEnv("SUPABASE_URL", "https://project.supabase.co");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "secret-key");
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await DELETE(
+      new Request("http://localhost/api/schemas", {
+        headers: { cookie: authCookie },
+        method: "DELETE",
+      }),
+    );
+
+    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
+
+    expect(requestUrl.pathname).toContain("rest/v1/rsswagger_schemas");
+    expect(requestUrl.searchParams.get("user_id")).toBe(
+      "eq.mikhail@example.com",
+    );
+    expect(requestUrl.searchParams.has("id")).toBe(false);
   });
 });

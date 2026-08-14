@@ -68,3 +68,16 @@ export function buildCookieHeaderValue(parameters: UrlParameter[]) {
     )
     .join("; ");
 }
+
+// Shared by the cURL preview and the real try-it-out request so they always
+// agree on whether a body actually gets sent - GET/HEAD never carry one, and
+// an empty textarea shouldn't be presented (or sent) as a fabricated body.
+export function hasSendableRequestBody(method: string, requestBody: string) {
+  const normalizedMethod = method.toUpperCase();
+
+  return (
+    Boolean(requestBody.trim()) &&
+    normalizedMethod !== "GET" &&
+    normalizedMethod !== "HEAD"
+  );
+}

@@ -127,6 +127,66 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("sends the endpoint's declared content type instead of always assuming JSON", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("<ok/>", { status: 200 }));
+
+    try {
+      await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            contentType: "application/xml",
+            method: "POST",
+            path: "/users",
+            requestBody: "<user><name>Mikhail</name></user>",
+            responseBody: "fallback",
+            serverUrl: "https://example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const requestHeaders = fetchOptions.headers as Headers;
+
+      expect(requestHeaders.get("Content-Type")).toBe("application/xml");
+      expect(fetchOptions.body).toBe("<user><name>Mikhail</name></user>");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("defaults to application/json when no content type is declared", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    try {
+      await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "POST",
+            path: "/users",
+            requestBody: '{"name":"Mikhail"}',
+            responseBody: "fallback",
+            serverUrl: "https://example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const requestHeaders = fetchOptions.headers as Headers;
+
+      expect(requestHeaders.get("Content-Type")).toBe("application/json");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("executes a real request against a lookalike hostname instead of mistaking it for the demo placeholder", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("{}", { status: 200 }),

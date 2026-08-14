@@ -3,6 +3,7 @@ import {
   buildCookieHeaderValue,
   buildQueryString,
   buildRequestUrl,
+  hasSendableRequestBody,
   hasUnresolvedPathParameters,
   normalizePath,
   normalizeServerUrl,
@@ -90,5 +91,20 @@ describe("request-url helpers", () => {
         { location: "path", name: "id", value: "42" },
       ]),
     ).toBe("https://api.example.com/users/42");
+  });
+
+  it("treats an empty or whitespace-only body as not sendable", () => {
+    expect(hasSendableRequestBody("POST", "")).toBe(false);
+    expect(hasSendableRequestBody("POST", "   \n")).toBe(false);
+  });
+
+  it("never sends a body for GET or HEAD, even with real content", () => {
+    expect(hasSendableRequestBody("GET", '{"name":"Mikhail"}')).toBe(false);
+    expect(hasSendableRequestBody("head", '{"name":"Mikhail"}')).toBe(false);
+  });
+
+  it("sends a non-empty body for other methods, case-insensitively", () => {
+    expect(hasSendableRequestBody("post", '{"name":"Mikhail"}')).toBe(true);
+    expect(hasSendableRequestBody("PATCH", '{"name":"Mikhail"}')).toBe(true);
   });
 });

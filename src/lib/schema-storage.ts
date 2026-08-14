@@ -178,3 +178,15 @@ export async function deleteServerSchemaRecord(id: string) {
     return false;
   }
 }
+
+export async function deleteAllServerSchemaRecords() {
+  try {
+    const response = await fetch("/api/schemas", {
+      method: "DELETE",
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
