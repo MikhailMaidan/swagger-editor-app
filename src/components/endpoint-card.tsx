@@ -291,6 +291,7 @@ function EndpointCardComponent({
   } | null>(null);
   const previousResponseStatusRef = useRef(activeResponseStatus);
   const [copiedCurl, setCopiedCurl] = useState("");
+  const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
@@ -319,6 +320,7 @@ function EndpointCardComponent({
 
     previousResponseStatusRef.current = activeResponseStatus;
     setMockResult(null);
+    setCopiedResponseBody("");
   }, [activeResponseStatus]);
 
   // EndpointCard is keyed by method+path, so editing an endpoint's example
@@ -399,6 +401,9 @@ function EndpointCardComponent({
     () => (mockResult ? formatResponseBody(mockResult.body) : ""),
     [mockResult],
   );
+  const isResponseCopied =
+    Boolean(formattedResponseBody) &&
+    copiedResponseBody === formattedResponseBody;
 
   async function handleCopyCurl() {
     if (!navigator.clipboard) {
@@ -410,6 +415,19 @@ function EndpointCardComponent({
       setCopiedCurl(currentCurl);
     } catch {
       setCopiedCurl("");
+    }
+  }
+
+  async function handleCopyResponse() {
+    if (!navigator.clipboard || !formattedResponseBody) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(formattedResponseBody);
+      setCopiedResponseBody(formattedResponseBody);
+    } catch {
+      setCopiedResponseBody("");
     }
   }
 
@@ -435,6 +453,7 @@ function EndpointCardComponent({
   function handleResponseStatusChange(status: string) {
     setSelectedResponseStatus(status);
     setMockResult(null);
+    setCopiedResponseBody("");
   }
 
   function handleResetTryItOut() {
@@ -453,6 +472,7 @@ function EndpointCardComponent({
     setSelectedResponseStatus(defaultResponseStatus);
     setMockResult(null);
     setCopiedCurl("");
+    setCopiedResponseBody("");
   }
 
   async function handleTryItOut() {
@@ -461,6 +481,7 @@ function EndpointCardComponent({
     }
 
     setIsExecuting(true);
+    setCopiedResponseBody("");
     const response = getMockResponse(
       activeResponse,
       t("workspace.noResponseExample", {
@@ -887,6 +908,19 @@ function EndpointCardComponent({
                 ? t("workspace.savedToHistory")
                 : t("workspace.guestRun")}
             </span>
+            {isResponseCopied ? (
+              <span className="font-bold text-emerald-700">
+                {t("workspace.responseCopied")}
+              </span>
+            ) : null}
+            <button
+              className="ml-auto h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={!formattedResponseBody}
+              type="button"
+              onClick={handleCopyResponse}
+            >
+              {t("workspace.copyResponse")}
+            </button>
           </div>
           <p className="mt-3 break-all font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
             {mockResult.url}

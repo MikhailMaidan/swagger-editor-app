@@ -1217,6 +1217,12 @@ paths:
 
   it("executes a mock response and saves history for authenticated users", async () => {
     const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
     window.localStorage.setItem(
       AUTH_TOKEN_COOKIE,
       createDemoToken("mikhail@example.com"),
@@ -1239,6 +1245,15 @@ paths:
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toContain(
       "Get user by id",
     );
+
+    await user.click(
+      screen.getByRole("button", { name: "Copy response body" }),
+    );
+
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining('"name": "Alex Smith"'),
+    );
+    expect(screen.getByText("Response copied.")).toBeVisible();
   });
 
   it("records a failed request in history with its real status instead of a fake 200", async () => {
