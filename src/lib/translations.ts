@@ -162,6 +162,7 @@ export const translations = {
     "workspace.invalid": "Invalid",
     "workspace.methodFilterLabel": "Filter endpoints by HTTP method",
     "workspace.methods": "Methods",
+    "workspace.namedExample": "Example: {name}",
     "workspace.noEndpointsMatch": "No endpoints match your search.",
     "workspace.noResponseExample":
       "No response example available for {method} {path}.",
@@ -357,6 +358,7 @@ export const translations = {
     "workspace.invalid": "Невалидно",
     "workspace.methodFilterLabel": "Фильтр эндпоинтов по HTTP-методу",
     "workspace.methods": "Методы",
+    "workspace.namedExample": "Пример: {name}",
     "workspace.noEndpointsMatch": "Нет эндпоинтов, соответствующих запросу.",
     "workspace.noResponseExample":
       "Пример ответа недоступен для {method} {path}.",

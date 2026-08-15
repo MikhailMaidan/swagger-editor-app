@@ -15,6 +15,7 @@ export type CurlParameter = Pick<EndpointParameter, "location" | "name"> & {
 };
 
 export type SchemaDetails = {
+  exampleName: string;
   type: string;
   properties: string[];
   example: string;
@@ -267,14 +268,50 @@ function readFirstFormattedExample(...values: unknown[]) {
   return "";
 }
 
-function readSchemaDetails(value: unknown, example?: unknown): SchemaDetails {
+type MediaTypeExample = {
+  name: string;
+  value: string;
+};
+
+function readMediaTypeExample(value: Record<string, unknown>) {
+  const directExample = formatExample(value.example);
+
+  if (directExample) {
+    return { name: "", value: directExample } satisfies MediaTypeExample;
+  }
+
+  if (!isRecord(value.examples)) {
+    return null;
+  }
+
+  for (const [name, exampleConfig] of Object.entries(value.examples)) {
+    const rawExample = isRecord(exampleConfig)
+      ? "value" in exampleConfig
+        ? exampleConfig.value
+        : undefined
+      : exampleConfig;
+    const example = formatExample(rawExample);
+
+    if (example) {
+      return { name, value: example } satisfies MediaTypeExample;
+    }
+  }
+
+  return null;
+}
+
+function readSchemaDetails(
+  value: unknown,
+  mediaTypeExample: MediaTypeExample | null = null,
+): SchemaDetails {
   const schema = isRecord(value) ? value : {};
   const properties = isRecord(schema.properties)
     ? Object.keys(schema.properties)
     : [];
 
   return {
-    example: formatExample(example ?? schema.example),
+    example: mediaTypeExample?.value || formatExample(schema.example),
+    exampleName: mediaTypeExample?.name || "",
     properties,
     type: readString(schema.type, properties.length > 0 ? "object" : "unknown"),
   };
@@ -335,7 +372,10 @@ function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
 
       requestBodies.push({
         contentType,
-        schema: readSchemaDetails(contentConfig.schema, contentConfig.example),
+        schema: readSchemaDetails(
+          contentConfig.schema,
+          readMediaTypeExample(contentConfig),
+        ),
       });
 
       return requestBodies;
@@ -369,7 +409,7 @@ function normalizeResponses(value: unknown): ResponseSummary[] {
         schema: firstContentConfig
           ? readSchemaDetails(
               firstContentConfig.schema,
-              firstContentConfig.example,
+              readMediaTypeExample(firstContentConfig),
             )
           : null,
         status,

@@ -151,6 +151,56 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("extracts named media type examples for request and response bodies", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/users": {
+          post: {
+            requestBody: {
+              content: {
+                "application/json": {
+                  examples: {
+                    createUser: {
+                      value: { name: "Ada" },
+                    },
+                  },
+                  schema: { type: "object" },
+                },
+              },
+            },
+            responses: {
+              "201": {
+                content: {
+                  "application/json": {
+                    examples: {
+                      externalExample: {
+                        externalValue: "https://example.com/user.json",
+                      },
+                      createdUser: {
+                        value: { id: 7, name: "Ada" },
+                      },
+                    },
+                    schema: { type: "object" },
+                  },
+                },
+                description: "Created",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(endpoints[0].requestBodies[0].schema).toMatchObject({
+      example: '{\n  "name": "Ada"\n}',
+      exampleName: "createUser",
+    });
+    expect(endpoints[0].responses[0].schema).toMatchObject({
+      example: '{\n  "id": 7,\n  "name": "Ada"\n}',
+      exampleName: "createdUser",
+    });
+  });
+
   it("parses the default YAML schema and extracts endpoints", () => {
     const result = parseOpenApiSchema(DEFAULT_OPENAPI_SCHEMA);
 

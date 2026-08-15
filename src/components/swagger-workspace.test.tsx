@@ -245,6 +245,67 @@ paths:
     expect(curlPreview.textContent).toContain('-H "X-Trace-Id: trace-1"');
   });
 
+  it("uses named media type examples in the viewer and Try It Out", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Named Examples API
+  version: 1.0.0
+paths:
+  /users:
+    post:
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              createUser:
+                value:
+                  name: Ada
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                createdUser:
+                  value:
+                    id: 7
+                    name: Ada`,
+      },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{\n  "name": "Ada"\n}',
+      ),
+    );
+    expect(screen.getByLabelText("Example: createUser")).toHaveTextContent(
+      '"name": "Ada"',
+    );
+    expect(screen.getByLabelText("Example: createdUser")).toHaveTextContent(
+      '"id": 7',
+    );
+    expect(screen.getByLabelText("cURL POST /users")).toHaveTextContent(
+      '"name": "Ada"',
+    );
+
+    await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+    expect(await screen.findByLabelText("Response body")).toHaveTextContent(
+      '"id": 7',
+    );
+  });
+
   it("shows validation errors and disables conversion for invalid schemas", async () => {
     render(<SwaggerWorkspace />);
 

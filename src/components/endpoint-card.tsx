@@ -229,9 +229,23 @@ function SchemaDetailsBlock({
           : t("workspace.none")}
       </p>
       {schema.example ? (
-        <pre className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
-          {schema.example}
-        </pre>
+        <div className="mt-2">
+          {schema.exampleName ? (
+            <p className="mb-1 text-xs font-bold text-[color:var(--color-brand-purple)]">
+              {t("workspace.namedExample", { name: schema.exampleName })}
+            </p>
+          ) : null}
+          <pre
+            aria-label={
+              schema.exampleName
+                ? t("workspace.namedExample", { name: schema.exampleName })
+                : undefined
+            }
+            className="overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
+          >
+            {schema.example}
+          </pre>
+        </div>
       ) : null}
     </div>
   );
