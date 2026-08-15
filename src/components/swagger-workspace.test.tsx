@@ -66,7 +66,7 @@ describe("SwaggerWorkspace", () => {
     expect(stats).toHaveTextContent("Secured0");
     expect(screen.getAllByText("/users/{id}")).toHaveLength(2);
     expect(screen.getAllByText("Path parameters")).toHaveLength(2);
-    expect(screen.getAllByText("id")).toHaveLength(2);
+    expect(screen.getAllByText("id (Required)")).toHaveLength(2);
     expect(screen.getByText("search")).toBeVisible();
     expect(screen.getByText("X-Trace-Id")).toBeVisible();
     expect(screen.getByText("sessionId")).toBeVisible();
@@ -188,6 +188,61 @@ paths:
 
     expect(screen.getByLabelText("cURL GET /reports")).toBeInTheDocument();
     expect(screen.queryByLabelText("cURL GET /status")).not.toBeInTheDocument();
+  });
+
+  it("prefills try-it-out parameter inputs from schema examples and defaults", async () => {
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Example Params API
+  version: 1.0.0
+paths:
+  /users/{id}:
+    get:
+      summary: Get user
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+            example: 42
+        - name: search
+          in: query
+          example: Alex
+          schema:
+            type: string
+        - name: X-Trace-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            default: trace-1
+      responses:
+        '200':
+          description: OK`,
+      },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Path parameter id")).toHaveValue("42"),
+    );
+    expect(screen.getByLabelText("Query parameter search")).toHaveValue("Alex");
+    expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveValue(
+      "trace-1",
+    );
+    expect(screen.getAllByText("Required")).toHaveLength(2);
+    expect(screen.getByText("id (Required)")).toBeVisible();
+    expect(screen.getByText("X-Trace-Id (Required)")).toBeVisible();
+    const curlPreview = screen.getByLabelText("cURL GET /users/{id}");
+
+    expect(curlPreview).toHaveTextContent("curl -X GET");
+    expect(curlPreview.textContent).toContain(
+      '"https://api.example.com/users/42?search=Alex"',
+    );
+    expect(curlPreview.textContent).toContain('-H "X-Trace-Id: trace-1"');
   });
 
   it("shows validation errors and disables conversion for invalid schemas", async () => {

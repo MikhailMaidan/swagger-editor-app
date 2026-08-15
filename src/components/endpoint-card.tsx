@@ -150,7 +150,7 @@ function getParameterKey(parameter: EndpointParameter) {
 function createInitialParameterValues(endpoint: EndpointSummary) {
   return endpoint.parameters.reduce<Record<string, string>>(
     (values, parameter) => {
-      values[getParameterKey(parameter)] = "";
+      values[getParameterKey(parameter)] = parameter.example;
       return values;
     },
     {},
@@ -175,9 +175,11 @@ function createRequestParameters(
 }
 
 function groupParameters(parameters: EndpointParameter[]) {
-  return parameters.reduce<Record<EndpointParameter["location"], string[]>>(
+  return parameters.reduce<
+    Record<EndpointParameter["location"], EndpointParameter[]>
+  >(
     (groups, parameter) => {
-      groups[parameter.location].push(parameter.name);
+      groups[parameter.location].push(parameter);
       return groups;
     },
     {
@@ -265,6 +267,7 @@ function EndpointCardComponent({
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
+  const editedParameterKeysRef = useRef(new Set<string>());
   const initialRequestBody = getInitialRequestBody(endpoint);
   const [requestBodyValue, setRequestBodyValue] = useState(initialRequestBody);
   const hasEditedRequestBodyRef = useRef(false);
@@ -285,6 +288,27 @@ function EndpointCardComponent({
 
     setRequestBodyValue(initialRequestBody);
   }, [initialRequestBody]);
+  useEffect(() => {
+    setParameterValues((currentValues) => {
+      let changed = false;
+      const nextValues = { ...currentValues };
+
+      endpoint.parameters.forEach((parameter) => {
+        const key = getParameterKey(parameter);
+
+        if (
+          parameter.example &&
+          !editedParameterKeysRef.current.has(key) &&
+          !nextValues[key]
+        ) {
+          nextValues[key] = parameter.example;
+          changed = true;
+        }
+      });
+
+      return changed ? nextValues : currentValues;
+    });
+  }, [endpoint.parameters]);
   const requestParameters = useMemo(
     () => createRequestParameters(endpoint, parameterValues),
     [endpoint, parameterValues],
@@ -325,6 +349,7 @@ function EndpointCardComponent({
     parameter: EndpointParameter,
     value: string,
   ) {
+    editedParameterKeysRef.current.add(getParameterKey(parameter));
     setParameterValues((currentValues) => ({
       ...currentValues,
       [getParameterKey(parameter)]: value,
@@ -462,14 +487,22 @@ function EndpointCardComponent({
       ) : null}
 
       <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-        {Object.entries(groupedParameters).map(([location, names]) => (
+        {Object.entries(groupedParameters).map(([location, parameters]) => (
           <div key={location}>
             <p className="font-extrabold text-[color:var(--color-brand-navy)]">
               {t(parameterLabelKeys[location as EndpointParameter["location"]])}{" "}
               {t("workspace.parameters")}
             </p>
             <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-              {names.length > 0 ? names.join(", ") : t("workspace.none")}
+              {parameters.length > 0
+                ? parameters
+                    .map((parameter) =>
+                      parameter.required
+                        ? `${parameter.name} (${t("workspace.required")})`
+                        : parameter.name,
+                    )
+                    .join(", ")
+                : t("workspace.none")}
             </p>
           </div>
         ))}
@@ -536,14 +569,28 @@ function EndpointCardComponent({
                   className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
                   key={getParameterKey(parameter)}
                 >
-                  {locationLabel}: {parameter.name}
+                  <span>
+                    {locationLabel}: {parameter.name}
+                    {parameter.required ? (
+                      <span className="ml-2 rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                        {t("workspace.required")}
+                      </span>
+                    ) : null}
+                  </span>
                   <input
                     aria-label={t("workspace.parameterInputLabel", {
                       location: locationLabel,
                       name: parameter.name,
                     })}
                     className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                    placeholder={t("workspace.parameterValuePlaceholder")}
+                    placeholder={
+                      parameter.example
+                        ? t("workspace.parameterExamplePlaceholder", {
+                            value: parameter.example,
+                          })
+                        : t("workspace.parameterValuePlaceholder")
+                    }
+                    required={parameter.required}
                     type="text"
                     value={parameterValues[getParameterKey(parameter)] ?? ""}
                     onChange={(event) =>

@@ -6,9 +6,11 @@ export type SchemaFormat = "json" | "yaml";
 export type EndpointParameter = {
   name: string;
   location: "path" | "query" | "header" | "cookie";
+  example: string;
+  required: boolean;
 };
 
-export type CurlParameter = EndpointParameter & {
+export type CurlParameter = Pick<EndpointParameter, "location" | "name"> & {
   value: string;
 };
 
@@ -253,6 +255,18 @@ function formatExample(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
 
+function readFirstFormattedExample(...values: unknown[]) {
+  for (const value of values) {
+    const example = formatExample(value);
+
+    if (example) {
+      return example;
+    }
+  }
+
+  return "";
+}
+
 function readSchemaDetails(value: unknown, example?: unknown): SchemaDetails {
   const schema = isRecord(value) ? value : {};
   const properties = isRecord(schema.properties)
@@ -276,9 +290,17 @@ function normalizeParameters(value: unknown): EndpointParameter[] {
       return parameters;
     }
 
+    const schema = isRecord(parameter.schema) ? parameter.schema : {};
+
     parameters.push({
+      example: readFirstFormattedExample(
+        parameter.example,
+        schema.example,
+        schema.default,
+      ),
       location: parameter.in,
       name: readString(parameter.name, "Unnamed parameter"),
+      required: parameter.required === true || parameter.in === "path",
     });
 
     return parameters;

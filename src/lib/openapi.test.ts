@@ -89,8 +89,66 @@ describe("openapi helpers", () => {
     });
 
     expect(endpoints[0].parameters).toEqual([
-      { location: "path", name: "id" },
+      expect.objectContaining({ location: "path", name: "id" }),
     ]);
+  });
+
+  it("extracts required flags and example values from parameters", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/items/{id}": {
+          get: {
+            parameters: [
+              {
+                example: "active",
+                in: "query",
+                name: "status",
+                schema: { type: "string" },
+              },
+              {
+                in: "header",
+                name: "X-Trace-Id",
+                required: true,
+                schema: { default: "trace-1", type: "string" },
+              },
+            ],
+            responses: {
+              "200": { description: "OK" },
+            },
+          },
+          parameters: [
+            {
+              in: "path",
+              name: "id",
+              schema: { example: 42, type: "integer" },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(endpoints[0].parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          example: "42",
+          location: "path",
+          name: "id",
+          required: true,
+        }),
+        expect.objectContaining({
+          example: "active",
+          location: "query",
+          name: "status",
+          required: false,
+        }),
+        expect.objectContaining({
+          example: "trace-1",
+          location: "header",
+          name: "X-Trace-Id",
+          required: true,
+        }),
+      ]),
+    );
   });
 
   it("parses the default YAML schema and extracts endpoints", () => {
@@ -136,10 +194,10 @@ describe("openapi helpers", () => {
     });
     expect(result.value.endpoints[0].parameters).toEqual(
       expect.arrayContaining([
-        { location: "path", name: "id" },
-        { location: "query", name: "search" },
-        { location: "header", name: "X-Trace-Id" },
-        { location: "cookie", name: "sessionId" },
+        expect.objectContaining({ location: "path", name: "id" }),
+        expect.objectContaining({ location: "query", name: "search" }),
+        expect.objectContaining({ location: "header", name: "X-Trace-Id" }),
+        expect.objectContaining({ location: "cookie", name: "sessionId" }),
       ]),
     );
   });
