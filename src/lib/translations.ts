@@ -190,6 +190,7 @@ export const translations = {
     "workspace.savedToHistory": "Saved to history",
     "workspace.schemaSaved": "Schema saved.",
     "workspace.secured": "Secured",
+    "workspace.server": "Server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
     "workspace.tryItOut": "Try It Out",
     "workspace.type": "Type:",
@@ -387,6 +388,7 @@ export const translations = {
     "workspace.savedToHistory": "Сохранено в истории",
     "workspace.schemaSaved": "Схема сохранена.",
     "workspace.secured": "С защитой",
+    "workspace.server": "Сервер",
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
     "workspace.tryItOut": "Отправить запрос",

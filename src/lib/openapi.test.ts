@@ -57,6 +57,43 @@ describe("openapi helpers", () => {
     expect(result.value.serverUrl).toBe("http://legacy.example.com");
   });
 
+  it("resolves OpenAPI server variables from their default values", () => {
+    const result = parseOpenApiSchema(
+      JSON.stringify({
+        info: { title: "Variable Server API", version: "1.0.0" },
+        openapi: "3.0.0",
+        paths: {
+          "/users": {
+            get: { responses: { "200": { description: "OK" } } },
+          },
+        },
+        servers: [
+          {
+            url: "https://{environment}.example.com/{version}/{region}",
+            variables: {
+              environment: { default: "api" },
+              region: { description: "No default in this invalid schema" },
+              version: { default: "v2" },
+            },
+          },
+        ],
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.serverUrl).toBe(
+      "https://api.example.com/v2/{region}",
+    );
+    expect(result.value.endpoints[0].serverUrl).toBe(
+      "https://api.example.com/v2/{region}",
+    );
+  });
+
   it("lets an operation-level parameter override a shared path-level parameter of the same name and location", () => {
     const endpoints = extractEndpoints({
       paths: {

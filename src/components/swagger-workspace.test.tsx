@@ -83,6 +83,39 @@ describe("SwaggerWorkspace", () => {
     );
   });
 
+  it("resolves server variables for the viewer and generated cURL", async () => {
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Variable Server API
+  version: 1.0.0
+servers:
+  - url: https://{environment}.example.com/{version}
+    variables:
+      environment:
+        default: api
+      version:
+        default: v2
+paths:
+  /users:
+    get:
+      responses:
+        '200':
+          description: OK`,
+      },
+    });
+
+    expect(
+      await screen.findByText("https://api.example.com/v2"),
+    ).toBeVisible();
+    expect(screen.getByLabelText("cURL GET /users")).toHaveTextContent(
+      "https://api.example.com/v2/users",
+    );
+  });
+
   it("filters the endpoint list by method, path, summary, and method tab", () => {
     render(<SwaggerWorkspace />);
 

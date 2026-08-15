@@ -381,11 +381,19 @@ export function SwaggerWorkspace({
             {parseResult.ok ? parseResult.value.title : t("nav.apiReference")}
           </h2>
           {parseResult.ok ? (
-            <p className="mt-2 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-              {t("workspace.version", {
-                version: parseResult.value.version,
-              })}
-            </p>
+            <div className="mt-2 space-y-1 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+              <p>
+                {t("workspace.version", {
+                  version: parseResult.value.version,
+                })}
+              </p>
+              <p className="break-all">
+                <span className="font-bold text-[color:var(--color-brand-navy)]">
+                  {t("workspace.server")}:
+                </span>{" "}
+                <code>{parseResult.value.serverUrl}</code>
+              </p>
+            </div>
           ) : null}
         </div>
 

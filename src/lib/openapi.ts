@@ -234,12 +234,28 @@ function readSwagger2ServerUrl(schema: Record<string, unknown>) {
   return `${scheme}://${host}${normalizedBasePath}`;
 }
 
+function resolveServerVariables(server: Record<string, unknown>) {
+  const serverUrl = readString(server.url) || DEFAULT_SERVER_URL;
+  const variables = isRecord(server.variables) ? server.variables : {};
+
+  return serverUrl.replace(
+    /\{([^{}]+)\}/g,
+    (placeholder: string, variableName: string) => {
+      const variable = variables[variableName];
+
+      return isRecord(variable) && typeof variable.default === "string"
+        ? variable.default
+        : placeholder;
+    },
+  );
+}
+
 function readServerUrl(schema: Record<string, unknown>) {
   if (Array.isArray(schema.servers)) {
     const firstServer = schema.servers.find(isRecord);
 
     if (firstServer) {
-      return readString(firstServer.url, DEFAULT_SERVER_URL);
+      return resolveServerVariables(firstServer);
     }
   }
 
