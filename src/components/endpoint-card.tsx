@@ -475,8 +475,16 @@ function EndpointCardComponent({
           {endpoint.description}
         </p>
       ) : null}
-      {endpoint.tags.length > 0 || endpoint.deprecated || endpoint.secured ? (
+      {endpoint.tags.length > 0 ||
+      endpoint.deprecated ||
+      endpoint.operationId ||
+      endpoint.secured ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          {endpoint.operationId ? (
+            <span className="rounded-xl bg-slate-100 px-3 py-1 font-mono text-xs font-bold text-slate-700">
+              {t("workspace.operationId", { id: endpoint.operationId })}
+            </span>
+          ) : null}
           {endpoint.tags.map((tag) => (
             <span
               className="rounded-xl bg-[color:var(--color-brand-soft)] px-3 py-1 text-xs font-extrabold uppercase text-[color:var(--color-brand-purple)]"

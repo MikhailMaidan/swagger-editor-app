@@ -36,6 +36,7 @@ export type ResponseSummary = {
 export type EndpointSummary = {
   deprecated: boolean;
   method: string;
+  operationId: string;
   path: string;
   secured: boolean;
   securityRequirements: string[];
@@ -510,6 +511,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           deprecated: operation.deprecated === true,
           description: readString(operation.description),
           method: method.toUpperCase(),
+          operationId: readString(operation.operationId),
           parameters: mergeParameters(
             sharedParameters,
             normalizeParameters(operation.parameters),

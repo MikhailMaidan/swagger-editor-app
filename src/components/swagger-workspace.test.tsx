@@ -87,7 +87,7 @@ describe("SwaggerWorkspace", () => {
     render(<SwaggerWorkspace />);
 
     const filterInput = screen.getByLabelText(
-      "Filter endpoints by method, path, summary, tag, or auth",
+      "Filter endpoints by method, path, summary, operation ID, tag, or auth",
     );
     const methodFilters = screen.getByRole("group", {
       name: "Filter endpoints by HTTP method",
@@ -151,6 +151,7 @@ paths:
   /reports:
     get:
       summary: List reports
+      operationId: listReports
       deprecated: true
       tags:
         - reports
@@ -161,6 +162,7 @@ paths:
   /status:
     get:
       summary: Health check
+      operationId: getStatus
       security: []
       responses:
         '200':
@@ -170,6 +172,7 @@ paths:
 
     expect(await screen.findByText("reports")).toBeVisible();
     expect(screen.getByText("admin")).toBeVisible();
+    expect(screen.getByText("Operation ID: listReports")).toBeVisible();
     expect(screen.getAllByText("Deprecated")).toHaveLength(2);
     expect(screen.getByText("Auth: bearerAuth")).toBeVisible();
 
@@ -181,9 +184,9 @@ paths:
 
     fireEvent.change(
       screen.getByLabelText(
-        "Filter endpoints by method, path, summary, tag, or auth",
+        "Filter endpoints by method, path, summary, operation ID, tag, or auth",
       ),
-      { target: { value: "bearer" } },
+      { target: { value: "listReports" } },
     );
 
     expect(screen.getByLabelText("cURL GET /reports")).toBeInTheDocument();
@@ -408,7 +411,10 @@ paths:
 
   it("downloads the current schema with a filename derived from its title", async () => {
     const user = userEvent.setup();
-    const createObjectURL = vi.fn(() => "blob:mock-url");
+    const createObjectURL = vi.fn((object: Blob | MediaSource) => {
+      void object;
+      return "blob:mock-url";
+    });
     const revokeObjectURL = vi.fn();
     const originalCreateObjectURL = URL.createObjectURL;
     const originalRevokeObjectURL = URL.revokeObjectURL;

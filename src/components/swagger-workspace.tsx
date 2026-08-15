@@ -98,6 +98,7 @@ export function SwaggerWorkspace({
           endpoint.method.toLowerCase().includes(normalizedFilter) ||
           endpoint.path.toLowerCase().includes(normalizedFilter) ||
           endpoint.summary.toLowerCase().includes(normalizedFilter) ||
+          endpoint.operationId.toLowerCase().includes(normalizedFilter) ||
           endpoint.tags.some((tag) =>
             tag.toLowerCase().includes(normalizedFilter),
           ) ||

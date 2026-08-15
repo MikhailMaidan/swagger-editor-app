@@ -217,6 +217,7 @@ describe("openapi helpers", () => {
     expect(result.value.endpoints[0]).toMatchObject({
       deprecated: false,
       method: "GET",
+      operationId: "",
       path: "/users/{id}",
       secured: false,
       securityRequirements: [],
@@ -258,6 +259,7 @@ describe("openapi helpers", () => {
         "/reports": {
           get: {
             deprecated: true,
+            operationId: "listReports",
             responses: {
               "200": { description: "OK" },
             },
@@ -271,6 +273,7 @@ describe("openapi helpers", () => {
     expect(endpoints[0]).toMatchObject({
       deprecated: true,
       method: "GET",
+      operationId: "listReports",
       path: "/reports",
       tags: ["reports", "admin"],
     });

@@ -155,7 +155,7 @@ export const translations = {
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
     "workspace.filterEndpoints":
-      "Filter endpoints by method, path, summary, tag, or auth",
+      "Filter endpoints by method, path, summary, operation ID, tag, or auth",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
     "workspace.import": "Import",
@@ -168,6 +168,7 @@ export const translations = {
       "No response example available for {method} {path}.",
     "workspace.none": "None",
     "workspace.openApiSchema": "OpenAPI schema",
+    "workspace.operationId": "Operation ID: {id}",
     "workspace.parameters": "parameters",
     "workspace.parameterExamplePlaceholder": "Example: {value}",
     "workspace.parameterInputLabel": "{location} parameter {name}",
@@ -351,7 +352,7 @@ export const translations = {
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
     "workspace.filterEndpoints":
-      "Фильтр по методу, пути, описанию, тегу или auth",
+      "Фильтр по методу, пути, описанию, ID операции, тегу или auth",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
     "workspace.import": "Импорт",
@@ -364,6 +365,7 @@ export const translations = {
       "Пример ответа недоступен для {method} {path}.",
     "workspace.none": "Нет",
     "workspace.openApiSchema": "Схема OpenAPI",
+    "workspace.operationId": "ID операции: {id}",
     "workspace.parameters": "параметры",
     "workspace.parameterExamplePlaceholder": "Пример: {value}",
     "workspace.parameterInputLabel": "{location} параметр {name}",
