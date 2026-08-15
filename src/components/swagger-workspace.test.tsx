@@ -84,6 +84,8 @@ describe("SwaggerWorkspace", () => {
   });
 
   it("resolves server variables for the viewer and generated cURL", async () => {
+    const user = userEvent.setup();
+
     render(<SwaggerWorkspace />);
 
     fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
@@ -99,6 +101,7 @@ servers:
         default: api
       version:
         default: v2
+  - url: https://staging.example.com/v2
 paths:
   /users:
     get:
@@ -113,6 +116,21 @@ paths:
     ).toBeVisible();
     expect(screen.getByLabelText("cURL GET /users")).toHaveTextContent(
       "https://api.example.com/v2/users",
+    );
+
+    await user.selectOptions(
+      screen.getByLabelText("Select API server"),
+      "https://staging.example.com/v2",
+    );
+
+    expect(screen.getByLabelText("cURL GET /users")).toHaveTextContent(
+      "https://staging.example.com/v2/users",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "https://staging.example.com/v2/users",
     );
   });
 

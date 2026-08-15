@@ -67,6 +67,7 @@ export function SwaggerWorkspace({
   const [importError, setImportError] = useState("");
   const [endpointFilter, setEndpointFilter] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("all");
+  const [selectedServerUrl, setSelectedServerUrl] = useState("");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -80,9 +81,25 @@ export function SwaggerWorkspace({
     : parseResult.format;
   const targetFormat: SchemaFormat =
     detectedFormat === "yaml" ? "json" : "yaml";
-  const endpoints = parseResult.ok
+  const parsedEndpoints = parseResult.ok
     ? parseResult.value.endpoints
     : EMPTY_ENDPOINTS;
+  const serverUrls = parseResult.ok ? parseResult.value.serverUrls : [];
+  const activeServerUrl =
+    selectedServerUrl && serverUrls.includes(selectedServerUrl)
+      ? selectedServerUrl
+      : parseResult.ok
+        ? parseResult.value.serverUrl
+        : "";
+  const endpoints = useMemo(
+    () =>
+      parsedEndpoints.map((endpoint) =>
+        endpoint.serverUrl === activeServerUrl
+          ? endpoint
+          : { ...endpoint, serverUrl: activeServerUrl },
+      ),
+    [activeServerUrl, parsedEndpoints],
+  );
   const endpointStats = useMemo(
     () => createEndpointStats(endpoints),
     [endpoints],
@@ -387,12 +404,29 @@ export function SwaggerWorkspace({
                   version: parseResult.value.version,
                 })}
               </p>
-              <p className="break-all">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-[color:var(--color-brand-navy)]">
                   {t("workspace.server")}:
-                </span>{" "}
-                <code>{parseResult.value.serverUrl}</code>
-              </p>
+                </span>
+                {serverUrls.length > 1 ? (
+                  <select
+                    aria-label={t("workspace.serverSelector")}
+                    className="h-9 min-w-0 max-w-full rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 font-mono text-xs text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                    value={activeServerUrl}
+                    onChange={(event) =>
+                      setSelectedServerUrl(event.target.value)
+                    }
+                  >
+                    {serverUrls.map((serverUrl) => (
+                      <option key={serverUrl} value={serverUrl}>
+                        {serverUrl}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <code className="break-all">{activeServerUrl}</code>
+                )}
+              </div>
             </div>
           ) : null}
         </div>

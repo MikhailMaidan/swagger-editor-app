@@ -64,6 +64,7 @@ export type ParsedOpenApiSchema = {
   title: string;
   version: string;
   serverUrl: string;
+  serverUrls: string[];
   schema: Record<string, unknown>;
   endpoints: EndpointSummary[];
 };
@@ -250,16 +251,22 @@ function resolveServerVariables(server: Record<string, unknown>) {
   );
 }
 
-function readServerUrl(schema: Record<string, unknown>) {
+function readServerUrls(schema: Record<string, unknown>) {
   if (Array.isArray(schema.servers)) {
-    const firstServer = schema.servers.find(isRecord);
+    const serverUrls = schema.servers
+      .filter(isRecord)
+      .map(resolveServerVariables);
 
-    if (firstServer) {
-      return resolveServerVariables(firstServer);
+    if (serverUrls.length > 0) {
+      return Array.from(new Set(serverUrls));
     }
   }
 
-  return readSwagger2ServerUrl(schema) ?? DEFAULT_SERVER_URL;
+  return [readSwagger2ServerUrl(schema) ?? DEFAULT_SERVER_URL];
+}
+
+function readServerUrl(schema: Record<string, unknown>) {
+  return readServerUrls(schema)[0];
 }
 
 function formatExample(value: unknown) {
@@ -609,7 +616,8 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
 
     const schema = parsedSchema as Record<string, unknown>;
     const info = schema.info as Record<string, unknown>;
-    const serverUrl = readServerUrl(schema);
+    const serverUrls = readServerUrls(schema);
+    const serverUrl = serverUrls[0];
 
     return {
       ok: true,
@@ -618,6 +626,7 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
         format,
         schema,
         serverUrl,
+        serverUrls,
         title: readString(info.title, "Untitled API"),
         version: readString(info.version, "0.0.0"),
       },

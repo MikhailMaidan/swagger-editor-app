@@ -191,6 +191,7 @@ export const translations = {
     "workspace.schemaSaved": "Schema saved.",
     "workspace.secured": "Secured",
     "workspace.server": "Server",
+    "workspace.serverSelector": "Select API server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
     "workspace.tryItOut": "Try It Out",
     "workspace.type": "Type:",
@@ -389,6 +390,7 @@ export const translations = {
     "workspace.schemaSaved": "Схема сохранена.",
     "workspace.secured": "С защитой",
     "workspace.server": "Сервер",
+    "workspace.serverSelector": "Выберите API-сервер",
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
     "workspace.tryItOut": "Отправить запрос",

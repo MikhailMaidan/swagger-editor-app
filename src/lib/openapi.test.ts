@@ -76,6 +76,8 @@ describe("openapi helpers", () => {
               version: { default: "v2" },
             },
           },
+          { url: "https://staging.example.com/v2" },
+          { url: "https://staging.example.com/v2" },
         ],
       }),
     );
@@ -89,6 +91,10 @@ describe("openapi helpers", () => {
     expect(result.value.serverUrl).toBe(
       "https://api.example.com/v2/{region}",
     );
+    expect(result.value.serverUrls).toEqual([
+      "https://api.example.com/v2/{region}",
+      "https://staging.example.com/v2",
+    ]);
     expect(result.value.endpoints[0].serverUrl).toBe(
       "https://api.example.com/v2/{region}",
     );
