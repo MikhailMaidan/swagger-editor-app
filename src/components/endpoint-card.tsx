@@ -436,6 +436,23 @@ function EndpointCardComponent({
           {endpoint.description}
         </p>
       ) : null}
+      {endpoint.tags.length > 0 || endpoint.deprecated ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {endpoint.tags.map((tag) => (
+            <span
+              className="rounded-xl bg-[color:var(--color-brand-soft)] px-3 py-1 text-xs font-extrabold uppercase text-[color:var(--color-brand-purple)]"
+              key={tag}
+            >
+              {tag}
+            </span>
+          ))}
+          {endpoint.deprecated ? (
+            <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-extrabold uppercase text-amber-700">
+              {t("workspace.deprecatedEndpoint")}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
         {Object.entries(groupedParameters).map(([location, names]) => (

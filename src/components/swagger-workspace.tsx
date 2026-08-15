@@ -8,10 +8,12 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import {
   DEFAULT_OPENAPI_SCHEMA,
+  createEndpointStats,
   formatOpenApiSchema,
   parseOpenApiSchema,
   SchemaFormat,
 } from "@/lib/openapi";
+import type { EndpointSummary } from "@/lib/openapi";
 import {
   readSavedSchema,
   readServerSavedSchemas,
@@ -42,6 +44,7 @@ function slugifyTitle(title: string) {
 // documents, so it's debounced off the raw keystroke: typing itself stays
 // instant since the textarea always renders the undebounced schemaText.
 const SCHEMA_PARSE_DEBOUNCE_MS = 200;
+const EMPTY_ENDPOINTS: EndpointSummary[] = [];
 
 type SwaggerWorkspaceProps = {
   initialIsAuthenticated?: boolean;
@@ -63,6 +66,7 @@ export function SwaggerWorkspace({
   const [saveMessage, setSaveMessage] = useState("");
   const [importError, setImportError] = useState("");
   const [endpointFilter, setEndpointFilter] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("all");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -76,7 +80,17 @@ export function SwaggerWorkspace({
     : parseResult.format;
   const targetFormat: SchemaFormat =
     detectedFormat === "yaml" ? "json" : "yaml";
-  const endpoints = parseResult.ok ? parseResult.value.endpoints : [];
+  const endpoints = parseResult.ok
+    ? parseResult.value.endpoints
+    : EMPTY_ENDPOINTS;
+  const endpointStats = useMemo(
+    () => createEndpointStats(endpoints),
+    [endpoints],
+  );
+  const activeMethod =
+    selectedMethod === "all" || endpointStats.methods.includes(selectedMethod)
+      ? selectedMethod
+      : "all";
   const normalizedFilter = endpointFilter.trim().toLowerCase();
   const filteredEndpoints = normalizedFilter
     ? endpoints.filter(
@@ -86,6 +100,12 @@ export function SwaggerWorkspace({
           endpoint.summary.toLowerCase().includes(normalizedFilter),
       )
     : endpoints;
+  const methodFilteredEndpoints =
+    activeMethod === "all"
+      ? filteredEndpoints
+      : filteredEndpoints.filter(
+          (endpoint) => endpoint.method === activeMethod,
+        );
 
   useLayoutEffect(() => {
     const editor = editorRef.current;
@@ -106,14 +126,20 @@ export function SwaggerWorkspace({
     hasEditedSchemaRef.current = false;
 
     const savedSchema = readSavedSchema();
+    let cancelled = false;
 
     if (savedSchema) {
       lastSavedSchemaRef.current = null;
-      setSchemaText(savedSchema);
-      return;
-    }
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setSchemaText(savedSchema);
+        }
+      });
 
-    let cancelled = false;
+      return () => {
+        cancelled = true;
+      };
+    }
 
     // The server round-trip below can take long enough for the user to
     // start typing before it resolves; applying it unconditionally would
@@ -351,15 +377,97 @@ export function SwaggerWorkspace({
           ) : null}
         </div>
 
+        {parseResult.ok ? (
+          <div
+            className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4"
+            aria-label={t("workspace.endpointStats")}
+          >
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
+              <p className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.totalEndpoints")}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                {endpointStats.endpointCount}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
+              <p className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.methods")}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                {endpointStats.methods.length}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
+              <p className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.withRequestBodies")}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                {endpointStats.requestBodyCount}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
+              <p className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.deprecated")}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                {endpointStats.deprecatedCount}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         {endpoints.length > 0 ? (
-          <input
-            className="mt-5 w-full rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-4 py-3 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
-            type="search"
-            aria-label={t("workspace.filterEndpoints")}
-            placeholder={t("workspace.filterEndpoints")}
-            value={endpointFilter}
-            onChange={(event) => setEndpointFilter(event.target.value)}
-          />
+          <div className="mt-5 grid gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                className="min-w-0 flex-1 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-4 py-3 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                type="search"
+                aria-label={t("workspace.filterEndpoints")}
+                placeholder={t("workspace.filterEndpoints")}
+                value={endpointFilter}
+                onChange={(event) => setEndpointFilter(event.target.value)}
+              />
+              {endpointFilter ? (
+                <button
+                  className="h-11 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                  type="button"
+                  onClick={() => setEndpointFilter("")}
+                >
+                  {t("workspace.clearEndpointFilter")}
+                </button>
+              ) : null}
+            </div>
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-label={t("workspace.methodFilterLabel")}
+            >
+              {["all", ...endpointStats.methods].map((method) => {
+                const active = selectedMethod === method;
+                const label =
+                  method === "all"
+                    ? t("workspace.allMethods")
+                    : `${method} (${endpointStats.methodCounts[method]})`;
+
+                return (
+                  <button
+                    aria-pressed={active}
+                    className={`endpoint-method-tab h-10 rounded-2xl px-4 text-sm font-extrabold transition ${
+                      active
+                        ? "bg-[color:var(--color-brand-navy)] text-white"
+                        : "border border-[color:var(--color-brand-border)] bg-white text-[color:var(--color-brand-purple)] hover:bg-[color:var(--color-brand-soft)]"
+                    }`}
+                    key={method}
+                    type="button"
+                    onClick={() => setSelectedMethod(method)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ) : null}
 
         <div className="mt-6 flex flex-col gap-4">
@@ -367,12 +475,12 @@ export function SwaggerWorkspace({
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.addValidSchema")}
             </div>
-          ) : filteredEndpoints.length === 0 ? (
+          ) : methodFilteredEndpoints.length === 0 ? (
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.noEndpointsMatch")}
             </div>
           ) : (
-            filteredEndpoints.map((endpoint) => (
+            methodFilteredEndpoints.map((endpoint) => (
               <EndpointCard
                 canSaveHistory={isAuthenticated}
                 key={`${endpoint.method}-${endpoint.path}`}

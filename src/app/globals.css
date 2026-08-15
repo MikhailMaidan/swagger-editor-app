@@ -42,11 +42,6 @@ textarea {
   letter-spacing: 0;
 }
 
-h1,
-h2 {
-  letter-spacing: -0.02em;
-}
-
 button:not(:disabled) {
   cursor: pointer;
 }
@@ -64,6 +59,11 @@ button:focus-visible {
 input:focus-visible,
 textarea:focus-visible {
   box-shadow: 0 0 0 3px rgba(90, 45, 255, 0.24);
+}
+
+.endpoint-method-tab {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .swagger-workspace {

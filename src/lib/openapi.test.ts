@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_OPENAPI_SCHEMA,
+  createEndpointStats,
   createCurlPreview,
   detectSchemaFormat,
   extractEndpoints,
@@ -106,9 +107,11 @@ describe("openapi helpers", () => {
     expect(result.value.serverUrl).toBe("https://jsonplaceholder.typicode.com");
     expect(result.value.endpoints).toHaveLength(2);
     expect(result.value.endpoints[0]).toMatchObject({
+      deprecated: false,
       method: "GET",
       path: "/users/{id}",
       serverUrl: "https://jsonplaceholder.typicode.com",
+      tags: [],
     });
     expect(
       result.value.endpoints[0].responses.map((response) => response.status),
@@ -137,6 +140,69 @@ describe("openapi helpers", () => {
         { location: "cookie", name: "sessionId" },
       ]),
     );
+  });
+
+  it("extracts endpoint tags and deprecated flags", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/reports": {
+          get: {
+            deprecated: true,
+            responses: {
+              "200": { description: "OK" },
+            },
+            summary: "List reports",
+            tags: ["reports", "admin"],
+          },
+        },
+      },
+    });
+
+    expect(endpoints[0]).toMatchObject({
+      deprecated: true,
+      method: "GET",
+      path: "/reports",
+      tags: ["reports", "admin"],
+    });
+  });
+
+  it("creates endpoint statistics for viewer filters and summary cards", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/reports": {
+          get: {
+            deprecated: true,
+            responses: { "200": { description: "OK" } },
+          },
+          post: {
+            requestBody: {
+              content: {
+                "application/json": {
+                  schema: { type: "object" },
+                },
+              },
+            },
+            responses: { "201": { description: "Created" } },
+          },
+        },
+        "/users": {
+          get: {
+            responses: { "200": { description: "OK" } },
+          },
+        },
+      },
+    });
+
+    expect(createEndpointStats(endpoints)).toEqual({
+      deprecatedCount: 1,
+      endpointCount: 3,
+      methodCounts: {
+        GET: 2,
+        POST: 1,
+      },
+      methods: ["GET", "POST"],
+      requestBodyCount: 1,
+    });
   });
 
   it("creates cURL previews with optional request bodies", () => {

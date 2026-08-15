@@ -31,6 +31,7 @@ export type ResponseSummary = {
 };
 
 export type EndpointSummary = {
+  deprecated: boolean;
   method: string;
   path: string;
   serverUrl: string;
@@ -39,6 +40,15 @@ export type EndpointSummary = {
   parameters: EndpointParameter[];
   requestBodies: RequestBodySummary[];
   responses: ResponseSummary[];
+  tags: string[];
+};
+
+export type EndpointStats = {
+  deprecatedCount: number;
+  endpointCount: number;
+  methodCounts: Record<string, number>;
+  methods: string[];
+  requestBodyCount: number;
 };
 
 export type ParsedOpenApiSchema = {
@@ -160,6 +170,12 @@ function isParameterLocation(
 
 function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
+}
+
+function readStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 export const DEFAULT_SERVER_URL = "https://api.example.com";
@@ -399,6 +415,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
         const responses = normalizeResponses(operation.responses);
 
         endpoints.push({
+          deprecated: operation.deprecated === true,
           description: readString(operation.description),
           method: method.toUpperCase(),
           parameters: mergeParameters(
@@ -410,6 +427,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           responses,
           serverUrl,
           summary: readString(operation.summary, "Untitled endpoint"),
+          tags: readStringArray(operation.tags),
         });
 
         return endpoints;
@@ -417,6 +435,26 @@ export function extractEndpoints(schema: Record<string, unknown>) {
       [],
     );
   });
+}
+
+export function createEndpointStats(endpoints: EndpointSummary[]): EndpointStats {
+  const methodCounts = endpoints.reduce<Record<string, number>>(
+    (counts, endpoint) => {
+      counts[endpoint.method] = (counts[endpoint.method] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
+
+  return {
+    deprecatedCount: endpoints.filter((endpoint) => endpoint.deprecated).length,
+    endpointCount: endpoints.length,
+    methodCounts,
+    methods: Object.keys(methodCounts).sort(),
+    requestBodyCount: endpoints.filter(
+      (endpoint) => endpoint.requestBodies.length > 0,
+    ).length,
+  };
 }
 
 export function validateOpenApiSchema(value: unknown) {

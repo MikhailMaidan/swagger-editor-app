@@ -3,6 +3,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -56,6 +57,12 @@ describe("SwaggerWorkspace", () => {
       screen.getByRole("heading", { name: "RSSwag Demo API" }),
     ).toBeVisible();
     expect(document.getElementById("api-viewer")).toBeVisible();
+    const stats = screen.getByLabelText("Endpoint statistics");
+
+    expect(stats).toHaveTextContent("Endpoints2");
+    expect(stats).toHaveTextContent("Methods2");
+    expect(stats).toHaveTextContent("With bodies1");
+    expect(stats).toHaveTextContent("Deprecated0");
     expect(screen.getAllByText("/users/{id}")).toHaveLength(2);
     expect(screen.getAllByText("Path parameters")).toHaveLength(2);
     expect(screen.getAllByText("id")).toHaveLength(2);
@@ -75,12 +82,15 @@ describe("SwaggerWorkspace", () => {
     );
   });
 
-  it("filters the endpoint list by method, path, or summary", () => {
+  it("filters the endpoint list by method, path, summary, and method tab", () => {
     render(<SwaggerWorkspace />);
 
     const filterInput = screen.getByLabelText(
       "Filter endpoints by method, path, or summary",
     );
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
 
     fireEvent.change(filterInput, { target: { value: "update" } });
 
@@ -94,6 +104,16 @@ describe("SwaggerWorkspace", () => {
       screen.queryByText("No endpoints match your search."),
     ).not.toBeInTheDocument();
 
+    fireEvent.click(within(methodFilters).getByRole("button", { name: "GET (1)" }));
+
+    expect(
+      screen.getByText("No endpoints match your search."),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(methodFilters).getByRole("button", { name: "All methods" }),
+    );
+
     fireEvent.change(filterInput, { target: { value: "does-not-exist" } });
 
     expect(
@@ -103,7 +123,7 @@ describe("SwaggerWorkspace", () => {
       screen.queryByLabelText("cURL POST /users/{id}"),
     ).not.toBeInTheDocument();
 
-    fireEvent.change(filterInput, { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Clear" }));
 
     expect(
       screen.getByLabelText("cURL GET /users/{id}"),
@@ -111,6 +131,39 @@ describe("SwaggerWorkspace", () => {
     expect(
       screen.getByLabelText("cURL POST /users/{id}"),
     ).toBeInTheDocument();
+  });
+
+  it("shows endpoint tags, deprecated badges, and stats from schema metadata", async () => {
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Reports API
+  version: 1.0.0
+paths:
+  /reports:
+    get:
+      summary: List reports
+      deprecated: true
+      tags:
+        - reports
+        - admin
+      responses:
+        '200':
+          description: OK`,
+      },
+    });
+
+    expect(await screen.findByText("reports")).toBeVisible();
+    expect(screen.getByText("admin")).toBeVisible();
+    expect(screen.getAllByText("Deprecated")).toHaveLength(2);
+
+    const stats = screen.getByLabelText("Endpoint statistics");
+
+    expect(stats).toHaveTextContent("Endpoints1");
+    expect(stats).toHaveTextContent("Deprecated1");
   });
 
   it("shows validation errors and disables conversion for invalid schemas", async () => {
@@ -215,8 +268,8 @@ paths:
 
   it("downloads the current schema with a filename derived from its title", async () => {
     const user = userEvent.setup();
-    const createObjectURL = vi.fn((_blob: Blob) => "blob:mock-url");
-    const revokeObjectURL = vi.fn((_url: string) => {});
+    const createObjectURL = vi.fn(() => "blob:mock-url");
+    const revokeObjectURL = vi.fn();
     const originalCreateObjectURL = URL.createObjectURL;
     const originalRevokeObjectURL = URL.revokeObjectURL;
     URL.createObjectURL = createObjectURL;
