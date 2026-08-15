@@ -131,6 +131,7 @@ export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
     id: createId(),
     requestSize: record.requestSize || 0,
     responseSize: record.responseSize || 0,
+    status: Number.isFinite(record.status) ? record.status : 0,
     url: record.url || record.path,
   };
   const nextHistory = mergeRequestHistory([newRecord, ...readRequestHistory()]);

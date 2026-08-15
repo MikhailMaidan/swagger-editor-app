@@ -7,7 +7,9 @@ import {
   CurlParameter,
   EndpointParameter,
   EndpointSummary,
+  ResponseSummary,
   SchemaDetails as SchemaDetailsSummary,
+  selectDefaultResponse,
 } from "@/lib/openapi";
 import {
   saveRequestHistoryRecord,
@@ -195,11 +197,10 @@ function groupParameters(parameters: EndpointParameter[]) {
   );
 }
 
-function getMockResponse(endpoint: EndpointSummary, fallbackBody: string) {
-  const response =
-    endpoint.responses.find((item) => item.status === "200") ||
-    endpoint.responses[0];
-
+function getMockResponse(
+  response: ResponseSummary | undefined,
+  fallbackBody: string,
+) {
   return {
     body: response?.schema?.example || fallbackBody,
     status: response?.status || "200",
@@ -267,6 +268,14 @@ function EndpointCardComponent({
     () => groupParameters(endpoint.parameters),
     [endpoint.parameters],
   );
+  const [selectedResponseStatus, setSelectedResponseStatus] = useState(
+    () => selectDefaultResponse(endpoint.responses)?.status || "",
+  );
+  const activeResponse =
+    endpoint.responses.find(
+      (response) => response.status === selectedResponseStatus,
+    ) || selectDefaultResponse(endpoint.responses);
+  const activeResponseStatus = activeResponse?.status || "";
   const [mockResult, setMockResult] = useState<{
     body: string;
     durationMs: number;
@@ -280,6 +289,7 @@ function EndpointCardComponent({
     status: string;
     url: string;
   } | null>(null);
+  const previousResponseStatusRef = useRef(activeResponseStatus);
   const [copiedCurl, setCopiedCurl] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
@@ -298,6 +308,15 @@ function EndpointCardComponent({
   const [requestBodyValue, setRequestBodyValue] = useState(initialRequestBody);
   const hasEditedRequestBodyRef = useRef(false);
   const previousRequestContentTypeRef = useRef(activeRequestContentType);
+
+  useEffect(() => {
+    if (previousResponseStatusRef.current === activeResponseStatus) {
+      return;
+    }
+
+    previousResponseStatusRef.current = activeResponseStatus;
+    setMockResult(null);
+  }, [activeResponseStatus]);
 
   // EndpointCard is keyed by method+path, so editing an endpoint's example
   // body in the schema while keeping its method/path unchanged re-renders
@@ -401,6 +420,11 @@ function EndpointCardComponent({
     setRequestBodyValue(requestBody?.schema.example || "");
   }
 
+  function handleResponseStatusChange(status: string) {
+    setSelectedResponseStatus(status);
+    setMockResult(null);
+  }
+
   async function handleTryItOut() {
     if (isExecuting) {
       return;
@@ -408,7 +432,7 @@ function EndpointCardComponent({
 
     setIsExecuting(true);
     const response = getMockResponse(
-      endpoint,
+      activeResponse,
       t("workspace.noResponseExample", {
         method: endpoint.method,
         path: endpoint.path,
@@ -698,6 +722,26 @@ function EndpointCardComponent({
               />
             </label>
           </div>
+        ) : null}
+
+        {endpoint.responses.length > 1 ? (
+          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+            {t("workspace.responseStatus")}
+            <select
+              aria-label={t("workspace.responseStatus")}
+              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+              value={activeResponseStatus}
+              onChange={(event) =>
+                handleResponseStatusChange(event.target.value)
+              }
+            >
+              {endpoint.responses.map((response) => (
+                <option key={response.status} value={response.status}>
+                  {response.status} - {response.description}
+                </option>
+              ))}
+            </select>
+          </label>
         ) : null}
       </div>
 

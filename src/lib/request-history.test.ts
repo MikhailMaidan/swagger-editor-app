@@ -44,6 +44,19 @@ describe("request history storage", () => {
     expect(readRequestHistory()).toEqual([]);
   });
 
+  it("normalizes nonnumeric statuses before saving history", () => {
+    const record = saveRequestHistoryRecord({
+      durationMs: 8,
+      method: "GET",
+      path: "/default-response",
+      status: Number.NaN,
+      summary: "Default response",
+    });
+
+    expect(record?.status).toBe(0);
+    expect(readRequestHistory()[0]?.status).toBe(0);
+  });
+
   it("parses and merges server history records safely", () => {
     const oldRecord = {
       createdAt: "2026-07-06T08:00:00.000Z",

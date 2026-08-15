@@ -70,8 +70,12 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByText("search")).toBeVisible();
     expect(screen.getByText("X-Trace-Id")).toBeVisible();
     expect(screen.getByText("sessionId")).toBeVisible();
-    expect(screen.getByText("200 - Successful response")).toBeVisible();
-    expect(screen.getByText("404 - User not found")).toBeVisible();
+    expect(
+      screen.getByText("200 - Successful response", { selector: "p" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("404 - User not found", { selector: "p" }),
+    ).toBeVisible();
     expect(screen.getAllByText("Content: application/json")).toHaveLength(2);
     expect(screen.getAllByText("Properties: id, name")).toHaveLength(2);
     expect(screen.getByText("Properties: name")).toBeVisible();
@@ -437,6 +441,59 @@ paths:
     } finally {
       fetchMock.mockRestore();
     }
+  });
+
+  it("previews selected response statuses and prefers successful responses", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Response Preview API
+  version: 1.0.0
+paths:
+  /items:
+    post:
+      responses:
+        '400':
+          description: Invalid item
+          content:
+            application/json:
+              example:
+                error: Invalid item
+        '201':
+          description: Created
+          content:
+            application/json:
+              example:
+                id: 42`,
+      },
+    });
+
+    await screen.findByLabelText("cURL POST /items");
+    const responseStatus = screen.getByLabelText("Mock response status");
+
+    expect(responseStatus).toHaveValue("201");
+
+    await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+    expect(await screen.findByLabelText("Response body")).toHaveTextContent(
+      '"id": 42',
+    );
+
+    await user.selectOptions(responseStatus, "400");
+
+    expect(screen.queryByLabelText("Response body")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+    expect(await screen.findByLabelText("Response body")).toHaveTextContent(
+      '"error": "Invalid item"',
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("400");
   });
 
   it("shows validation errors and disables conversion for invalid schemas", async () => {

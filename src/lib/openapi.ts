@@ -447,6 +447,14 @@ function normalizeResponses(value: unknown): ResponseSummary[] {
   );
 }
 
+export function selectDefaultResponse(responses: ResponseSummary[]) {
+  return (
+    responses.find((response) => response.status === "200") ||
+    responses.find((response) => /^2(?:\d{2}|xx)$/i.test(response.status)) ||
+    responses[0]
+  );
+}
+
 // Backslash, double quote, `$`, and backtick all have special meaning inside
 // a double-quoted shell string; left raw, a header value containing any of
 // them (e.g. `say "hi"`) produces a cURL command with an unterminated quote

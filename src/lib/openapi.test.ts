@@ -7,6 +7,7 @@ import {
   extractEndpoints,
   formatOpenApiSchema,
   parseOpenApiSchema,
+  selectDefaultResponse,
   validateOpenApiSchema,
 } from "./openapi";
 
@@ -421,6 +422,32 @@ describe("openapi helpers", () => {
       requestBodyCount: 1,
       securedCount: 0,
     });
+  });
+
+  it("selects an exact 200 response before other successful responses", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/created": {
+          post: {
+            responses: {
+              "400": { description: "Bad request" },
+              "201": { description: "Created" },
+            },
+          },
+        },
+        "/ok": {
+          get: {
+            responses: {
+              "201": { description: "Created" },
+              "200": { description: "OK" },
+            },
+          },
+        },
+      },
+    });
+
+    expect(selectDefaultResponse(endpoints[0].responses)?.status).toBe("201");
+    expect(selectDefaultResponse(endpoints[1].responses)?.status).toBe("200");
   });
 
   it("creates cURL previews with optional request bodies", () => {
