@@ -454,6 +454,19 @@ paths:
         screen.getByRole("button", { name: "Try It Out" }),
       ).toBeDisabled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      await user.click(screen.getByRole("button", { name: "Reset values" }));
+
+      expect(contentTypeSelect).toHaveValue("application/json");
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{\n  "title": "Guide"\n}',
+      );
+      expect(
+        screen.queryByText("Request body is required."),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Try It Out" }),
+      ).toBeEnabled();
     } finally {
       fetchMock.mockRestore();
     }
@@ -510,6 +523,11 @@ paths:
       '"error": "Invalid item"',
     );
     expect(screen.getByRole("status")).toHaveTextContent("400");
+
+    await user.click(screen.getByRole("button", { name: "Reset values" }));
+
+    expect(responseStatus).toHaveValue("201");
+    expect(screen.queryByLabelText("Response body")).not.toBeInTheDocument();
   });
 
   it("shows validation errors and disables conversion for invalid schemas", async () => {
@@ -850,6 +868,55 @@ paths:
         '{\n  "name": "Jordan Lee"\n}',
       ),
     );
+  });
+
+  it("syncs untouched parameter examples and resets edits to the latest value", async () => {
+    const user = userEvent.setup();
+    const schemaWithExample = (example: number) => `openapi: 3.0.0
+info:
+  title: Parameter Sync API
+  version: 1.0.0
+paths:
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+          example: ${example}
+    get:
+      responses:
+        '200':
+          description: OK`;
+    render(<SwaggerWorkspace />);
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+
+    fireEvent.change(editor, { target: { value: schemaWithExample(41) } });
+
+    await waitFor(() => {
+      const inputs = screen.getAllByLabelText("Path parameter id");
+
+      expect(inputs).toHaveLength(1);
+      expect(inputs[0]).toHaveValue("41");
+    });
+    const parameterInput = screen.getByLabelText("Path parameter id");
+
+    fireEvent.change(editor, { target: { value: schemaWithExample(42) } });
+
+    await waitFor(() => expect(parameterInput).toHaveValue("42"));
+
+    await user.clear(parameterInput);
+    await user.type(parameterInput, "custom");
+    fireEvent.change(editor, { target: { value: schemaWithExample(43) } });
+
+    await waitFor(() =>
+      expect(parameterInput).toHaveAttribute("placeholder", "Example: 43"),
+    );
+    expect(parameterInput).toHaveValue("custom");
+
+    await user.click(screen.getByRole("button", { name: "Reset values" }));
+
+    expect(parameterInput).toHaveValue("43");
   });
 
   it("keeps a user's own request body edit instead of overwriting it after a live schema edit", async () => {

@@ -351,16 +351,25 @@ function EndpointCardComponent({
     setParameterValues((currentValues) => {
       let changed = false;
       const nextValues = { ...currentValues };
+      const activeParameterKeys = new Set<string>();
 
       endpoint.parameters.forEach((parameter) => {
         const key = getParameterKey(parameter);
+        activeParameterKeys.add(key);
 
         if (
-          parameter.example &&
           !editedParameterKeysRef.current.has(key) &&
-          !nextValues[key]
+          nextValues[key] !== parameter.example
         ) {
           nextValues[key] = parameter.example;
+          changed = true;
+        }
+      });
+
+      Object.keys(nextValues).forEach((key) => {
+        if (!activeParameterKeys.has(key)) {
+          delete nextValues[key];
+          editedParameterKeysRef.current.delete(key);
           changed = true;
         }
       });
@@ -426,6 +435,24 @@ function EndpointCardComponent({
   function handleResponseStatusChange(status: string) {
     setSelectedResponseStatus(status);
     setMockResult(null);
+  }
+
+  function handleResetTryItOut() {
+    const defaultRequestBody = endpoint.requestBodies[0];
+    const defaultResponseStatus =
+      selectDefaultResponse(endpoint.responses)?.status || "";
+
+    editedParameterKeysRef.current.clear();
+    hasEditedRequestBodyRef.current = false;
+    previousRequestContentTypeRef.current =
+      defaultRequestBody?.contentType || "";
+    previousResponseStatusRef.current = defaultResponseStatus;
+    setParameterValues(createInitialParameterValues(endpoint));
+    setSelectedRequestContentType(defaultRequestBody?.contentType || "");
+    setRequestBodyValue(defaultRequestBody?.schema.example || "");
+    setSelectedResponseStatus(defaultResponseStatus);
+    setMockResult(null);
+    setCopiedCurl("");
   }
 
   async function handleTryItOut() {
@@ -648,9 +675,23 @@ function EndpointCardComponent({
       </div>
 
       <div className="mt-4 rounded-2xl bg-[#fbfaff] p-4">
-        <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-          {t("workspace.tryItOut")}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+            {t("workspace.tryItOut")}
+          </p>
+          {endpoint.parameters.length > 0 ||
+          endpoint.requestBodies.length > 0 ||
+          endpoint.responses.length > 1 ? (
+            <button
+              className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExecuting}
+              type="button"
+              onClick={handleResetTryItOut}
+            >
+              {t("workspace.resetTryItOut")}
+            </button>
+          ) : null}
+        </div>
         {endpoint.parameters.length > 0 ? (
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {endpoint.parameters.map((parameter) => {
