@@ -306,6 +306,9 @@ function EndpointCardComponent({
   const activeRequestContentType = activeRequestBody?.contentType || "";
   const initialRequestBody = activeRequestBody?.schema.example || "";
   const [requestBodyValue, setRequestBodyValue] = useState(initialRequestBody);
+  const isRequestBodyRequired = activeRequestBody?.required === true;
+  const isRequiredRequestBodyMissing =
+    isRequestBodyRequired && !requestBodyValue.trim();
   const hasEditedRequestBodyRef = useRef(false);
   const previousRequestContentTypeRef = useRef(activeRequestContentType);
 
@@ -426,7 +429,7 @@ function EndpointCardComponent({
   }
 
   async function handleTryItOut() {
-    if (isExecuting) {
+    if (isExecuting || isRequiredRequestBodyMissing) {
       return;
     }
 
@@ -587,9 +590,21 @@ function EndpointCardComponent({
 
       <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
         <div>
-          <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-            {t("workspace.requestBody")}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+              {t("workspace.requestBody")}
+            </p>
+            {endpoint.requestBodies[0]?.required ? (
+              <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                {t("workspace.required")}
+              </span>
+            ) : null}
+          </div>
+          {endpoint.requestBodies[0]?.description ? (
+            <p className="mt-1 font-medium leading-5 text-[color:var(--color-brand-muted)]">
+              {endpoint.requestBodies[0].description}
+            </p>
+          ) : null}
           {endpoint.requestBodies.length > 0 ? (
             <div className="mt-2 space-y-3">
               {endpoint.requestBodies.map((requestBody) => (
@@ -710,16 +725,33 @@ function EndpointCardComponent({
               </label>
             ) : null}
             <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-              {t("workspace.requestBody")}
+              <span className="flex flex-wrap items-center gap-2">
+                {t("workspace.requestBody")}
+                {isRequestBodyRequired ? (
+                  <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                    {t("workspace.required")}
+                  </span>
+                ) : null}
+              </span>
               <textarea
+                aria-invalid={isRequiredRequestBodyMissing || undefined}
                 aria-label={t("workspace.requestBodyInputLabel")}
                 className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                required={isRequestBodyRequired}
                 value={requestBodyValue}
                 onChange={(event) => {
                   hasEditedRequestBodyRef.current = true;
                   setRequestBodyValue(event.target.value);
                 }}
               />
+              {isRequiredRequestBodyMissing ? (
+                <span
+                  className="text-xs font-semibold text-red-700"
+                  role="alert"
+                >
+                  {t("workspace.requestBodyRequired")}
+                </span>
+              ) : null}
             </label>
           </div>
         ) : null}
@@ -760,8 +792,8 @@ function EndpointCardComponent({
             </button>
             <button
               aria-busy={isExecuting}
-              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-wait disabled:opacity-70"
-              disabled={isExecuting}
+              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isExecuting || isRequiredRequestBodyMissing}
               type="button"
               onClick={handleTryItOut}
             >

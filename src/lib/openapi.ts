@@ -24,6 +24,8 @@ export type SchemaDetails = {
 
 export type RequestBodySummary = {
   contentType: string;
+  description: string;
+  required: boolean;
   schema: SchemaDetails;
 };
 
@@ -398,6 +400,8 @@ function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
 
       requestBodies.push({
         contentType,
+        description: readString(value.description),
+        required: value.required === true,
         schema: readSchemaDetails(
           contentConfig.schema,
           readMediaTypeExample(contentConfig),

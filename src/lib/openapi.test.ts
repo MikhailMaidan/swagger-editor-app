@@ -207,6 +207,8 @@ describe("openapi helpers", () => {
         "/users": {
           post: {
             requestBody: {
+              description: "User payload",
+              required: true,
               content: {
                 "application/json": {
                   examples: {
@@ -249,8 +251,14 @@ describe("openapi helpers", () => {
       example: '{\n  "name": "Ada"\n}',
       exampleName: "createUser",
     });
+    expect(endpoints[0].requestBodies[0]).toMatchObject({
+      description: "User payload",
+      required: true,
+    });
     expect(endpoints[0].requestBodies[1]).toMatchObject({
       contentType: "application/xml",
+      description: "User payload",
+      required: true,
       schema: {
         example: "<user><name>Ada</name></user>",
       },

@@ -394,6 +394,8 @@ paths:
   /documents:
     post:
       requestBody:
+        description: Document payload
+        required: true
         content:
           application/json:
             schema:
@@ -415,6 +417,7 @@ paths:
       );
 
       expect(contentTypeSelect).toHaveValue("application/json");
+      expect(screen.getByText("Document payload")).toBeVisible();
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
         '{\n  "title": "Guide"\n}',
       );
@@ -438,6 +441,19 @@ paths:
         contentType: "application/xml",
         requestBody: "<document><title>Guide</title></document>",
       });
+
+      await user.clear(screen.getByLabelText("Editable request body"));
+
+      expect(screen.getByLabelText("Editable request body")).toBeRequired();
+      expect(screen.getByLabelText("Editable request body")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+      expect(screen.getByText("Request body is required.")).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Try It Out" }),
+      ).toBeDisabled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       fetchMock.mockRestore();
     }
