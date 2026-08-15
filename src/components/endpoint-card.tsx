@@ -619,6 +619,11 @@ function EndpointCardComponent({
                       handleParameterValueChange(parameter, event.target.value)
                     }
                   />
+                  {parameter.description ? (
+                    <span className="text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
+                      {parameter.description}
+                    </span>
+                  ) : null}
                 </label>
               );
             })}

@@ -89,7 +89,11 @@ describe("openapi helpers", () => {
     });
 
     expect(endpoints[0].parameters).toEqual([
-      expect.objectContaining({ location: "path", name: "id" }),
+      expect.objectContaining({
+        description: "Overridden: item id must be numeric",
+        location: "path",
+        name: "id",
+      }),
     ]);
   });
 
@@ -100,6 +104,7 @@ describe("openapi helpers", () => {
           get: {
             parameters: [
               {
+                description: "Filter by item status",
                 example: "active",
                 in: "query",
                 name: "status",
@@ -136,6 +141,7 @@ describe("openapi helpers", () => {
           required: true,
         }),
         expect.objectContaining({
+          description: "Filter by item status",
           example: "active",
           location: "query",
           name: "status",

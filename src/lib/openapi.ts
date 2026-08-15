@@ -4,6 +4,7 @@ import { buildCookieHeaderValue, buildRequestUrl } from "./request-url";
 export type SchemaFormat = "json" | "yaml";
 
 export type EndpointParameter = {
+  description: string;
   name: string;
   location: "path" | "query" | "header" | "cookie";
   example: string;
@@ -331,6 +332,7 @@ function normalizeParameters(value: unknown): EndpointParameter[] {
     const schema = isRecord(parameter.schema) ? parameter.schema : {};
 
     parameters.push({
+      description: readString(parameter.description),
       example: readFirstFormattedExample(
         parameter.example,
         schema.example,

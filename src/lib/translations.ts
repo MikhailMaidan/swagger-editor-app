@@ -155,7 +155,7 @@ export const translations = {
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
     "workspace.filterEndpoints":
-      "Filter endpoints by method, path, summary, operation ID, tag, or auth",
+      "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
     "workspace.import": "Import",
@@ -352,7 +352,7 @@ export const translations = {
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
     "workspace.filterEndpoints":
-      "Фильтр по методу, пути, описанию, ID операции, тегу или auth",
+      "Фильтр по методу, пути, описанию, ID операции, тегу, параметру или auth",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
     "workspace.import": "Импорт",

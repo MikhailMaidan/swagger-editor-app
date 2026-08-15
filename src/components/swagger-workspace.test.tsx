@@ -87,7 +87,7 @@ describe("SwaggerWorkspace", () => {
     render(<SwaggerWorkspace />);
 
     const filterInput = screen.getByLabelText(
-      "Filter endpoints by method, path, summary, operation ID, tag, or auth",
+      "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     );
     const methodFilters = screen.getByRole("group", {
       name: "Filter endpoints by HTTP method",
@@ -184,7 +184,7 @@ paths:
 
     fireEvent.change(
       screen.getByLabelText(
-        "Filter endpoints by method, path, summary, operation ID, tag, or auth",
+        "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
       ),
       { target: { value: "listReports" } },
     );
@@ -209,6 +209,7 @@ paths:
       parameters:
         - name: id
           in: path
+          description: Unique user identifier
           schema:
             type: integer
             example: 42
@@ -239,6 +240,7 @@ paths:
     expect(screen.getAllByText("Required")).toHaveLength(2);
     expect(screen.getByText("id (Required)")).toBeVisible();
     expect(screen.getByText("X-Trace-Id (Required)")).toBeVisible();
+    expect(screen.getByText("Unique user identifier")).toBeVisible();
     const curlPreview = screen.getByLabelText("cURL GET /users/{id}");
 
     expect(curlPreview).toHaveTextContent("curl -X GET");
@@ -246,6 +248,15 @@ paths:
       '"https://api.example.com/users/42?search=Alex"',
     );
     expect(curlPreview.textContent).toContain('-H "X-Trace-Id: trace-1"');
+
+    fireEvent.change(
+      screen.getByLabelText(
+        "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
+      ),
+      { target: { value: "unique user" } },
+    );
+
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
   });
 
   it("uses named media type examples in the viewer and Try It Out", async () => {
