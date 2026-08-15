@@ -215,6 +215,10 @@ describe("openapi helpers", () => {
                   },
                   schema: { type: "object" },
                 },
+                "application/xml": {
+                  example: "<user><name>Ada</name></user>",
+                  schema: { type: "string" },
+                },
               },
             },
             responses: {
@@ -243,6 +247,12 @@ describe("openapi helpers", () => {
     expect(endpoints[0].requestBodies[0].schema).toMatchObject({
       example: '{\n  "name": "Ada"\n}',
       exampleName: "createUser",
+    });
+    expect(endpoints[0].requestBodies[1]).toMatchObject({
+      contentType: "application/xml",
+      schema: {
+        example: "<user><name>Ada</name></user>",
+      },
     });
     expect(endpoints[0].responses[0].schema).toMatchObject({
       example: '{\n  "id": 7,\n  "name": "Ada"\n}',

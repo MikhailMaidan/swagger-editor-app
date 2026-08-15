@@ -371,6 +371,74 @@ paths:
     );
   });
 
+  it("switches request body content types in cURL and Try It Out", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("Use the local fallback"));
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Documents API
+  version: 1.0.0
+paths:
+  /documents:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              title: Guide
+          application/xml:
+            schema:
+              type: string
+            example: <document><title>Guide</title></document>
+      responses:
+        '201':
+          description: Created`,
+        },
+      });
+
+      const contentTypeSelect = await screen.findByLabelText(
+        "Request content type",
+      );
+
+      expect(contentTypeSelect).toHaveValue("application/json");
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{\n  "title": "Guide"\n}',
+      );
+
+      await user.selectOptions(contentTypeSelect, "application/xml");
+
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        "<document><title>Guide</title></document>",
+      );
+      expect(screen.getByLabelText("cURL POST /documents")).toHaveTextContent(
+        "Content-Type: application/xml",
+      );
+
+      await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const requestInit = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(requestInit.body));
+
+      expect(payload).toMatchObject({
+        contentType: "application/xml",
+        requestBody: "<document><title>Guide</title></document>",
+      });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("shows validation errors and disables conversion for invalid schemas", async () => {
     render(<SwaggerWorkspace />);
 

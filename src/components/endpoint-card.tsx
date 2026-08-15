@@ -157,8 +157,12 @@ function createInitialParameterValues(endpoint: EndpointSummary) {
   );
 }
 
-function getInitialRequestBody(endpoint: EndpointSummary) {
-  return endpoint.requestBodies[0]?.schema.example || "";
+function getRequestBody(endpoint: EndpointSummary, contentType: string) {
+  return (
+    endpoint.requestBodies.find(
+      (requestBody) => requestBody.contentType === contentType,
+    ) || endpoint.requestBodies[0]
+  );
 }
 
 function createRequestParameters(
@@ -282,9 +286,18 @@ function EndpointCardComponent({
     createInitialParameterValues(endpoint),
   );
   const editedParameterKeysRef = useRef(new Set<string>());
-  const initialRequestBody = getInitialRequestBody(endpoint);
+  const [selectedRequestContentType, setSelectedRequestContentType] = useState(
+    () => endpoint.requestBodies[0]?.contentType || "",
+  );
+  const activeRequestBody = getRequestBody(
+    endpoint,
+    selectedRequestContentType,
+  );
+  const activeRequestContentType = activeRequestBody?.contentType || "";
+  const initialRequestBody = activeRequestBody?.schema.example || "";
   const [requestBodyValue, setRequestBodyValue] = useState(initialRequestBody);
   const hasEditedRequestBodyRef = useRef(false);
+  const previousRequestContentTypeRef = useRef(activeRequestContentType);
 
   // EndpointCard is keyed by method+path, so editing an endpoint's example
   // body in the schema while keeping its method/path unchanged re-renders
@@ -296,12 +309,22 @@ function EndpointCardComponent({
   // so it doesn't wipe out in-progress edits when unrelated schema text
   // changes.
   useEffect(() => {
+    const contentTypeChanged =
+      previousRequestContentTypeRef.current !== activeRequestContentType;
+    previousRequestContentTypeRef.current = activeRequestContentType;
+
+    if (contentTypeChanged) {
+      hasEditedRequestBodyRef.current = false;
+      setRequestBodyValue(initialRequestBody);
+      return;
+    }
+
     if (hasEditedRequestBodyRef.current) {
       return;
     }
 
     setRequestBodyValue(initialRequestBody);
-  }, [initialRequestBody]);
+  }, [activeRequestContentType, initialRequestBody]);
   useEffect(() => {
     setParameterValues((currentValues) => {
       let changed = false;
@@ -336,9 +359,9 @@ function EndpointCardComponent({
         endpoint.serverUrl,
         requestParameters,
         requestBodyValue,
-        endpoint.requestBodies[0]?.contentType,
+        activeRequestContentType,
       ),
-    [endpoint, requestBodyValue, requestParameters],
+    [activeRequestContentType, endpoint, requestBodyValue, requestParameters],
   );
   const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
   const formattedResponseBody = useMemo(
@@ -368,6 +391,14 @@ function EndpointCardComponent({
       ...currentValues,
       [getParameterKey(parameter)]: value,
     }));
+  }
+
+  function handleRequestContentTypeChange(contentType: string) {
+    const requestBody = getRequestBody(endpoint, contentType);
+
+    hasEditedRequestBodyRef.current = false;
+    setSelectedRequestContentType(contentType);
+    setRequestBodyValue(requestBody?.schema.example || "");
   }
 
   async function handleTryItOut() {
@@ -407,7 +438,7 @@ function EndpointCardComponent({
     };
     const executionResult = await executeTryItOut(
       {
-        contentType: endpoint.requestBodies[0]?.contentType,
+        contentType: activeRequestContentType || undefined,
         method: endpoint.method,
         path: endpoint.path,
         requestBody: requestBodyValue,
@@ -631,18 +662,42 @@ function EndpointCardComponent({
         ) : null}
 
         {endpoint.requestBodies.length > 0 ? (
-          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-            {t("workspace.requestBody")}
-            <textarea
-              aria-label={t("workspace.requestBodyInputLabel")}
-              className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
-              value={requestBodyValue}
-              onChange={(event) => {
-                hasEditedRequestBodyRef.current = true;
-                setRequestBodyValue(event.target.value);
-              }}
-            />
-          </label>
+          <div className="mt-3 space-y-3">
+            {endpoint.requestBodies.length > 1 ? (
+              <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+                {t("workspace.requestContentType")}
+                <select
+                  aria-label={t("workspace.requestContentType")}
+                  className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 font-mono text-xs font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                  value={activeRequestContentType}
+                  onChange={(event) =>
+                    handleRequestContentTypeChange(event.target.value)
+                  }
+                >
+                  {endpoint.requestBodies.map((requestBody) => (
+                    <option
+                      key={requestBody.contentType}
+                      value={requestBody.contentType}
+                    >
+                      {requestBody.contentType}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+              {t("workspace.requestBody")}
+              <textarea
+                aria-label={t("workspace.requestBodyInputLabel")}
+                className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                value={requestBodyValue}
+                onChange={(event) => {
+                  hasEditedRequestBodyRef.current = true;
+                  setRequestBodyValue(event.target.value);
+                }}
+              />
+            </label>
+          </div>
         ) : null}
       </div>
 
