@@ -97,7 +97,13 @@ export function SwaggerWorkspace({
         (endpoint) =>
           endpoint.method.toLowerCase().includes(normalizedFilter) ||
           endpoint.path.toLowerCase().includes(normalizedFilter) ||
-          endpoint.summary.toLowerCase().includes(normalizedFilter),
+          endpoint.summary.toLowerCase().includes(normalizedFilter) ||
+          endpoint.tags.some((tag) =>
+            tag.toLowerCase().includes(normalizedFilter),
+          ) ||
+          endpoint.securityRequirements.some((requirement) =>
+            requirement.toLowerCase().includes(normalizedFilter),
+          ),
       )
     : endpoints;
   const methodFilteredEndpoints =
@@ -379,7 +385,7 @@ export function SwaggerWorkspace({
 
         {parseResult.ok ? (
           <div
-            className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4"
+            className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-5"
             aria-label={t("workspace.endpointStats")}
           >
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
@@ -412,6 +418,14 @@ export function SwaggerWorkspace({
               </p>
               <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
                 {endpointStats.deprecatedCount}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3">
+              <p className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.secured")}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+                {endpointStats.securedCount}
               </p>
             </div>
           </div>

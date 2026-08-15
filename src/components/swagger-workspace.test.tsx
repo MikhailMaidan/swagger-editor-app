@@ -63,6 +63,7 @@ describe("SwaggerWorkspace", () => {
     expect(stats).toHaveTextContent("Methods2");
     expect(stats).toHaveTextContent("With bodies1");
     expect(stats).toHaveTextContent("Deprecated0");
+    expect(stats).toHaveTextContent("Secured0");
     expect(screen.getAllByText("/users/{id}")).toHaveLength(2);
     expect(screen.getAllByText("Path parameters")).toHaveLength(2);
     expect(screen.getAllByText("id")).toHaveLength(2);
@@ -86,7 +87,7 @@ describe("SwaggerWorkspace", () => {
     render(<SwaggerWorkspace />);
 
     const filterInput = screen.getByLabelText(
-      "Filter endpoints by method, path, or summary",
+      "Filter endpoints by method, path, summary, tag, or auth",
     );
     const methodFilters = screen.getByRole("group", {
       name: "Filter endpoints by HTTP method",
@@ -104,7 +105,9 @@ describe("SwaggerWorkspace", () => {
       screen.queryByText("No endpoints match your search."),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(within(methodFilters).getByRole("button", { name: "GET (1)" }));
+    fireEvent.click(
+      within(methodFilters).getByRole("button", { name: "GET (1)" }),
+    );
 
     expect(
       screen.getByText("No endpoints match your search."),
@@ -133,7 +136,7 @@ describe("SwaggerWorkspace", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows endpoint tags, deprecated badges, and stats from schema metadata", async () => {
+  it("shows endpoint tags, security badges, deprecated badges, and metadata stats", async () => {
     render(<SwaggerWorkspace />);
 
     fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
@@ -142,6 +145,8 @@ describe("SwaggerWorkspace", () => {
 info:
   title: Reports API
   version: 1.0.0
+security:
+  - bearerAuth: []
 paths:
   /reports:
     get:
@@ -152,6 +157,13 @@ paths:
         - admin
       responses:
         '200':
+          description: OK
+  /status:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200':
           description: OK`,
       },
     });
@@ -159,11 +171,23 @@ paths:
     expect(await screen.findByText("reports")).toBeVisible();
     expect(screen.getByText("admin")).toBeVisible();
     expect(screen.getAllByText("Deprecated")).toHaveLength(2);
+    expect(screen.getByText("Auth: bearerAuth")).toBeVisible();
 
     const stats = screen.getByLabelText("Endpoint statistics");
 
-    expect(stats).toHaveTextContent("Endpoints1");
+    expect(stats).toHaveTextContent("Endpoints2");
     expect(stats).toHaveTextContent("Deprecated1");
+    expect(stats).toHaveTextContent("Secured1");
+
+    fireEvent.change(
+      screen.getByLabelText(
+        "Filter endpoints by method, path, summary, tag, or auth",
+      ),
+      { target: { value: "bearer" } },
+    );
+
+    expect(screen.getByLabelText("cURL GET /reports")).toBeInTheDocument();
+    expect(screen.queryByLabelText("cURL GET /status")).not.toBeInTheDocument();
   });
 
   it("shows validation errors and disables conversion for invalid schemas", async () => {

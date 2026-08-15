@@ -134,6 +134,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
     "workspace.allMethods": "All methods",
+    "workspace.authRequired": "Auth: {schemes}",
     "workspace.clearEndpointFilter": "Clear",
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
@@ -153,7 +154,8 @@ export const translations = {
     "workspace.errors.schemaObject": "Schema must be an object.",
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
-    "workspace.filterEndpoints": "Filter endpoints by method, path, or summary",
+    "workspace.filterEndpoints":
+      "Filter endpoints by method, path, summary, tag, or auth",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
     "workspace.import": "Import",
@@ -183,6 +185,7 @@ export const translations = {
     "workspace.saveSchema": "Save schema",
     "workspace.savedToHistory": "Saved to history",
     "workspace.schemaSaved": "Schema saved.",
+    "workspace.secured": "Secured",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
     "workspace.tryItOut": "Try It Out",
     "workspace.type": "Type:",
@@ -324,6 +327,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
     "workspace.allMethods": "Все методы",
+    "workspace.authRequired": "Auth: {schemes}",
     "workspace.clearEndpointFilter": "Очистить",
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
@@ -343,7 +347,8 @@ export const translations = {
     "workspace.errors.schemaObject": "Схема должна быть объектом.",
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
-    "workspace.filterEndpoints": "Фильтр по методу, пути или описанию",
+    "workspace.filterEndpoints":
+      "Фильтр по методу, пути, описанию, тегу или auth",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
     "workspace.import": "Импорт",
@@ -373,6 +378,7 @@ export const translations = {
     "workspace.saveSchema": "Сохранить схему",
     "workspace.savedToHistory": "Сохранено в истории",
     "workspace.schemaSaved": "Схема сохранена.",
+    "workspace.secured": "С защитой",
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
     "workspace.tryItOut": "Отправить запрос",

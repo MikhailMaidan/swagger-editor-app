@@ -34,6 +34,8 @@ export type EndpointSummary = {
   deprecated: boolean;
   method: string;
   path: string;
+  secured: boolean;
+  securityRequirements: string[];
   serverUrl: string;
   summary: string;
   description: string;
@@ -49,6 +51,7 @@ export type EndpointStats = {
   methodCounts: Record<string, number>;
   methods: string[];
   requestBodyCount: number;
+  securedCount: number;
 };
 
 export type ParsedOpenApiSchema = {
@@ -176,6 +179,29 @@ function readStringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : [];
+}
+
+function readSecurityRequirementNames(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const names = value.flatMap((requirement) =>
+    isRecord(requirement) ? Object.keys(requirement) : [],
+  );
+
+  return Array.from(new Set(names));
+}
+
+function readOperationSecurityRequirements(
+  schema: Record<string, unknown>,
+  operation: Record<string, unknown>,
+) {
+  if ("security" in operation) {
+    return readSecurityRequirementNames(operation.security);
+  }
+
+  return readSecurityRequirementNames(schema.security);
 }
 
 export const DEFAULT_SERVER_URL = "https://api.example.com";
@@ -413,6 +439,10 @@ export function extractEndpoints(schema: Record<string, unknown>) {
 
         const requestBodies = normalizeRequestBodies(operation.requestBody);
         const responses = normalizeResponses(operation.responses);
+        const securityRequirements = readOperationSecurityRequirements(
+          schema,
+          operation,
+        );
 
         endpoints.push({
           deprecated: operation.deprecated === true,
@@ -425,6 +455,8 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           path,
           requestBodies,
           responses,
+          secured: securityRequirements.length > 0,
+          securityRequirements,
           serverUrl,
           summary: readString(operation.summary, "Untitled endpoint"),
           tags: readStringArray(operation.tags),
@@ -454,6 +486,7 @@ export function createEndpointStats(endpoints: EndpointSummary[]): EndpointStats
     requestBodyCount: endpoints.filter(
       (endpoint) => endpoint.requestBodies.length > 0,
     ).length,
+    securedCount: endpoints.filter((endpoint) => endpoint.secured).length,
   };
 }
 

@@ -110,6 +110,8 @@ describe("openapi helpers", () => {
       deprecated: false,
       method: "GET",
       path: "/users/{id}",
+      secured: false,
+      securityRequirements: [],
       serverUrl: "https://jsonplaceholder.typicode.com",
       tags: [],
     });
@@ -166,6 +168,51 @@ describe("openapi helpers", () => {
     });
   });
 
+  it("extracts inherited and operation-level security requirements", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/admin": {
+          get: {
+            responses: { "200": { description: "OK" } },
+          },
+        },
+        "/login": {
+          post: {
+            responses: { "200": { description: "OK" } },
+            security: [],
+          },
+        },
+        "/reports": {
+          get: {
+            responses: { "200": { description: "OK" } },
+            security: [{ oauth2: ["reports:read"] }],
+          },
+        },
+      },
+      security: [{ apiKeyAuth: [] }],
+    });
+
+    expect(endpoints).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "/admin",
+          secured: true,
+          securityRequirements: ["apiKeyAuth"],
+        }),
+        expect.objectContaining({
+          path: "/login",
+          secured: false,
+          securityRequirements: [],
+        }),
+        expect.objectContaining({
+          path: "/reports",
+          secured: true,
+          securityRequirements: ["oauth2"],
+        }),
+      ]),
+    );
+  });
+
   it("creates endpoint statistics for viewer filters and summary cards", () => {
     const endpoints = extractEndpoints({
       paths: {
@@ -202,6 +249,7 @@ describe("openapi helpers", () => {
       },
       methods: ["GET", "POST"],
       requestBodyCount: 1,
+      securedCount: 0,
     });
   });
 

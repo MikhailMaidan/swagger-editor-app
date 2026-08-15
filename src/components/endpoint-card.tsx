@@ -436,7 +436,7 @@ function EndpointCardComponent({
           {endpoint.description}
         </p>
       ) : null}
-      {endpoint.tags.length > 0 || endpoint.deprecated ? (
+      {endpoint.tags.length > 0 || endpoint.deprecated || endpoint.secured ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {endpoint.tags.map((tag) => (
             <span
@@ -449,6 +449,13 @@ function EndpointCardComponent({
           {endpoint.deprecated ? (
             <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-extrabold uppercase text-amber-700">
               {t("workspace.deprecatedEndpoint")}
+            </span>
+          ) : null}
+          {endpoint.secured ? (
+            <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-extrabold uppercase text-sky-700">
+              {t("workspace.authRequired", {
+                schemes: endpoint.securityRequirements.join(", "),
+              })}
             </span>
           ) : null}
         </div>
