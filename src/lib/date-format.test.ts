@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { formatEuropeanDateTime } from "./date-format";
 
 describe("formatEuropeanDateTime", () => {
@@ -29,5 +29,19 @@ describe("formatEuropeanDateTime", () => {
 
   it("keeps an invalid date value readable", () => {
     expect(formatEuropeanDateTime("unknown date", "en")).toBe("unknown date");
+  });
+
+  it("reuses a cached formatter instead of constructing a new one on every call", () => {
+    const constructorSpy = vi.spyOn(Intl, "DateTimeFormat");
+
+    try {
+      formatEuropeanDateTime("2026-07-12T08:05:03.000Z", "en");
+      formatEuropeanDateTime("2026-07-13T09:06:04.000Z", "en");
+      formatEuropeanDateTime("2026-07-14T10:07:05.000Z", "ru");
+
+      expect(constructorSpy).not.toHaveBeenCalled();
+    } finally {
+      constructorSpy.mockRestore();
+    }
   });
 });

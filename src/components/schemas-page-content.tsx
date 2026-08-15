@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import {
@@ -19,6 +19,17 @@ export function SchemasPageContent({
 }) {
   const { language, t } = useI18n();
   const [schemas, setSchemas] = useState(initialSchemas);
+  // Encoding every schema's full text to get its byte size isn't free, and
+  // this list re-renders on every keystroke while renaming any one row -
+  // caching by id means an edit to one schema's title doesn't re-encode
+  // every other unrelated schema's text on each render.
+  const schemaByteSizes = useMemo(
+    () =>
+      new Map(
+        schemas.map((schema) => [schema.id, getByteSize(schema.schemaText)]),
+      ),
+    [schemas],
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
@@ -282,7 +293,7 @@ export function SchemasPageContent({
                         {t("schemas.schemaSize")}
                       </dt>
                       <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                        {getByteSize(schema.schemaText)} B
+                        {schemaByteSizes.get(schema.id) ?? 0} B
                       </dd>
                     </div>
                     <div>

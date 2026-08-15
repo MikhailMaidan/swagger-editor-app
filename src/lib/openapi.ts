@@ -31,7 +31,6 @@ export type ResponseSummary = {
 };
 
 export type EndpointSummary = {
-  curl: string;
   method: string;
   path: string;
   serverUrl: string;
@@ -39,9 +38,7 @@ export type EndpointSummary = {
   description: string;
   parameters: EndpointParameter[];
   requestBodies: RequestBodySummary[];
-  requestContentTypes: string[];
   responses: ResponseSummary[];
-  responseStatuses: string[];
 };
 
 export type ParsedOpenApiSchema = {
@@ -402,12 +399,6 @@ export function extractEndpoints(schema: Record<string, unknown>) {
         const responses = normalizeResponses(operation.responses);
 
         endpoints.push({
-          curl: createCurlPreview(
-            method.toUpperCase(),
-            path,
-            requestBodies.length > 0,
-            serverUrl,
-          ),
           description: readString(operation.description),
           method: method.toUpperCase(),
           parameters: mergeParameters(
@@ -416,11 +407,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           ),
           path,
           requestBodies,
-          requestContentTypes: requestBodies.map(
-            (requestBody) => requestBody.contentType,
-          ),
           responses,
-          responseStatuses: responses.map((response) => response.status),
           serverUrl,
           summary: readString(operation.summary, "Untitled endpoint"),
         });

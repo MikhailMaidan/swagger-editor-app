@@ -33,6 +33,25 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("14 B")).toBeVisible();
   });
 
+  it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
+    const user = userEvent.setup();
+    const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+      encodeSpy.mockClear();
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Saved API" }),
+      );
+      await user.type(screen.getByLabelText("New title"), "x");
+
+      expect(encodeSpy).not.toHaveBeenCalled();
+    } finally {
+      encodeSpy.mockRestore();
+    }
+  });
+
   it("gives each row's delete button a distinguishing accessible name", () => {
     render(
       <SchemasPageContent

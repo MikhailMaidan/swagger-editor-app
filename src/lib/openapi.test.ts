@@ -106,12 +106,13 @@ describe("openapi helpers", () => {
     expect(result.value.serverUrl).toBe("https://jsonplaceholder.typicode.com");
     expect(result.value.endpoints).toHaveLength(2);
     expect(result.value.endpoints[0]).toMatchObject({
-      curl: 'curl -X GET \\\n  "https://jsonplaceholder.typicode.com/users/{id}"',
       method: "GET",
       path: "/users/{id}",
-      responseStatuses: ["200", "404"],
       serverUrl: "https://jsonplaceholder.typicode.com",
     });
+    expect(
+      result.value.endpoints[0].responses.map((response) => response.status),
+    ).toEqual(["200", "404"]);
     expect(result.value.endpoints[0].responses[0]).toMatchObject({
       contentTypes: ["application/json"],
       description: "Successful response",
@@ -128,7 +129,6 @@ describe("openapi helpers", () => {
         type: "object",
       },
     });
-    expect(result.value.endpoints[1].curl).toContain("-d '{...}'");
     expect(result.value.endpoints[0].parameters).toEqual(
       expect.arrayContaining([
         { location: "path", name: "id" },

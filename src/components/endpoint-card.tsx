@@ -303,6 +303,10 @@ function EndpointCardComponent({
     [endpoint, requestBodyValue, requestParameters],
   );
   const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
+  const formattedResponseBody = useMemo(
+    () => (mockResult ? formatResponseBody(mockResult.body) : ""),
+    [mockResult],
+  );
 
   async function handleCopyCurl() {
     if (!navigator.clipboard) {
@@ -662,7 +666,7 @@ function EndpointCardComponent({
             aria-label={t("workspace.responseBody")}
             className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
           >
-            {formatResponseBody(mockResult.body)}
+            {formattedResponseBody}
           </pre>
         </div>
       ) : null}
