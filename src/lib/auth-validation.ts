@@ -9,15 +9,24 @@ const DIGIT_PATTERN = /\p{N}/u;
 const SPECIAL_CHARACTER_PATTERN = /[^\p{L}\p{N}\s]/u;
 
 export function validateEmail(email: string) {
-  if (!email.trim()) {
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail) {
     return "Email is required.";
   }
 
-  if (!EMAIL_PATTERN.test(email)) {
+  // EMAIL_PATTERN's character classes exclude whitespace entirely, so
+  // testing the untrimmed value would reject a perfectly valid address that
+  // merely picked up a leading/trailing space from autofill or paste.
+  if (!EMAIL_PATTERN.test(trimmedEmail)) {
     return "Enter a valid email address.";
   }
 
   return "";
+}
+
+function validateSignInPassword(password: string) {
+  return password ? "" : "Password is required.";
 }
 
 export function validatePassword(password: string) {
@@ -44,10 +53,22 @@ export function validatePassword(password: string) {
   return "";
 }
 
-export function validateAuthForm(email: string, password: string) {
+export function validateAuthForm(
+  email: string,
+  password: string,
+  mode: "sign-in" | "sign-up" = "sign-up",
+) {
   const errors: AuthFormErrors = {};
   const emailError = validateEmail(email);
-  const passwordError = validatePassword(password);
+  // This demo never checks a sign-in password against anything stored (the
+  // auth token is derived from the email alone), so enforcing the sign-up
+  // complexity policy here only blocks a returning user from signing in
+  // with whatever password they actually used - the check on this path is
+  // just "did they type something at all".
+  const passwordError =
+    mode === "sign-in"
+      ? validateSignInPassword(password)
+      : validatePassword(password);
 
   if (emailError) {
     errors.email = emailError;

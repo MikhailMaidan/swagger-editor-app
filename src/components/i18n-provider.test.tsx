@@ -55,15 +55,15 @@ describe("i18n", () => {
 
     render(
       <I18nProvider>
-        <AuthForm mode="sign-in" />
+        <AuthForm mode="sign-up" />
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("heading", { name: "Войти" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Зарегистрироваться" })).toBeVisible();
 
     await user.type(screen.getByLabelText("Email"), "wrong-email");
     await user.type(screen.getByLabelText("Пароль"), "password");
-    await user.click(screen.getByRole("button", { name: "Войти" }));
+    await user.click(screen.getByRole("button", { name: "Зарегистрироваться" }));
 
     expect(screen.getByText("Введите корректный email.")).toBeVisible();
     expect(

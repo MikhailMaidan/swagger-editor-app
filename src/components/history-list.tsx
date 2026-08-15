@@ -75,17 +75,17 @@ export function HistoryList({
     setDeletingId(record.id);
     setErrorId(null);
 
-    // The record can live in the guest-local list, the server/database, or
-    // both (an authenticated user's older guest history isn't migrated), so
-    // the local copy always gets removed; the server is only asked to
-    // delete its copy when signed in, since a signed-out DELETE always
-    // 401s and would otherwise be misreported as a failure.
-    removeRequestHistoryRecord(record.id);
+    // The server is only asked to delete its copy when signed in, since a
+    // signed-out DELETE always 401s and would otherwise be misreported as a
+    // failure. The local copy is removed only once that outcome is known -
+    // removing it first would wipe the user's only remaining copy of the
+    // record if the server delete then failed.
     const deleted = getClientAuth().isAuthenticated
       ? await deleteServerHistoryRecord(record.id)
       : true;
 
     if (deleted) {
+      removeRequestHistoryRecord(record.id);
       setRecords((currentRecords) =>
         currentRecords.filter((current) => current.id !== record.id),
       );

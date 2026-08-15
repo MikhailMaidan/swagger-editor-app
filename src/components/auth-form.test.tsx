@@ -25,14 +25,14 @@ describe("AuthForm", () => {
     );
   });
 
-  it("shows validation errors before submitting invalid data", async () => {
+  it("shows sign-up validation errors before submitting invalid data", async () => {
     const user = userEvent.setup();
 
-    render(<AuthForm mode="sign-in" />);
+    render(<AuthForm mode="sign-up" />);
 
     await user.type(screen.getByLabelText("Email"), "wrong-email");
     await user.type(screen.getByLabelText("Password"), "password");
-    await user.click(screen.getByRole("button", { name: "Sign In" }));
+    await user.click(screen.getByRole("button", { name: "Sign Up" }));
 
     expect(
       screen.getByText("Enter a valid email address."),
@@ -41,6 +41,48 @@ describe("AuthForm", () => {
       screen.getByText("Password must contain at least one digit."),
     ).toBeInTheDocument();
     expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).not.toHaveBeenCalled();
+  });
+
+  it("does not enforce the sign-up password complexity policy on sign-in", async () => {
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="sign-in" />);
+
+    await user.type(screen.getByLabelText("Email"), "mikhail@example.com");
+    await user.type(screen.getByLabelText("Password"), "password");
+    await user.click(screen.getByRole("button", { name: "Sign In" }));
+
+    expect(
+      screen.queryByText("Password must contain at least one digit."),
+    ).not.toBeInTheDocument();
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).toHaveBeenCalledWith("/");
+  });
+
+  it("still requires a non-empty password on sign-in", async () => {
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="sign-in" />);
+
+    await user.type(screen.getByLabelText("Email"), "mikhail@example.com");
+    await user.click(screen.getByRole("button", { name: "Sign In" }));
+
+    expect(screen.getByText("Password is required.")).toBeInTheDocument();
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).not.toHaveBeenCalled();
+  });
+
+  it("trims whitespace from the email before validating and saving it", async () => {
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="sign-up" />);
+
+    await user.type(screen.getByLabelText("Email"), "  mikhail@example.com  ");
+    await user.type(screen.getByLabelText("Password"), "Пароль12!");
+    await user.click(screen.getByRole("button", { name: "Sign Up" }));
+
+    expect(
+      screen.queryByText("Enter a valid email address."),
+    ).not.toBeInTheDocument();
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).toHaveBeenCalledWith("/");
   });
 
   it("saves auth state and redirects on valid submit", async () => {

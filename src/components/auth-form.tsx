@@ -51,14 +51,14 @@ export function AuthForm({ mode }: AuthFormProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const formErrors = validateAuthForm(email, password);
+    const formErrors = validateAuthForm(email, password, mode);
     setErrors(formErrors);
 
     if (hasAuthFormErrors(formErrors)) {
       return;
     }
 
-    saveClientAuth(email);
+    saveClientAuth(email.trim());
     router.push("/");
     router.refresh();
   }

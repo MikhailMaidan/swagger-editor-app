@@ -341,6 +341,58 @@ describe("HistoryList", () => {
     }
   });
 
+  it("keeps the local copy of a record when its server-side delete fails", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([{ ...localRecord, id: "server-record" }]),
+    );
+
+    try {
+      render(
+        <HistoryList
+          initialRecords={[
+            {
+              createdAt: "2026-07-06T10:00:00.000Z",
+              durationMs: 52,
+              errorDetails: null,
+              id: "server-record",
+              method: "GET",
+              path: "/server",
+              requestSize: 100,
+              responseSize: 140,
+              status: 200,
+              summary: "Server record",
+              url: "/server",
+            },
+          ]}
+        />,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: "Delete Server record" }),
+      );
+      await screen.findByRole("alert");
+
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY) || "[]",
+        ),
+      ).toHaveLength(1);
+    } finally {
+      confirmSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
   it("clears every guest record at once without calling the server route", async () => {
     const user = userEvent.setup();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);

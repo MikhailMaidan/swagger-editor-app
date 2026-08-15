@@ -179,6 +179,31 @@ export async function deleteServerSchemaRecord(id: string) {
   }
 }
 
+export async function renameServerSchemaRecord(id: string, title: string) {
+  try {
+    const response = await fetch(`/api/schemas/${encodeURIComponent(id)}`, {
+      body: JSON.stringify({ title }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "PATCH",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as { schemas?: unknown };
+    const schemas = Array.isArray(data.schemas)
+      ? data.schemas.filter(isSavedSchemaRecord)
+      : [];
+
+    return schemas.find((schema) => schema.id === id) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function deleteAllServerSchemaRecords() {
   try {
     const response = await fetch("/api/schemas", {

@@ -210,4 +210,112 @@ describe("SchemasPageContent", () => {
       fetchMock.mockRestore();
     }
   });
+
+  it("renames a schema after a successful save", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        schemas: [{ ...savedSchema, title: "Renamed API" }],
+      }),
+    );
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Saved API" }),
+      );
+
+      const input = screen.getByLabelText("New title");
+
+      expect(input).toHaveValue("Saved API");
+
+      await user.clear(input);
+      await user.type(input, "Renamed API");
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/schemas/saved-schema",
+        expect.objectContaining({ method: "PATCH" }),
+      );
+      const requestBody = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+      expect(requestBody).toEqual({ title: "Renamed API" });
+      expect(
+        await screen.findByRole("heading", { name: "Renamed API" }),
+      ).toBeVisible();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("discards the edit without saving when rename is cancelled", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Saved API" }),
+      );
+      await user.clear(screen.getByLabelText("New title"));
+      await user.type(screen.getByLabelText("New title"), "Discarded Title");
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
+      expect(
+        screen.queryByLabelText("New title"),
+      ).not.toBeInTheDocument();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("rejects an empty title without calling the server", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Saved API" }),
+      );
+      await user.clear(screen.getByLabelText("New title"));
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert")).toHaveTextContent("Enter a title.");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("shows an error and keeps editing when the rename request fails", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Saved API" }),
+      );
+      await user.clear(screen.getByLabelText("New title"));
+      await user.type(screen.getByLabelText("New title"), "Renamed API");
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Could not rename this schema. Try again.",
+      );
+      expect(screen.getByLabelText("New title")).toBeVisible();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
 });
