@@ -59,6 +59,8 @@ export type EndpointStats = {
   methods: string[];
   requestBodyCount: number;
   securedCount: number;
+  tagCounts: Record<string, number>;
+  tags: string[];
 };
 
 export type ParsedOpenApiSchema = {
@@ -578,6 +580,16 @@ export function createEndpointStats(endpoints: EndpointSummary[]): EndpointStats
     },
     {},
   );
+  const tagCounts = endpoints.reduce<Record<string, number>>(
+    (counts, endpoint) => {
+      new Set(endpoint.tags).forEach((tag) => {
+        counts[tag] = (counts[tag] ?? 0) + 1;
+      });
+
+      return counts;
+    },
+    {},
+  );
 
   return {
     deprecatedCount: endpoints.filter((endpoint) => endpoint.deprecated).length,
@@ -588,6 +600,10 @@ export function createEndpointStats(endpoints: EndpointSummary[]): EndpointStats
       (endpoint) => endpoint.requestBodies.length > 0,
     ).length,
     securedCount: endpoints.filter((endpoint) => endpoint.secured).length,
+    tagCounts,
+    tags: Object.keys(tagCounts).sort((first, second) =>
+      first.localeCompare(second),
+    ),
   };
 }
 

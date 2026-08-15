@@ -134,6 +134,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
     "workspace.allMethods": "All methods",
+    "workspace.allTags": "All tags",
     "workspace.authRequired": "Auth: {schemes}",
     "workspace.clearEndpointFilter": "Clear",
     "workspace.content": "Content:",
@@ -200,6 +201,8 @@ export const translations = {
     "workspace.serverSelector": "Select API server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
     "workspace.tryItOut": "Try It Out",
+    "workspace.tagFilterLabel": "Filter endpoints by tag",
+    "workspace.tagFilterOption": "{tag} ({count})",
     "workspace.type": "Type:",
     "workspace.totalEndpoints": "Endpoints",
     "workspace.valid": "Valid",
@@ -339,6 +342,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
     "workspace.allMethods": "Все методы",
+    "workspace.allTags": "Все теги",
     "workspace.authRequired": "Auth: {schemes}",
     "workspace.clearEndpointFilter": "Очистить",
     "workspace.content": "Контент:",
@@ -406,6 +410,8 @@ export const translations = {
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
     "workspace.tryItOut": "Отправить запрос",
+    "workspace.tagFilterLabel": "Фильтр эндпоинтов по тегу",
+    "workspace.tagFilterOption": "{tag} ({count})",
     "workspace.type": "Тип:",
     "workspace.totalEndpoints": "Эндпоинты",
     "workspace.valid": "Валидно",

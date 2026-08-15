@@ -237,6 +237,23 @@ paths:
     expect(stats).toHaveTextContent("Deprecated1");
     expect(stats).toHaveTextContent("Secured1");
 
+    const tagFilters = screen.getByRole("group", {
+      name: "Filter endpoints by tag",
+    });
+
+    fireEvent.click(
+      within(tagFilters).getByRole("button", { name: "admin (1)" }),
+    );
+
+    expect(screen.getByLabelText("cURL GET /reports")).toBeInTheDocument();
+    expect(screen.queryByLabelText("cURL GET /status")).not.toBeInTheDocument();
+
+    fireEvent.click(
+      within(tagFilters).getByRole("button", { name: "All tags" }),
+    );
+
+    expect(screen.getByLabelText("cURL GET /status")).toBeInTheDocument();
+
     fireEvent.change(
       screen.getByLabelText(
         "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",

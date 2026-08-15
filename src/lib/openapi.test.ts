@@ -399,6 +399,7 @@ describe("openapi helpers", () => {
           get: {
             deprecated: true,
             responses: { "200": { description: "OK" } },
+            tags: ["reports", "admin"],
           },
           post: {
             requestBody: {
@@ -409,6 +410,7 @@ describe("openapi helpers", () => {
               },
             },
             responses: { "201": { description: "Created" } },
+            tags: ["reports"],
           },
         },
         "/users": {
@@ -429,6 +431,11 @@ describe("openapi helpers", () => {
       methods: ["GET", "POST"],
       requestBodyCount: 1,
       securedCount: 0,
+      tagCounts: {
+        admin: 1,
+        reports: 2,
+      },
+      tags: ["admin", "reports"],
     });
   });
 

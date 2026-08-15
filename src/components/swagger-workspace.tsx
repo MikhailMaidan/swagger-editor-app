@@ -67,6 +67,7 @@ export function SwaggerWorkspace({
   const [importError, setImportError] = useState("");
   const [endpointFilter, setEndpointFilter] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("all");
+  const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
@@ -108,6 +109,10 @@ export function SwaggerWorkspace({
     selectedMethod === "all" || endpointStats.methods.includes(selectedMethod)
       ? selectedMethod
       : "all";
+  const activeTag =
+    selectedTag === "all" || endpointStats.tags.includes(selectedTag)
+      ? selectedTag
+      : "all";
   const normalizedFilter = endpointFilter.trim().toLowerCase();
   const filteredEndpoints = normalizedFilter
     ? endpoints.filter(
@@ -134,6 +139,12 @@ export function SwaggerWorkspace({
       ? filteredEndpoints
       : filteredEndpoints.filter(
           (endpoint) => endpoint.method === activeMethod,
+        );
+  const tagFilteredEndpoints =
+    activeTag === "all"
+      ? methodFilteredEndpoints
+      : methodFilteredEndpoints.filter((endpoint) =>
+          endpoint.tags.includes(activeTag),
         );
 
   useLayoutEffect(() => {
@@ -506,7 +517,7 @@ export function SwaggerWorkspace({
               aria-label={t("workspace.methodFilterLabel")}
             >
               {["all", ...endpointStats.methods].map((method) => {
-                const active = selectedMethod === method;
+                const active = activeMethod === method;
                 const label =
                   method === "all"
                     ? t("workspace.allMethods")
@@ -529,6 +540,40 @@ export function SwaggerWorkspace({
                 );
               })}
             </div>
+            {endpointStats.tags.length > 0 ? (
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label={t("workspace.tagFilterLabel")}
+              >
+                {["all", ...endpointStats.tags].map((tag) => {
+                  const active = activeTag === tag;
+                  const label =
+                    tag === "all"
+                      ? t("workspace.allTags")
+                      : t("workspace.tagFilterOption", {
+                          count: String(endpointStats.tagCounts[tag]),
+                          tag,
+                        });
+
+                  return (
+                    <button
+                      aria-pressed={active}
+                      className={`h-9 rounded-lg px-3 text-xs font-bold transition ${
+                        active
+                          ? "bg-[color:var(--color-brand-purple)] text-white"
+                          : "border border-[color:var(--color-brand-border)] bg-white text-[color:var(--color-brand-muted)] hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                      }`}
+                      key={tag}
+                      type="button"
+                      onClick={() => setSelectedTag(tag)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -537,12 +582,12 @@ export function SwaggerWorkspace({
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.addValidSchema")}
             </div>
-          ) : methodFilteredEndpoints.length === 0 ? (
+          ) : tagFilteredEndpoints.length === 0 ? (
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.noEndpointsMatch")}
             </div>
           ) : (
-            methodFilteredEndpoints.map((endpoint) => (
+            tagFilteredEndpoints.map((endpoint) => (
               <EndpointCard
                 canSaveHistory={isAuthenticated}
                 key={`${endpoint.method}-${endpoint.path}`}
