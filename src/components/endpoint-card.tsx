@@ -310,7 +310,8 @@ function EndpointCardComponent({
   const isRequestBodyRequired = activeRequestBody?.required === true;
   const isRequiredRequestBodyMissing =
     isRequestBodyRequired && !requestBodyValue.trim();
-  const hasEditedRequestBodyRef = useRef(false);
+  const editedRequestContentTypesRef = useRef(new Set<string>());
+  const requestBodyDraftsRef = useRef<Record<string, string>>({});
   const previousRequestContentTypeRef = useRef(activeRequestContentType);
 
   useEffect(() => {
@@ -338,12 +339,15 @@ function EndpointCardComponent({
     previousRequestContentTypeRef.current = activeRequestContentType;
 
     if (contentTypeChanged) {
-      hasEditedRequestBodyRef.current = false;
-      setRequestBodyValue(initialRequestBody);
+      setRequestBodyValue(
+        editedRequestContentTypesRef.current.has(activeRequestContentType)
+          ? (requestBodyDraftsRef.current[activeRequestContentType] ?? "")
+          : initialRequestBody,
+      );
       return;
     }
 
-    if (hasEditedRequestBodyRef.current) {
+    if (editedRequestContentTypesRef.current.has(activeRequestContentType)) {
       return;
     }
 
@@ -444,10 +448,12 @@ function EndpointCardComponent({
 
   function handleRequestContentTypeChange(contentType: string) {
     const requestBody = getRequestBody(endpoint, contentType);
+    const nextValue = editedRequestContentTypesRef.current.has(contentType)
+      ? (requestBodyDraftsRef.current[contentType] ?? "")
+      : requestBody?.schema.example || "";
 
-    hasEditedRequestBodyRef.current = false;
     setSelectedRequestContentType(contentType);
-    setRequestBodyValue(requestBody?.schema.example || "");
+    setRequestBodyValue(nextValue);
   }
 
   function handleResponseStatusChange(status: string) {
@@ -462,7 +468,8 @@ function EndpointCardComponent({
       selectDefaultResponse(endpoint.responses)?.status || "";
 
     editedParameterKeysRef.current.clear();
-    hasEditedRequestBodyRef.current = false;
+    editedRequestContentTypesRef.current.clear();
+    requestBodyDraftsRef.current = {};
     previousRequestContentTypeRef.current =
       defaultRequestBody?.contentType || "";
     previousResponseStatusRef.current = defaultResponseStatus;
@@ -802,7 +809,11 @@ function EndpointCardComponent({
                 required={isRequestBodyRequired}
                 value={requestBodyValue}
                 onChange={(event) => {
-                  hasEditedRequestBodyRef.current = true;
+                  editedRequestContentTypesRef.current.add(
+                    activeRequestContentType,
+                  );
+                  requestBodyDraftsRef.current[activeRequestContentType] =
+                    event.target.value;
                   setRequestBodyValue(event.target.value);
                 }}
               />

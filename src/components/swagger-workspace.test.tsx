@@ -439,6 +439,10 @@ paths:
         '{\n  "title": "Guide"\n}',
       );
 
+      fireEvent.change(screen.getByLabelText("Editable request body"), {
+        target: { value: '{"title":"Custom JSON"}' },
+      });
+
       await user.selectOptions(contentTypeSelect, "application/xml");
 
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
@@ -458,6 +462,18 @@ paths:
         contentType: "application/xml",
         requestBody: "<document><title>Guide</title></document>",
       });
+
+      await user.selectOptions(contentTypeSelect, "application/json");
+
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{"title":"Custom JSON"}',
+      );
+
+      await user.selectOptions(contentTypeSelect, "application/xml");
+
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        "<document><title>Guide</title></document>",
+      );
 
       await user.clear(screen.getByLabelText("Editable request body"));
 
