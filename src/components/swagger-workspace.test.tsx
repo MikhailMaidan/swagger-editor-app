@@ -785,12 +785,26 @@ paths:
 
     render(<SwaggerWorkspace />);
 
+    expect(
+      screen.getAllByRole("button", { name: "Copy request URL" })[0],
+    ).toBeDisabled();
     await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
     await user.type(screen.getByLabelText("Query parameter search"), "Alex");
     await user.type(
       screen.getByLabelText("Header parameter X-Trace-Id"),
       "trace-1",
     );
+    await user.click(
+      screen.getAllByRole("button", { name: "Copy request URL" })[0],
+    );
+
+    expect(writeText).toHaveBeenLastCalledWith(
+      "https://jsonplaceholder.typicode.com/users/42?search=Alex",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Request URL copied.",
+    );
+
     await user.click(screen.getAllByRole("button", { name: "Copy cURL" })[0]);
 
     expect(writeText).toHaveBeenCalledWith(
@@ -802,6 +816,9 @@ paths:
       "/users/42?search=Alex",
     );
     expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
+    expect(
+      screen.queryByText("Request URL copied."),
+    ).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Query parameter search"), " Smith");
 

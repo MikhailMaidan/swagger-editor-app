@@ -297,6 +297,7 @@ function EndpointCardComponent({
   } | null>(null);
   const previousResponseStatusRef = useRef(activeResponseStatus);
   const [copiedCurl, setCopiedCurl] = useState("");
+  const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
@@ -308,6 +309,11 @@ function EndpointCardComponent({
   );
   const hasMissingRequiredParameters =
     missingRequiredParameterKeys.size > 0;
+  const hasMissingRequiredPathParameters = endpoint.parameters.some(
+    (parameter) =>
+      parameter.location === "path" &&
+      missingRequiredParameterKeys.has(getRequestParameterKey(parameter)),
+  );
   const editedParameterKeysRef = useRef(new Set<string>());
   const [selectedRequestContentType, setSelectedRequestContentType] = useState(
     () => endpoint.requestBodies[0]?.contentType || "",
@@ -406,6 +412,11 @@ function EndpointCardComponent({
     () => createRequestParameters(endpoint, parameterValues),
     [endpoint, parameterValues],
   );
+  const currentRequestUrl = useMemo(
+    () =>
+      buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
+    [endpoint.path, endpoint.serverUrl, requestParameters],
+  );
   const currentCurl = useMemo(
     () =>
       createCurlPreview(
@@ -420,6 +431,8 @@ function EndpointCardComponent({
     [activeRequestContentType, endpoint, requestBodyValue, requestParameters],
   );
   const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
+  const isRequestUrlCopied =
+    copiedRequestUrl === currentRequestUrl && copiedRequestUrl !== "";
   const formattedResponseBody = useMemo(
     () => (mockResult ? formatResponseBody(mockResult.body) : ""),
     [mockResult],
@@ -429,6 +442,8 @@ function EndpointCardComponent({
     copiedResponseBody === formattedResponseBody;
 
   async function handleCopyCurl() {
+    setCopiedRequestUrl("");
+
     if (!navigator.clipboard) {
       return;
     }
@@ -438,6 +453,21 @@ function EndpointCardComponent({
       setCopiedCurl(currentCurl);
     } catch {
       setCopiedCurl("");
+    }
+  }
+
+  async function handleCopyRequestUrl() {
+    setCopiedCurl("");
+
+    if (!navigator.clipboard || hasMissingRequiredPathParameters) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(currentRequestUrl);
+      setCopiedRequestUrl(currentRequestUrl);
+    } catch {
+      setCopiedRequestUrl("");
     }
   }
 
@@ -516,6 +546,7 @@ function EndpointCardComponent({
     setHasAttemptedExecution(false);
     setMockResult(null);
     setCopiedCurl("");
+    setCopiedRequestUrl("");
     setCopiedResponseBody("");
   }
 
@@ -949,6 +980,14 @@ function EndpointCardComponent({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <button
+              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
+              disabled={hasMissingRequiredPathParameters}
+              type="button"
+              onClick={handleCopyRequestUrl}
+            >
+              {t("workspace.copyRequestUrl")}
+            </button>
+            <button
               className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
               onClick={handleCopyCurl}
@@ -979,6 +1018,10 @@ function EndpointCardComponent({
         {isCurlCopied ? (
           <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
             {t("workspace.curlCopied")}
+          </p>
+        ) : isRequestUrlCopied ? (
+          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
+            {t("workspace.requestUrlCopied")}
           </p>
         ) : null}
       </div>
