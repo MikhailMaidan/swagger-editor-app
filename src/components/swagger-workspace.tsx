@@ -151,6 +151,10 @@ export function SwaggerWorkspace({
       : methodFilteredEndpoints.filter((endpoint) =>
           endpoint.tags.includes(activeTag),
         );
+  const hasActiveEndpointFilters =
+    Boolean(endpointFilter) ||
+    selectedMethod !== "all" ||
+    selectedTag !== "all";
 
   useLayoutEffect(() => {
     const editor = editorRef.current;
@@ -309,6 +313,12 @@ export function SwaggerWorkspace({
     setSelectedMethod("all");
     setSelectedTag("all");
     setSelectedServerUrl("");
+  }
+
+  function handleResetEndpointFilters() {
+    setEndpointFilter("");
+    setSelectedMethod("all");
+    setSelectedTag("all");
   }
 
   function handleSaveSchema() {
@@ -634,6 +644,26 @@ export function SwaggerWorkspace({
                 })}
               </div>
             ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p
+                aria-live="polite"
+                className="text-sm font-semibold text-[color:var(--color-brand-muted)]"
+              >
+                {t("workspace.endpointFilterSummary", {
+                  total: String(endpoints.length),
+                  visible: String(tagFilteredEndpoints.length),
+                })}
+              </p>
+              {hasActiveEndpointFilters ? (
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                  type="button"
+                  onClick={handleResetEndpointFilters}
+                >
+                  {t("workspace.resetEndpointFilters")}
+                </button>
+              ) : null}
+            </div>
           </div>
         ) : null}
 

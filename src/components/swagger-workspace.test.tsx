@@ -150,6 +150,8 @@ paths:
       name: "Filter endpoints by HTTP method",
     });
 
+    expect(screen.getByText("Showing 2 of 2 endpoints")).toBeVisible();
+
     fireEvent.change(filterInput, { target: { value: "update" } });
 
     expect(
@@ -170,9 +172,20 @@ paths:
       screen.getByText("No endpoints match your search."),
     ).toBeVisible();
 
-    fireEvent.click(
+    expect(screen.getByText("Showing 0 of 2 endpoints")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
+
+    expect(filterInput).toHaveValue("");
+    expect(
       within(methodFilters).getByRole("button", { name: "All methods" }),
-    );
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Showing 2 of 2 endpoints")).toBeVisible();
+    expect(
+      screen.getByLabelText("cURL GET /users/{id}"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("cURL POST /users/{id}"),
+    ).toBeInTheDocument();
 
     fireEvent.change(filterInput, { target: { value: "does-not-exist" } });
 
@@ -183,7 +196,7 @@ paths:
       screen.queryByLabelText("cURL POST /users/{id}"),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
 
     expect(
       screen.getByLabelText("cURL GET /users/{id}"),

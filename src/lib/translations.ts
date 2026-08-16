@@ -137,7 +137,7 @@ export const translations = {
     "workspace.allTags": "All tags",
     "workspace.authRequired": "Auth: {schemes}",
     "workspace.cancelRequest": "Cancel request",
-    "workspace.clearEndpointFilter": "Clear",
+    "workspace.clearEndpointFilter": "Clear search",
     "workspace.clearResponse": "Clear response",
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
@@ -154,6 +154,8 @@ export const translations = {
     "workspace.downloadResponse": "Download response",
     "workspace.editor": "Editor",
     "workspace.endpointStats": "Endpoint statistics",
+    "workspace.endpointFilterSummary":
+      "Showing {visible} of {total} endpoints",
     "workspace.executing": "Executing...",
     "workspace.errors.fileReadFailed": "Could not read that file.",
     "workspace.errors.infoTitleRequired": "Schema info.title is required.",
@@ -198,6 +200,7 @@ export const translations = {
     "workspace.resetEditor": "Reset editor",
     "workspace.resetEditorConfirm":
       "Reset the editor to the default schema? Unsaved changes will be lost.",
+    "workspace.resetEndpointFilters": "Reset filters",
     "workspace.resetTryItOut": "Reset values",
     "workspace.response": "Response",
     "workspace.responseBody": "Response body",
@@ -359,7 +362,7 @@ export const translations = {
     "workspace.allTags": "Все теги",
     "workspace.authRequired": "Auth: {schemes}",
     "workspace.cancelRequest": "Отменить запрос",
-    "workspace.clearEndpointFilter": "Очистить",
+    "workspace.clearEndpointFilter": "Очистить поиск",
     "workspace.clearResponse": "Очистить ответ",
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
@@ -376,6 +379,8 @@ export const translations = {
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.editor": "Редактор",
     "workspace.endpointStats": "Статистика эндпоинтов",
+    "workspace.endpointFilterSummary":
+      "Показано эндпоинтов: {visible} из {total}",
     "workspace.executing": "Выполняется...",
     "workspace.errors.fileReadFailed": "Не удалось прочитать файл.",
     "workspace.errors.infoTitleRequired": "Поле schema info.title обязательно.",
@@ -421,6 +426,7 @@ export const translations = {
     "workspace.resetEditor": "Сбросить редактор",
     "workspace.resetEditorConfirm":
       "Сбросить редактор до схемы по умолчанию? Несохранённые изменения будут потеряны.",
+    "workspace.resetEndpointFilters": "Сбросить фильтры",
     "workspace.resetTryItOut": "Сбросить значения",
     "workspace.response": "Ответ",
     "workspace.responseBody": "Тело ответа",
