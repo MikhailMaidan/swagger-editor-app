@@ -1382,6 +1382,59 @@ paths:
     ).not.toBeInTheDocument();
   });
 
+  it("downloads the original response body with content-type metadata", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn((object: Blob | MediaSource) => {
+      void object;
+      return "blob:response-url";
+    });
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const anchors: HTMLAnchorElement[] = [];
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Download response" }),
+      );
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const responseBlob = createObjectURL.mock.calls[0][0] as Blob;
+      expect(responseBlob.type).toBe("application/json");
+      expect(responseBlob.size).toBeGreaterThan(0);
+      expect(anchors[0]?.download).toBe("rsswag-response-200.json");
+      expect(anchors[0]?.getAttribute("href")).toBe("blob:response-url");
+      expect(anchors[0]?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:response-url");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("records a failed request in history with its real status instead of a fake 200", async () => {
     const user = userEvent.setup();
     // Mirrors what the /api/try-it-out route itself returns (status 200,

@@ -25,6 +25,7 @@ import {
   getRequestParameterKey,
 } from "@/lib/request-parameters";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
+import { getResponseDownloadMetadata } from "@/lib/response-download";
 import { formatResponseHeaders } from "@/lib/response-headers";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
@@ -508,6 +509,29 @@ function EndpointCardComponent({
       setCopiedResponseHeaders(formattedResponseHeaders);
     } catch {
       setCopiedResponseHeaders("");
+    }
+  }
+
+  function handleDownloadResponse() {
+    if (!mockResult?.body) {
+      return;
+    }
+
+    const { contentType, fileName } = getResponseDownloadMetadata(
+      mockResult.headers,
+      mockResult.status,
+    );
+    const objectUrl = URL.createObjectURL(
+      new Blob([mockResult.body], { type: contentType }),
+    );
+
+    try {
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.href = objectUrl;
+      downloadAnchor.download = fileName;
+      downloadAnchor.click();
+    } finally {
+      URL.revokeObjectURL(objectUrl);
     }
   }
 
@@ -1098,6 +1122,14 @@ function EndpointCardComponent({
               </span>
             ) : null}
             <div className="ml-auto flex flex-wrap items-center gap-2">
+              <button
+                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!mockResult.body}
+                type="button"
+                onClick={handleDownloadResponse}
+              >
+                {t("workspace.downloadResponse")}
+              </button>
               <button
                 className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!formattedResponseHeaders}
