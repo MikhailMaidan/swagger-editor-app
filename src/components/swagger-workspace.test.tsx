@@ -1625,4 +1625,49 @@ paths:
       fetchMock.mockRestore();
     }
   });
+
+  it("cancels an in-flight request without showing or saving a fallback response", async () => {
+    const user = userEvent.setup();
+    let requestSignal: AbortSignal | null = null;
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((_input, init) => {
+        const signal = init?.signal as AbortSignal | undefined;
+        requestSignal = signal || null;
+
+        return new Promise<Response>((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        });
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+
+      expect((requestSignal as AbortSignal | null)?.aborted).toBe(false);
+      await user.click(screen.getByRole("button", { name: "Cancel request" }));
+
+      await waitFor(() =>
+        expect(
+          screen.getAllByRole("button", { name: "Try It Out" })[0],
+        ).toBeEnabled(),
+      );
+      expect((requestSignal as AbortSignal | null)?.aborted).toBe(true);
+      expect(screen.getByText("Request cancelled.")).toBeVisible();
+      expect(
+        screen.queryByRole("button", { name: "Download response" }),
+      ).not.toBeInTheDocument();
+      expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
 });

@@ -111,6 +111,7 @@ function readResponseHeaders(value: unknown) {
 async function executeTryItOut(
   payload: TryItOutPayload,
   fallback: TryItOutExecutionResult,
+  signal: AbortSignal,
 ) {
   try {
     const response = await fetch("/api/try-it-out", {
@@ -119,6 +120,7 @@ async function executeTryItOut(
         "Content-Type": "application/json",
       },
       method: "POST",
+      signal,
     });
 
     if (!response.ok) {
@@ -148,7 +150,7 @@ async function executeTryItOut(
       url: typeof data.url === "string" ? data.url : fallback.url,
     };
   } catch {
-    return fallback;
+    return signal.aborted ? null : fallback;
   }
 }
 
@@ -303,7 +305,9 @@ function EndpointCardComponent({
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
+  const [wasRequestCancelled, setWasRequestCancelled] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
+  const requestAbortControllerRef = useRef<AbortController | null>(null);
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
@@ -352,6 +356,12 @@ function EndpointCardComponent({
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
   }, [activeResponseStatus]);
+  useEffect(
+    () => () => {
+      requestAbortControllerRef.current?.abort();
+    },
+    [],
+  );
 
   // EndpointCard is keyed by method+path, so editing an endpoint's example
   // body in the schema while keeping its method/path unchanged re-renders
@@ -596,11 +606,23 @@ function EndpointCardComponent({
     setRequestBodyValue(defaultRequestBody?.schema.example || "");
     setSelectedResponseStatus(defaultResponseStatus);
     setHasAttemptedExecution(false);
+    setWasRequestCancelled(false);
     setMockResult(null);
     setCopiedCurl("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
+  }
+
+  function handleCancelTryItOut() {
+    if (!requestAbortControllerRef.current) {
+      return;
+    }
+
+    requestAbortControllerRef.current.abort();
+    requestAbortControllerRef.current = null;
+    setIsExecuting(false);
+    setWasRequestCancelled(true);
   }
 
   async function handleTryItOut() {
@@ -613,7 +635,12 @@ function EndpointCardComponent({
       return;
     }
 
+    const abortController = new AbortController();
+    requestAbortControllerRef.current = abortController;
     setIsExecuting(true);
+    setWasRequestCancelled(false);
+    setCopiedCurl("");
+    setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
     const response = getMockResponse(
@@ -658,7 +685,17 @@ function EndpointCardComponent({
         status: response.status,
       },
       fallbackResult,
+      abortController.signal,
     );
+
+    if (
+      !executionResult ||
+      requestAbortControllerRef.current !== abortController
+    ) {
+      return;
+    }
+
+    requestAbortControllerRef.current = null;
 
     let savedToHistory = false;
 
@@ -1061,6 +1098,15 @@ function EndpointCardComponent({
             >
               {isExecuting ? t("workspace.executing") : t("workspace.tryItOut")}
             </button>
+            {isExecuting ? (
+              <button
+                className="h-10 rounded-2xl border border-red-300 bg-white px-4 text-sm font-extrabold text-red-700 transition hover:bg-red-50"
+                type="button"
+                onClick={handleCancelTryItOut}
+              >
+                {t("workspace.cancelRequest")}
+              </button>
+            ) : null}
           </div>
         </div>
         <pre
@@ -1076,6 +1122,13 @@ function EndpointCardComponent({
         ) : isRequestUrlCopied ? (
           <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
             {t("workspace.requestUrlCopied")}
+          </p>
+        ) : wasRequestCancelled ? (
+          <p
+            aria-live="polite"
+            className="mt-2 text-sm font-bold text-[color:var(--color-brand-muted)]"
+          >
+            {t("workspace.requestCancelled")}
           </p>
         ) : null}
       </div>
