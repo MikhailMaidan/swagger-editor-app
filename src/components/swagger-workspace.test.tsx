@@ -466,11 +466,20 @@ paths:
         screen.getByRole("button", { name: "Try It Out" }),
       ).toBeEnabled();
 
+      await user.click(screen.getByRole("button", { name: "Format JSON" }));
+
+      expect(screen.getByLabelText("Editable request body")).toHaveValue(
+        '{\n  "title": "Custom JSON"\n}',
+      );
+
       await user.selectOptions(contentTypeSelect, "application/xml");
 
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
         "<document><title>Guide</title></document>",
       );
+      expect(
+        screen.queryByRole("button", { name: "Format JSON" }),
+      ).not.toBeInTheDocument();
       expect(screen.getByLabelText("cURL POST /documents")).toHaveTextContent(
         "Content-Type: application/xml",
       );
@@ -489,7 +498,7 @@ paths:
       await user.selectOptions(contentTypeSelect, "application/json");
 
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
-        '{"title":"Custom JSON"}',
+        '{\n  "title": "Custom JSON"\n}',
       );
 
       await user.selectOptions(contentTypeSelect, "application/xml");

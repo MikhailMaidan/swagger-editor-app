@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import {
   createCurlPreview,
@@ -15,7 +15,11 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
-import { hasInvalidJsonBody } from "@/lib/request-body";
+import {
+  formatJsonBody,
+  hasInvalidJsonBody,
+  isJsonMediaType,
+} from "@/lib/request-body";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
@@ -265,6 +269,7 @@ function EndpointCardComponent({
   endpoint: EndpointSummary;
 }) {
   const { t } = useI18n();
+  const requestBodyInputId = useId();
   const groupedParameters = useMemo(
     () => groupParameters(endpoint.parameters),
     [endpoint.parameters],
@@ -311,6 +316,7 @@ function EndpointCardComponent({
   const isRequestBodyRequired = activeRequestBody?.required === true;
   const isRequiredRequestBodyMissing =
     isRequestBodyRequired && !requestBodyValue.trim();
+  const isJsonRequestBody = isJsonMediaType(activeRequestContentType);
   const isJsonRequestBodyInvalid = hasInvalidJsonBody(
     activeRequestContentType,
     requestBodyValue,
@@ -461,6 +467,23 @@ function EndpointCardComponent({
 
     setSelectedRequestContentType(contentType);
     setRequestBodyValue(nextValue);
+  }
+
+  function handleRequestBodyChange(value: string) {
+    editedRequestContentTypesRef.current.add(activeRequestContentType);
+    requestBodyDraftsRef.current[activeRequestContentType] = value;
+    setRequestBodyValue(value);
+  }
+
+  function handleFormatRequestBody() {
+    const formattedBody = formatJsonBody(
+      activeRequestContentType,
+      requestBodyValue,
+    );
+
+    if (formattedBody !== null) {
+      handleRequestBodyChange(formattedBody);
+    }
   }
 
   function handleResponseStatusChange(status: string) {
@@ -800,33 +823,52 @@ function EndpointCardComponent({
                 </select>
               </label>
             ) : null}
-            <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-              <span className="flex flex-wrap items-center gap-2">
-                {t("workspace.requestBody")}
-                {isRequestBodyRequired ? (
-                  <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
-                    {t("workspace.required")}
-                  </span>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label
+                  className="flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
+                  htmlFor={requestBodyInputId}
+                >
+                  {t("workspace.requestBody")}
+                  {isRequestBodyRequired ? (
+                    <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                      {t("workspace.required")}
+                    </span>
+                  ) : null}
+                </label>
+                {isJsonRequestBody ? (
+                  <button
+                    className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={
+                      !requestBodyValue.trim() || isJsonRequestBodyInvalid
+                    }
+                    type="button"
+                    onClick={handleFormatRequestBody}
+                  >
+                    {t("workspace.formatRequestBody")}
+                  </button>
                 ) : null}
-              </span>
+              </div>
               <textarea
+                aria-describedby={
+                  isRequestBodyInvalid
+                    ? `${requestBodyInputId}-error`
+                    : undefined
+                }
                 aria-invalid={isRequestBodyInvalid || undefined}
                 aria-label={t("workspace.requestBodyInputLabel")}
                 className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                id={requestBodyInputId}
                 required={isRequestBodyRequired}
                 value={requestBodyValue}
-                onChange={(event) => {
-                  editedRequestContentTypesRef.current.add(
-                    activeRequestContentType,
-                  );
-                  requestBodyDraftsRef.current[activeRequestContentType] =
-                    event.target.value;
-                  setRequestBodyValue(event.target.value);
-                }}
+                onChange={(event) =>
+                  handleRequestBodyChange(event.target.value)
+                }
               />
               {isRequiredRequestBodyMissing ? (
                 <span
                   className="text-xs font-semibold text-red-700"
+                  id={`${requestBodyInputId}-error`}
                   role="alert"
                 >
                   {t("workspace.requestBodyRequired")}
@@ -835,12 +877,13 @@ function EndpointCardComponent({
               {isJsonRequestBodyInvalid ? (
                 <span
                   className="text-xs font-semibold text-red-700"
+                  id={`${requestBodyInputId}-error`}
                   role="alert"
                 >
                   {t("workspace.requestBodyInvalidJson")}
                 </span>
               ) : null}
-            </label>
+            </div>
           </div>
         ) : null}
 

@@ -179,6 +179,7 @@ export const translations = {
     "workspace.properties": "Properties:",
     "workspace.query": "Query",
     "workspace.requestBody": "Request body",
+    "workspace.formatRequestBody": "Format JSON",
     "workspace.requestBodyInputLabel": "Editable request body",
     "workspace.requestBodyInvalidJson": "Enter valid JSON before executing.",
     "workspace.requestBodyRequired": "Request body is required.",
@@ -388,6 +389,7 @@ export const translations = {
     "workspace.properties": "Свойства:",
     "workspace.query": "Query",
     "workspace.requestBody": "Тело запроса",
+    "workspace.formatRequestBody": "Форматировать JSON",
     "workspace.requestBodyInputLabel": "Редактируемое тело запроса",
     "workspace.requestBodyInvalidJson":
       "Введите корректный JSON перед выполнением.",

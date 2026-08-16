@@ -16,3 +16,15 @@ export function hasInvalidJsonBody(contentType: string, body: string) {
     return true;
   }
 }
+
+export function formatJsonBody(contentType: string, body: string) {
+  if (!body.trim() || !isJsonMediaType(contentType)) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch {
+    return null;
+  }
+}
