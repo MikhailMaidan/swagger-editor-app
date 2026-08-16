@@ -545,6 +545,12 @@ function EndpointCardComponent({
     }
   }
 
+  function handleClearResponse() {
+    setMockResult(null);
+    setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
+  }
+
   function handleParameterValueChange(
     parameter: EndpointParameter,
     value: string,
@@ -1175,6 +1181,13 @@ function EndpointCardComponent({
               </span>
             ) : null}
             <div className="ml-auto flex flex-wrap items-center gap-2">
+              <button
+                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                type="button"
+                onClick={handleClearResponse}
+              >
+                {t("workspace.clearResponse")}
+              </button>
               <button
                 className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!mockResult.body}

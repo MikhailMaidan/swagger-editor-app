@@ -1380,6 +1380,20 @@ paths:
     expect(
       screen.queryByText("Response headers copied."),
     ).not.toBeInTheDocument();
+
+    const savedHistory = window.localStorage.getItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+    );
+    await user.click(screen.getByRole("button", { name: "Clear response" }));
+
+    expect(screen.queryByLabelText("Response body")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy response body" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText("Path parameter id")[0]).toHaveValue("42");
+    expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBe(
+      savedHistory,
+    );
   });
 
   it("downloads the original response body with content-type metadata", async () => {
