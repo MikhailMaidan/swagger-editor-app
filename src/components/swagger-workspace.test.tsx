@@ -440,8 +440,31 @@ paths:
       );
 
       fireEvent.change(screen.getByLabelText("Editable request body"), {
+        target: { value: '{"title":' },
+      });
+
+      expect(
+        screen.getByText("Enter valid JSON before executing."),
+      ).toBeVisible();
+      expect(screen.getByLabelText("Editable request body")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+      expect(
+        screen.getByRole("button", { name: "Try It Out" }),
+      ).toBeDisabled();
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      fireEvent.change(screen.getByLabelText("Editable request body"), {
         target: { value: '{"title":"Custom JSON"}' },
       });
+
+      expect(
+        screen.queryByText("Enter valid JSON before executing."),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Try It Out" }),
+      ).toBeEnabled();
 
       await user.selectOptions(contentTypeSelect, "application/xml");
 

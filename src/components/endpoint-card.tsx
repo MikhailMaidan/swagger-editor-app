@@ -15,6 +15,7 @@ import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
+import { hasInvalidJsonBody } from "@/lib/request-body";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
@@ -310,6 +311,12 @@ function EndpointCardComponent({
   const isRequestBodyRequired = activeRequestBody?.required === true;
   const isRequiredRequestBodyMissing =
     isRequestBodyRequired && !requestBodyValue.trim();
+  const isJsonRequestBodyInvalid = hasInvalidJsonBody(
+    activeRequestContentType,
+    requestBodyValue,
+  );
+  const isRequestBodyInvalid =
+    isRequiredRequestBodyMissing || isJsonRequestBodyInvalid;
   const editedRequestContentTypesRef = useRef(new Set<string>());
   const requestBodyDraftsRef = useRef<Record<string, string>>({});
   const previousRequestContentTypeRef = useRef(activeRequestContentType);
@@ -483,7 +490,7 @@ function EndpointCardComponent({
   }
 
   async function handleTryItOut() {
-    if (isExecuting || isRequiredRequestBodyMissing) {
+    if (isExecuting || isRequestBodyInvalid) {
       return;
     }
 
@@ -803,7 +810,7 @@ function EndpointCardComponent({
                 ) : null}
               </span>
               <textarea
-                aria-invalid={isRequiredRequestBodyMissing || undefined}
+                aria-invalid={isRequestBodyInvalid || undefined}
                 aria-label={t("workspace.requestBodyInputLabel")}
                 className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
                 required={isRequestBodyRequired}
@@ -823,6 +830,14 @@ function EndpointCardComponent({
                   role="alert"
                 >
                   {t("workspace.requestBodyRequired")}
+                </span>
+              ) : null}
+              {isJsonRequestBodyInvalid ? (
+                <span
+                  className="text-xs font-semibold text-red-700"
+                  role="alert"
+                >
+                  {t("workspace.requestBodyInvalidJson")}
                 </span>
               ) : null}
             </label>
@@ -866,7 +881,7 @@ function EndpointCardComponent({
             <button
               aria-busy={isExecuting}
               className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isExecuting || isRequiredRequestBodyMissing}
+              disabled={isExecuting || isRequestBodyInvalid}
               type="button"
               onClick={handleTryItOut}
             >
