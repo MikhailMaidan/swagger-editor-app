@@ -11,6 +11,7 @@ import {
   REQUEST_HISTORY_STORAGE_KEY,
   saveRequestHistoryRecord,
 } from "./request-history";
+import { readSchemaDraft, saveSchemaDraft } from "./schema-draft";
 import { readSavedSchema, saveSchema } from "./schema-storage";
 
 describe("client auth helpers", () => {
@@ -51,11 +52,13 @@ describe("client auth helpers", () => {
       status: 200,
       summary: "List users",
     });
+    saveSchemaDraft("openapi: 3.0.0\ninfo:\n  title: Guest Draft");
     saveSchema("openapi: 3.0.0\ninfo:\n  title: First User's API");
 
     clearClientAuth();
 
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
+    expect(readSchemaDraft()).toBeNull();
     expect(readSavedSchema()).toBeNull();
   });
 

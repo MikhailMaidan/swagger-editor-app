@@ -10,6 +10,7 @@ import {
   isTokenValid,
 } from "./auth";
 import { clearRequestHistory } from "./request-history";
+import { clearSchemaDraft } from "./schema-draft";
 import { clearSavedSchema } from "./schema-storage";
 
 export type ClientAuthState = {
@@ -86,6 +87,7 @@ export function clearClientAuth() {
   // Otherwise the next person to sign in on this browser would inherit the
   // previous user's request history and saved schema.
   clearRequestHistory();
+  clearSchemaDraft();
   clearSavedSchema();
 
   void fetch("/api/sign-out", { method: "POST" }).catch(() => {

@@ -15,6 +15,11 @@ import {
 } from "@/lib/openapi";
 import type { EndpointSummary } from "@/lib/openapi";
 import {
+  clearSchemaDraft,
+  readSchemaDraft,
+  saveSchemaDraft,
+} from "@/lib/schema-draft";
+import {
   readSavedSchema,
   readServerSavedSchemas,
   saveSchema,
@@ -159,6 +164,36 @@ export function SwaggerWorkspace({
   }, [schemaText]);
 
   useEffect(() => {
+    if (isAuthenticated || hasEditedSchemaRef.current) {
+      return;
+    }
+
+    const draft = readSchemaDraft();
+
+    if (!draft) {
+      return;
+    }
+
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled && !hasEditedSchemaRef.current) {
+        setSchemaText(draft);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated && hasEditedSchemaRef.current) {
+      saveSchemaDraft(debouncedSchemaText);
+    }
+  }, [debouncedSchemaText, isAuthenticated]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       return;
     }
@@ -274,6 +309,7 @@ export function SwaggerWorkspace({
 
     if (savedSchema) {
       lastSavedSchemaRef.current = savedSchema;
+      clearSchemaDraft();
       void saveServerSchemaRecord(savedSchema);
     }
 

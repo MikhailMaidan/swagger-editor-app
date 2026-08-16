@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
+import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
 import { SwaggerWorkspace } from "./swagger-workspace";
 
@@ -1156,6 +1157,35 @@ paths:
       screen.getByText("Sign in to save and restore schemas."),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Save schema" })).toBeDisabled();
+  });
+
+  it("restores and updates a debounced guest schema draft", async () => {
+    const restoredDraft = `openapi: 3.0.0
+info:
+  title: Guest Draft API
+  version: 1.0.0
+paths: {}`;
+    const editedDraft = restoredDraft.replace("1.0.0", "2.0.0");
+    window.localStorage.setItem(SCHEMA_DRAFT_STORAGE_KEY, restoredDraft);
+
+    render(<SwaggerWorkspace />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Guest Draft API" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+      restoredDraft,
+    );
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: { value: editedDraft },
+    });
+
+    await waitFor(() =>
+      expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBe(
+        editedDraft,
+      ),
+    );
   });
 
   it("saves a valid schema for authenticated users", async () => {
