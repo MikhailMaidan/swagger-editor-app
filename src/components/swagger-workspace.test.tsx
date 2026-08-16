@@ -321,6 +321,36 @@ paths:
     );
     expect(curlPreview.textContent).toContain('-H "X-Trace-Id: trace-1"');
 
+    fireEvent.change(screen.getByLabelText("Header parameter X-Trace-Id"), {
+      target: { value: " " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Try It Out" }));
+
+    expect(screen.getByText("X-Trace-Id is required.")).toBeVisible();
+    expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: "Try It Out" }),
+    ).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Header parameter X-Trace-Id"), {
+      target: { value: "trace-2" },
+    });
+
+    expect(
+      screen.queryByText("X-Trace-Id is required."),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Try It Out" }),
+    ).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset values" }));
+    expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveValue(
+      "trace-1",
+    );
+
     fireEvent.change(
       screen.getByLabelText(
         "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
@@ -824,6 +854,7 @@ paths:
         value: JSON.stringify({ name: "Mikhail" }, null, 2),
       },
     });
+    await user.type(screen.getAllByLabelText("Path parameter id")[1], "42");
     await user.click(screen.getAllByRole("button", { name: "Try It Out" })[1]);
 
     expect(screen.getByRole("status")).toHaveTextContent("Request preview");
@@ -1301,6 +1332,7 @@ paths:
       ).not.toBeDisabled();
     });
 
+    await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
     await user.click(screen.getAllByRole("button", { name: "Try It Out" })[0]);
 
     expect(screen.getByRole("status")).toHaveTextContent("Response");
@@ -1356,6 +1388,7 @@ paths:
         ).not.toBeDisabled();
       });
 
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
       await user.click(
         screen.getAllByRole("button", { name: "Try It Out" })[0],
       );
@@ -1397,6 +1430,7 @@ paths:
     try {
       render(<SwaggerWorkspace />);
 
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
       await user.click(
         screen.getAllByRole("button", { name: "Try It Out" })[0],
       );
@@ -1414,7 +1448,7 @@ paths:
       expect(requestBody).toMatchObject({
         method: "GET",
         path: "/users/{id}",
-        requestParameters: [],
+        requestParameters: [{ location: "path", name: "id", value: "42" }],
         serverUrl: "https://jsonplaceholder.typicode.com",
       });
       expect(screen.getByRole("status")).toHaveTextContent("88 ms");
@@ -1457,6 +1491,7 @@ paths:
 
     render(<SwaggerWorkspace />);
 
+    await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
     await user.click(screen.getAllByRole("button", { name: "Try It Out" })[0]);
 
     expect(screen.getByRole("status")).toHaveTextContent("Guest run");
@@ -1474,6 +1509,9 @@ paths:
 
     try {
       render(<SwaggerWorkspace />);
+      fireEvent.change(screen.getAllByLabelText("Path parameter id")[0], {
+        target: { value: "42" },
+      });
 
       const executeButton = screen.getAllByRole("button", {
         name: "Try It Out",

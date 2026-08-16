@@ -20,6 +20,10 @@ import {
   hasInvalidJsonBody,
   isJsonMediaType,
 } from "@/lib/request-body";
+import {
+  getMissingRequiredParameterKeys,
+  getRequestParameterKey,
+} from "@/lib/request-parameters";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
@@ -150,14 +154,10 @@ function getMethodClass(method: string) {
   return methodColorClasses[method] || "bg-slate-100 text-slate-700";
 }
 
-function getParameterKey(parameter: EndpointParameter) {
-  return `${parameter.location}:${parameter.name}`;
-}
-
 function createInitialParameterValues(endpoint: EndpointSummary) {
   return endpoint.parameters.reduce<Record<string, string>>(
     (values, parameter) => {
-      values[getParameterKey(parameter)] = parameter.example;
+      values[getRequestParameterKey(parameter)] = parameter.example;
       return values;
     },
     {},
@@ -180,7 +180,7 @@ function createRequestParameters(
     .map<CurlParameter>((parameter) => ({
       location: parameter.location,
       name: parameter.name,
-      value: (values[getParameterKey(parameter)] || "").trim(),
+      value: (values[getRequestParameterKey(parameter)] || "").trim(),
     }))
     .filter((parameter) => parameter.value);
 }
@@ -299,9 +299,15 @@ function EndpointCardComponent({
   const [copiedCurl, setCopiedCurl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
+  const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
+  const missingRequiredParameterKeys = new Set(
+    getMissingRequiredParameterKeys(endpoint.parameters, parameterValues),
+  );
+  const hasMissingRequiredParameters =
+    missingRequiredParameterKeys.size > 0;
   const editedParameterKeysRef = useRef(new Set<string>());
   const [selectedRequestContentType, setSelectedRequestContentType] = useState(
     () => endpoint.requestBodies[0]?.contentType || "",
@@ -373,7 +379,7 @@ function EndpointCardComponent({
       const activeParameterKeys = new Set<string>();
 
       endpoint.parameters.forEach((parameter) => {
-        const key = getParameterKey(parameter);
+        const key = getRequestParameterKey(parameter);
         activeParameterKeys.add(key);
 
         if (
@@ -452,10 +458,10 @@ function EndpointCardComponent({
     parameter: EndpointParameter,
     value: string,
   ) {
-    editedParameterKeysRef.current.add(getParameterKey(parameter));
+    editedParameterKeysRef.current.add(getRequestParameterKey(parameter));
     setParameterValues((currentValues) => ({
       ...currentValues,
-      [getParameterKey(parameter)]: value,
+      [getRequestParameterKey(parameter)]: value,
     }));
   }
 
@@ -507,6 +513,7 @@ function EndpointCardComponent({
     setSelectedRequestContentType(defaultRequestBody?.contentType || "");
     setRequestBodyValue(defaultRequestBody?.schema.example || "");
     setSelectedResponseStatus(defaultResponseStatus);
+    setHasAttemptedExecution(false);
     setMockResult(null);
     setCopiedCurl("");
     setCopiedResponseBody("");
@@ -514,6 +521,11 @@ function EndpointCardComponent({
 
   async function handleTryItOut() {
     if (isExecuting || isRequestBodyInvalid) {
+      return;
+    }
+
+    if (hasMissingRequiredParameters) {
+      setHasAttemptedExecution(true);
       return;
     }
 
@@ -752,13 +764,18 @@ function EndpointCardComponent({
         </div>
         {endpoint.parameters.length > 0 ? (
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {endpoint.parameters.map((parameter) => {
+            {endpoint.parameters.map((parameter, parameterIndex) => {
               const locationLabel = t(parameterLabelKeys[parameter.location]);
+              const parameterKey = getRequestParameterKey(parameter);
+              const isRequiredParameterMissing =
+                hasAttemptedExecution &&
+                missingRequiredParameterKeys.has(parameterKey);
+              const parameterErrorId = `${requestBodyInputId}-parameter-${parameterIndex}-error`;
 
               return (
                 <label
                   className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
-                  key={getParameterKey(parameter)}
+                  key={parameterKey}
                 >
                   <span>
                     {locationLabel}: {parameter.name}
@@ -769,6 +786,12 @@ function EndpointCardComponent({
                     ) : null}
                   </span>
                   <input
+                    aria-describedby={
+                      isRequiredParameterMissing
+                        ? parameterErrorId
+                        : undefined
+                    }
+                    aria-invalid={isRequiredParameterMissing || undefined}
                     aria-label={t("workspace.parameterInputLabel", {
                       location: locationLabel,
                       name: parameter.name,
@@ -783,7 +806,7 @@ function EndpointCardComponent({
                     }
                     required={parameter.required}
                     type="text"
-                    value={parameterValues[getParameterKey(parameter)] ?? ""}
+                    value={parameterValues[parameterKey] ?? ""}
                     onChange={(event) =>
                       handleParameterValueChange(parameter, event.target.value)
                     }
@@ -791,6 +814,17 @@ function EndpointCardComponent({
                   {parameter.description ? (
                     <span className="text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
                       {parameter.description}
+                    </span>
+                  ) : null}
+                  {isRequiredParameterMissing ? (
+                    <span
+                      className="text-xs font-semibold text-red-700"
+                      id={parameterErrorId}
+                      role="alert"
+                    >
+                      {t("workspace.parameterRequired", {
+                        name: parameter.name,
+                      })}
                     </span>
                   ) : null}
                 </label>
@@ -924,7 +958,11 @@ function EndpointCardComponent({
             <button
               aria-busy={isExecuting}
               className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isExecuting || isRequestBodyInvalid}
+              disabled={
+                isExecuting ||
+                isRequestBodyInvalid ||
+                (hasAttemptedExecution && hasMissingRequiredParameters)
+              }
               type="button"
               onClick={handleTryItOut}
             >
