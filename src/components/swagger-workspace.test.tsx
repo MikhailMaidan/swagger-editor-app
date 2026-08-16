@@ -34,8 +34,19 @@ describe("SwaggerWorkspace", () => {
 
       expect(editor).toHaveStyle({ height: "780px" });
       expect(editor).toHaveAttribute("wrap", "off");
+      expect(editor).toHaveAttribute("spellcheck", "false");
       expect(editor.className).toContain("block");
       expect(editor.className).toContain("overflow-y-hidden");
+      expect(screen.getByText("Line 1, column 1")).toBeVisible();
+
+      const titleOffset = (editor as HTMLTextAreaElement).value.indexOf("title") + 2;
+      (editor as HTMLTextAreaElement).setSelectionRange(
+        titleOffset,
+        titleOffset,
+      );
+      fireEvent.select(editor);
+
+      expect(screen.getByText("Line 3, column 5")).toBeVisible();
     } finally {
       if (originalDescriptor) {
         Object.defineProperty(

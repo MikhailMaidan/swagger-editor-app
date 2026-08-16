@@ -1,6 +1,6 @@
 "use client";
 
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, SyntheticEvent } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
@@ -26,6 +26,7 @@ import {
   saveServerSchemaRecord,
   SavedSchemaRecord,
 } from "@/lib/schema-storage";
+import { getTextPosition } from "@/lib/text-position";
 import type { TranslationKey } from "@/lib/translations";
 
 const schemaErrorKeys: Record<string, TranslationKey> = {
@@ -62,6 +63,7 @@ export function SwaggerWorkspace({
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
+  const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
@@ -183,6 +185,7 @@ export function SwaggerWorkspace({
     queueMicrotask(() => {
       if (!cancelled && !hasEditedSchemaRef.current) {
         setSchemaText(draft);
+        setEditorCursor({ column: 1, line: 1 });
       }
     });
 
@@ -212,6 +215,7 @@ export function SwaggerWorkspace({
       queueMicrotask(() => {
         if (!cancelled) {
           setSchemaText(savedSchema);
+          setEditorCursor({ column: 1, line: 1 });
         }
       });
 
@@ -233,6 +237,7 @@ export function SwaggerWorkspace({
       if (latestSchema) {
         lastSavedSchemaRef.current = latestSchema;
         setSchemaText(latestSchema.schemaText);
+        setEditorCursor({ column: 1, line: 1 });
       }
     });
 
@@ -248,6 +253,7 @@ export function SwaggerWorkspace({
 
     hasEditedSchemaRef.current = true;
     setSchemaText(formatOpenApiSchema(parseResult.value.schema, targetFormat));
+    setEditorCursor({ column: 1, line: 1 });
   }
 
   function handleDownloadSchema() {
@@ -289,6 +295,7 @@ export function SwaggerWorkspace({
       // create a new record instead of overwriting whatever was last saved.
       lastSavedSchemaRef.current = null;
       setSchemaText(String(reader.result));
+      setEditorCursor({ column: 1, line: 1 });
       setSaveMessage("");
       setImportError("");
     };
@@ -307,6 +314,7 @@ export function SwaggerWorkspace({
     hasEditedSchemaRef.current = false;
     lastSavedSchemaRef.current = null;
     setSchemaText(DEFAULT_OPENAPI_SCHEMA);
+    setEditorCursor({ column: 1, line: 1 });
     setSaveMessage("");
     setImportError("");
     setEndpointFilter("");
@@ -319,6 +327,12 @@ export function SwaggerWorkspace({
     setEndpointFilter("");
     setSelectedMethod("all");
     setSelectedTag("all");
+  }
+
+  function handleEditorSelection(event: SyntheticEvent<HTMLTextAreaElement>) {
+    const editor = event.currentTarget;
+
+    setEditorCursor(getTextPosition(editor.value, editor.selectionStart));
   }
 
   function handleSaveSchema() {
@@ -428,14 +442,25 @@ export function SwaggerWorkspace({
           className="block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
           value={schemaText}
           aria-label="OpenAPI schema editor"
+          spellCheck={false}
           wrap="off"
           onChange={(event) => {
             hasEditedSchemaRef.current = true;
             setSchemaText(event.target.value);
+            setEditorCursor(
+              getTextPosition(event.target.value, event.target.selectionStart),
+            );
             setSaveMessage("");
             setImportError("");
           }}
+          onSelect={handleEditorSelection}
         />
+        <p className="border-t border-[color:var(--color-brand-border)] bg-white px-5 py-2 text-right font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
+          {t("workspace.editorCursorPosition", {
+            column: String(editorCursor.column),
+            line: String(editorCursor.line),
+          })}
+        </p>
         {!isAuthenticated ? (
           <p className="border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
             {t("workspace.signInToSave")}

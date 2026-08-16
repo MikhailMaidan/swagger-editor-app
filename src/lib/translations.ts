@@ -153,6 +153,7 @@ export const translations = {
     "workspace.download": "Download",
     "workspace.downloadResponse": "Download response",
     "workspace.editor": "Editor",
+    "workspace.editorCursorPosition": "Line {line}, column {column}",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary":
       "Showing {visible} of {total} endpoints",
@@ -378,6 +379,7 @@ export const translations = {
     "workspace.download": "Скачать",
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.editor": "Редактор",
+    "workspace.editorCursorPosition": "Строка {line}, столбец {column}",
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
