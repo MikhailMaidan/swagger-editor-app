@@ -9,6 +9,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
@@ -1186,6 +1187,45 @@ paths: {}`;
         editedDraft,
       ),
     );
+  });
+
+  it("resets a guest draft to the default schema only after confirmation", async () => {
+    const user = userEvent.setup();
+    const draft = `openapi: 3.0.0
+info:
+  title: Resettable Draft API
+  version: 1.0.0
+paths: {}`;
+    const confirmSpy = vi
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    window.localStorage.setItem(SCHEMA_DRAFT_STORAGE_KEY, draft);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(
+        await screen.findByRole("heading", { name: "Resettable Draft API" }),
+      ).toBeVisible();
+
+      await user.click(screen.getByRole("button", { name: "Reset editor" }));
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(draft);
+      expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBe(draft);
+
+      await user.click(screen.getByRole("button", { name: "Reset editor" }));
+
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+      expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBeNull();
+      expect(
+        await screen.findByRole("heading", { name: "RSSwag Demo API" }),
+      ).toBeVisible();
+      expect(confirmSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      confirmSpy.mockRestore();
+    }
   });
 
   it("saves a valid schema for authenticated users", async () => {

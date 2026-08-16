@@ -195,6 +195,9 @@ export const translations = {
     "workspace.requestSize": "Request {size} B",
     "workspace.requestUrlCopied": "Request URL copied.",
     "workspace.required": "Required",
+    "workspace.resetEditor": "Reset editor",
+    "workspace.resetEditorConfirm":
+      "Reset the editor to the default schema? Unsaved changes will be lost.",
     "workspace.resetTryItOut": "Reset values",
     "workspace.response": "Response",
     "workspace.responseBody": "Response body",
@@ -415,6 +418,9 @@ export const translations = {
     "workspace.requestSize": "Запрос {size} Б",
     "workspace.requestUrlCopied": "URL запроса скопирован.",
     "workspace.required": "Обязательно",
+    "workspace.resetEditor": "Сбросить редактор",
+    "workspace.resetEditorConfirm":
+      "Сбросить редактор до схемы по умолчанию? Несохранённые изменения будут потеряны.",
     "workspace.resetTryItOut": "Сбросить значения",
     "workspace.response": "Ответ",
     "workspace.responseBody": "Тело ответа",

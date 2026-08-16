@@ -294,6 +294,23 @@ export function SwaggerWorkspace({
     reader.readAsText(file);
   }
 
+  function handleResetEditor() {
+    if (!window.confirm(t("workspace.resetEditorConfirm"))) {
+      return;
+    }
+
+    clearSchemaDraft();
+    hasEditedSchemaRef.current = false;
+    lastSavedSchemaRef.current = null;
+    setSchemaText(DEFAULT_OPENAPI_SCHEMA);
+    setSaveMessage("");
+    setImportError("");
+    setEndpointFilter("");
+    setSelectedMethod("all");
+    setSelectedTag("all");
+    setSelectedServerUrl("");
+  }
+
   function handleSaveSchema() {
     if (!isAuthenticated || !parseResult.ok) {
       return;
@@ -334,7 +351,7 @@ export function SwaggerWorkspace({
               {t("workspace.openApiSchema")}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <span
               className={`rounded-2xl px-4 py-2 text-sm font-bold ${
                 parseResult.ok
@@ -355,6 +372,13 @@ export function SwaggerWorkspace({
               aria-label="Import OpenAPI schema file"
               onChange={handleFileSelected}
             />
+            <button
+              className="rounded-2xl border border-[color:var(--color-brand-border)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+              type="button"
+              onClick={handleResetEditor}
+            >
+              {t("workspace.resetEditor")}
+            </button>
             <button
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
