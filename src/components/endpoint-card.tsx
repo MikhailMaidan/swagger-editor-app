@@ -25,6 +25,7 @@ import {
   getRequestParameterKey,
 } from "@/lib/request-parameters";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
+import { formatResponseHeaders } from "@/lib/response-headers";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
@@ -299,6 +300,7 @@ function EndpointCardComponent({
   const [copiedCurl, setCopiedCurl] = useState("");
   const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
+  const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
   const [parameterValues, setParameterValues] = useState(() =>
@@ -347,6 +349,7 @@ function EndpointCardComponent({
     previousResponseStatusRef.current = activeResponseStatus;
     setMockResult(null);
     setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
   }, [activeResponseStatus]);
 
   // EndpointCard is keyed by method+path, so editing an endpoint's example
@@ -437,9 +440,16 @@ function EndpointCardComponent({
     () => (mockResult ? formatResponseBody(mockResult.body) : ""),
     [mockResult],
   );
+  const formattedResponseHeaders = useMemo(
+    () => (mockResult ? formatResponseHeaders(mockResult.headers) : ""),
+    [mockResult],
+  );
   const isResponseCopied =
     Boolean(formattedResponseBody) &&
     copiedResponseBody === formattedResponseBody;
+  const areResponseHeadersCopied =
+    Boolean(formattedResponseHeaders) &&
+    copiedResponseHeaders === formattedResponseHeaders;
 
   async function handleCopyCurl() {
     setCopiedRequestUrl("");
@@ -472,6 +482,8 @@ function EndpointCardComponent({
   }
 
   async function handleCopyResponse() {
+    setCopiedResponseHeaders("");
+
     if (!navigator.clipboard || !formattedResponseBody) {
       return;
     }
@@ -481,6 +493,21 @@ function EndpointCardComponent({
       setCopiedResponseBody(formattedResponseBody);
     } catch {
       setCopiedResponseBody("");
+    }
+  }
+
+  async function handleCopyResponseHeaders() {
+    setCopiedResponseBody("");
+
+    if (!navigator.clipboard || !formattedResponseHeaders) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(formattedResponseHeaders);
+      setCopiedResponseHeaders(formattedResponseHeaders);
+    } catch {
+      setCopiedResponseHeaders("");
     }
   }
 
@@ -526,6 +553,7 @@ function EndpointCardComponent({
     setSelectedResponseStatus(status);
     setMockResult(null);
     setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
   }
 
   function handleResetTryItOut() {
@@ -548,6 +576,7 @@ function EndpointCardComponent({
     setCopiedCurl("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
   }
 
   async function handleTryItOut() {
@@ -562,6 +591,7 @@ function EndpointCardComponent({
 
     setIsExecuting(true);
     setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
     const response = getMockResponse(
       activeResponse,
       t("workspace.noResponseExample", {
@@ -1062,15 +1092,29 @@ function EndpointCardComponent({
               <span className="font-bold text-emerald-700">
                 {t("workspace.responseCopied")}
               </span>
+            ) : areResponseHeadersCopied ? (
+              <span className="font-bold text-emerald-700">
+                {t("workspace.responseHeadersCopied")}
+              </span>
             ) : null}
-            <button
-              className="ml-auto h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!formattedResponseBody}
-              type="button"
-              onClick={handleCopyResponse}
-            >
-              {t("workspace.copyResponse")}
-            </button>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <button
+                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!formattedResponseHeaders}
+                type="button"
+                onClick={handleCopyResponseHeaders}
+              >
+                {t("workspace.copyResponseHeaders")}
+              </button>
+              <button
+                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!formattedResponseBody}
+                type="button"
+                onClick={handleCopyResponse}
+              >
+                {t("workspace.copyResponse")}
+              </button>
+            </div>
           </div>
           <p className="mt-3 break-all font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
             {mockResult.url}

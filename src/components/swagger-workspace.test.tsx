@@ -1361,6 +1361,15 @@ paths:
     );
 
     await user.click(
+      screen.getByRole("button", { name: "Copy response headers" }),
+    );
+
+    expect(writeText).toHaveBeenLastCalledWith(
+      "content-type: application/json",
+    );
+    expect(screen.getByText("Response headers copied.")).toBeVisible();
+
+    await user.click(
       screen.getByRole("button", { name: "Copy response body" }),
     );
 
@@ -1368,6 +1377,9 @@ paths:
       expect.stringContaining('"name": "Alex Smith"'),
     );
     expect(screen.getByText("Response copied.")).toBeVisible();
+    expect(
+      screen.queryByText("Response headers copied."),
+    ).not.toBeInTheDocument();
   });
 
   it("records a failed request in history with its real status instead of a fake 200", async () => {
