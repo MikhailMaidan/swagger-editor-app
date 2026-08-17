@@ -1,6 +1,10 @@
 "use client";
 
-import type { ChangeEvent, SyntheticEvent } from "react";
+import type {
+  ChangeEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  SyntheticEvent,
+} from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
@@ -26,6 +30,7 @@ import {
   saveServerSchemaRecord,
   SavedSchemaRecord,
 } from "@/lib/schema-storage";
+import { changeTextIndentation } from "@/lib/text-indentation";
 import { getTextPosition } from "@/lib/text-position";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -61,6 +66,10 @@ export function SwaggerWorkspace({
 }: SwaggerWorkspaceProps = {}) {
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const pendingEditorSelectionRef = useRef<{
+    end: number;
+    start: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
@@ -167,6 +176,13 @@ export function SwaggerWorkspace({
 
     editor.style.height = "auto";
     editor.style.height = `${Math.max(editor.scrollHeight, 430)}px`;
+
+    const pendingSelection = pendingEditorSelectionRef.current;
+
+    if (pendingSelection) {
+      editor.setSelectionRange(pendingSelection.start, pendingSelection.end);
+      pendingEditorSelectionRef.current = null;
+    }
   }, [schemaText]);
 
   useEffect(() => {
@@ -335,6 +351,40 @@ export function SwaggerWorkspace({
     setEditorCursor(getTextPosition(editor.value, editor.selectionStart));
   }
 
+  function handleEditorKeyDown(
+    event: ReactKeyboardEvent<HTMLTextAreaElement>,
+  ) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const editor = event.currentTarget;
+    const result = changeTextIndentation(
+      editor.value,
+      editor.selectionStart,
+      editor.selectionEnd,
+      event.shiftKey,
+    );
+
+    setEditorCursor(getTextPosition(result.value, result.selectionStart));
+
+    if (result.value === editor.value) {
+      editor.setSelectionRange(result.selectionStart, result.selectionEnd);
+      return;
+    }
+
+    hasEditedSchemaRef.current = true;
+    pendingEditorSelectionRef.current = {
+      end: result.selectionEnd,
+      start: result.selectionStart,
+    };
+    setSchemaText(result.value);
+    setSaveMessage("");
+    setImportError("");
+  }
+
   function handleSaveSchema() {
     if (!isAuthenticated || !parseResult.ok) {
       return;
@@ -444,6 +494,7 @@ export function SwaggerWorkspace({
           aria-label="OpenAPI schema editor"
           spellCheck={false}
           wrap="off"
+          onKeyDown={handleEditorKeyDown}
           onChange={(event) => {
             hasEditedSchemaRef.current = true;
             setSchemaText(event.target.value);

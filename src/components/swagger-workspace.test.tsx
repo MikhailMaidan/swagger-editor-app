@@ -61,6 +61,29 @@ describe("SwaggerWorkspace", () => {
     }
   });
 
+  it("supports Tab and Shift+Tab indentation in the schema editor", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+
+    editor.setSelectionRange(0, 0);
+    fireEvent.keyDown(editor, { key: "Tab" });
+
+    expect(editor.value).toBe(`  ${DEFAULT_OPENAPI_SCHEMA}`);
+    expect(editor.selectionStart).toBe(2);
+    expect(editor.selectionEnd).toBe(2);
+    expect(screen.getByText("Line 1, column 3")).toBeVisible();
+
+    fireEvent.keyDown(editor, { key: "Tab", shiftKey: true });
+
+    expect(editor.value).toBe(DEFAULT_OPENAPI_SCHEMA);
+    expect(editor.selectionStart).toBe(0);
+    expect(editor.selectionEnd).toBe(0);
+    expect(screen.getByText("Line 1, column 1")).toBeVisible();
+  });
+
   it("renders the default schema and dynamically populated endpoints", () => {
     render(<SwaggerWorkspace />);
 
