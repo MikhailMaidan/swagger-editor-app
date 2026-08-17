@@ -1405,6 +1405,60 @@ paths: {}`;
     }
   });
 
+  it("saves the latest schema metadata with the editor keyboard shortcut", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
+
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const latestSchema = DEFAULT_OPENAPI_SCHEMA.replace(
+        "RSSwag Demo API",
+        "Shortcut Saved API",
+      ).replace("version: 1.0.0", "version: 2.1.0");
+
+      fireEvent.change(editor, { target: { value: latestSchema } });
+      fireEvent.keyDown(editor, { ctrlKey: true, key: "s" });
+
+      expect(screen.getByRole("status")).toHaveTextContent("Schema saved.");
+      expect(window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY)).toBe(
+        latestSchema,
+      );
+
+      const postCall = fetchMock.mock.calls.find(
+        ([url, options]) =>
+          url === "/api/schemas" &&
+          (options as RequestInit | undefined)?.method === "POST",
+      );
+      const savedRecord = JSON.parse(
+        String((postCall?.[1] as RequestInit | undefined)?.body),
+      );
+
+      expect(savedRecord).toMatchObject({
+        format: "yaml",
+        schemaText: latestSchema,
+        title: "Shortcut Saved API",
+        version: "2.1.0",
+      });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("reuses the same saved-schema id across repeated saves instead of creating duplicates", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(

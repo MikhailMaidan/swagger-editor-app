@@ -424,6 +424,21 @@ export function SwaggerWorkspace({
   function handleEditorKeyDown(
     event: ReactKeyboardEvent<HTMLTextAreaElement>,
   ) {
+    const isSaveShortcut =
+      event.key.toLowerCase() === "s" &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey;
+
+    if (isSaveShortcut) {
+      if (isAuthenticated) {
+        event.preventDefault();
+        handleSaveSchema();
+      }
+
+      return;
+    }
+
     if (event.key !== "Tab") {
       return;
     }
@@ -456,16 +471,24 @@ export function SwaggerWorkspace({
   }
 
   function handleSaveSchema() {
-    if (!isAuthenticated || !parseResult.ok) {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // Keep the persisted text and its metadata on the same revision even
+    // when save is triggered before the debounced preview has caught up.
+    const currentParseResult = parseOpenApiSchema(schemaText);
+
+    if (!currentParseResult.ok) {
       return;
     }
 
     const savedSchema = saveSchema(schemaText, {
       createdAt: lastSavedSchemaRef.current?.createdAt,
-      format: parseResult.value.format,
+      format: currentParseResult.value.format,
       id: lastSavedSchemaRef.current?.id,
-      title: parseResult.value.title,
-      version: parseResult.value.version,
+      title: currentParseResult.value.title,
+      version: currentParseResult.value.version,
     });
 
     if (savedSchema) {
