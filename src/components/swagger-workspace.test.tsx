@@ -913,6 +913,31 @@ paths: {}`,
     }
   });
 
+  it("copies the exact schema text and clears stale copy feedback", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    render(<SwaggerWorkspace />);
+
+    await user.click(screen.getByRole("button", { name: "Copy schema" }));
+
+    expect(writeText).toHaveBeenCalledWith(DEFAULT_OPENAPI_SCHEMA);
+    expect(screen.getByRole("status")).toHaveTextContent("Schema copied.");
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: DEFAULT_OPENAPI_SCHEMA.replace("1.0.0", "1.0.1"),
+      },
+    });
+
+    expect(screen.queryByText("Schema copied.")).not.toBeInTheDocument();
+  });
+
   it("copies generated cURL commands", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);

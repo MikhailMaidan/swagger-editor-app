@@ -81,6 +81,7 @@ export function SwaggerWorkspace({
     userName: "User",
   });
   const [saveMessage, setSaveMessage] = useState("");
+  const [copiedSchemaText, setCopiedSchemaText] = useState<string | null>(null);
   const [importError, setImportError] = useState("");
   const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
@@ -168,6 +169,8 @@ export function SwaggerWorkspace({
     Boolean(endpointFilter) ||
     selectedMethod !== "all" ||
     selectedTag !== "all";
+  const isSchemaCopied =
+    copiedSchemaText !== null && copiedSchemaText === schemaText;
 
   useLayoutEffect(() => {
     const editor = editorRef.current;
@@ -292,6 +295,7 @@ export function SwaggerWorkspace({
     pendingEditorSelectionRef.current = { end: 0, start: 0 };
     setSchemaText(formattedSchema);
     setEditorCursor({ column: 1, line: 1 });
+    setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
   }
@@ -322,6 +326,24 @@ export function SwaggerWorkspace({
     URL.revokeObjectURL(url);
   }
 
+  async function handleCopySchema() {
+    setCopiedSchemaText(null);
+    setSaveMessage("");
+
+    if (!navigator.clipboard) {
+      return;
+    }
+
+    const schemaToCopy = schemaText;
+
+    try {
+      await navigator.clipboard.writeText(schemaToCopy);
+      setCopiedSchemaText(schemaToCopy);
+    } catch {
+      setCopiedSchemaText(null);
+    }
+  }
+
   function handleImportClick() {
     fileInputRef.current?.click();
   }
@@ -344,6 +366,7 @@ export function SwaggerWorkspace({
       pendingEditorSelectionRef.current = { end: 0, start: 0 };
       setSchemaText(reader.result);
       setEditorCursor({ column: 1, line: 1 });
+      setCopiedSchemaText(null);
       setSaveMessage("");
     };
     reader.onerror = () => {
@@ -401,6 +424,7 @@ export function SwaggerWorkspace({
     lastSavedSchemaRef.current = null;
     setSchemaText(DEFAULT_OPENAPI_SCHEMA);
     setEditorCursor({ column: 1, line: 1 });
+    setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
     setEndpointFilter("");
@@ -466,6 +490,7 @@ export function SwaggerWorkspace({
       start: result.selectionStart,
     };
     setSchemaText(result.value);
+    setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
   }
@@ -497,6 +522,7 @@ export function SwaggerWorkspace({
       void saveServerSchemaRecord(savedSchema);
     }
 
+    setCopiedSchemaText(null);
     setSaveMessage(t("workspace.schemaSaved"));
   }
 
@@ -556,6 +582,13 @@ export function SwaggerWorkspace({
             <button
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
+              onClick={handleCopySchema}
+            >
+              {t("workspace.copySchema")}
+            </button>
+            <button
+              className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
               onClick={handleDownloadSchema}
             >
               {t("workspace.download")}
@@ -610,6 +643,7 @@ export function SwaggerWorkspace({
             setEditorCursor(
               getTextPosition(event.target.value, event.target.selectionStart),
             );
+            setCopiedSchemaText(null);
             setSaveMessage("");
             setImportError("");
           }}
@@ -626,12 +660,12 @@ export function SwaggerWorkspace({
             {t("workspace.signInToSave")}
           </p>
         ) : null}
-        {saveMessage ? (
+        {isSchemaCopied || saveMessage ? (
           <p
             className="border-t border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700"
             role="status"
           >
-            {saveMessage}
+            {isSchemaCopied ? t("workspace.schemaCopied") : saveMessage}
           </p>
         ) : null}
         {importError ? (
