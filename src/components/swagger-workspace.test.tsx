@@ -685,6 +685,9 @@ paths:
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Schema info.title is required.",
     );
+    expect(
+      screen.getByRole("button", { name: "Format schema" }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: /convert/i })).toBeDisabled();
     expect(
       screen.getByText("Add a valid OpenAPI schema to populate the viewer."),
@@ -696,22 +699,49 @@ paths:
 
     render(<SwaggerWorkspace />);
 
-    await user.click(screen.getByRole("button", { name: "Convert to JSON" }));
-
     const editor = screen.getByLabelText(
       "OpenAPI schema editor",
     ) as HTMLTextAreaElement;
+    const latestSchema = DEFAULT_OPENAPI_SCHEMA.replace(
+      "RSSwag Demo API",
+      "Recently Edited API",
+    );
+
+    fireEvent.change(editor, { target: { value: latestSchema } });
+    fireEvent.click(screen.getByRole("button", { name: "Convert to JSON" }));
 
     expect(editor.value.trim().startsWith("{")).toBe(true);
-    expect(editor.value).toContain('"title": "RSSwag Demo API"');
+    expect(editor.value).toContain('"title": "Recently Edited API"');
+    expect(editor.value).not.toContain('"title": "RSSwag Demo API"');
     await waitFor(() => expect(screen.getByText("JSON")).toBeVisible());
 
     await user.click(
       await screen.findByRole("button", { name: "Convert to YAML" }),
     );
 
-    expect(editor.value).toContain("title: RSSwag Demo API");
+    expect(editor.value).toContain("title: Recently Edited API");
     await waitFor(() => expect(screen.getByText("YAML")).toBeVisible());
+  });
+
+  it("formats the current schema without changing its format", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const compactSchema =
+      '{"openapi":"3.0.0","info":{"title":"Compact API","version":"1.0.0"},"paths":{}}';
+
+    fireEvent.change(editor, { target: { value: compactSchema } });
+    fireEvent.click(screen.getByRole("button", { name: "Format schema" }));
+
+    expect(editor.value).toBe(
+      JSON.stringify(JSON.parse(compactSchema), null, 2),
+    );
+    expect(editor.value.trim().startsWith("{")).toBe(true);
+    expect(editor.selectionStart).toBe(0);
+    expect(editor.selectionEnd).toBe(0);
+    expect(screen.getByText("Line 1, column 1")).toBeVisible();
   });
 
   it("imports a schema from a local file", async () => {

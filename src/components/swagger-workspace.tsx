@@ -262,14 +262,44 @@ export function SwaggerWorkspace({
     };
   }, [isAuthenticated]);
 
-  function handleFormatSwitch() {
-    if (!parseResult.ok) {
+  function applySchemaFormatting(switchFormat: boolean) {
+    // Parse the live editor value here instead of the debounced preview value.
+    // Otherwise, a quick click after typing could restore an older document.
+    const currentParseResult = parseOpenApiSchema(schemaText);
+
+    if (!currentParseResult.ok) {
+      return;
+    }
+
+    const currentFormat = currentParseResult.value.format;
+    const outputFormat: SchemaFormat = switchFormat
+      ? currentFormat === "yaml"
+        ? "json"
+        : "yaml"
+      : currentFormat;
+    const formattedSchema = formatOpenApiSchema(
+      currentParseResult.value.schema,
+      outputFormat,
+    );
+
+    if (formattedSchema === schemaText) {
       return;
     }
 
     hasEditedSchemaRef.current = true;
-    setSchemaText(formatOpenApiSchema(parseResult.value.schema, targetFormat));
+    pendingEditorSelectionRef.current = { end: 0, start: 0 };
+    setSchemaText(formattedSchema);
     setEditorCursor({ column: 1, line: 1 });
+    setSaveMessage("");
+    setImportError("");
+  }
+
+  function handleFormatSchema() {
+    applySchemaFormatting(false);
+  }
+
+  function handleFormatSwitch() {
+    applySchemaFormatting(true);
   }
 
   function handleDownloadSchema() {
@@ -466,6 +496,14 @@ export function SwaggerWorkspace({
               onClick={handleDownloadSchema}
             >
               {t("workspace.download")}
+            </button>
+            <button
+              className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
+              disabled={!parseResult.ok}
+              type="button"
+              onClick={handleFormatSchema}
+            >
+              {t("workspace.formatSchema")}
             </button>
             <button
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
