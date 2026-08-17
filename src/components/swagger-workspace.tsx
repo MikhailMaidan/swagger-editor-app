@@ -2,6 +2,7 @@
 
 import type {
   ChangeEvent,
+  DragEvent as ReactDragEvent,
   KeyboardEvent as ReactKeyboardEvent,
   SyntheticEvent,
 } from "react";
@@ -81,6 +82,7 @@ export function SwaggerWorkspace({
   });
   const [saveMessage, setSaveMessage] = useState("");
   const [importError, setImportError] = useState("");
+  const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -324,31 +326,69 @@ export function SwaggerWorkspace({
     fileInputRef.current?.click();
   }
 
-  function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    event.target.value = "";
-
-    if (!file) {
-      return;
-    }
-
+  function readSchemaFile(file: File) {
     const reader = new FileReader();
 
+    setImportError("");
+
     reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        setImportError(t("workspace.errors.fileReadFailed"));
+        return;
+      }
+
       hasEditedSchemaRef.current = true;
       // An imported file is a different document, so the next save must
       // create a new record instead of overwriting whatever was last saved.
       lastSavedSchemaRef.current = null;
-      setSchemaText(String(reader.result));
+      pendingEditorSelectionRef.current = { end: 0, start: 0 };
+      setSchemaText(reader.result);
       setEditorCursor({ column: 1, line: 1 });
       setSaveMessage("");
-      setImportError("");
     };
     reader.onerror = () => {
       setImportError(t("workspace.errors.fileReadFailed"));
     };
     reader.readAsText(file);
+  }
+
+  function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (file) {
+      readSchemaFile(file);
+    }
+  }
+
+  function handleEditorFileDrag(event: ReactDragEvent<HTMLTextAreaElement>) {
+    if (!event.dataTransfer.types.includes("Files")) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsDraggingSchemaFile(true);
+  }
+
+  function handleEditorFileDragLeave() {
+    setIsDraggingSchemaFile(false);
+  }
+
+  function handleEditorFileDrop(event: ReactDragEvent<HTMLTextAreaElement>) {
+    if (!event.dataTransfer.types.includes("Files")) {
+      return;
+    }
+
+    event.preventDefault();
+    setIsDraggingSchemaFile(false);
+
+    const file = event.dataTransfer.files[0];
+
+    if (file) {
+      readSchemaFile(file);
+    }
   }
 
   function handleResetEditor() {
@@ -527,11 +567,19 @@ export function SwaggerWorkspace({
         </div>
         <textarea
           ref={editorRef}
-          className="block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none"
+          className={`block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none transition-shadow ${
+            isDraggingSchemaFile
+              ? "ring-2 ring-inset ring-[color:var(--color-brand-purple)]"
+              : ""
+          }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
           spellCheck={false}
           wrap="off"
+          onDragEnter={handleEditorFileDrag}
+          onDragLeave={handleEditorFileDragLeave}
+          onDragOver={handleEditorFileDrag}
+          onDrop={handleEditorFileDrop}
           onKeyDown={handleEditorKeyDown}
           onChange={(event) => {
             hasEditedSchemaRef.current = true;

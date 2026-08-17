@@ -778,6 +778,37 @@ paths:
     expect(screen.getByText("/imported")).toBeVisible();
   });
 
+  it("imports a schema file dropped onto the editor", async () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+    const file = new File(
+      [
+        `openapi: 3.0.0
+info:
+  title: Dropped API
+  version: 1.0.0
+paths: {}`,
+      ],
+      "dropped.yaml",
+      { type: "application/yaml" },
+    );
+    const dataTransfer = { files: [file], types: ["Files"] };
+
+    fireEvent.dragEnter(editor, { dataTransfer });
+    expect(editor.className).toContain("ring-2");
+
+    fireEvent.drop(editor, { dataTransfer });
+
+    expect(editor.className).not.toContain("ring-2");
+    expect(
+      await screen.findByRole("heading", { name: "Dropped API" }),
+    ).toBeVisible();
+    expect((editor as HTMLTextAreaElement).value).toContain(
+      "title: Dropped API",
+    );
+  });
+
   it("shows an error instead of silently failing when the imported file can't be read", async () => {
     const user = userEvent.setup();
     const readAsTextSpy = vi
@@ -802,6 +833,37 @@ paths:
     );
 
     readAsTextSpy.mockRestore();
+  });
+
+  it("keeps the current schema when a file reader returns no text", async () => {
+    const user = userEvent.setup();
+    const readAsTextSpy = vi
+      .spyOn(FileReader.prototype, "readAsText")
+      .mockImplementation(function (this: FileReader) {
+        this.onload?.(
+          new ProgressEvent("load") as unknown as ProgressEvent<FileReader>,
+        );
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.upload(
+        screen.getByLabelText("Import OpenAPI schema file"),
+        new File(["ignored"], "schema.yaml", {
+          type: "application/yaml",
+        }),
+      );
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not read that file.",
+      );
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+    } finally {
+      readAsTextSpy.mockRestore();
+    }
   });
 
   it("downloads the current schema with a filename derived from its title", async () => {
