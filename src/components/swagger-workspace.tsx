@@ -33,6 +33,7 @@ import {
 } from "@/lib/schema-storage";
 import { changeTextIndentation } from "@/lib/text-indentation";
 import { getTextPosition } from "@/lib/text-position";
+import { getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
 
 const schemaErrorKeys: Record<string, TranslationKey> = {
@@ -96,6 +97,7 @@ export function SwaggerWorkspace({
     () => parseOpenApiSchema(debouncedSchemaText),
     [debouncedSchemaText],
   );
+  const schemaStats = useMemo(() => getTextStats(schemaText), [schemaText]);
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
     : parseResult.format;
@@ -649,12 +651,20 @@ export function SwaggerWorkspace({
           }}
           onSelect={handleEditorSelection}
         />
-        <p className="border-t border-[color:var(--color-brand-border)] bg-white px-5 py-2 text-right font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
-          {t("workspace.editorCursorPosition", {
-            column: String(editorCursor.column),
-            line: String(editorCursor.line),
-          })}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 border-t border-[color:var(--color-brand-border)] bg-white px-5 py-2 font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
+          <span aria-label={t("workspace.editorDocumentStatsLabel")}>
+            {t("workspace.editorDocumentStats", {
+              lines: String(schemaStats.lineCount),
+              size: String(schemaStats.byteSize),
+            })}
+          </span>
+          <span>
+            {t("workspace.editorCursorPosition", {
+              column: String(editorCursor.column),
+              line: String(editorCursor.line),
+            })}
+          </span>
+        </div>
         {!isAuthenticated ? (
           <p className="border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
             {t("workspace.signInToSave")}

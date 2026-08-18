@@ -84,6 +84,25 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByText("Line 1, column 1")).toBeVisible();
   });
 
+  it("updates schema line and UTF-8 byte statistics", () => {
+    render(<SwaggerWorkspace />);
+
+    const schemaText = "openapi: 3.0.0\r\ninfo: {title: Café}";
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+
+    fireEvent.change(editor, {
+      target: { value: schemaText },
+    });
+
+    expect(
+      screen.getByLabelText("Schema document statistics"),
+    ).toHaveTextContent(
+      `Lines 2, ${new TextEncoder().encode(editor.value).length} B`,
+    );
+  });
+
   it("renders the default schema and dynamically populated endpoints", () => {
     render(<SwaggerWorkspace />);
 

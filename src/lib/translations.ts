@@ -155,6 +155,8 @@ export const translations = {
     "workspace.downloadResponse": "Download response",
     "workspace.editor": "Editor",
     "workspace.editorCursorPosition": "Line {line}, column {column}",
+    "workspace.editorDocumentStats": "Lines {lines}, {size} B",
+    "workspace.editorDocumentStatsLabel": "Schema document statistics",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary":
       "Showing {visible} of {total} endpoints",
@@ -384,6 +386,8 @@ export const translations = {
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.editor": "Редактор",
     "workspace.editorCursorPosition": "Строка {line}, столбец {column}",
+    "workspace.editorDocumentStats": "Строк: {lines}, {size} Б",
+    "workspace.editorDocumentStatsLabel": "Статистика документа схемы",
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
