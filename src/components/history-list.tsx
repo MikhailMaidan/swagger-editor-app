@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { getClientAuth } from "@/lib/client-auth";
 import { formatEuropeanDateTime } from "@/lib/date-format";
@@ -56,6 +56,24 @@ export function HistoryList({
   const [errorId, setErrorId] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllError, setClearAllError] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState("");
+  const normalizedHistoryFilter = historyFilter.trim().toLowerCase();
+  const filteredRecords = useMemo(
+    () =>
+      normalizedHistoryFilter
+        ? records.filter(
+            (record) =>
+              record.method.toLowerCase().includes(normalizedHistoryFilter) ||
+              record.path.toLowerCase().includes(normalizedHistoryFilter) ||
+              record.url.toLowerCase().includes(normalizedHistoryFilter) ||
+              record.summary
+                .toLowerCase()
+                .includes(normalizedHistoryFilter) ||
+              String(record.status).includes(normalizedHistoryFilter),
+          )
+        : records,
+    [normalizedHistoryFilter, records],
+  );
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -108,12 +126,12 @@ export function HistoryList({
     setIsClearingAll(true);
     setClearAllError(false);
 
-    clearRequestHistory();
     const cleared = getClientAuth().isAuthenticated
       ? await deleteAllServerHistory()
       : true;
 
     if (cleared) {
+      clearRequestHistory();
       setRecords([]);
     } else {
       setClearAllError(true);
@@ -154,6 +172,26 @@ export function HistoryList({
         </p>
       ) : null}
 
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <label className="sr-only" htmlFor="request-history-filter">
+          {t("history.filterLabel")}
+        </label>
+        <input
+          className="h-11 min-w-[240px] flex-1 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+          id="request-history-filter"
+          placeholder={t("history.filterPlaceholder")}
+          type="search"
+          value={historyFilter}
+          onChange={(event) => setHistoryFilter(event.target.value)}
+        />
+        <span className="shrink-0 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+          {t("history.filterSummary", {
+            total: String(records.length),
+            visible: String(filteredRecords.length),
+          })}
+        </span>
+      </div>
+
       <div className="mt-8 overflow-x-auto rounded-2xl border border-[color:var(--color-brand-border)]">
         <table className="w-full min-w-[940px] border-collapse text-left text-sm">
           <thead className="bg-[#fbfaff] text-[color:var(--color-brand-navy)]">
@@ -186,7 +224,17 @@ export function HistoryList({
             </tr>
           </thead>
           <tbody>
-            {records.map((record) => (
+            {filteredRecords.length === 0 ? (
+              <tr className="border-t border-[color:var(--color-brand-border)]">
+                <td
+                  className="px-4 py-8 text-center font-semibold text-[color:var(--color-brand-muted)]"
+                  colSpan={9}
+                >
+                  {t("history.noMatches")}
+                </td>
+              </tr>
+            ) : (
+              filteredRecords.map((record) => (
               <tr
                 className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)] transition-colors hover:bg-[color:var(--color-brand-soft)]/60 motion-reduce:transition-none"
                 key={record.id}
@@ -249,7 +297,8 @@ export function HistoryList({
                   ) : null}
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

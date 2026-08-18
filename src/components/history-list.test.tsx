@@ -148,6 +148,61 @@ describe("HistoryList", () => {
     expect(within(rows[2]).getByText("45 ms")).toBeVisible();
   });
 
+  it("filters request history by method, URL, summary, and status", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            errorDetails: null,
+            id: "get-record",
+            method: "GET",
+            path: "/users",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "List users",
+            url: "/users?page=1",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 30,
+            errorDetails: null,
+            id: "post-record",
+            method: "POST",
+            path: "/accounts",
+            requestSize: 90,
+            responseSize: 130,
+            status: 201,
+            summary: "Create account",
+            url: "/accounts",
+          },
+        ]}
+      />,
+    );
+
+    const filter = screen.getByLabelText("Filter request history");
+
+    expect(screen.getByText("Showing 2 of 2 requests")).toBeVisible();
+
+    await user.type(filter, "POST");
+
+    expect(screen.getByText("Create account")).toBeVisible();
+    expect(screen.queryByText("List users")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
+
+    await user.clear(filter);
+    await user.type(filter, "missing");
+
+    expect(
+      screen.getByText("No history records match your search."),
+    ).toBeVisible();
+    expect(screen.getByText("Showing 0 of 2 requests")).toBeVisible();
+  });
+
   it("gives each row's delete button a distinguishing accessible name", () => {
     render(
       <HistoryList
@@ -494,6 +549,45 @@ describe("HistoryList", () => {
         "Could not clear history. Try again.",
       );
       expect(screen.getByText("Server record")).toBeVisible();
+    } finally {
+      confirmSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("keeps local history when an authenticated clear-all request fails", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([localRecord]),
+    );
+
+    try {
+      render(
+        <HistoryList
+          initialRecords={[
+            { ...localRecord, errorDetails: null, url: localRecord.path },
+          ]}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Clear all" }));
+      await screen.findByRole("alert");
+
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY) || "[]",
+        ),
+      ).toHaveLength(1);
+      expect(screen.getByText("Local request")).toBeVisible();
     } finally {
       confirmSpy.mockRestore();
       fetchMock.mockRestore();
