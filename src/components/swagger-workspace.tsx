@@ -24,6 +24,7 @@ import {
   readSchemaDraft,
   saveSchemaDraft,
 } from "@/lib/schema-draft";
+import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   readSavedSchema,
   readServerSavedSchemas,
@@ -43,15 +44,6 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
     "workspace.errors.versionRequired",
   "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
-
-function slugifyTitle(title: string) {
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return slug || "openapi-schema";
-}
 
 // Parsing (YAML/JSON + endpoint extraction) is real work for larger
 // documents, so it's debounced off the raw keystroke: typing itself stays
@@ -336,21 +328,17 @@ export function SwaggerWorkspace({
   }
 
   function handleDownloadSchema() {
-    const extension = detectedFormat === "json" ? "json" : "yaml";
-    const filename = `${
-      parseResult.ok ? slugifyTitle(parseResult.value.title) : "openapi-schema"
-    }.${extension}`;
-    const mimeType =
-      extension === "json" ? "application/json" : "application/yaml";
-    const url = URL.createObjectURL(
-      new Blob([schemaText], { type: mimeType }),
-    );
-    const link = document.createElement("a");
+    const currentParseResult = parseOpenApiSchema(schemaText);
 
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadSchemaFile(
+      schemaText,
+      currentParseResult.ok
+        ? currentParseResult.value.title
+        : "openapi-schema",
+      currentParseResult.ok
+        ? currentParseResult.value.format
+        : currentParseResult.format,
+    );
   }
 
   async function handleCopySchema() {

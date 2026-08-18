@@ -885,8 +885,7 @@ paths: {}`,
     }
   });
 
-  it("downloads the current schema with a filename derived from its title", async () => {
-    const user = userEvent.setup();
+  it("downloads the latest schema with current format and title metadata", () => {
     const createObjectURL = vi.fn((object: Blob | MediaSource) => {
       void object;
       return "blob:mock-url";
@@ -915,13 +914,22 @@ paths: {}`,
     try {
       render(<SwaggerWorkspace />);
 
-      await user.click(screen.getByRole("button", { name: "Download" }));
+      const latestSchema = JSON.stringify({
+        info: { title: "Fresh Download API", version: "2.0.0" },
+        openapi: "3.0.0",
+        paths: {},
+      });
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: latestSchema },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Download" }));
 
       expect(createObjectURL).toHaveBeenCalledTimes(1);
       const blobArg = createObjectURL.mock.calls[0][0] as Blob;
-      expect(blobArg.type).toBe("application/yaml");
+      expect(blobArg.type).toBe("application/json");
       const downloadAnchor = anchors[0];
-      expect(downloadAnchor?.download).toBe("rsswag-demo-api.yaml");
+      expect(downloadAnchor?.download).toBe("fresh-download-api.json");
       expect(downloadAnchor?.getAttribute("href")).toBe("blob:mock-url");
       expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");

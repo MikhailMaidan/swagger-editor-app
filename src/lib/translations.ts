@@ -115,6 +115,8 @@ export const translations = {
     "schemas.deleting": "Deleting...",
     "schemas.description":
       "Saved schemas from the editor are shown here newest first.",
+    "schemas.download": "Download",
+    "schemas.downloadAriaLabel": "Download {title}",
     "schemas.empty":
       "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
     "schemas.format": "Format",
@@ -349,6 +351,8 @@ export const translations = {
     "schemas.deleting": "Удаление...",
     "schemas.description":
       "Сохраненные в редакторе схемы показаны здесь от новых к старым.",
+    "schemas.download": "Скачать",
+    "schemas.downloadAriaLabel": "Скачать {title}",
     "schemas.empty":
       "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
     "schemas.format": "Формат",

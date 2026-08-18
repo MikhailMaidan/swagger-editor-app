@@ -33,6 +33,52 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("14 B")).toBeVisible();
   });
 
+  it("downloads a saved schema using its title and format", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn().mockReturnValue("blob:saved-schema");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalCreateElement = document.createElement.bind(document);
+    const anchors: HTMLAnchorElement[] = [];
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Download Saved API" }),
+      );
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect((createObjectURL.mock.calls[0][0] as Blob).type).toBe(
+        "application/yaml",
+      );
+      expect(anchors[0]?.download).toBe("saved-api.yaml");
+      expect(anchors[0]?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:saved-schema");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");

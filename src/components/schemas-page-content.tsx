@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
+import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   deleteAllServerSchemaRecords,
   deleteServerSchemaRecord,
@@ -129,6 +130,10 @@ export function SchemasPageContent({
     setDeletingId(null);
   }
 
+  function handleDownload(schema: SavedSchemaRecord) {
+    downloadSchemaFile(schema.schemaText, schema.title, schema.format);
+  }
+
   return (
     <div className="w-full px-4 py-10 md:px-8 lg:px-10">
       <section className="mx-auto w-full max-w-[1600px] rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-8 shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
@@ -229,10 +234,20 @@ export function SchemasPageContent({
                         </p>
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       <span className="rounded-2xl bg-[color:var(--color-brand-soft)] px-4 py-2 text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
                         {schema.format}
                       </span>
+                      <button
+                        aria-label={t("schemas.downloadAriaLabel", {
+                          title: schema.title,
+                        })}
+                        className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                        type="button"
+                        onClick={() => handleDownload(schema)}
+                      >
+                        {t("schemas.download")}
+                      </button>
                       {renamingId === schema.id ? null : (
                         <button
                           aria-label={t("schemas.renameAriaLabel", {
