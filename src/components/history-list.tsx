@@ -16,6 +16,7 @@ import {
   RequestHistorySort,
   sortRequestHistory,
 } from "@/lib/request-history";
+import { downloadRequestHistoryFile } from "@/lib/request-history-export";
 import { createRequestHistoryStats } from "@/lib/request-history-stats";
 import { getStatusColorClasses } from "@/lib/status-color";
 
@@ -213,6 +214,15 @@ export function HistoryList({
           <option value="slowest">{t("history.sortSlowest")}</option>
           <option value="failures">{t("history.sortFailures")}</option>
         </select>
+        <button
+          aria-label={t("history.exportAriaLabel")}
+          className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={sortedRecords.length === 0}
+          type="button"
+          onClick={() => downloadRequestHistoryFile(sortedRecords)}
+        >
+          {t("history.exportVisible")}
+        </button>
         <span className="shrink-0 text-sm font-semibold text-[color:var(--color-brand-muted)]">
           {t("history.filterSummary", {
             total: String(records.length),

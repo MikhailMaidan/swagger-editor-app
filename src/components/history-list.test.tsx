@@ -263,6 +263,126 @@ describe("HistoryList", () => {
     expect(within(screen.getAllByRole("row")[1]).getByText("Failed request")).toBeVisible();
   });
 
+  it("exports the currently filtered and sorted history as JSON", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn().mockReturnValue("blob:request-history");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalCreateElement = document.createElement.bind(document);
+    const anchors: HTMLAnchorElement[] = [];
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(
+        <HistoryList
+          initialRecords={[
+            {
+              createdAt: "2026-07-06T10:00:00.000Z",
+              durationMs: 20,
+              errorDetails: null,
+              id: "newest-get",
+              method: "GET",
+              path: "/newest",
+              requestSize: 10,
+              responseSize: 20,
+              status: 200,
+              summary: "Newest GET",
+              url: "/newest",
+            },
+            {
+              createdAt: "2026-07-06T09:00:00.000Z",
+              durationMs: 30,
+              errorDetails: null,
+              id: "post-record",
+              method: "POST",
+              path: "/post",
+              requestSize: 30,
+              responseSize: 40,
+              status: 201,
+              summary: "Create record",
+              url: "/post",
+            },
+            {
+              createdAt: "2026-07-06T08:00:00.000Z",
+              durationMs: 40,
+              errorDetails: null,
+              id: "oldest-get",
+              method: "GET",
+              path: "/oldest",
+              requestSize: 50,
+              responseSize: 60,
+              status: 200,
+              summary: "Oldest GET",
+              url: "/oldest",
+            },
+          ]}
+        />,
+      );
+
+      const filter = screen.getByLabelText("Filter request history");
+      const sort = screen.getByLabelText("Sort request history");
+      const exportButton = screen.getByRole("button", {
+        name: "Export visible request history",
+      });
+
+      await user.type(filter, "GET");
+      await user.selectOptions(sort, "oldest");
+      await user.click(exportButton);
+
+      const exportBlob = createObjectURL.mock.calls[0][0] as Blob;
+      const exportContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.addEventListener("load", () => resolve(String(reader.result)));
+        reader.addEventListener("error", () => reject(reader.error));
+        reader.readAsText(exportBlob);
+      });
+      const exportedHistory = JSON.parse(exportContent) as {
+        requestCount: number;
+        requests: Array<{ id: string }>;
+      };
+
+      expect(exportBlob.type).toBe("application/json");
+      expect(exportedHistory.requestCount).toBe(2);
+      expect(exportedHistory.requests.map((record) => record.id)).toEqual([
+        "oldest-get",
+        "newest-get",
+      ]);
+      const downloadAnchor = anchors.find((anchor) => anchor.download);
+
+      expect(downloadAnchor?.download).toMatch(
+        /^rsswag-request-history-\d{4}-\d{2}-\d{2}\.json$/,
+      );
+      expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:request-history");
+
+      await user.clear(filter);
+      await user.type(filter, "missing");
+
+      expect(exportButton).toBeDisabled();
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("filters request history by method, URL, summary, and status", async () => {
     const user = userEvent.setup();
 
