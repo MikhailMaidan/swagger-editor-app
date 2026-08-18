@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import type { RequestHistoryRecord } from "@/lib/request-history";
+import { serializeRequestHistoryRecord } from "@/lib/request-history-clipboard";
 import { getStatusColorClasses } from "@/lib/status-color";
 
 export function HistoryDetails({
@@ -13,6 +14,27 @@ export function HistoryDetails({
   record: RequestHistoryRecord | null;
 }) {
   const { language, t } = useI18n();
+  const [copyStatus, setCopyStatus] = useState<"copied" | "error" | "idle">(
+    "idle",
+  );
+
+  async function handleCopyDetails() {
+    setCopyStatus("idle");
+
+    if (!record || !navigator.clipboard) {
+      setCopyStatus("error");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(
+        serializeRequestHistoryRecord(record),
+      );
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  }
 
   return (
     <div className="w-full px-4 py-10 md:px-8 lg:px-10">
@@ -66,12 +88,35 @@ export function HistoryDetails({
           </dl>
         )}
 
-        <Link
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"
-          href="/history"
-        >
-          {t("history.backToHistory")}
-        </Link>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          {record ? (
+            <button
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-white transition hover:bg-[color:var(--color-brand-purple-dark)]"
+              type="button"
+              onClick={handleCopyDetails}
+            >
+              {t("history.copyDetails")}
+            </button>
+          ) : null}
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"
+            href="/history"
+          >
+            {t("history.backToHistory")}
+          </Link>
+        </div>
+        {copyStatus !== "idle" ? (
+          <p
+            className={`mt-3 text-sm font-semibold ${
+              copyStatus === "error" ? "text-red-600" : "text-emerald-700"
+            }`}
+            role={copyStatus === "error" ? "alert" : "status"}
+          >
+            {copyStatus === "error"
+              ? t("history.copyDetailsError")
+              : t("history.detailsCopied")}
+          </p>
+        ) : null}
       </section>
     </div>
   );

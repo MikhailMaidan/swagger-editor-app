@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import type { RequestHistoryRecord } from "@/lib/request-history";
 import { HistoryDetails } from "./history-details";
 
@@ -103,11 +104,82 @@ describe("HistoryDetails", () => {
     expect(screen.getByText("200").className).toContain("text-emerald-700");
   });
 
+  it("copies request details as JSON and reports clipboard failures", async () => {
+    const user = userEvent.setup();
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    try {
+      render(
+        <HistoryDetails
+          record={{
+            createdAt: "2026-07-11T08:00:00.000Z",
+            durationMs: 42,
+            errorDetails: "404 Not Found",
+            id: "history-1",
+            method: "GET",
+            path: "/users/{id}",
+            requestSize: 80,
+            responseSize: 120,
+            status: 404,
+            summary: "Get user",
+            url: "https://api.example.com/users/42",
+          }}
+        />,
+      );
+
+      const copyButton = screen.getByRole("button", {
+        name: "Copy request details",
+      });
+
+      await user.click(copyButton);
+
+      expect(JSON.parse(writeText.mock.calls[0][0] as string)).toMatchObject({
+        id: "history-1",
+        method: "GET",
+        status: 404,
+        url: "https://api.example.com/users/42",
+      });
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Request details copied.",
+      );
+
+      await user.click(copyButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not copy request details.",
+      );
+      expect(
+        screen.queryByText("Request details copied."),
+      ).not.toBeInTheDocument();
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+    }
+  });
+
   it("shows a friendly message for a missing record", () => {
     render(<HistoryDetails record={null} />);
 
     expect(
       screen.getByText("This history record is not available."),
     ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Copy request details" }),
+    ).not.toBeInTheDocument();
   });
 });
