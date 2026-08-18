@@ -63,6 +63,8 @@ type SwaggerWorkspaceProps = {
   initialIsAuthenticated?: boolean;
 };
 
+type DraftStatus = "failed" | "idle" | "pending" | "saved";
+
 export function SwaggerWorkspace({
   initialIsAuthenticated = false,
 }: SwaggerWorkspaceProps = {}) {
@@ -84,6 +86,7 @@ export function SwaggerWorkspace({
   const [saveMessage, setSaveMessage] = useState("");
   const [copiedSchemaText, setCopiedSchemaText] = useState<string | null>(null);
   const [importError, setImportError] = useState("");
+  const [draftStatus, setDraftStatus] = useState<DraftStatus>("idle");
   const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("all");
@@ -209,6 +212,7 @@ export function SwaggerWorkspace({
       if (!cancelled && !hasEditedSchemaRef.current) {
         setSchemaText(draft);
         setEditorCursor({ column: 1, line: 1 });
+        setDraftStatus("saved");
       }
     });
 
@@ -218,9 +222,22 @@ export function SwaggerWorkspace({
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated && hasEditedSchemaRef.current) {
-      saveSchemaDraft(debouncedSchemaText);
+    if (isAuthenticated || !hasEditedSchemaRef.current) {
+      return;
     }
+
+    const saved = saveSchemaDraft(debouncedSchemaText);
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setDraftStatus(saved ? "saved" : "failed");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedSchemaText, isAuthenticated]);
 
   useEffect(() => {
@@ -269,6 +286,14 @@ export function SwaggerWorkspace({
     };
   }, [isAuthenticated]);
 
+  function markSchemaEdited() {
+    hasEditedSchemaRef.current = true;
+
+    if (!isAuthenticated) {
+      setDraftStatus("pending");
+    }
+  }
+
   function applySchemaFormatting(switchFormat: boolean) {
     // Parse the live editor value here instead of the debounced preview value.
     // Otherwise, a quick click after typing could restore an older document.
@@ -293,7 +318,7 @@ export function SwaggerWorkspace({
       return;
     }
 
-    hasEditedSchemaRef.current = true;
+    markSchemaEdited();
     pendingEditorSelectionRef.current = { end: 0, start: 0 };
     setSchemaText(formattedSchema);
     setEditorCursor({ column: 1, line: 1 });
@@ -361,7 +386,7 @@ export function SwaggerWorkspace({
         return;
       }
 
-      hasEditedSchemaRef.current = true;
+      markSchemaEdited();
       // An imported file is a different document, so the next save must
       // create a new record instead of overwriting whatever was last saved.
       lastSavedSchemaRef.current = null;
@@ -423,6 +448,7 @@ export function SwaggerWorkspace({
 
     clearSchemaDraft();
     hasEditedSchemaRef.current = false;
+    setDraftStatus("idle");
     lastSavedSchemaRef.current = null;
     setSchemaText(DEFAULT_OPENAPI_SCHEMA);
     setEditorCursor({ column: 1, line: 1 });
@@ -486,7 +512,7 @@ export function SwaggerWorkspace({
       return;
     }
 
-    hasEditedSchemaRef.current = true;
+    markSchemaEdited();
     pendingEditorSelectionRef.current = {
       end: result.selectionEnd,
       start: result.selectionStart,
@@ -521,6 +547,7 @@ export function SwaggerWorkspace({
     if (savedSchema) {
       lastSavedSchemaRef.current = savedSchema;
       clearSchemaDraft();
+      setDraftStatus("idle");
       void saveServerSchemaRecord(savedSchema);
     }
 
@@ -640,7 +667,7 @@ export function SwaggerWorkspace({
           onDrop={handleEditorFileDrop}
           onKeyDown={handleEditorKeyDown}
           onChange={(event) => {
-            hasEditedSchemaRef.current = true;
+            markSchemaEdited();
             setSchemaText(event.target.value);
             setEditorCursor(
               getTextPosition(event.target.value, event.target.selectionStart),
@@ -666,9 +693,25 @@ export function SwaggerWorkspace({
           </span>
         </div>
         {!isAuthenticated ? (
-          <p className="border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-            {t("workspace.signInToSave")}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            <span>{t("workspace.signInToSave")}</span>
+            {draftStatus !== "idle" ? (
+              <span
+                aria-live="polite"
+                className={
+                  draftStatus === "failed" ? "text-red-700" : undefined
+                }
+              >
+                {t(
+                  draftStatus === "pending"
+                    ? "workspace.draftSaving"
+                    : draftStatus === "saved"
+                      ? "workspace.draftSaved"
+                      : "workspace.draftSaveFailed",
+                )}
+              </span>
+            ) : null}
+          </div>
         ) : null}
         {isSchemaCopied || saveMessage ? (
           <p

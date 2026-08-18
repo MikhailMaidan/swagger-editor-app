@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   clearSchemaDraft,
   readSchemaDraft,
@@ -8,7 +8,7 @@ import {
 
 describe("schema draft storage", () => {
   it("saves and restores an editor draft", () => {
-    saveSchemaDraft("openapi: 3.0.0");
+    expect(saveSchemaDraft("openapi: 3.0.0")).toBe(true);
 
     expect(readSchemaDraft()).toBe("openapi: 3.0.0");
     expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBe(
@@ -22,5 +22,19 @@ describe("schema draft storage", () => {
     clearSchemaDraft();
 
     expect(readSchemaDraft()).toBeNull();
+  });
+
+  it("reports when browser storage rejects a draft", () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage full", "QuotaExceededError");
+      });
+
+    try {
+      expect(saveSchemaDraft("openapi: 3.0.0")).toBe(false);
+    } finally {
+      setItemSpy.mockRestore();
+    }
   });
 });

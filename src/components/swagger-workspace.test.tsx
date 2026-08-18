@@ -1365,11 +1365,39 @@ paths: {}`;
       target: { value: editedDraft },
     });
 
+    expect(screen.getByText("Saving draft...")).toBeVisible();
+
     await waitFor(() =>
       expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBe(
         editedDraft,
       ),
     );
+    expect(screen.getByText("Draft saved locally.")).toBeVisible();
+  });
+
+  it("reports a failed guest draft save without disrupting editing", async () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage full", "QuotaExceededError");
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const editedSchema = DEFAULT_OPENAPI_SCHEMA.replace("1.0.0", "1.0.1");
+
+      fireEvent.change(editor, { target: { value: editedSchema } });
+
+      expect(screen.getByText("Saving draft...")).toBeVisible();
+      expect(
+        await screen.findByText("Draft could not be saved."),
+      ).toBeVisible();
+      expect(editor).toHaveValue(editedSchema);
+    } finally {
+      setItemSpy.mockRestore();
+    }
   });
 
   it("resets a guest draft to the default schema only after confirmation", async () => {

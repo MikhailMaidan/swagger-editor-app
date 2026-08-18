@@ -14,13 +14,15 @@ export function readSchemaDraft() {
 
 export function saveSchemaDraft(schemaText: string) {
   if (typeof window === "undefined") {
-    return;
+    return false;
   }
 
   try {
     window.localStorage.setItem(SCHEMA_DRAFT_STORAGE_KEY, schemaText);
+    return true;
   } catch {
     // The editor remains usable when storage is unavailable or full.
+    return false;
   }
 }
 
