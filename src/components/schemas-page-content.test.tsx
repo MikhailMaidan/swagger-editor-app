@@ -112,6 +112,41 @@ describe("SchemasPageContent", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("filters saved schemas by title, version, and format", async () => {
+    const user = userEvent.setup();
+    const otherSchema = {
+      createdAt: "2026-07-09T10:00:00.000Z",
+      format: "json",
+      id: "other-schema",
+      schemaText: '{"openapi":"3.0.0"}',
+      title: "Other API",
+      updatedAt: "2026-07-09T10:00:00.000Z",
+      version: "2.0.0",
+    };
+
+    render(<SchemasPageContent initialSchemas={[savedSchema, otherSchema]} />);
+
+    const filter = screen.getByLabelText("Filter saved schemas");
+
+    expect(screen.getByText("Showing 2 of 2 schemas")).toBeVisible();
+
+    await user.type(filter, "JSON");
+
+    expect(screen.getByRole("heading", { name: "Other API" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Saved API" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 schemas")).toBeVisible();
+
+    await user.clear(filter);
+    await user.type(filter, "missing");
+
+    expect(
+      screen.getByText("No saved schemas match your search."),
+    ).toBeVisible();
+    expect(screen.getByText("Showing 0 of 2 schemas")).toBeVisible();
+  });
+
   it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");
@@ -364,9 +399,7 @@ describe("SchemasPageContent", () => {
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
-      expect(
-        screen.queryByLabelText("New title"),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("New title")).not.toBeInTheDocument();
     } finally {
       fetchMock.mockRestore();
     }
