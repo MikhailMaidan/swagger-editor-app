@@ -53,12 +53,14 @@ describe("HistoryList", () => {
       />,
     );
 
-    expect(screen.getByText("Server record")).toBeVisible();
+    const serverRow = screen.getByText("Server record").closest("tr");
+
+    expect(serverRow).not.toBeNull();
+    expect(within(serverRow as HTMLTableRowElement).getByText("52 ms")).toBeVisible();
     expect(screen.getByText("/server")).toBeVisible();
     expect(
       screen.getByRole("link", { name: "View details for Server record" }),
     ).toHaveAttribute("href", "/history/server-record");
-    expect(screen.getByText("52 ms")).toBeVisible();
   });
 
   it("color-codes the status badge by success or failure", () => {
@@ -97,6 +99,56 @@ describe("HistoryList", () => {
 
     expect(screen.getByText("200").className).toContain("text-emerald-700");
     expect(screen.getByText("0").className).toContain("text-red-700");
+  });
+
+  it("summarizes visible request outcomes and average duration", () => {
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            errorDetails: null,
+            id: "ok-record",
+            method: "GET",
+            path: "/ok",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "Successful request",
+            url: "/ok",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 12,
+            errorDetails: "network error",
+            id: "failed-record",
+            method: "GET",
+            path: "/failed",
+            requestSize: 40,
+            responseSize: 0,
+            status: 0,
+            summary: "Failed request",
+            url: "/failed",
+          },
+        ]}
+      />,
+    );
+
+    const stats = screen.getByLabelText("Visible request statistics");
+
+    expect(within(stats).getByText("Total requests").parentElement).toHaveTextContent(
+      "2",
+    );
+    expect(within(stats).getByText("Successful").parentElement).toHaveTextContent(
+      "1",
+    );
+    expect(within(stats).getByText("Failed").parentElement).toHaveTextContent(
+      "1",
+    );
+    expect(within(stats).getByText("Average duration").parentElement).toHaveTextContent(
+      "32 ms",
+    );
   });
 
   it("renders saved requests newest first", async () => {

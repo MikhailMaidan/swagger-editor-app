@@ -14,6 +14,7 @@ import {
   removeRequestHistoryRecord,
   RequestHistoryRecord,
 } from "@/lib/request-history";
+import { createRequestHistoryStats } from "@/lib/request-history-stats";
 import { getStatusColorClasses } from "@/lib/status-color";
 
 const EMPTY_HISTORY: RequestHistoryRecord[] = [];
@@ -73,6 +74,10 @@ export function HistoryList({
           )
         : records,
     [normalizedHistoryFilter, records],
+  );
+  const historyStats = useMemo(
+    () => createRequestHistoryStats(filteredRecords),
+    [filteredRecords],
   );
 
   useEffect(() => {
@@ -191,6 +196,46 @@ export function HistoryList({
           })}
         </span>
       </div>
+
+      <dl
+        aria-label={t("history.statsLabel")}
+        className="mt-5 grid border-y border-[color:var(--color-brand-border)] sm:grid-cols-2 lg:grid-cols-4"
+      >
+        <div className="px-4 py-4">
+          <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            {t("history.totalRequests")}
+          </dt>
+          <dd className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-navy)]">
+            {historyStats.total}
+          </dd>
+        </div>
+        <div className="px-4 py-4">
+          <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            {t("history.successfulRequests")}
+          </dt>
+          <dd className="mt-1 text-2xl font-extrabold text-emerald-700">
+            {historyStats.successful}
+          </dd>
+        </div>
+        <div className="px-4 py-4">
+          <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            {t("history.failedRequests")}
+          </dt>
+          <dd className="mt-1 text-2xl font-extrabold text-red-700">
+            {historyStats.failed}
+          </dd>
+        </div>
+        <div className="px-4 py-4">
+          <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            {t("history.averageDuration")}
+          </dt>
+          <dd className="mt-1 text-2xl font-extrabold text-[color:var(--color-brand-purple)]">
+            {t("history.averageDurationValue", {
+              duration: String(historyStats.averageDurationMs),
+            })}
+          </dd>
+        </div>
+      </dl>
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-[color:var(--color-brand-border)]">
         <table className="w-full min-w-[940px] border-collapse text-left text-sm">
