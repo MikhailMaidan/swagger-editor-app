@@ -147,6 +147,38 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("Showing 0 of 2 schemas")).toBeVisible();
   });
 
+  it("sorts saved schemas without changing their records", async () => {
+    const user = userEvent.setup();
+    const olderSchema = {
+      createdAt: "2026-07-09T10:00:00.000Z",
+      format: "json",
+      id: "older-schema",
+      schemaText: '{"openapi":"3.0.0"}',
+      title: "Other API",
+      updatedAt: "2026-07-09T10:00:00.000Z",
+      version: "2.0.0",
+    };
+
+    render(<SchemasPageContent initialSchemas={[olderSchema, savedSchema]} />);
+
+    const visibleTitles = () =>
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((heading) => heading.textContent);
+    const sort = screen.getByLabelText("Sort saved schemas");
+
+    expect(visibleTitles()).toEqual(["Saved API", "Other API"]);
+
+    await user.selectOptions(sort, "title");
+    expect(visibleTitles()).toEqual(["Other API", "Saved API"]);
+
+    await user.selectOptions(sort, "largest");
+    expect(visibleTitles()).toEqual(["Other API", "Saved API"]);
+
+    await user.selectOptions(sort, "newest");
+    expect(visibleTitles()).toEqual(["Saved API", "Other API"]);
+  });
+
   it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");
