@@ -40,6 +40,9 @@ export function SchemasPageContent({
   const [isSavingRename, setIsSavingRename] = useState(false);
   const [renameErrorId, setRenameErrorId] = useState<string | null>(null);
   const [renameErrorMessage, setRenameErrorMessage] = useState("");
+  const [previewSchemaIds, setPreviewSchemaIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   function handleStartRename(schema: SavedSchemaRecord) {
     setRenamingId(schema.id);
@@ -102,6 +105,7 @@ export function SchemasPageContent({
 
     if (cleared) {
       setSchemas([]);
+      setPreviewSchemaIds(new Set());
     } else {
       setClearAllError(true);
     }
@@ -123,6 +127,12 @@ export function SchemasPageContent({
       setSchemas((currentSchemas) =>
         currentSchemas.filter((current) => current.id !== schema.id),
       );
+      setPreviewSchemaIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+
+        nextIds.delete(schema.id);
+        return nextIds;
+      });
     } else {
       setErrorId(schema.id);
     }
@@ -132,6 +142,20 @@ export function SchemasPageContent({
 
   function handleDownload(schema: SavedSchemaRecord) {
     downloadSchemaFile(schema.schemaText, schema.title, schema.format);
+  }
+
+  function handleTogglePreview(id: string) {
+    setPreviewSchemaIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+
+      if (nextIds.has(id)) {
+        nextIds.delete(id);
+      } else {
+        nextIds.add(id);
+      }
+
+      return nextIds;
+    });
   }
 
   return (
@@ -239,6 +263,25 @@ export function SchemasPageContent({
                         {schema.format}
                       </span>
                       <button
+                        aria-controls={`schema-preview-${schema.id}`}
+                        aria-expanded={previewSchemaIds.has(schema.id)}
+                        aria-label={t(
+                          previewSchemaIds.has(schema.id)
+                            ? "schemas.hidePreviewAriaLabel"
+                            : "schemas.previewAriaLabel",
+                          { title: schema.title },
+                        )}
+                        className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                        type="button"
+                        onClick={() => handleTogglePreview(schema.id)}
+                      >
+                        {t(
+                          previewSchemaIds.has(schema.id)
+                            ? "schemas.hidePreview"
+                            : "schemas.preview",
+                        )}
+                      </button>
+                      <button
                         aria-label={t("schemas.downloadAriaLabel", {
                           title: schema.title,
                         })}
@@ -320,6 +363,18 @@ export function SchemasPageContent({
                       </dd>
                     </div>
                   </dl>
+                  {previewSchemaIds.has(schema.id) ? (
+                    <pre
+                      aria-label={t("schemas.previewContentAriaLabel", {
+                        title: schema.title,
+                      })}
+                      className="mt-5 max-h-96 w-full max-w-full overflow-auto border-t border-[color:var(--color-brand-border)] bg-[#fbfaff] p-4 font-mono text-sm leading-6 text-[color:var(--color-brand-navy)]"
+                      id={`schema-preview-${schema.id}`}
+                      tabIndex={0}
+                    >
+                      {schema.schemaText}
+                    </pre>
+                  ) : null}
                 </article>
               ))}
             </div>

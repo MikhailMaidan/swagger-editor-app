@@ -79,6 +79,39 @@ describe("SchemasPageContent", () => {
     }
   });
 
+  it("toggles an accessible inline preview for a saved schema", async () => {
+    const user = userEvent.setup();
+
+    render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+    const previewButton = screen.getByRole("button", {
+      name: "Preview Saved API",
+    });
+
+    expect(previewButton).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByLabelText("Schema preview for Saved API"),
+    ).not.toBeInTheDocument();
+
+    await user.click(previewButton);
+
+    const preview = screen.getByLabelText("Schema preview for Saved API");
+
+    expect(preview).toBeVisible();
+    expect(preview).toHaveTextContent(savedSchema.schemaText);
+    expect(
+      screen.getByRole("button", { name: "Hide preview for Saved API" }),
+    ).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(
+      screen.getByRole("button", { name: "Hide preview for Saved API" }),
+    );
+
+    expect(
+      screen.queryByLabelText("Schema preview for Saved API"),
+    ).not.toBeInTheDocument();
+  });
+
   it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");
