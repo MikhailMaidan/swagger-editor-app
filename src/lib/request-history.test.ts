@@ -10,6 +10,7 @@ import {
   REQUEST_HISTORY_STORAGE_KEY,
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
+  sortRequestHistory,
 } from "./request-history";
 import type { RequestHistoryRecord } from "./request-history";
 
@@ -99,9 +100,74 @@ describe("request history storage", () => {
       url: newRecord.path,
     };
 
+    expect(mergeRequestHistory([oldHistoryRecord, newHistoryRecord])).toEqual([
+      newHistoryRecord,
+      oldHistoryRecord,
+    ]);
+  });
+
+  it("sorts history by age, duration, or failures without mutating it", () => {
+    const records: RequestHistoryRecord[] = [
+      {
+        createdAt: "2026-07-06T10:00:00.000Z",
+        durationMs: 80,
+        errorDetails: null,
+        id: "newest",
+        method: "GET",
+        path: "/newest",
+        requestSize: 0,
+        responseSize: 0,
+        status: 200,
+        summary: "Newest",
+        url: "/newest",
+      },
+      {
+        createdAt: "2026-07-06T09:00:00.000Z",
+        durationMs: 30,
+        errorDetails: "Server error",
+        id: "failed",
+        method: "POST",
+        path: "/failed",
+        requestSize: 0,
+        responseSize: 0,
+        status: 500,
+        summary: "Failed",
+        url: "/failed",
+      },
+      {
+        createdAt: "2026-07-06T08:00:00.000Z",
+        durationMs: 120,
+        errorDetails: null,
+        id: "oldest",
+        method: "GET",
+        path: "/oldest",
+        requestSize: 0,
+        responseSize: 0,
+        status: 200,
+        summary: "Oldest",
+        url: "/oldest",
+      },
+    ];
+
+    expect(sortRequestHistory(records).map((record) => record.id)).toEqual([
+      "newest",
+      "failed",
+      "oldest",
+    ]);
     expect(
-      mergeRequestHistory([oldHistoryRecord, newHistoryRecord]),
-    ).toEqual([newHistoryRecord, oldHistoryRecord]);
+      sortRequestHistory(records, "oldest").map((record) => record.id),
+    ).toEqual(["oldest", "failed", "newest"]);
+    expect(
+      sortRequestHistory(records, "slowest").map((record) => record.id),
+    ).toEqual(["oldest", "newest", "failed"]);
+    expect(
+      sortRequestHistory(records, "failures").map((record) => record.id),
+    ).toEqual(["failed", "newest", "oldest"]);
+    expect(records.map((record) => record.id)).toEqual([
+      "newest",
+      "failed",
+      "oldest",
+    ]);
   });
 
   it("syncs saved records to the server history route", async () => {
@@ -178,9 +244,9 @@ describe("request history storage", () => {
       .mockResolvedValue(new Response(null, { status: 200 }));
 
     try {
-      await expect(
-        deleteServerHistoryRecord("server-record"),
-      ).resolves.toBe(true);
+      await expect(deleteServerHistoryRecord("server-record")).resolves.toBe(
+        true,
+      );
 
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/history/server-record",
@@ -197,9 +263,9 @@ describe("request history storage", () => {
       .mockRejectedValue(new Error("network error"));
 
     try {
-      await expect(
-        deleteServerHistoryRecord("server-record"),
-      ).resolves.toBe(false);
+      await expect(deleteServerHistoryRecord("server-record")).resolves.toBe(
+        false,
+      );
     } finally {
       fetchMock.mockRestore();
     }

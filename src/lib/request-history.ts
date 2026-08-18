@@ -1,6 +1,10 @@
+import { isErrorStatus } from "./status-color";
+
 export const REQUEST_HISTORY_STORAGE_KEY = "rsswagger-request-history";
 export const SERVER_REQUEST_HISTORY_COOKIE = "rsswagger-server-history";
 export const MAX_REQUEST_HISTORY_RECORDS = 20;
+
+export type RequestHistorySort = "failures" | "newest" | "oldest" | "slowest";
 
 export type RequestHistoryRecord = {
   id: string;
@@ -84,12 +88,57 @@ export function parseRequestHistory(value?: string | null) {
   }
 }
 
-export function sortRequestHistory(records: RequestHistoryRecord[]) {
-  return [...records].sort(
-    (firstRecord, secondRecord) =>
-      new Date(secondRecord.createdAt).getTime() -
-      new Date(firstRecord.createdAt).getTime(),
+function getHistoryTimestamp(record: RequestHistoryRecord) {
+  const timestamp = Date.parse(record.createdAt);
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function compareNewestFirst(
+  firstRecord: RequestHistoryRecord,
+  secondRecord: RequestHistoryRecord,
+) {
+  return (
+    getHistoryTimestamp(secondRecord) - getHistoryTimestamp(firstRecord) ||
+    firstRecord.id.localeCompare(secondRecord.id)
   );
+}
+
+export function sortRequestHistory(
+  records: RequestHistoryRecord[],
+  sort: RequestHistorySort = "newest",
+) {
+  return [...records].sort((firstRecord, secondRecord) => {
+    if (sort === "oldest") {
+      return compareNewestFirst(secondRecord, firstRecord);
+    }
+
+    if (sort === "slowest") {
+      const firstDuration =
+        Number.isFinite(firstRecord.durationMs) && firstRecord.durationMs >= 0
+          ? firstRecord.durationMs
+          : 0;
+      const secondDuration =
+        Number.isFinite(secondRecord.durationMs) && secondRecord.durationMs >= 0
+          ? secondRecord.durationMs
+          : 0;
+
+      return (
+        secondDuration - firstDuration ||
+        compareNewestFirst(firstRecord, secondRecord)
+      );
+    }
+
+    if (sort === "failures") {
+      return (
+        Number(isErrorStatus(secondRecord.status)) -
+          Number(isErrorStatus(firstRecord.status)) ||
+        compareNewestFirst(firstRecord, secondRecord)
+      );
+    }
+
+    return compareNewestFirst(firstRecord, secondRecord);
+  });
 }
 
 export function mergeRequestHistory(records: RequestHistoryRecord[]) {

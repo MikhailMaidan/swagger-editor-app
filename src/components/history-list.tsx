@@ -13,6 +13,8 @@ import {
   readRequestHistory,
   removeRequestHistoryRecord,
   RequestHistoryRecord,
+  RequestHistorySort,
+  sortRequestHistory,
 } from "@/lib/request-history";
 import { createRequestHistoryStats } from "@/lib/request-history-stats";
 import { getStatusColorClasses } from "@/lib/status-color";
@@ -58,6 +60,8 @@ export function HistoryList({
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllError, setClearAllError] = useState(false);
   const [historyFilter, setHistoryFilter] = useState("");
+  const [historySort, setHistorySort] =
+    useState<RequestHistorySort>("newest");
   const normalizedHistoryFilter = historyFilter.trim().toLowerCase();
   const filteredRecords = useMemo(
     () =>
@@ -74,6 +78,10 @@ export function HistoryList({
           )
         : records,
     [normalizedHistoryFilter, records],
+  );
+  const sortedRecords = useMemo(
+    () => sortRequestHistory(filteredRecords, historySort),
+    [filteredRecords, historySort],
   );
   const historyStats = useMemo(
     () => createRequestHistoryStats(filteredRecords),
@@ -189,6 +197,22 @@ export function HistoryList({
           value={historyFilter}
           onChange={(event) => setHistoryFilter(event.target.value)}
         />
+        <label className="sr-only" htmlFor="request-history-sort">
+          {t("history.sortLabel")}
+        </label>
+        <select
+          className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+          id="request-history-sort"
+          value={historySort}
+          onChange={(event) =>
+            setHistorySort(event.target.value as RequestHistorySort)
+          }
+        >
+          <option value="newest">{t("history.sortNewest")}</option>
+          <option value="oldest">{t("history.sortOldest")}</option>
+          <option value="slowest">{t("history.sortSlowest")}</option>
+          <option value="failures">{t("history.sortFailures")}</option>
+        </select>
         <span className="shrink-0 text-sm font-semibold text-[color:var(--color-brand-muted)]">
           {t("history.filterSummary", {
             total: String(records.length),
@@ -279,7 +303,7 @@ export function HistoryList({
                 </td>
               </tr>
             ) : (
-              filteredRecords.map((record) => (
+              sortedRecords.map((record) => (
               <tr
                 className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)] transition-colors hover:bg-[color:var(--color-brand-soft)]/60 motion-reduce:transition-none"
                 key={record.id}

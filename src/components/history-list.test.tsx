@@ -184,7 +184,7 @@ describe("HistoryList", () => {
 
     expect(
       await screen.findByText(
-        "Recent executed requests are shown newest first.",
+        "Review previously executed requests and their details.",
       ),
     ).toBeVisible();
 
@@ -198,6 +198,69 @@ describe("HistoryList", () => {
     expect(within(rows[2]).getByText("GET")).toBeVisible();
     expect(within(rows[2]).getByText("Old request")).toBeVisible();
     expect(within(rows[2]).getByText("45 ms")).toBeVisible();
+  });
+
+  it("sorts visible history by age, duration, and failures", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 90,
+            errorDetails: null,
+            id: "newest-record",
+            method: "GET",
+            path: "/newest",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "Newest request",
+            url: "/newest",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 40,
+            errorDetails: "Server error",
+            id: "failed-record",
+            method: "POST",
+            path: "/failed",
+            requestSize: 90,
+            responseSize: 0,
+            status: 500,
+            summary: "Failed request",
+            url: "/failed",
+          },
+          {
+            createdAt: "2026-07-06T08:00:00.000Z",
+            durationMs: 30,
+            errorDetails: null,
+            id: "oldest-record",
+            method: "GET",
+            path: "/oldest",
+            requestSize: 80,
+            responseSize: 120,
+            status: 200,
+            summary: "Oldest request",
+            url: "/oldest",
+          },
+        ]}
+      />,
+    );
+
+    const sort = screen.getByLabelText("Sort request history");
+
+    expect(within(screen.getAllByRole("row")[1]).getByText("Newest request")).toBeVisible();
+
+    await user.selectOptions(sort, "oldest");
+    expect(within(screen.getAllByRole("row")[1]).getByText("Oldest request")).toBeVisible();
+
+    await user.selectOptions(sort, "slowest");
+    expect(within(screen.getAllByRole("row")[1]).getByText("Newest request")).toBeVisible();
+
+    await user.selectOptions(sort, "failures");
+    expect(within(screen.getAllByRole("row")[1]).getByText("Failed request")).toBeVisible();
   });
 
   it("filters request history by method, URL, summary, and status", async () => {
