@@ -1,5 +1,6 @@
-import YAML from "yaml";
+import YAML, { YAMLParseError } from "yaml";
 import { buildCookieHeaderValue, buildRequestUrl } from "./request-url";
+import { getTextOffset, getTextPosition } from "./text-position";
 
 export type SchemaFormat = "json" | "yaml";
 
@@ -82,6 +83,11 @@ export type OpenApiParseResult =
       ok: false;
       format: SchemaFormat;
       error: string;
+      errorPosition?: {
+        column: number;
+        line: number;
+        offset: number;
+      };
     };
 
 const HTTP_METHODS = new Set([
@@ -671,6 +677,42 @@ export function validateOpenApiSchema(value: unknown) {
   return "";
 }
 
+function getParseErrorPosition(schemaText: string, error: unknown) {
+  let offset: number | undefined;
+
+  if (error instanceof YAMLParseError) {
+    offset = error.pos[0];
+  } else if (error instanceof Error) {
+    const offsetMatch = error.message.match(/\bat position\s+(\d+)/i);
+
+    if (offsetMatch) {
+      offset = Number(offsetMatch[1]);
+    } else {
+      const positionMatch = error.message.match(
+        /\bline\s+(\d+)(?:,\s*|\s+)column\s+(\d+)/i,
+      );
+
+      if (positionMatch) {
+        offset = getTextOffset(schemaText, {
+          column: Number(positionMatch[2]),
+          line: Number(positionMatch[1]),
+        });
+      }
+    }
+  }
+
+  if (offset === undefined || !Number.isFinite(offset)) {
+    return undefined;
+  }
+
+  const boundedOffset = Math.min(Math.max(offset, 0), schemaText.length);
+
+  return {
+    ...getTextPosition(schemaText, boundedOffset),
+    offset: boundedOffset,
+  };
+}
+
 export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
   const format = detectSchemaFormat(schemaText);
 
@@ -709,6 +751,7 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
         error instanceof Error
           ? error.message
           : "Unable to parse the OpenAPI schema.",
+      errorPosition: getParseErrorPosition(schemaText, error),
       format,
       ok: false,
     };

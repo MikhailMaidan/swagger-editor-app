@@ -558,6 +558,27 @@ export function SwaggerWorkspace({
     setCopiedSchemaText(null);
   }
 
+  function handleGoToSchemaError() {
+    if (parseResult.ok || !parseResult.errorPosition) {
+      return;
+    }
+
+    const editor = editorRef.current;
+
+    if (!editor) {
+      return;
+    }
+
+    const offset = Math.min(
+      parseResult.errorPosition.offset,
+      schemaText.length,
+    );
+
+    editor.focus();
+    editor.setSelectionRange(offset, offset);
+    setEditorCursor(getTextPosition(schemaText, offset));
+  }
+
   function getSchemaErrorMessage(error: string) {
     const errorKey = schemaErrorKeys[error];
 
@@ -733,12 +754,31 @@ export function SwaggerWorkspace({
           </p>
         ) : null}
         {!parseResult.ok ? (
-          <p
-            className="border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+          <div
+            className="flex flex-wrap items-center justify-between gap-3 border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
             role="alert"
           >
-            {getSchemaErrorMessage(parseResult.error)}
-          </p>
+            <div>
+              <p>{getSchemaErrorMessage(parseResult.error)}</p>
+              {parseResult.errorPosition ? (
+                <p className="mt-1 text-xs">
+                  {t("workspace.errorPosition", {
+                    column: String(parseResult.errorPosition.column),
+                    line: String(parseResult.errorPosition.line),
+                  })}
+                </p>
+              ) : null}
+            </div>
+            {parseResult.errorPosition ? (
+              <button
+                className="border border-red-300 px-3 py-2 text-xs font-extrabold text-red-700 transition hover:bg-red-100"
+                type="button"
+                onClick={handleGoToSchemaError}
+              >
+                {t("workspace.goToError")}
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

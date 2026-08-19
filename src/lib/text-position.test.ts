@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getTextPosition } from "./text-position";
+import { getTextOffset, getTextPosition } from "./text-position";
 
 describe("text position helpers", () => {
   it("calculates one-based line and column positions", () => {
@@ -16,5 +16,14 @@ describe("text position helpers", () => {
     });
     expect(getTextPosition("text", -10)).toEqual({ column: 1, line: 1 });
     expect(getTextPosition("text", 100)).toEqual({ column: 5, line: 1 });
+  });
+
+  it("converts one-based positions to bounded text offsets", () => {
+    const value = "first\r\nsecond\nthird";
+
+    expect(getTextOffset(value, { column: 3, line: 2 })).toBe(9);
+    expect(getTextOffset(value, { column: 99, line: 2 })).toBe(13);
+    expect(getTextOffset(value, { column: 1, line: 99 })).toBe(value.length);
+    expect(getTextOffset(value, { column: -2, line: -3 })).toBe(0);
   });
 });

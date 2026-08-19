@@ -689,6 +689,27 @@ paths:
     ).toBeVisible();
   });
 
+  it("shows parser locations and moves the editor caret to an error", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+
+    fireEvent.change(editor, { target: { value: "openapi: [" } });
+
+    expect(await screen.findByText("Error at line 1, column 11")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Go to error" }));
+
+    expect(editor).toHaveFocus();
+    expect(editor.selectionStart).toBe(10);
+    expect(editor.selectionEnd).toBe(10);
+    expect(screen.getByText("Line 1, column 11")).toBeVisible();
+  });
+
   it("converts between YAML and JSON without losing schema data", async () => {
     const user = userEvent.setup();
 

@@ -629,6 +629,24 @@ describe("openapi helpers", () => {
     });
   });
 
+  it("reports the location of malformed YAML and JSON", () => {
+    expect(parseOpenApiSchema("openapi: [")).toMatchObject({
+      errorPosition: { column: 11, line: 1, offset: 10 },
+      format: "yaml",
+      ok: false,
+    });
+
+    const invalidJson = `{
+  "openapi": "3.0.0",
+}`;
+
+    expect(parseOpenApiSchema(invalidJson)).toMatchObject({
+      errorPosition: { column: 1, line: 3, offset: 24 },
+      format: "json",
+      ok: false,
+    });
+  });
+
   it("ignores malformed path items while extracting endpoints", () => {
     expect(
       extractEndpoints({

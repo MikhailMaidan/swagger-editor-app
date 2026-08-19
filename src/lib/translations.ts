@@ -214,6 +214,7 @@ export const translations = {
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
+    "workspace.errorPosition": "Error at line {line}, column {column}",
     "workspace.executing": "Executing...",
     "workspace.errors.fileReadFailed": "Could not read that file.",
     "workspace.errors.infoTitleRequired": "Schema info.title is required.",
@@ -226,6 +227,7 @@ export const translations = {
     "workspace.filterEndpoints":
       "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     "workspace.formatSchema": "Format schema",
+    "workspace.goToError": "Go to error",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
     "workspace.import": "Import",
@@ -504,6 +506,8 @@ export const translations = {
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
+    "workspace.errorPosition":
+      "Ошибка в строке {line}, столбец {column}",
     "workspace.executing": "Выполняется...",
     "workspace.errors.fileReadFailed": "Не удалось прочитать файл.",
     "workspace.errors.infoTitleRequired": "Поле schema info.title обязательно.",
@@ -516,6 +520,7 @@ export const translations = {
     "workspace.filterEndpoints":
       "Фильтр по методу, пути, описанию, ID операции, тегу, параметру или auth",
     "workspace.formatSchema": "Форматировать схему",
+    "workspace.goToError": "Перейти к ошибке",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
     "workspace.import": "Импорт",
