@@ -151,6 +151,80 @@ describe("HistoryList", () => {
     );
   });
 
+  it("filters visible history and analytics by request outcome", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 52,
+            errorDetails: null,
+            id: "ok-record",
+            method: "GET",
+            path: "/ok",
+            requestSize: 100,
+            responseSize: 140,
+            status: 200,
+            summary: "Successful request",
+            url: "/ok",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 12,
+            errorDetails: "network error",
+            id: "failed-record",
+            method: "GET",
+            path: "/failed",
+            requestSize: 40,
+            responseSize: 0,
+            status: 0,
+            summary: "Failed request",
+            url: "/failed",
+          },
+        ]}
+      />,
+    );
+
+    const outcomeFilter = screen.getByRole("group", {
+      name: "Filter history by outcome",
+    });
+    const allButton = within(outcomeFilter).getByRole("button", { name: "All" });
+    const successfulButton = within(outcomeFilter).getByRole("button", {
+      name: "Successful",
+    });
+    const failedButton = within(outcomeFilter).getByRole("button", {
+      name: "Failed",
+    });
+
+    expect(allButton).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(failedButton);
+
+    expect(screen.getByText("Failed request")).toBeVisible();
+    expect(screen.queryByText("Successful request")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
+    expect(failedButton).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(screen.getByLabelText("Visible request statistics"))
+        .getByText("Total requests")
+        .parentElement,
+    ).toHaveTextContent("1");
+
+    await user.click(successfulButton);
+
+    expect(screen.getByText("Successful request")).toBeVisible();
+    expect(screen.queryByText("Failed request")).not.toBeInTheDocument();
+    expect(successfulButton).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(allButton);
+
+    expect(screen.getByText("Successful request")).toBeVisible();
+    expect(screen.getByText("Failed request")).toBeVisible();
+    expect(allButton).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("renders saved requests newest first", async () => {
     window.localStorage.setItem(
       REQUEST_HISTORY_STORAGE_KEY,

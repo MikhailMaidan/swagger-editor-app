@@ -17,6 +17,10 @@ import {
   sortRequestHistory,
 } from "@/lib/request-history";
 import { downloadRequestHistoryFile } from "@/lib/request-history-export";
+import {
+  filterRequestHistory,
+  RequestHistoryOutcomeFilter,
+} from "@/lib/request-history-filter";
 import { createRequestHistoryStats } from "@/lib/request-history-stats";
 import { getStatusColorClasses } from "@/lib/status-color";
 
@@ -61,24 +65,13 @@ export function HistoryList({
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllError, setClearAllError] = useState(false);
   const [historyFilter, setHistoryFilter] = useState("");
+  const [historyOutcome, setHistoryOutcome] =
+    useState<RequestHistoryOutcomeFilter>("all");
   const [historySort, setHistorySort] =
     useState<RequestHistorySort>("newest");
-  const normalizedHistoryFilter = historyFilter.trim().toLowerCase();
   const filteredRecords = useMemo(
-    () =>
-      normalizedHistoryFilter
-        ? records.filter(
-            (record) =>
-              record.method.toLowerCase().includes(normalizedHistoryFilter) ||
-              record.path.toLowerCase().includes(normalizedHistoryFilter) ||
-              record.url.toLowerCase().includes(normalizedHistoryFilter) ||
-              record.summary
-                .toLowerCase()
-                .includes(normalizedHistoryFilter) ||
-              String(record.status).includes(normalizedHistoryFilter),
-          )
-        : records,
-    [normalizedHistoryFilter, records],
+    () => filterRequestHistory(records, historyFilter, historyOutcome),
+    [historyFilter, historyOutcome, records],
   );
   const sortedRecords = useMemo(
     () => sortRequestHistory(filteredRecords, historySort),
@@ -198,6 +191,33 @@ export function HistoryList({
           value={historyFilter}
           onChange={(event) => setHistoryFilter(event.target.value)}
         />
+        <div
+          aria-label={t("history.outcomeFilterLabel")}
+          className="inline-flex h-11 shrink-0 items-center rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-1"
+          role="group"
+        >
+          {(
+            [
+              ["all", t("history.allOutcomes")],
+              ["successful", t("history.successfulRequests")],
+              ["failed", t("history.failedRequests")],
+            ] as const
+          ).map(([outcome, label]) => (
+            <button
+              aria-pressed={historyOutcome === outcome}
+              className={`h-8 rounded-xl px-3 text-sm font-bold transition ${
+                historyOutcome === outcome
+                  ? "bg-[color:var(--color-brand-purple)] text-white"
+                  : "text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-brand-soft)]"
+              }`}
+              key={outcome}
+              type="button"
+              onClick={() => setHistoryOutcome(outcome)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <label className="sr-only" htmlFor="request-history-sort">
           {t("history.sortLabel")}
         </label>

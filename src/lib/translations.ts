@@ -66,6 +66,7 @@ export const translations = {
     "history.averageDuration": "Average duration",
     "history.averageDurationValue": "{duration} ms",
     "history.backToHistory": "Back to History",
+    "history.allOutcomes": "All",
     "history.clearAll": "Clear all",
     "history.clearAllConfirm":
       "Delete all {count} history records? This cannot be undone.",
@@ -95,6 +96,7 @@ export const translations = {
     "history.noErrors": "No errors were recorded.",
     "history.noMatches": "No history records match your search.",
     "history.notFound": "This history record is not available.",
+    "history.outcomeFilterLabel": "Filter history by outcome",
     "history.privateRoute": "Private Route",
     "history.recent": "Review previously executed requests and their details.",
     "history.requestSize": "Request size",
@@ -339,6 +341,7 @@ export const translations = {
     "history.averageDuration": "Средняя длительность",
     "history.averageDurationValue": "{duration} мс",
     "history.backToHistory": "Вернуться к истории",
+    "history.allOutcomes": "Все",
     "history.clearAll": "Очистить всё",
     "history.clearAllConfirm":
       "Удалить все {count} записи истории? Это действие необратимо.",
@@ -368,6 +371,7 @@ export const translations = {
     "history.noErrors": "Ошибки не зафиксированы.",
     "history.noMatches": "Нет записей истории, соответствующих поиску.",
     "history.notFound": "Эта запись истории недоступна.",
+    "history.outcomeFilterLabel": "Фильтр истории по результату",
     "history.privateRoute": "Приватный маршрут",
     "history.recent":
       "Просматривайте выполненные запросы и подробную информацию о них.",
