@@ -11,6 +11,8 @@ import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
+import { sortEndpoints } from "@/lib/endpoint-sort";
+import type { EndpointSort } from "@/lib/endpoint-sort";
 import {
   DEFAULT_OPENAPI_SCHEMA,
   createEndpointStats,
@@ -82,6 +84,7 @@ export function SwaggerWorkspace({
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("idle");
   const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
+  const [endpointSort, setEndpointSort] = useState<EndpointSort>("schema");
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
@@ -163,6 +166,7 @@ export function SwaggerWorkspace({
       : methodFilteredEndpoints.filter((endpoint) =>
           endpoint.tags.includes(activeTag),
         );
+  const visibleEndpoints = sortEndpoints(tagFilteredEndpoints, endpointSort);
   const hasActiveEndpointFilters =
     Boolean(endpointFilter) ||
     selectedMethod !== "all" ||
@@ -886,6 +890,18 @@ export function SwaggerWorkspace({
                 value={endpointFilter}
                 onChange={(event) => setEndpointFilter(event.target.value)}
               />
+              <select
+                aria-label={t("workspace.endpointSortLabel")}
+                className="h-11 min-w-40 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                value={endpointSort}
+                onChange={(event) =>
+                  setEndpointSort(event.target.value as EndpointSort)
+                }
+              >
+                <option value="schema">{t("workspace.sortSchemaOrder")}</option>
+                <option value="path">{t("workspace.sortByPath")}</option>
+                <option value="method">{t("workspace.sortByMethod")}</option>
+              </select>
               {endpointFilter ? (
                 <button
                   className="h-11 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
@@ -992,7 +1008,7 @@ export function SwaggerWorkspace({
               {t("workspace.noEndpointsMatch")}
             </div>
           ) : (
-            tagFilteredEndpoints.map((endpoint) => (
+            visibleEndpoints.map((endpoint) => (
               <EndpointCard
                 canSaveHistory={isAuthenticated}
                 key={`${endpoint.method}-${endpoint.path}`}

@@ -248,6 +248,67 @@ paths:
     expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
   });
 
+  it("sorts visible endpoints without changing the default schema order", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Sorted API
+  version: 1.0.0
+paths:
+  /zeta:
+    delete:
+      responses: {}
+  /alpha:
+    post:
+      responses: {}
+  /beta:
+    get:
+      responses: {}`,
+      },
+    });
+
+    const endpointOrder = () =>
+      screen
+        .getAllByLabelText(/^cURL /)
+        .map((preview) => preview.getAttribute("aria-label"));
+
+    await waitFor(() =>
+      expect(endpointOrder()).toEqual([
+        "cURL DELETE /zeta",
+        "cURL POST /alpha",
+        "cURL GET /beta",
+      ]),
+    );
+
+    const sort = screen.getByLabelText("Sort endpoints");
+
+    await user.selectOptions(sort, "path");
+    expect(endpointOrder()).toEqual([
+      "cURL POST /alpha",
+      "cURL GET /beta",
+      "cURL DELETE /zeta",
+    ]);
+
+    await user.selectOptions(sort, "method");
+    expect(endpointOrder()).toEqual([
+      "cURL GET /beta",
+      "cURL POST /alpha",
+      "cURL DELETE /zeta",
+    ]);
+
+    await user.selectOptions(sort, "schema");
+    expect(endpointOrder()).toEqual([
+      "cURL DELETE /zeta",
+      "cURL POST /alpha",
+      "cURL GET /beta",
+    ]);
+  });
+
   it("shows endpoint tags, security badges, deprecated badges, and metadata stats", async () => {
     render(<SwaggerWorkspace />);
 

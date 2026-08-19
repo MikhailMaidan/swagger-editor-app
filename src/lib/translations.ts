@@ -214,6 +214,7 @@ export const translations = {
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
+    "workspace.endpointSortLabel": "Sort endpoints",
     "workspace.errorPosition": "Error at line {line}, column {column}",
     "workspace.executing": "Executing...",
     "workspace.errors.fileReadFailed": "Could not read that file.",
@@ -283,6 +284,9 @@ export const translations = {
     "workspace.server": "Server",
     "workspace.serverSelector": "Select API server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
+    "workspace.sortByMethod": "Method order",
+    "workspace.sortByPath": "Path A-Z",
+    "workspace.sortSchemaOrder": "Schema order",
     "workspace.tryItOut": "Try It Out",
     "workspace.tagFilterLabel": "Filter endpoints by tag",
     "workspace.tagFilterOption": "{tag} ({count})",
@@ -506,6 +510,7 @@ export const translations = {
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
+    "workspace.endpointSortLabel": "Сортировать эндпоинты",
     "workspace.errorPosition":
       "Ошибка в строке {line}, столбец {column}",
     "workspace.executing": "Выполняется...",
@@ -578,6 +583,9 @@ export const translations = {
     "workspace.serverSelector": "Выберите API-сервер",
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
+    "workspace.sortByMethod": "По HTTP-методу",
+    "workspace.sortByPath": "По пути А-Я",
+    "workspace.sortSchemaOrder": "Порядок схемы",
     "workspace.tryItOut": "Отправить запрос",
     "workspace.tagFilterLabel": "Фильтр эндпоинтов по тегу",
     "workspace.tagFilterOption": "{tag} ({count})",
