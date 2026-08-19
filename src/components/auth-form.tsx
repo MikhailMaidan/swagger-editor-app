@@ -32,6 +32,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errors, setErrors] = useState<AuthFormErrors>({});
 
   const isSignIn = mode === "sign-in";
@@ -84,7 +85,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
             {t("auth.email")}
             <input
+              autoComplete="email"
               className="h-12 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+              name="email"
               type="email"
               value={email}
               onChange={(event) => {
@@ -110,25 +113,47 @@ export function AuthForm({ mode }: AuthFormProps) {
             ) : null}
           </label>
 
-          <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-            {t("auth.password")}
-            <input
-              className="h-12 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-              type="password"
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                setErrors((currentErrors) => ({
-                  ...currentErrors,
-                  password: undefined,
-                }));
-              }}
-              placeholder={t("auth.passwordPlaceholder")}
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? "password-error" : undefined}
-              minLength={8}
-              required
-            />
+          <div className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+            <label htmlFor="auth-password">{t("auth.password")}</label>
+            <div className="relative">
+              <input
+                aria-describedby={
+                  errors.password ? "password-error" : undefined
+                }
+                aria-invalid={Boolean(errors.password)}
+                autoComplete={isSignIn ? "current-password" : "new-password"}
+                className="h-12 w-full rounded-2xl border border-[color:var(--color-brand-border)] px-4 pr-24 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                id="auth-password"
+                minLength={8}
+                name="password"
+                placeholder={t("auth.passwordPlaceholder")}
+                required
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  setErrors((currentErrors) => ({
+                    ...currentErrors,
+                    password: undefined,
+                  }));
+                }}
+              />
+              <button
+                aria-label={
+                  isPasswordVisible
+                    ? t("auth.hidePassword")
+                    : t("auth.showPassword")
+                }
+                aria-pressed={isPasswordVisible}
+                className="absolute right-2 top-1/2 h-8 -translate-y-1/2 rounded-xl px-3 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={() => setIsPasswordVisible((visible) => !visible)}
+              >
+                {isPasswordVisible
+                  ? t("auth.hidePasswordShort")
+                  : t("auth.showPasswordShort")}
+              </button>
+            </div>
             {errors.password ? (
               <span
                 className="text-sm font-semibold text-red-600"
@@ -138,7 +163,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 {getErrorMessage(errors.password)}
               </span>
             ) : null}
-          </label>
+          </div>
         </div>
 
         <button

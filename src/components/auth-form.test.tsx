@@ -13,6 +13,14 @@ describe("AuthForm", () => {
       "href",
       "/sign-up",
     );
+    expect(screen.getByLabelText("Email")).toHaveAttribute(
+      "autocomplete",
+      "email",
+    );
+    expect(screen.getByLabelText("Password")).toHaveAttribute(
+      "autocomplete",
+      "current-password",
+    );
   });
 
   it("renders sign up copy and a link to sign in", () => {
@@ -23,6 +31,40 @@ describe("AuthForm", () => {
       "href",
       "/sign-in",
     );
+    expect(screen.getByLabelText("Password")).toHaveAttribute(
+      "autocomplete",
+      "new-password",
+    );
+  });
+
+  it("shows and hides the password without clearing or submitting it", async () => {
+    const user = userEvent.setup();
+
+    render(<AuthForm mode="sign-in" />);
+
+    const password = screen.getByLabelText("Password");
+    const showPassword = screen.getByRole("button", {
+      name: "Show password",
+    });
+
+    await user.type(password, "secret-value");
+
+    expect(password).toHaveAttribute("type", "password");
+    expect(showPassword).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(showPassword);
+
+    expect(password).toHaveAttribute("type", "text");
+    expect(password).toHaveValue("secret-value");
+    expect(
+      screen.getByRole("button", { name: "Hide password" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Hide password" }));
+
+    expect(password).toHaveAttribute("type", "password");
+    expect(password).toHaveValue("secret-value");
   });
 
   it("shows sign-up validation errors before submitting invalid data", async () => {

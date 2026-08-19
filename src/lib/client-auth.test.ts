@@ -31,6 +31,36 @@ describe("client auth helpers", () => {
     });
   });
 
+  it("uses cookie authentication when local storage is unavailable", () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(() => saveClientAuth("cookie-user@example.com")).not.toThrow();
+      expect(document.cookie).toContain(AUTH_TOKEN_COOKIE);
+    } finally {
+      setItemSpy.mockRestore();
+    }
+
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(getClientAuth()).toEqual({
+        isAuthenticated: true,
+        userName: "Cookie User",
+      });
+    } finally {
+      getItemSpy.mockRestore();
+    }
+  });
+
   it("clears authentication state", () => {
     saveClientAuth("mikhail@example.com");
 

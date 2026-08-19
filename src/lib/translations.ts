@@ -34,6 +34,8 @@ export const translations = {
     "auth.errors.passwordRequired": "Password is required.",
     "auth.errors.passwordSpecial":
       "Password must contain at least one special character.",
+    "auth.hidePassword": "Hide password",
+    "auth.hidePasswordShort": "Hide",
     "auth.needAccount": "Need an account?",
     "auth.password": "Password",
     "auth.passwordPlaceholder": "Password",
@@ -43,6 +45,8 @@ export const translations = {
     "auth.signUp": "Sign Up",
     "auth.signUpHelper":
       "Start your workspace for saved schemas and request history.",
+    "auth.showPassword": "Show password",
+    "auth.showPasswordShort": "Show",
     "common.goHome": "Go Home",
     "common.openEditor": "Open Editor",
     "error.description":
@@ -314,6 +318,8 @@ export const translations = {
     "auth.errors.passwordRequired": "Пароль обязателен.",
     "auth.errors.passwordSpecial":
       "Пароль должен содержать хотя бы один специальный символ.",
+    "auth.hidePassword": "Скрыть пароль",
+    "auth.hidePasswordShort": "Скрыть",
     "auth.needAccount": "Нужен аккаунт?",
     "auth.password": "Пароль",
     "auth.passwordPlaceholder": "Пароль",
@@ -323,6 +329,8 @@ export const translations = {
     "auth.signUp": "Зарегистрироваться",
     "auth.signUpHelper":
       "Начните работу с сохраненными схемами и историей запросов.",
+    "auth.showPassword": "Показать пароль",
+    "auth.showPasswordShort": "Показать",
     "common.goHome": "На главную",
     "common.openEditor": "Открыть редактор",
     "error.description":

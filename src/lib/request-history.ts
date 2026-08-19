@@ -214,7 +214,11 @@ export function clearRequestHistory() {
     return;
   }
 
-  window.localStorage.removeItem(REQUEST_HISTORY_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(REQUEST_HISTORY_STORAGE_KEY);
+  } catch {
+    // Sign-out remains usable when browser storage is blocked.
+  }
 }
 
 export function removeRequestHistoryRecord(id: string) {

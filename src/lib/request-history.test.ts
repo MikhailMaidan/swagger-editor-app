@@ -217,6 +217,20 @@ describe("request history storage", () => {
     expect(readRequestHistory()).toEqual([]);
   });
 
+  it("does not throw when browser storage blocks history cleanup", () => {
+    const removeItemSpy = vi
+      .spyOn(Storage.prototype, "removeItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(() => clearRequestHistory()).not.toThrow();
+    } finally {
+      removeItemSpy.mockRestore();
+    }
+  });
+
   it("removes a single record from the local history without touching the rest", () => {
     const keptRecord = saveRequestHistoryRecord({
       durationMs: 12,

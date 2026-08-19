@@ -57,12 +57,16 @@ function readStoredToken() {
     return null;
   }
 
-  for (const key of TOKEN_STORAGE_KEYS) {
-    const token = window.localStorage.getItem(key);
+  try {
+    for (const key of TOKEN_STORAGE_KEYS) {
+      const token = window.localStorage.getItem(key);
 
-    if (token) {
-      return token;
+      if (token) {
+        return token;
+      }
     }
+  } catch {
+    return null;
   }
 
   return null;
@@ -81,7 +85,11 @@ export function clearClientAuth() {
   deleteCookie(AUTH_USER_COOKIE);
 
   TOKEN_STORAGE_KEYS.forEach((key) => {
-    window.localStorage.removeItem(key);
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Cookie cleanup still signs the current page out when storage is blocked.
+    }
   });
 
   // Otherwise the next person to sign in on this browser would inherit the
@@ -133,7 +141,13 @@ export function saveClientAuth(email: string) {
 
   writeCookie(AUTH_TOKEN_COOKIE, token, COOKIE_LIFETIME);
   writeCookie(AUTH_USER_COOKIE, userName, COOKIE_LIFETIME);
-  window.localStorage.setItem(AUTH_TOKEN_COOKIE, token);
+
+  try {
+    window.localStorage.setItem(AUTH_TOKEN_COOKIE, token);
+  } catch {
+    // The cookie remains the primary session source when storage is blocked.
+  }
+
   notifyAuthChange();
 
   return {
