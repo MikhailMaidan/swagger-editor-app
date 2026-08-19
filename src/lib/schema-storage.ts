@@ -1,5 +1,7 @@
 export const SAVED_SCHEMA_STORAGE_KEY = "rsswagger-saved-schema";
 export const SERVER_SAVED_SCHEMAS_COOKIE = "rsswagger-server-schemas";
+export const SCHEMA_EDITOR_HANDOFF_STORAGE_KEY =
+  "rsswagger-schema-editor-handoff";
 export const MAX_SAVED_SCHEMAS = 10;
 
 export type SavedSchemaRecord = {
@@ -108,7 +110,11 @@ export function readSavedSchema() {
     return null;
   }
 
-  return window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY);
+  try {
+    return window.localStorage.getItem(SAVED_SCHEMA_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function clearSavedSchema() {
@@ -116,7 +122,11 @@ export function clearSavedSchema() {
     return;
   }
 
-  window.localStorage.removeItem(SAVED_SCHEMA_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(SAVED_SCHEMA_STORAGE_KEY);
+  } catch {
+    // Signing out and resetting the editor remain usable without storage.
+  }
 }
 
 export function saveSchema(schemaText: string, meta?: SavedSchemaMeta) {
@@ -124,13 +134,57 @@ export function saveSchema(schemaText: string, meta?: SavedSchemaMeta) {
     return null;
   }
 
-  window.localStorage.setItem(SAVED_SCHEMA_STORAGE_KEY, schemaText);
+  try {
+    window.localStorage.setItem(SAVED_SCHEMA_STORAGE_KEY, schemaText);
+  } catch {
+    return null;
+  }
 
   if (!meta) {
     return null;
   }
 
   return createSavedSchemaRecord(schemaText, meta);
+}
+
+export function stageSavedSchemaForEditor(schema: SavedSchemaRecord) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
+      JSON.stringify(schema),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function takeStagedSavedSchemaForEditor() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const storedSchema = window.sessionStorage.getItem(
+      SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
+    );
+
+    window.sessionStorage.removeItem(SCHEMA_EDITOR_HANDOFF_STORAGE_KEY);
+
+    if (!storedSchema) {
+      return null;
+    }
+
+    const parsedSchema: unknown = JSON.parse(storedSchema);
+
+    return isSavedSchemaRecord(parsedSchema) ? parsedSchema : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function readServerSavedSchemas() {

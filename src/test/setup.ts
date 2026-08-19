@@ -115,6 +115,7 @@ beforeEach(() => {
   nextMocks.navigation.replace.mockClear();
   nextMocks.navigation.redirect.mockClear();
   window.localStorage.clear();
+  window.sessionStorage.clear();
   Object.defineProperty(window, "scrollY", {
     configurable: true,
     value: 0,

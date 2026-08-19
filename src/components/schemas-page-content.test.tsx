@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { SCHEMA_EDITOR_HANDOFF_STORAGE_KEY } from "@/lib/schema-storage";
 import { SchemasPageContent } from "./schemas-page-content";
 
 const savedSchema = {
@@ -31,6 +32,48 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("Version 1.0.0")).toBeVisible();
     expect(screen.getAllByText("yaml")).toHaveLength(2);
     expect(screen.getByText("14 B")).toBeVisible();
+  });
+
+  it("stages a saved schema and opens it in the editor", async () => {
+    const user = userEvent.setup();
+
+    render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Open Saved API in editor" }),
+    );
+
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(SCHEMA_EDITOR_HANDOFF_STORAGE_KEY) ||
+          "null",
+      ),
+    ).toEqual(savedSchema);
+    expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).toHaveBeenCalledWith("/");
+  });
+
+  it("keeps the user on the schemas page when editor handoff storage fails", async () => {
+    const user = userEvent.setup();
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage full", "QuotaExceededError");
+      });
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Open Saved API in editor" }),
+      );
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not open this schema in the editor.",
+      );
+      expect(globalThis.__NEXT_NAVIGATION_MOCK__.push).not.toHaveBeenCalled();
+    } finally {
+      setItemSpy.mockRestore();
+    }
   });
 
   it("downloads a saved schema using its title and format", async () => {

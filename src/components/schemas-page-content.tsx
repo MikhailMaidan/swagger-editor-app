@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { formatEuropeanDateTime } from "@/lib/date-format";
@@ -10,6 +11,7 @@ import {
   deleteServerSchemaRecord,
   renameServerSchemaRecord,
   SavedSchemaRecord,
+  stageSavedSchemaForEditor,
 } from "@/lib/schema-storage";
 import { getByteSize } from "@/lib/text-encoding";
 
@@ -27,6 +29,7 @@ export function SchemasPageContent({
   initialSchemas: SavedSchemaRecord[];
 }) {
   const { language, t } = useI18n();
+  const router = useRouter();
   const [schemas, setSchemas] = useState(initialSchemas);
   const [schemaFilter, setSchemaFilter] = useState("");
   const [schemaSort, setSchemaSort] = useState<SchemaSort>("newest");
@@ -95,6 +98,7 @@ export function SchemasPageContent({
   const [isSavingRename, setIsSavingRename] = useState(false);
   const [renameErrorId, setRenameErrorId] = useState<string | null>(null);
   const [renameErrorMessage, setRenameErrorMessage] = useState("");
+  const [openErrorId, setOpenErrorId] = useState<string | null>(null);
   const [previewSchemaIds, setPreviewSchemaIds] = useState<Set<string>>(
     new Set(),
   );
@@ -197,6 +201,17 @@ export function SchemasPageContent({
 
   function handleDownload(schema: SavedSchemaRecord) {
     downloadSchemaFile(schema.schemaText, schema.title, schema.format);
+  }
+
+  function handleOpenInEditor(schema: SavedSchemaRecord) {
+    setOpenErrorId(null);
+
+    if (!stageSavedSchemaForEditor(schema)) {
+      setOpenErrorId(schema.id);
+      return;
+    }
+
+    router.push("/");
   }
 
   function handleTogglePreview(id: string) {
@@ -358,6 +373,16 @@ export function SchemasPageContent({
                           {schema.format}
                         </span>
                         <button
+                          aria-label={t("schemas.openEditorAriaLabel", {
+                            title: schema.title,
+                          })}
+                          className="rounded-2xl bg-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-white transition hover:bg-[color:var(--color-brand-purple-dark)]"
+                          type="button"
+                          onClick={() => handleOpenInEditor(schema)}
+                        >
+                          {t("schemas.openEditor")}
+                        </button>
+                        <button
                           aria-controls={`schema-preview-${schema.id}`}
                           aria-expanded={previewSchemaIds.has(schema.id)}
                           aria-label={t(
@@ -429,6 +454,15 @@ export function SchemasPageContent({
                         role="alert"
                       >
                         {t("schemas.deleteError")}
+                      </p>
+                    ) : null}
+
+                    {openErrorId === schema.id ? (
+                      <p
+                        className="mt-3 text-sm font-semibold text-red-600"
+                        role="alert"
+                      >
+                        {t("schemas.openEditorError")}
                       </p>
                     ) : null}
 

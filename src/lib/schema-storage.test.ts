@@ -7,8 +7,11 @@ import {
   readSavedSchema,
   readServerSavedSchemas,
   SAVED_SCHEMA_STORAGE_KEY,
+  SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
   saveSchema,
   saveServerSchemaRecord,
+  stageSavedSchemaForEditor,
+  takeStagedSavedSchemaForEditor,
 } from "./schema-storage";
 
 describe("schema storage", () => {
@@ -69,6 +72,56 @@ describe("schema storage", () => {
       title: "RSSwag Demo API",
       version: "1.0.0",
     });
+  });
+
+  it("hands a selected saved schema to the editor exactly once", () => {
+    const schema = createSavedSchemaRecord("openapi: 3.0.0", {
+      format: "yaml",
+      title: "Selected API",
+      version: "1.0.0",
+    });
+
+    expect(stageSavedSchemaForEditor(schema)).toBe(true);
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(SCHEMA_EDITOR_HANDOFF_STORAGE_KEY) ||
+          "null",
+      ),
+    ).toEqual(schema);
+    expect(takeStagedSavedSchemaForEditor()).toEqual(schema);
+    expect(takeStagedSavedSchemaForEditor()).toBeNull();
+  });
+
+  it("discards an invalid editor handoff", () => {
+    window.sessionStorage.setItem(
+      SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
+      JSON.stringify({ id: "incomplete" }),
+    );
+
+    expect(takeStagedSavedSchemaForEditor()).toBeNull();
+    expect(
+      window.sessionStorage.getItem(SCHEMA_EDITOR_HANDOFF_STORAGE_KEY),
+    ).toBeNull();
+  });
+
+  it("reports browser storage failures instead of throwing while saving", () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage full", "QuotaExceededError");
+      });
+
+    try {
+      expect(
+        saveSchema("openapi: 3.0.0", {
+          format: "yaml",
+          title: "Unsaved API",
+          version: "1.0.0",
+        }),
+      ).toBeNull();
+    } finally {
+      setItemSpy.mockRestore();
+    }
   });
 
   it("reuses the same id and original createdAt when resaving with an existing record's id", () => {

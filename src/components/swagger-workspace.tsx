@@ -31,6 +31,7 @@ import {
   saveSchema,
   saveServerSchemaRecord,
   SavedSchemaRecord,
+  takeStagedSavedSchemaForEditor,
 } from "@/lib/schema-storage";
 import { changeTextIndentation } from "@/lib/text-indentation";
 import { getTextPosition } from "@/lib/text-position";
@@ -239,8 +240,24 @@ export function SwaggerWorkspace({
 
     hasEditedSchemaRef.current = false;
 
-    const savedSchema = readSavedSchema();
+    const stagedSchema = takeStagedSavedSchemaForEditor();
     let cancelled = false;
+
+    if (stagedSchema) {
+      lastSavedSchemaRef.current = stagedSchema;
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setSchemaText(stagedSchema.schemaText);
+          setEditorCursor({ column: 1, line: 1 });
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const savedSchema = readSavedSchema();
 
     if (savedSchema) {
       lastSavedSchemaRef.current = null;
@@ -332,9 +349,7 @@ export function SwaggerWorkspace({
 
     downloadSchemaFile(
       schemaText,
-      currentParseResult.ok
-        ? currentParseResult.value.title
-        : "openapi-schema",
+      currentParseResult.ok ? currentParseResult.value.title : "openapi-schema",
       currentParseResult.ok
         ? currentParseResult.value.format
         : currentParseResult.format,
@@ -461,9 +476,7 @@ export function SwaggerWorkspace({
     setEditorCursor(getTextPosition(editor.value, editor.selectionStart));
   }
 
-  function handleEditorKeyDown(
-    event: ReactKeyboardEvent<HTMLTextAreaElement>,
-  ) {
+  function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     const isSaveShortcut =
       event.key.toLowerCase() === "s" &&
       (event.ctrlKey || event.metaKey) &&
@@ -537,10 +550,12 @@ export function SwaggerWorkspace({
       clearSchemaDraft();
       setDraftStatus("idle");
       void saveServerSchemaRecord(savedSchema);
+      setSaveMessage(t("workspace.schemaSaved"));
+    } else {
+      setSaveMessage(t("workspace.schemaSaveFailed"));
     }
 
     setCopiedSchemaText(null);
-    setSaveMessage(t("workspace.schemaSaved"));
   }
 
   function getSchemaErrorMessage(error: string) {

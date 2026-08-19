@@ -12,7 +12,11 @@ import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
-import { SAVED_SCHEMA_STORAGE_KEY } from "@/lib/schema-storage";
+import {
+  SAVED_SCHEMA_STORAGE_KEY,
+  SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
+  stageSavedSchemaForEditor,
+} from "@/lib/schema-storage";
 import { SwaggerWorkspace } from "./swagger-workspace";
 
 describe("SwaggerWorkspace", () => {
@@ -39,7 +43,8 @@ describe("SwaggerWorkspace", () => {
       expect(editor.className).toContain("overflow-y-hidden");
       expect(screen.getByText("Line 1, column 1")).toBeVisible();
 
-      const titleOffset = (editor as HTMLTextAreaElement).value.indexOf("title") + 2;
+      const titleOffset =
+        (editor as HTMLTextAreaElement).value.indexOf("title") + 2;
       (editor as HTMLTextAreaElement).setSelectionRange(
         titleOffset,
         titleOffset,
@@ -170,9 +175,7 @@ paths:
       },
     });
 
-    expect(
-      await screen.findByText("https://api.example.com/v2"),
-    ).toBeVisible();
+    expect(await screen.findByText("https://api.example.com/v2")).toBeVisible();
     expect(screen.getByLabelText("cURL GET /users")).toHaveTextContent(
       "https://api.example.com/v2/users",
     );
@@ -207,9 +210,7 @@ paths:
 
     fireEvent.change(filterInput, { target: { value: "update" } });
 
-    expect(
-      screen.getByLabelText("cURL POST /users/{id}"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
     expect(
       screen.queryByLabelText("cURL GET /users/{id}"),
     ).not.toBeInTheDocument();
@@ -221,9 +222,7 @@ paths:
       within(methodFilters).getByRole("button", { name: "GET (1)" }),
     );
 
-    expect(
-      screen.getByText("No endpoints match your search."),
-    ).toBeVisible();
+    expect(screen.getByText("No endpoints match your search.")).toBeVisible();
 
     expect(screen.getByText("Showing 0 of 2 endpoints")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
@@ -233,30 +232,20 @@ paths:
       within(methodFilters).getByRole("button", { name: "All methods" }),
     ).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("Showing 2 of 2 endpoints")).toBeVisible();
-    expect(
-      screen.getByLabelText("cURL GET /users/{id}"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("cURL POST /users/{id}"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
 
     fireEvent.change(filterInput, { target: { value: "does-not-exist" } });
 
-    expect(
-      screen.getByText("No endpoints match your search."),
-    ).toBeVisible();
+    expect(screen.getByText("No endpoints match your search.")).toBeVisible();
     expect(
       screen.queryByLabelText("cURL POST /users/{id}"),
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
 
-    expect(
-      screen.getByLabelText("cURL GET /users/{id}"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("cURL POST /users/{id}"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
   });
 
   it("shows endpoint tags, security badges, deprecated badges, and metadata stats", async () => {
@@ -395,13 +384,10 @@ paths:
     fireEvent.click(screen.getByRole("button", { name: "Try It Out" }));
 
     expect(screen.getByText("X-Trace-Id is required.")).toBeVisible();
-    expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
     expect(
-      screen.getByRole("button", { name: "Try It Out" }),
-    ).toBeDisabled();
+      screen.getByLabelText("Header parameter X-Trace-Id"),
+    ).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("button", { name: "Try It Out" })).toBeDisabled();
 
     fireEvent.change(screen.getByLabelText("Header parameter X-Trace-Id"), {
       target: { value: "trace-2" },
@@ -410,9 +396,7 @@ paths:
     expect(
       screen.queryByText("X-Trace-Id is required."),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Try It Out" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Try It Out" })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Reset values" }));
     expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveValue(
@@ -548,9 +532,7 @@ paths:
         "aria-invalid",
         "true",
       );
-      expect(
-        screen.getByRole("button", { name: "Try It Out" }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Try It Out" })).toBeDisabled();
       expect(fetchMock).not.toHaveBeenCalled();
 
       fireEvent.change(screen.getByLabelText("Editable request body"), {
@@ -560,9 +542,7 @@ paths:
       expect(
         screen.queryByText("Enter valid JSON before executing."),
       ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Try It Out" }),
-      ).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Try It Out" })).toBeEnabled();
 
       await user.click(screen.getByRole("button", { name: "Format JSON" }));
 
@@ -613,9 +593,7 @@ paths:
         "true",
       );
       expect(screen.getByText("Request body is required.")).toBeVisible();
-      expect(
-        screen.getByRole("button", { name: "Try It Out" }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Try It Out" })).toBeDisabled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
 
       await user.click(screen.getByRole("button", { name: "Reset values" }));
@@ -627,9 +605,7 @@ paths:
       expect(
         screen.queryByText("Request body is required."),
       ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Try It Out" }),
-      ).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Try It Out" })).toBeEnabled();
     } finally {
       fetchMock.mockRestore();
     }
@@ -833,7 +809,9 @@ paths: {}`,
     const readAsTextSpy = vi
       .spyOn(FileReader.prototype, "readAsText")
       .mockImplementation(function (this: FileReader) {
-        this.onerror?.(new ProgressEvent("error") as unknown as ProgressEvent<FileReader>);
+        this.onerror?.(
+          new ProgressEvent("error") as unknown as ProgressEvent<FileReader>,
+        );
       });
 
     render(<SwaggerWorkspace />);
@@ -994,9 +972,7 @@ paths: {}`,
     expect(writeText).toHaveBeenLastCalledWith(
       "https://jsonplaceholder.typicode.com/users/42?search=Alex",
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Request URL copied.",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Request URL copied.");
 
     await user.click(screen.getAllByRole("button", { name: "Copy cURL" })[0]);
 
@@ -1009,9 +985,7 @@ paths: {}`,
       "/users/42?search=Alex",
     );
     expect(screen.getByRole("status")).toHaveTextContent("cURL copied.");
-    expect(
-      screen.queryByText("Request URL copied."),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Request URL copied.")).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Query parameter search"), " Smith");
 
@@ -1073,7 +1047,9 @@ paths: {}`,
 
   it("keeps a newly added parameter input controlled and usable after a live schema edit", async () => {
     const user = userEvent.setup();
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     render(<SwaggerWorkspace />);
 
@@ -1485,6 +1461,123 @@ paths: {}`;
     }
   });
 
+  it("opens a selected saved schema and preserves its identity when resaving", async () => {
+    const user = userEvent.setup();
+    const selectedSchema = {
+      createdAt: "2026-07-10T10:00:00.000Z",
+      format: "yaml",
+      id: "selected-schema",
+      schemaText: `openapi: 3.0.0
+info:
+  title: Selected API
+  version: 2.0.0
+paths:
+  /selected:
+    get:
+      summary: Selected endpoint
+      responses:
+        '200':
+          description: OK`,
+      title: "Selected API",
+      updatedAt: "2026-07-10T11:00:00.000Z",
+      version: "2.0.0",
+    };
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+    stageSavedSchemaForEditor(selectedSchema);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(
+        await screen.findByRole("heading", { name: "Selected API" }),
+      ).toBeVisible();
+      expect(screen.getByText("/selected")).toBeVisible();
+      expect(
+        window.sessionStorage.getItem(SCHEMA_EDITOR_HANDOFF_STORAGE_KEY),
+      ).toBeNull();
+
+      await user.click(screen.getByRole("button", { name: "Save schema" }));
+
+      const postCall = fetchMock.mock.calls.find(
+        ([url, options]) =>
+          url === "/api/schemas" &&
+          (options as RequestInit | undefined)?.method === "POST",
+      );
+      const savedRecord = JSON.parse(
+        String((postCall?.[1] as RequestInit | undefined)?.body),
+      );
+
+      expect(savedRecord).toMatchObject({
+        createdAt: selectedSchema.createdAt,
+        id: selectedSchema.id,
+        title: selectedSchema.title,
+      });
+      expect(
+        fetchMock.mock.calls.some(
+          ([url, options]) => url === "/api/schemas" && options === undefined,
+        ),
+      ).toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("reports an authenticated local save failure without syncing stale data", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
+
+      const setItemSpy = vi
+        .spyOn(Storage.prototype, "setItem")
+        .mockImplementation(() => {
+          throw new DOMException("Storage full", "QuotaExceededError");
+        });
+
+      try {
+        await user.click(screen.getByRole("button", { name: "Save schema" }));
+
+        expect(screen.getByRole("status")).toHaveTextContent(
+          "Schema could not be saved locally.",
+        );
+        expect(
+          fetchMock.mock.calls.some(
+            ([url, options]) =>
+              url === "/api/schemas" &&
+              (options as RequestInit | undefined)?.method === "POST",
+          ),
+        ).toBe(false);
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("saves the latest schema metadata with the editor keyboard shortcut", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ schemas: [] }), {
@@ -1631,11 +1724,8 @@ paths: {}`;
       });
 
       expect(
-        (
-          screen.getByLabelText(
-            "OpenAPI schema editor",
-          ) as HTMLTextAreaElement
-        ).value,
+        (screen.getByLabelText("OpenAPI schema editor") as HTMLTextAreaElement)
+          .value,
       ).toBe("openapi: 3.0.0");
       expect(screen.queryByText("Server Saved API")).not.toBeInTheDocument();
     } finally {
@@ -2021,7 +2111,9 @@ paths:
       expect(
         screen.queryByRole("button", { name: "Download response" }),
       ).not.toBeInTheDocument();
-      expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
+      expect(
+        window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY),
+      ).toBeNull();
       expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       fetchMock.mockRestore();
