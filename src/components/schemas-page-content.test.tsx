@@ -122,6 +122,49 @@ describe("SchemasPageContent", () => {
     }
   });
 
+  it("copies a saved schema and reports clipboard failures", async () => {
+    const user = userEvent.setup();
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      const copyButton = screen.getByRole("button", {
+        name: "Copy Saved API",
+      });
+
+      await user.click(copyButton);
+
+      expect(writeText).toHaveBeenCalledWith(savedSchema.schemaText);
+      expect(screen.getByRole("status")).toHaveTextContent("Schema copied.");
+
+      await user.click(copyButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not copy this schema.",
+      );
+      expect(screen.queryByText("Schema copied.")).not.toBeInTheDocument();
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+    }
+  });
+
   it("toggles an accessible inline preview for a saved schema", async () => {
     const user = userEvent.setup();
 

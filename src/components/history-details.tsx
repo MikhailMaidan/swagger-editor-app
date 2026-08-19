@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import type { RequestHistoryRecord } from "@/lib/request-history";
 import { serializeRequestHistoryRecord } from "@/lib/request-history-clipboard";
@@ -21,19 +22,16 @@ export function HistoryDetails({
   async function handleCopyDetails() {
     setCopyStatus("idle");
 
-    if (!record || !navigator.clipboard) {
+    if (!record) {
       setCopyStatus("error");
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(
-        serializeRequestHistoryRecord(record),
-      );
-      setCopyStatus("copied");
-    } catch {
-      setCopyStatus("error");
-    }
+    const copied = await writeTextToClipboard(
+      serializeRequestHistoryRecord(record),
+    );
+
+    setCopyStatus(copied ? "copied" : "error");
   }
 
   return (

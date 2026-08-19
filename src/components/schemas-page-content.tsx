@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
@@ -99,6 +100,9 @@ export function SchemasPageContent({
   const [renameErrorId, setRenameErrorId] = useState<string | null>(null);
   const [renameErrorMessage, setRenameErrorMessage] = useState("");
   const [openErrorId, setOpenErrorId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copyErrorId, setCopyErrorId] = useState<string | null>(null);
   const [previewSchemaIds, setPreviewSchemaIds] = useState<Set<string>>(
     new Set(),
   );
@@ -201,6 +205,22 @@ export function SchemasPageContent({
 
   function handleDownload(schema: SavedSchemaRecord) {
     downloadSchemaFile(schema.schemaText, schema.title, schema.format);
+  }
+
+  async function handleCopy(schema: SavedSchemaRecord) {
+    setCopyingId(schema.id);
+    setCopiedId(null);
+    setCopyErrorId(null);
+
+    const copied = await writeTextToClipboard(schema.schemaText);
+
+    if (copied) {
+      setCopiedId(schema.id);
+    } else {
+      setCopyErrorId(schema.id);
+    }
+
+    setCopyingId(null);
   }
 
   function handleOpenInEditor(schema: SavedSchemaRecord) {
@@ -411,6 +431,19 @@ export function SchemasPageContent({
                         >
                           {t("schemas.download")}
                         </button>
+                        <button
+                          aria-label={t("schemas.copyAriaLabel", {
+                            title: schema.title,
+                          })}
+                          className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={copyingId !== null}
+                          type="button"
+                          onClick={() => handleCopy(schema)}
+                        >
+                          {copyingId === schema.id
+                            ? t("schemas.copying")
+                            : t("schemas.copy")}
+                        </button>
                         {renamingId === schema.id ? null : (
                           <button
                             aria-label={t("schemas.renameAriaLabel", {
@@ -463,6 +496,24 @@ export function SchemasPageContent({
                         role="alert"
                       >
                         {t("schemas.openEditorError")}
+                      </p>
+                    ) : null}
+
+                    {copiedId === schema.id ? (
+                      <p
+                        className="mt-3 text-sm font-semibold text-emerald-700"
+                        role="status"
+                      >
+                        {t("schemas.copied")}
+                      </p>
+                    ) : null}
+
+                    {copyErrorId === schema.id ? (
+                      <p
+                        className="mt-3 text-sm font-semibold text-red-600"
+                        role="alert"
+                      >
+                        {t("schemas.copyError")}
                       </p>
                     ) : null}
 
