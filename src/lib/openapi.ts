@@ -232,9 +232,8 @@ function readSwagger2ServerUrl(schema: Record<string, unknown>) {
       ? "http"
       : "https";
   const basePath = readString(schema.basePath);
-  const normalizedBasePath = basePath && !basePath.startsWith("/")
-    ? `/${basePath}`
-    : basePath;
+  const normalizedBasePath =
+    basePath && !basePath.startsWith("/") ? `/${basePath}` : basePath;
 
   return `${scheme}://${host}${normalizedBasePath}`;
 }
@@ -508,6 +507,49 @@ export function createCurlPreview(
   return parts.join(" \\\n  ");
 }
 
+export function createFetchPreview(
+  method: string,
+  path: string,
+  hasRequestBody: boolean,
+  serverUrl = "https://api.example.com",
+  parameters: CurlParameter[] = [],
+  requestBody = "",
+  contentType = "application/json",
+) {
+  const url = buildRequestUrl(serverUrl, path, parameters);
+  const headers: Record<string, string> = {};
+
+  parameters
+    .filter((parameter) => parameter.location === "header")
+    .forEach((parameter) => {
+      headers[parameter.name] = parameter.value;
+    });
+
+  const cookieHeader = buildCookieHeaderValue(parameters);
+
+  if (cookieHeader) {
+    headers.Cookie = cookieHeader;
+  }
+
+  if (hasRequestBody) {
+    headers["Content-Type"] = contentType;
+  }
+
+  const options: Record<string, unknown> = {
+    method: method.toUpperCase(),
+  };
+
+  if (Object.keys(headers).length > 0) {
+    options.headers = headers;
+  }
+
+  if (hasRequestBody) {
+    options.body = requestBody.trim() || "{...}";
+  }
+
+  return `fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});`;
+}
+
 export function detectSchemaFormat(schemaText: string): SchemaFormat {
   const trimmedText = schemaText.trim();
 
@@ -572,7 +614,9 @@ export function extractEndpoints(schema: Record<string, unknown>) {
   });
 }
 
-export function createEndpointStats(endpoints: EndpointSummary[]): EndpointStats {
+export function createEndpointStats(
+  endpoints: EndpointSummary[],
+): EndpointStats {
   const methodCounts = endpoints.reduce<Record<string, number>>(
     (counts, endpoint) => {
       counts[endpoint.method] = (counts[endpoint.method] ?? 0) + 1;

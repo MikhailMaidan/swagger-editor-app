@@ -992,6 +992,50 @@ paths: {}`,
     expect(screen.queryByText("cURL copied.")).not.toBeInTheDocument();
   });
 
+  it("previews and copies JavaScript fetch snippets", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    render(<SwaggerWorkspace />);
+
+    await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+    await user.type(screen.getByLabelText("Query parameter search"), "Alex");
+    await user.type(
+      screen.getByLabelText("Header parameter X-Trace-Id"),
+      "trace-1",
+    );
+
+    const codeFormat = screen.getAllByRole("group", {
+      name: "Request code format",
+    })[0];
+
+    await user.click(within(codeFormat).getByRole("button", { name: "Fetch" }));
+
+    const fetchPreview = screen.getByLabelText("Fetch GET /users/{id}");
+
+    expect(fetchPreview).toHaveTextContent(
+      "https://jsonplaceholder.typicode.com/users/42?search=Alex",
+    );
+    expect(fetchPreview).toHaveTextContent('"method": "GET"');
+    expect(fetchPreview).toHaveTextContent('"X-Trace-Id": "trace-1"');
+
+    await user.click(screen.getAllByRole("button", { name: "Copy fetch" })[0]);
+
+    expect(writeText).toHaveBeenCalledWith(fetchPreview.textContent);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Fetch snippet copied.",
+    );
+
+    await user.type(screen.getByLabelText("Query parameter search"), " Smith");
+
+    expect(screen.queryByText("Fetch snippet copied.")).not.toBeInTheDocument();
+  });
+
   it("omits the request body and Content-Type from the cURL preview once the body textarea is cleared", () => {
     render(<SwaggerWorkspace />);
 

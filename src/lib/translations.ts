@@ -193,6 +193,7 @@ export const translations = {
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
     "workspace.copyCurl": "Copy cURL",
+    "workspace.copyFetch": "Copy fetch",
     "workspace.copyRequestUrl": "Copy request URL",
     "workspace.copyResponse": "Copy response body",
     "workspace.copyResponseHeaders": "Copy response headers",
@@ -220,6 +221,8 @@ export const translations = {
     "workspace.errors.schemaObject": "Schema must be an object.",
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
+    "workspace.fetch": "Fetch",
+    "workspace.fetchCopied": "Fetch snippet copied.",
     "workspace.filterEndpoints":
       "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     "workspace.formatSchema": "Format schema",
@@ -250,6 +253,7 @@ export const translations = {
     "workspace.requestBodyInputLabel": "Editable request body",
     "workspace.requestBodyInvalidJson": "Enter valid JSON before executing.",
     "workspace.requestBodyRequired": "Request body is required.",
+    "workspace.requestCodeFormat": "Request code format",
     "workspace.requestContentType": "Request content type",
     "workspace.requestPreview": "Request preview",
     "workspace.requestSize": "Request {size} B",
@@ -478,6 +482,7 @@ export const translations = {
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
     "workspace.copyCurl": "Скопировать cURL",
+    "workspace.copyFetch": "Скопировать fetch",
     "workspace.copyRequestUrl": "Скопировать URL запроса",
     "workspace.copyResponse": "Скопировать тело ответа",
     "workspace.copyResponseHeaders": "Скопировать заголовки ответа",
@@ -506,6 +511,8 @@ export const translations = {
     "workspace.errors.schemaObject": "Схема должна быть объектом.",
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
+    "workspace.fetch": "Fetch",
+    "workspace.fetchCopied": "Fetch-код скопирован.",
     "workspace.filterEndpoints":
       "Фильтр по методу, пути, описанию, ID операции, тегу, параметру или auth",
     "workspace.formatSchema": "Форматировать схему",
@@ -537,6 +544,7 @@ export const translations = {
     "workspace.requestBodyInvalidJson":
       "Введите корректный JSON перед выполнением.",
     "workspace.requestBodyRequired": "Тело запроса обязательно.",
+    "workspace.requestCodeFormat": "Формат кода запроса",
     "workspace.requestContentType": "Тип содержимого запроса",
     "workspace.requestPreview": "Предпросмотр запроса",
     "workspace.requestSize": "Запрос {size} Б",

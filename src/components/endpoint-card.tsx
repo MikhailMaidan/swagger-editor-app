@@ -2,8 +2,10 @@
 
 import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   createCurlPreview,
+  createFetchPreview,
   CurlParameter,
   EndpointParameter,
   EndpointSummary,
@@ -301,10 +303,14 @@ function EndpointCardComponent({
   } | null>(null);
   const previousResponseStatusRef = useRef(activeResponseStatus);
   const [copiedCurl, setCopiedCurl] = useState("");
+  const [copiedFetch, setCopiedFetch] = useState("");
   const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
+  const [requestCodeFormat, setRequestCodeFormat] = useState<"curl" | "fetch">(
+    "curl",
+  );
   const [wasRequestCancelled, setWasRequestCancelled] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
   const requestAbortControllerRef = useRef<AbortController | null>(null);
@@ -314,8 +320,7 @@ function EndpointCardComponent({
   const missingRequiredParameterKeys = new Set(
     getMissingRequiredParameterKeys(endpoint.parameters, parameterValues),
   );
-  const hasMissingRequiredParameters =
-    missingRequiredParameterKeys.size > 0;
+  const hasMissingRequiredParameters = missingRequiredParameterKeys.size > 0;
   const hasMissingRequiredPathParameters = endpoint.parameters.some(
     (parameter) =>
       parameter.location === "path" &&
@@ -427,8 +432,7 @@ function EndpointCardComponent({
     [endpoint, parameterValues],
   );
   const currentRequestUrl = useMemo(
-    () =>
-      buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
+    () => buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
     [endpoint.path, endpoint.serverUrl, requestParameters],
   );
   const currentCurl = useMemo(
@@ -444,7 +448,21 @@ function EndpointCardComponent({
       ),
     [activeRequestContentType, endpoint, requestBodyValue, requestParameters],
   );
+  const currentFetch = useMemo(
+    () =>
+      createFetchPreview(
+        endpoint.method,
+        endpoint.path,
+        hasSendableRequestBody(endpoint.method, requestBodyValue),
+        endpoint.serverUrl,
+        requestParameters,
+        requestBodyValue,
+        activeRequestContentType,
+      ),
+    [activeRequestContentType, endpoint, requestBodyValue, requestParameters],
+  );
   const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
+  const isFetchCopied = copiedFetch === currentFetch && copiedFetch !== "";
   const isRequestUrlCopied =
     copiedRequestUrl === currentRequestUrl && copiedRequestUrl !== "";
   const formattedResponseBody = useMemo(
@@ -463,33 +481,37 @@ function EndpointCardComponent({
     copiedResponseHeaders === formattedResponseHeaders;
 
   async function handleCopyCurl() {
+    setCopiedCurl("");
+    setCopiedRequestUrl("");
+    setCopiedFetch("");
+
+    const copied = await writeTextToClipboard(currentCurl);
+
+    setCopiedCurl(copied ? currentCurl : "");
+  }
+
+  async function handleCopyFetch() {
+    setCopiedCurl("");
+    setCopiedFetch("");
     setCopiedRequestUrl("");
 
-    if (!navigator.clipboard) {
-      return;
-    }
+    const copied = await writeTextToClipboard(currentFetch);
 
-    try {
-      await navigator.clipboard.writeText(currentCurl);
-      setCopiedCurl(currentCurl);
-    } catch {
-      setCopiedCurl("");
-    }
+    setCopiedFetch(copied ? currentFetch : "");
   }
 
   async function handleCopyRequestUrl() {
     setCopiedCurl("");
+    setCopiedFetch("");
+    setCopiedRequestUrl("");
 
-    if (!navigator.clipboard || hasMissingRequiredPathParameters) {
+    if (hasMissingRequiredPathParameters) {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(currentRequestUrl);
-      setCopiedRequestUrl(currentRequestUrl);
-    } catch {
-      setCopiedRequestUrl("");
-    }
+    const copied = await writeTextToClipboard(currentRequestUrl);
+
+    setCopiedRequestUrl(copied ? currentRequestUrl : "");
   }
 
   async function handleCopyResponse() {
@@ -615,6 +637,7 @@ function EndpointCardComponent({
     setWasRequestCancelled(false);
     setMockResult(null);
     setCopiedCurl("");
+    setCopiedFetch("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
@@ -646,6 +669,7 @@ function EndpointCardComponent({
     setIsExecuting(true);
     setWasRequestCancelled(false);
     setCopiedCurl("");
+    setCopiedFetch("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
@@ -676,7 +700,11 @@ function EndpointCardComponent({
       ),
       responseSize: getByteSize(response.body),
       status: response.status,
-      url: buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
+      url: buildRequestUrl(
+        endpoint.serverUrl,
+        endpoint.path,
+        requestParameters,
+      ),
     };
     const executionResult = await executeTryItOut(
       {
@@ -915,9 +943,7 @@ function EndpointCardComponent({
                   </span>
                   <input
                     aria-describedby={
-                      isRequiredParameterMissing
-                        ? parameterErrorId
-                        : undefined
+                      isRequiredParameterMissing ? parameterErrorId : undefined
                     }
                     aria-invalid={isRequiredParameterMissing || undefined}
                     aria-label={t("workspace.parameterInputLabel", {
@@ -1072,9 +1098,36 @@ function EndpointCardComponent({
 
       <div className="mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-            {t("workspace.curl")}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+              {requestCodeFormat === "curl"
+                ? t("workspace.curl")
+                : t("workspace.fetch")}
+            </p>
+            <div
+              aria-label={t("workspace.requestCodeFormat")}
+              className="inline-flex h-9 items-center rounded-xl border border-[color:var(--color-brand-border)] bg-white p-1"
+              role="group"
+            >
+              {(["curl", "fetch"] as const).map((format) => (
+                <button
+                  aria-pressed={requestCodeFormat === format}
+                  className={`h-7 rounded-lg px-3 text-xs font-extrabold transition ${
+                    requestCodeFormat === format
+                      ? "bg-[color:var(--color-brand-purple)] text-white"
+                      : "text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-brand-soft)]"
+                  }`}
+                  key={format}
+                  type="button"
+                  onClick={() => setRequestCodeFormat(format)}
+                >
+                  {format === "curl"
+                    ? t("workspace.curl")
+                    : t("workspace.fetch")}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
@@ -1087,9 +1140,13 @@ function EndpointCardComponent({
             <button
               className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
-              onClick={handleCopyCurl}
+              onClick={
+                requestCodeFormat === "curl" ? handleCopyCurl : handleCopyFetch
+              }
             >
-              {t("workspace.copyCurl")}
+              {requestCodeFormat === "curl"
+                ? t("workspace.copyCurl")
+                : t("workspace.copyFetch")}
             </button>
             <button
               aria-busy={isExecuting}
@@ -1116,14 +1173,18 @@ function EndpointCardComponent({
           </div>
         </div>
         <pre
-          aria-label={`cURL ${endpoint.method} ${endpoint.path}`}
+          aria-label={`${requestCodeFormat === "curl" ? "cURL" : "Fetch"} ${endpoint.method} ${endpoint.path}`}
           className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
         >
-          {currentCurl}
+          {requestCodeFormat === "curl" ? currentCurl : currentFetch}
         </pre>
-        {isCurlCopied ? (
+        {requestCodeFormat === "curl" && isCurlCopied ? (
           <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
             {t("workspace.curlCopied")}
+          </p>
+        ) : requestCodeFormat === "fetch" && isFetchCopied ? (
+          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
+            {t("workspace.fetchCopied")}
           </p>
         ) : isRequestUrlCopied ? (
           <p className="mt-2 text-sm font-bold text-emerald-700" role="status">

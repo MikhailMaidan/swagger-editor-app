@@ -3,6 +3,7 @@ import {
   DEFAULT_OPENAPI_SCHEMA,
   createEndpointStats,
   createCurlPreview,
+  createFetchPreview,
   detectSchemaFormat,
   extractEndpoints,
   formatOpenApiSchema,
@@ -89,9 +90,7 @@ describe("openapi helpers", () => {
       return;
     }
 
-    expect(result.value.serverUrl).toBe(
-      "https://api.example.com/v2/{region}",
-    );
+    expect(result.value.serverUrl).toBe("https://api.example.com/v2/{region}");
     expect(result.value.serverUrls).toEqual([
       "https://api.example.com/v2/{region}",
       "https://staging.example.com/v2",
@@ -511,19 +510,13 @@ describe("openapi helpers", () => {
 
   it("escapes double quotes and shell metacharacters in header values", () => {
     expect(
-      createCurlPreview(
-        "GET",
-        "/users",
-        false,
-        "https://api.example.com",
-        [
-          {
-            location: "header",
-            name: "X-Note",
-            value: 'say "hi" `whoami` $HOME',
-          },
-        ],
-      ),
+      createCurlPreview("GET", "/users", false, "https://api.example.com", [
+        {
+          location: "header",
+          name: "X-Note",
+          value: 'say "hi" `whoami` $HOME',
+        },
+      ]),
     ).toBe(
       'curl -X GET \\\n  "https://api.example.com/users" \\\n  -H "X-Note: say \\"hi\\" \\`whoami\\` \\$HOME"',
     );
@@ -544,6 +537,38 @@ describe("openapi helpers", () => {
       ),
     ).toBe(
       'curl -X GET \\\n  "https://api.example.com/users/42" \\\n  -H "Cookie: sessionId=abc%20123; theme=dark"',
+    );
+  });
+
+  it("creates executable fetch previews from current request values", () => {
+    expect(
+      createFetchPreview(
+        "post",
+        "/users/{id}",
+        true,
+        "https://api.example.com/",
+        [
+          { location: "path", name: "id", value: "42" },
+          { location: "query", name: "search", value: "Alex Smith" },
+          { location: "header", name: "X-Trace-Id", value: 'trace-"1"' },
+          { location: "cookie", name: "sessionId", value: "abc 123" },
+        ],
+        '{"name":"Mikhail"}',
+      ),
+    ).toBe(`fetch("https://api.example.com/users/42?search=Alex%20Smith", {
+  "method": "POST",
+  "headers": {
+    "X-Trace-Id": "trace-\\"1\\"",
+    "Cookie": "sessionId=abc%20123",
+    "Content-Type": "application/json"
+  },
+  "body": "{\\"name\\":\\"Mikhail\\"}"
+});`);
+  });
+
+  it("omits fetch headers and body when they are not needed", () => {
+    expect(createFetchPreview("GET", "/users", false)).toBe(
+      'fetch("https://api.example.com/users", {\n  "method": "GET"\n});',
     );
   });
 
