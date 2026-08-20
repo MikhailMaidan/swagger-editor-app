@@ -14,6 +14,8 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { sortEndpoints } from "@/lib/endpoint-sort";
 import type { EndpointSort } from "@/lib/endpoint-sort";
+import { filterEndpointsByTrait } from "@/lib/endpoint-trait-filter";
+import type { EndpointTraitFilter } from "@/lib/endpoint-trait-filter";
 import {
   DEFAULT_OPENAPI_SCHEMA,
   createEndpointStats,
@@ -87,6 +89,8 @@ export function SwaggerWorkspace({
   const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
   const [endpointSort, setEndpointSort] = useState<EndpointSort>("schema");
+  const [endpointTraitFilter, setEndpointTraitFilter] =
+    useState<EndpointTraitFilter>("all");
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
@@ -172,11 +176,16 @@ export function SwaggerWorkspace({
       : methodFilteredEndpoints.filter((endpoint) =>
           endpoint.tags.includes(activeTag),
         );
-  const visibleEndpoints = sortEndpoints(tagFilteredEndpoints, endpointSort);
+  const traitFilteredEndpoints = filterEndpointsByTrait(
+    tagFilteredEndpoints,
+    endpointTraitFilter,
+  );
+  const visibleEndpoints = sortEndpoints(traitFilteredEndpoints, endpointSort);
   const hasActiveEndpointFilters =
     Boolean(endpointFilter) ||
     selectedMethod !== "all" ||
-    selectedTag !== "all";
+    selectedTag !== "all" ||
+    endpointTraitFilter !== "all";
   const isSchemaCopied =
     copiedSchemaText !== null && copiedSchemaText === schemaText;
 
@@ -469,6 +478,7 @@ export function SwaggerWorkspace({
     setSaveMessage("");
     setImportError("");
     setEndpointFilter("");
+    setEndpointTraitFilter("all");
     setSelectedMethod("all");
     setSelectedTag("all");
     setSelectedServerUrl("");
@@ -479,6 +489,7 @@ export function SwaggerWorkspace({
 
   function handleResetEndpointFilters() {
     setEndpointFilter("");
+    setEndpointTraitFilter("all");
     setSelectedMethod("all");
     setSelectedTag("all");
   }
@@ -980,6 +991,25 @@ export function SwaggerWorkspace({
                 <option value="path">{t("workspace.sortByPath")}</option>
                 <option value="method">{t("workspace.sortByMethod")}</option>
               </select>
+              <select
+                aria-label={t("workspace.endpointTraitFilterLabel")}
+                className="h-11 min-w-40 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                value={endpointTraitFilter}
+                onChange={(event) =>
+                  setEndpointTraitFilter(
+                    event.target.value as EndpointTraitFilter,
+                  )
+                }
+              >
+                <option value="all">{t("workspace.allEndpoints")}</option>
+                <option value="secured">{t("workspace.securedOnly")}</option>
+                <option value="unsecured">
+                  {t("workspace.unsecuredOnly")}
+                </option>
+                <option value="deprecated">
+                  {t("workspace.deprecatedOnly")}
+                </option>
+              </select>
               {endpointFilter ? (
                 <button
                   className="h-11 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
@@ -1060,7 +1090,7 @@ export function SwaggerWorkspace({
               >
                 {t("workspace.endpointFilterSummary", {
                   total: String(endpoints.length),
-                  visible: String(tagFilteredEndpoints.length),
+                  visible: String(traitFilteredEndpoints.length),
                 })}
               </p>
               {hasActiveEndpointFilters ? (
@@ -1081,7 +1111,7 @@ export function SwaggerWorkspace({
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.addValidSchema")}
             </div>
-          ) : tagFilteredEndpoints.length === 0 ? (
+          ) : traitFilteredEndpoints.length === 0 ? (
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
               {t("workspace.noEndpointsMatch")}
             </div>

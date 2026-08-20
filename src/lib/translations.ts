@@ -185,6 +185,7 @@ export const translations = {
     "schemas.version": "Version",
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
+    "workspace.allEndpoints": "All endpoints",
     "workspace.allMethods": "All methods",
     "workspace.allTags": "All tags",
     "workspace.applyServerOverride": "Apply server",
@@ -208,6 +209,7 @@ export const translations = {
     "workspace.customServerUrlPlaceholder": "https://staging.example.com",
     "workspace.deprecated": "Deprecated",
     "workspace.deprecatedEndpoint": "Deprecated",
+    "workspace.deprecatedOnly": "Deprecated only",
     "workspace.download": "Download",
     "workspace.downloadResponse": "Download response",
     "workspace.draftSaveFailed": "Draft could not be saved.",
@@ -220,6 +222,8 @@ export const translations = {
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
     "workspace.endpointSortLabel": "Sort endpoints",
+    "workspace.endpointTraitFilterLabel":
+      "Filter endpoints by characteristic",
     "workspace.errorPosition": "Error at line {line}, column {column}",
     "workspace.executing": "Executing...",
     "workspace.errors.fileReadFailed": "Could not read that file.",
@@ -288,6 +292,7 @@ export const translations = {
     "workspace.schemaSaveFailed": "Schema could not be saved locally.",
     "workspace.schemaSaved": "Schema saved.",
     "workspace.secured": "Secured",
+    "workspace.securedOnly": "Secured only",
     "workspace.server": "Server",
     "workspace.serverSelector": "Select API server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
@@ -299,6 +304,7 @@ export const translations = {
     "workspace.tagFilterOption": "{tag} ({count})",
     "workspace.type": "Type:",
     "workspace.totalEndpoints": "Endpoints",
+    "workspace.unsecuredOnly": "Unsecured only",
     "workspace.valid": "Valid",
     "workspace.version": "Version {version}",
     "workspace.viewer": "Viewer",
@@ -487,6 +493,7 @@ export const translations = {
     "schemas.version": "Версия",
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
+    "workspace.allEndpoints": "Все эндпоинты",
     "workspace.allMethods": "Все методы",
     "workspace.allTags": "Все теги",
     "workspace.applyServerOverride": "Применить сервер",
@@ -510,6 +517,7 @@ export const translations = {
     "workspace.customServerUrlPlaceholder": "https://staging.example.com",
     "workspace.deprecated": "Устаревшие",
     "workspace.deprecatedEndpoint": "Устарел",
+    "workspace.deprecatedOnly": "Только устаревшие",
     "workspace.download": "Скачать",
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.draftSaveFailed": "Не удалось сохранить черновик.",
@@ -523,6 +531,8 @@ export const translations = {
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
+    "workspace.endpointTraitFilterLabel":
+      "Фильтр эндпоинтов по характеристике",
     "workspace.errorPosition":
       "Ошибка в строке {line}, столбец {column}",
     "workspace.executing": "Выполняется...",
@@ -593,6 +603,7 @@ export const translations = {
     "workspace.schemaSaveFailed": "Не удалось сохранить схему локально.",
     "workspace.schemaSaved": "Схема сохранена.",
     "workspace.secured": "С защитой",
+    "workspace.securedOnly": "Только с защитой",
     "workspace.server": "Сервер",
     "workspace.serverSelector": "Выберите API-сервер",
     "workspace.signInToSave":
@@ -605,6 +616,7 @@ export const translations = {
     "workspace.tagFilterOption": "{tag} ({count})",
     "workspace.type": "Тип:",
     "workspace.totalEndpoints": "Эндпоинты",
+    "workspace.unsecuredOnly": "Только без защиты",
     "workspace.valid": "Валидно",
     "workspace.version": "Версия {version}",
     "workspace.viewer": "Просмотр",

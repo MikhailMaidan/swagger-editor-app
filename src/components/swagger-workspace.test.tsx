@@ -421,6 +421,63 @@ paths:
     expect(screen.queryByLabelText("cURL GET /status")).not.toBeInTheDocument();
   });
 
+  it("filters endpoints by security and deprecation traits", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Trait Filter API
+  version: 1.0.0
+security:
+  - bearerAuth: []
+paths:
+  /private:
+    get:
+      responses: {}
+  /public:
+    get:
+      security: []
+      responses: {}
+  /legacy:
+    get:
+      deprecated: true
+      security: []
+      responses: {}`,
+      },
+    });
+
+    await screen.findByLabelText("cURL GET /private");
+    const traitFilter = screen.getByLabelText(
+      "Filter endpoints by characteristic",
+    );
+
+    await user.selectOptions(traitFilter, "secured");
+    expect(screen.getByLabelText("cURL GET /private")).toBeInTheDocument();
+    expect(screen.queryByLabelText("cURL GET /public")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 3 endpoints")).toBeVisible();
+
+    await user.selectOptions(traitFilter, "unsecured");
+    expect(
+      screen.queryByLabelText("cURL GET /private"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /public")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+
+    await user.selectOptions(traitFilter, "deprecated");
+    expect(screen.queryByLabelText("cURL GET /public")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reset filters" }));
+    expect(traitFilter).toHaveValue("all");
+    expect(screen.getByLabelText("cURL GET /private")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /public")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+  });
+
   it("prefills try-it-out parameter inputs from schema examples and defaults", async () => {
     render(<SwaggerWorkspace />);
 
