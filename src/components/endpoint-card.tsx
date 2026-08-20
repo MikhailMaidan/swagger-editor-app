@@ -4,6 +4,10 @@ import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
+  createEndpointPermalink,
+  getEndpointAnchor,
+} from "@/lib/endpoint-link";
+import {
   createCurlPreview,
   createFetchPreview,
   CurlParameter,
@@ -303,6 +307,7 @@ function EndpointCardComponent({
   } | null>(null);
   const previousResponseStatusRef = useRef(activeResponseStatus);
   const [copiedCurl, setCopiedCurl] = useState("");
+  const [copiedEndpointLink, setCopiedEndpointLink] = useState(false);
   const [copiedFetch, setCopiedFetch] = useState("");
   const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
@@ -350,6 +355,20 @@ function EndpointCardComponent({
   const editedRequestContentTypesRef = useRef(new Set<string>());
   const requestBodyDraftsRef = useRef<Record<string, string>>({});
   const previousRequestContentTypeRef = useRef(activeRequestContentType);
+  const endpointAnchor = useMemo(
+    () => getEndpointAnchor(endpoint.method, endpoint.path),
+    [endpoint.method, endpoint.path],
+  );
+
+  useEffect(() => {
+    if (window.location.hash !== `#${endpointAnchor}`) {
+      return;
+    }
+
+    document
+      .getElementById(endpointAnchor)
+      ?.scrollIntoView?.({ block: "start" });
+  }, [endpointAnchor]);
 
   useEffect(() => {
     if (previousResponseStatusRef.current === activeResponseStatus) {
@@ -488,6 +507,17 @@ function EndpointCardComponent({
     const copied = await writeTextToClipboard(currentCurl);
 
     setCopiedCurl(copied ? currentCurl : "");
+  }
+
+  async function handleCopyEndpointLink() {
+    const permalink = createEndpointPermalink(
+      window.location.href,
+      endpoint.method,
+      endpoint.path,
+    );
+    const copied = await writeTextToClipboard(permalink);
+
+    setCopiedEndpointLink(copied);
   }
 
   async function handleCopyFetch() {
@@ -765,7 +795,10 @@ function EndpointCardComponent({
   }
 
   return (
-    <article className="rounded-2xl border border-[color:var(--color-brand-border)] p-4">
+    <article
+      className="scroll-mt-36 rounded-2xl border border-[color:var(--color-brand-border)] p-4"
+      id={endpointAnchor}
+    >
       <div className="flex flex-wrap items-center gap-3">
         <span
           className={`rounded-xl px-3 py-1 text-sm font-extrabold ${getMethodClass(
@@ -777,6 +810,22 @@ function EndpointCardComponent({
         <span className="font-mono text-base font-bold text-[color:var(--color-brand-navy)]">
           {endpoint.path}
         </span>
+        <button
+          aria-label={t("workspace.copyEndpointLinkAriaLabel", {
+            method: endpoint.method,
+            path: endpoint.path,
+          })}
+          className="ml-auto h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+          type="button"
+          onClick={handleCopyEndpointLink}
+        >
+          {t("workspace.copyEndpointLink")}
+        </button>
+        {copiedEndpointLink ? (
+          <span className="text-xs font-bold text-emerald-700" role="status">
+            {t("workspace.endpointLinkCopied")}
+          </span>
+        ) : null}
       </div>
       <p className="mt-3 text-sm font-bold text-[color:var(--color-brand-navy)]">
         {endpoint.summary}

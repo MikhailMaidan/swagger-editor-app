@@ -197,6 +197,8 @@ export const translations = {
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
     "workspace.copyCurl": "Copy cURL",
+    "workspace.copyEndpointLink": "Copy link",
+    "workspace.copyEndpointLinkAriaLabel": "Copy link to {method} {path}",
     "workspace.copyFetch": "Copy fetch",
     "workspace.copyRequestUrl": "Copy request URL",
     "workspace.copyResponse": "Copy response body",
@@ -221,6 +223,7 @@ export const translations = {
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
+    "workspace.endpointLinkCopied": "Link copied.",
     "workspace.endpointSortLabel": "Sort endpoints",
     "workspace.endpointTraitFilterLabel":
       "Filter endpoints by characteristic",
@@ -505,6 +508,9 @@ export const translations = {
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
     "workspace.copyCurl": "Скопировать cURL",
+    "workspace.copyEndpointLink": "Скопировать ссылку",
+    "workspace.copyEndpointLinkAriaLabel":
+      "Скопировать ссылку на {method} {path}",
     "workspace.copyFetch": "Скопировать fetch",
     "workspace.copyRequestUrl": "Скопировать URL запроса",
     "workspace.copyResponse": "Скопировать тело ответа",
@@ -530,6 +536,7 @@ export const translations = {
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
+    "workspace.endpointLinkCopied": "Ссылка скопирована.",
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
     "workspace.endpointTraitFilterLabel":
       "Фильтр эндпоинтов по характеристике",

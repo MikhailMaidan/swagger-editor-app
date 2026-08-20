@@ -9,6 +9,10 @@ import {
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import {
+  createEndpointPermalink,
+  getEndpointAnchor,
+} from "@/lib/endpoint-link";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
@@ -1167,6 +1171,72 @@ paths: {}`,
     await user.type(screen.getByLabelText("Query parameter search"), " Smith");
 
     expect(screen.queryByText("cURL copied.")).not.toBeInTheDocument();
+  });
+
+  it("adds stable endpoint anchors and copies direct links", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const scrollIntoView = vi.fn();
+    const method = "GET";
+    const path = "/users/{id}";
+    const anchor = getEndpointAnchor(method, path);
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+    const scrollDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollIntoView",
+    );
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    window.history.replaceState(null, "", `/?schema=demo#${anchor}`);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(document.getElementById(anchor)).toBeInTheDocument();
+      await waitFor(() =>
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" }),
+      );
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "Copy link to GET /users/{id}",
+        }),
+      );
+
+      expect(writeText).toHaveBeenCalledWith(
+        createEndpointPermalink(window.location.href, method, path),
+      );
+      expect(screen.getByRole("status")).toHaveTextContent("Link copied.");
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+
+      if (scrollDescriptor) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "scrollIntoView",
+          scrollDescriptor,
+        );
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+      }
+
+      window.history.replaceState(null, "", previousUrl);
+    }
   });
 
   it("previews and copies JavaScript fetch snippets", async () => {
