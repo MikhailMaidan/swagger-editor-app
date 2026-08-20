@@ -1334,6 +1334,68 @@ paths: {}`,
     expect(screen.queryByText("HTTP request copied.")).not.toBeInTheDocument();
   });
 
+  it("downloads the selected request snippet format", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn((object: Blob | MediaSource) => {
+      void object;
+      return "blob:request-preview";
+    });
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const anchors: HTMLAnchorElement[] = [];
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+
+      const codeFormat = screen.getAllByRole("group", {
+        name: "Request code format",
+      })[0];
+
+      await user.click(
+        within(codeFormat).getByRole("button", { name: "HTTP" }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: "Download HTTP snippet for GET /users/{id}",
+        }),
+      );
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const requestBlob = createObjectURL.mock.calls[0][0] as Blob;
+      const downloadAnchor = anchors.find((anchor) => anchor.download);
+
+      expect(requestBlob.type).toBe("text/plain;charset=utf-8");
+      expect(requestBlob.size).toBeGreaterThan(0);
+      expect(downloadAnchor?.download).toBe("rsswag-get-users-id.http");
+      expect(downloadAnchor?.getAttribute("href")).toBe("blob:request-preview");
+      expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:request-preview");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("omits the request body and Content-Type from the cURL preview once the body textarea is cleared", () => {
     render(<SwaggerWorkspace />);
 

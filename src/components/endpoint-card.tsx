@@ -31,6 +31,10 @@ import {
   getMissingRequiredParameterKeys,
   getRequestParameterKey,
 } from "@/lib/request-parameters";
+import {
+  downloadRequestPreviewFile,
+  type RequestPreviewFormat,
+} from "@/lib/request-preview-download";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
 import { formatResponseHeaders } from "@/lib/response-headers";
@@ -315,9 +319,8 @@ function EndpointCardComponent({
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
-  const [requestCodeFormat, setRequestCodeFormat] = useState<
-    "curl" | "fetch" | "http"
-  >("curl");
+  const [requestCodeFormat, setRequestCodeFormat] =
+    useState<RequestPreviewFormat>("curl");
   const [wasRequestCancelled, setWasRequestCancelled] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
   const requestAbortControllerRef = useRef<AbortController | null>(null);
@@ -584,6 +587,15 @@ function EndpointCardComponent({
     const copied = await writeTextToClipboard(currentRequestUrl);
 
     setCopiedRequestUrl(copied ? currentRequestUrl : "");
+  }
+
+  function handleDownloadRequestCode() {
+    downloadRequestPreviewFile(
+      currentRequestCode,
+      requestCodeFormat,
+      endpoint.method,
+      endpoint.path,
+    );
   }
 
   async function handleCopyResponse() {
@@ -1246,6 +1258,18 @@ function EndpointCardComponent({
                 : requestCodeFormat === "fetch"
                   ? t("workspace.copyFetch")
                   : t("workspace.copyHttp")}
+            </button>
+            <button
+              aria-label={t("workspace.downloadRequestCodeAriaLabel", {
+                format: requestCodeLabel,
+                method: endpoint.method,
+                path: endpoint.path,
+              })}
+              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
+              onClick={handleDownloadRequestCode}
+            >
+              {t("workspace.downloadRequestCode")}
             </button>
             <button
               aria-busy={isExecuting}

@@ -215,6 +215,9 @@ export const translations = {
     "workspace.deprecatedEndpoint": "Deprecated",
     "workspace.deprecatedOnly": "Deprecated only",
     "workspace.download": "Download",
+    "workspace.downloadRequestCode": "Download snippet",
+    "workspace.downloadRequestCodeAriaLabel":
+      "Download {format} snippet for {method} {path}",
     "workspace.downloadResponse": "Download response",
     "workspace.draftSaveFailed": "Draft could not be saved.",
     "workspace.draftSaved": "Draft saved locally.",
@@ -533,6 +536,9 @@ export const translations = {
     "workspace.deprecatedEndpoint": "Устарел",
     "workspace.deprecatedOnly": "Только устаревшие",
     "workspace.download": "Скачать",
+    "workspace.downloadRequestCode": "Скачать сниппет",
+    "workspace.downloadRequestCodeAriaLabel":
+      "Скачать сниппет {format} для {method} {path}",
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.draftSaveFailed": "Не удалось сохранить черновик.",
     "workspace.draftSaved": "Черновик сохранён локально.",
