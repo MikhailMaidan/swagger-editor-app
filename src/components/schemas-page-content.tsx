@@ -6,7 +6,10 @@ import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
-import { downloadSchemaFile } from "@/lib/schema-download";
+import {
+  downloadSchemaCollectionFile,
+  downloadSchemaFile,
+} from "@/lib/schema-download";
 import {
   deleteAllServerSchemaRecords,
   deleteServerSchemaRecord,
@@ -207,6 +210,10 @@ export function SchemasPageContent({
     downloadSchemaFile(schema.schemaText, schema.title, schema.format);
   }
 
+  function handleExportAll() {
+    downloadSchemaCollectionFile(schemas);
+  }
+
   async function handleCopy(schema: SavedSchemaRecord) {
     setCopyingId(schema.id);
     setCopiedId(null);
@@ -311,14 +318,25 @@ export function SchemasPageContent({
                   })}
                 </span>
               </div>
-              <button
-                className="shrink-0 rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isClearingAll}
-                type="button"
-                onClick={handleClearAll}
-              >
-                {isClearingAll ? t("schemas.clearing") : t("schemas.clearAll")}
-              </button>
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
+                <button
+                  className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                  type="button"
+                  onClick={handleExportAll}
+                >
+                  {t("schemas.exportAll")}
+                </button>
+                <button
+                  className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isClearingAll}
+                  type="button"
+                  onClick={handleClearAll}
+                >
+                  {isClearingAll
+                    ? t("schemas.clearing")
+                    : t("schemas.clearAll")}
+                </button>
+              </div>
             </div>
             {clearAllError ? (
               <p

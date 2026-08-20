@@ -122,6 +122,71 @@ describe("SchemasPageContent", () => {
     }
   });
 
+  it("exports every saved schema even when the list is filtered", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn().mockReturnValue("blob:schema-collection");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalCreateElement = document.createElement.bind(document);
+    const anchors: HTMLAnchorElement[] = [];
+    const otherSchema = {
+      ...savedSchema,
+      format: "json",
+      id: "other-schema",
+      schemaText: '{"openapi":"3.0.0"}',
+      title: "Other API",
+    };
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(
+        <SchemasPageContent initialSchemas={[savedSchema, otherSchema]} />,
+      );
+
+      await user.type(screen.getByLabelText("Filter saved schemas"), "Other");
+      await user.click(screen.getByRole("button", { name: "Export all" }));
+
+      const exportedBlob = createObjectURL.mock.calls[0][0] as Blob;
+      const exportedText = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(reader.error);
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(exportedBlob);
+      });
+      const exportedCollection = JSON.parse(exportedText);
+
+      expect(exportedBlob.type).toBe("application/json");
+      expect(exportedCollection.version).toBe(1);
+      expect(exportedCollection.schemas).toEqual([savedSchema, otherSchema]);
+      expect(anchors[0]?.download).toMatch(
+        /^openapi-schemas-\d{4}-\d{2}-\d{2}\.json$/,
+      );
+      expect(anchors[0]?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:schema-collection");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("copies a saved schema and reports clipboard failures", async () => {
     const user = userEvent.setup();
     const writeText = vi

@@ -151,6 +151,7 @@ export const translations = {
     "schemas.downloadAriaLabel": "Download {title}",
     "schemas.empty":
       "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
+    "schemas.exportAll": "Export all",
     "schemas.filterLabel": "Filter saved schemas",
     "schemas.filterPlaceholder": "Search schemas",
     "schemas.filterSummary": "Showing {visible} of {total} schemas",
@@ -446,6 +447,7 @@ export const translations = {
     "schemas.downloadAriaLabel": "Скачать {title}",
     "schemas.empty":
       "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
+    "schemas.exportAll": "Экспортировать все",
     "schemas.filterLabel": "Фильтр сохраненных схем",
     "schemas.filterPlaceholder": "Поиск схем",
     "schemas.filterSummary": "Показано схем: {visible} из {total}",
