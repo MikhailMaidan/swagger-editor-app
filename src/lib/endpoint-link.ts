@@ -11,14 +11,21 @@ function hashEndpointKey(value: string) {
 
 export function getEndpointAnchor(method: string, path: string) {
   const normalizedMethod = method.trim().toLowerCase() || "unknown";
-  const readablePath = path
+  const normalizedPath = path.trim() || "/";
+  const readablePath = normalizedPath
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
-  const hash = hashEndpointKey(`${method.toUpperCase()} ${path}`);
+  const hash = hashEndpointKey(
+    `${normalizedMethod.toUpperCase()} ${normalizedPath}`,
+  );
 
   return `endpoint-${normalizedMethod}-${readablePath || "root"}-${hash}`;
+}
+
+export function getEndpointEditorHref(method: string, path: string) {
+  return `/#${getEndpointAnchor(method, path)}`;
 }
 
 export function createEndpointPermalink(

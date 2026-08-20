@@ -100,6 +100,7 @@ export const translations = {
     "history.noErrors": "No errors were recorded.",
     "history.noMatches": "No history records match your search.",
     "history.notFound": "This history record is not available.",
+    "history.openEndpoint": "Open endpoint in editor",
     "history.outcomeFilterLabel": "Filter history by outcome",
     "history.privateRoute": "Private Route",
     "history.recent": "Review previously executed requests and their details.",
@@ -410,6 +411,7 @@ export const translations = {
     "history.noErrors": "Ошибки не зафиксированы.",
     "history.noMatches": "Нет записей истории, соответствующих поиску.",
     "history.notFound": "Эта запись истории недоступна.",
+    "history.openEndpoint": "Открыть эндпоинт в редакторе",
     "history.outcomeFilterLabel": "Фильтр истории по результату",
     "history.privateRoute": "Приватный маршрут",
     "history.recent":

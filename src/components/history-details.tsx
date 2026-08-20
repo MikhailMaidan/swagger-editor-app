@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
+import { getEndpointEditorHref } from "@/lib/endpoint-link";
 import type { RequestHistoryRecord } from "@/lib/request-history";
 import { serializeRequestHistoryRecord } from "@/lib/request-history-clipboard";
 import { getStatusColorClasses } from "@/lib/status-color";
@@ -88,13 +89,21 @@ export function HistoryDetails({
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           {record ? (
-            <button
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-white transition hover:bg-[color:var(--color-brand-purple-dark)]"
-              type="button"
-              onClick={handleCopyDetails}
-            >
-              {t("history.copyDetails")}
-            </button>
+            <>
+              <Link
+                className="inline-flex h-12 items-center justify-center rounded-2xl bg-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-white transition hover:bg-[color:var(--color-brand-purple-dark)]"
+                href={getEndpointEditorHref(record.method, record.path)}
+              >
+                {t("history.openEndpoint")}
+              </Link>
+              <button
+                className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={handleCopyDetails}
+              >
+                {t("history.copyDetails")}
+              </button>
+            </>
           ) : null}
           <Link
             className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)]"

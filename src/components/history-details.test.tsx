@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { getEndpointEditorHref } from "@/lib/endpoint-link";
 import type { RequestHistoryRecord } from "@/lib/request-history";
 import { HistoryDetails } from "./history-details";
 
@@ -35,6 +36,9 @@ describe("HistoryDetails", () => {
     expect(
       screen.getByRole("link", { name: "Back to History" }),
     ).toHaveAttribute("href", "/history");
+    expect(
+      screen.getByRole("link", { name: "Open endpoint in editor" }),
+    ).toHaveAttribute("href", getEndpointEditorHref("GET", "/users/{id}"));
   });
 
   it("shows 0 B instead of literal 'null B' when sizes are missing from the record", () => {
@@ -180,6 +184,9 @@ describe("HistoryDetails", () => {
     ).toBeVisible();
     expect(
       screen.queryByRole("button", { name: "Copy request details" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Open endpoint in editor" }),
     ).not.toBeInTheDocument();
   });
 });
