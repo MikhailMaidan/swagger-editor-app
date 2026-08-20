@@ -511,6 +511,76 @@ paths:
     expect(screen.getByLabelText("cURL POST /create")).toBeInTheDocument();
   });
 
+  it("filters endpoints by documented response coverage", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: {
+        value: `openapi: 3.0.0
+info:
+  title: Response Coverage API
+  version: 1.0.0
+paths:
+  /success:
+    get:
+      responses:
+        '200':
+          description: OK
+  /client:
+    get:
+      responses:
+        4XX:
+          description: Client error
+  /server:
+    get:
+      responses:
+        '503':
+          description: Unavailable
+  /fallback:
+    get:
+      responses:
+        default:
+          description: Fallback
+  /empty:
+    get:
+      responses: {}`,
+      },
+    });
+
+    await screen.findByLabelText("cURL GET /success");
+    const responseFilter = screen.getByLabelText(
+      "Filter endpoints by documented responses",
+    );
+
+    await user.selectOptions(responseFilter, "success");
+    expect(screen.getByLabelText("cURL GET /success")).toBeInTheDocument();
+    expect(screen.queryByLabelText("cURL GET /client")).not.toBeInTheDocument();
+
+    await user.selectOptions(responseFilter, "client-error");
+    expect(screen.getByLabelText("cURL GET /client")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("cURL GET /success"),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(responseFilter, "server-error");
+    expect(screen.getByLabelText("cURL GET /server")).toBeInTheDocument();
+
+    await user.selectOptions(responseFilter, "missing-error");
+    expect(screen.getByLabelText("cURL GET /success")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /empty")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("cURL GET /fallback"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 2 of 5 endpoints")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Reset filters" }));
+    expect(responseFilter).toHaveValue("all");
+    expect(screen.getByLabelText("cURL GET /fallback")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /server")).toBeInTheDocument();
+  });
+
   it("prefills try-it-out parameter inputs from schema examples and defaults", async () => {
     render(<SwaggerWorkspace />);
 

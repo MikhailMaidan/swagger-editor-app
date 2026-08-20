@@ -187,6 +187,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
     "workspace.allEndpoints": "All endpoints",
+    "workspace.allResponses": "All response coverage",
     "workspace.allMethods": "All methods",
     "workspace.allTags": "All tags",
     "workspace.applyServerOverride": "Apply server",
@@ -195,6 +196,7 @@ export const translations = {
     "workspace.clearEndpointFilter": "Clear search",
     "workspace.clearResponse": "Clear response",
     "workspace.clearServerOverride": "Clear custom server",
+    "workspace.clientErrorResponseOnly": "Documents 4xx",
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
     "workspace.copyCurl": "Copy cURL",
@@ -229,6 +231,8 @@ export const translations = {
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
     "workspace.endpointLinkCopied": "Link copied.",
+    "workspace.endpointResponseFilterLabel":
+      "Filter endpoints by documented responses",
     "workspace.endpointSortLabel": "Sort endpoints",
     "workspace.endpointTraitFilterLabel":
       "Filter endpoints by characteristic",
@@ -256,6 +260,7 @@ export const translations = {
       "Enter a public HTTP or HTTPS server URL.",
     "workspace.methodFilterLabel": "Filter endpoints by HTTP method",
     "workspace.methods": "Methods",
+    "workspace.missingErrorResponseOnly": "Missing error response",
     "workspace.namedExample": "Example: {name}",
     "workspace.noEndpointsMatch": "No endpoints match the current filters.",
     "workspace.noResponseExample":
@@ -304,11 +309,13 @@ export const translations = {
     "workspace.secured": "Secured",
     "workspace.securedOnly": "Secured only",
     "workspace.server": "Server",
+    "workspace.serverErrorResponseOnly": "Documents 5xx",
     "workspace.serverSelector": "Select API server",
     "workspace.signInToSave": "Sign in to save and restore schemas.",
     "workspace.sortByMethod": "Method order",
     "workspace.sortByPath": "Path A-Z",
     "workspace.sortSchemaOrder": "Schema order",
+    "workspace.successResponseOnly": "Documents 2xx",
     "workspace.tryItOut": "Try It Out",
     "workspace.tagFilterLabel": "Filter endpoints by tag",
     "workspace.tagFilterOption": "{tag} ({count})",
@@ -507,6 +514,7 @@ export const translations = {
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
     "workspace.allEndpoints": "Все эндпоинты",
+    "workspace.allResponses": "Любое покрытие ответов",
     "workspace.allMethods": "Все методы",
     "workspace.allTags": "Все теги",
     "workspace.applyServerOverride": "Применить сервер",
@@ -515,6 +523,7 @@ export const translations = {
     "workspace.clearEndpointFilter": "Очистить поиск",
     "workspace.clearResponse": "Очистить ответ",
     "workspace.clearServerOverride": "Очистить свой сервер",
+    "workspace.clientErrorResponseOnly": "Описан ответ 4xx",
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
     "workspace.copyCurl": "Скопировать cURL",
@@ -551,6 +560,8 @@ export const translations = {
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
     "workspace.endpointLinkCopied": "Ссылка скопирована.",
+    "workspace.endpointResponseFilterLabel":
+      "Фильтр эндпоинтов по документированным ответам",
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
     "workspace.endpointTraitFilterLabel":
       "Фильтр эндпоинтов по характеристике",
@@ -579,6 +590,7 @@ export const translations = {
       "Введите публичный URL сервера с HTTP или HTTPS.",
     "workspace.methodFilterLabel": "Фильтр эндпоинтов по HTTP-методу",
     "workspace.methods": "Методы",
+    "workspace.missingErrorResponseOnly": "Не описан ответ об ошибке",
     "workspace.namedExample": "Пример: {name}",
     "workspace.noEndpointsMatch":
       "Нет эндпоинтов, соответствующих текущим фильтрам.",
@@ -629,12 +641,14 @@ export const translations = {
     "workspace.secured": "С защитой",
     "workspace.securedOnly": "Только с защитой",
     "workspace.server": "Сервер",
+    "workspace.serverErrorResponseOnly": "Описан ответ 5xx",
     "workspace.serverSelector": "Выберите API-сервер",
     "workspace.signInToSave":
       "Войдите, чтобы сохранять и восстанавливать схемы.",
     "workspace.sortByMethod": "По HTTP-методу",
     "workspace.sortByPath": "По пути А-Я",
     "workspace.sortSchemaOrder": "Порядок схемы",
+    "workspace.successResponseOnly": "Описан ответ 2xx",
     "workspace.tryItOut": "Отправить запрос",
     "workspace.tagFilterLabel": "Фильтр эндпоинтов по тегу",
     "workspace.tagFilterOption": "{tag} ({count})",
