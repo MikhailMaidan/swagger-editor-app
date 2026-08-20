@@ -6,6 +6,7 @@ import {
   hasUnresolvedPathParameters,
   resolvePathParameters,
 } from "@/lib/request-url";
+import { isPublicHttpServerUrl } from "@/lib/server-url";
 import { getByteSize } from "@/lib/text-encoding";
 
 const DEFAULT_SERVER_HOSTNAME = new URL(DEFAULT_SERVER_URL).hostname;
@@ -112,65 +113,6 @@ function readRequestParameters(value: unknown) {
       };
     })
     .filter((item): item is RequestParameter => Boolean(item));
-}
-
-const IPV4_PATTERN = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-
-function isPrivateOrLocalHostname(hostname: string) {
-  const normalizedHostname = hostname.toLowerCase().replace(/^\[|\]$/g, "");
-
-  if (
-    normalizedHostname === "localhost" ||
-    normalizedHostname.endsWith(".localhost") ||
-    normalizedHostname === "::1" ||
-    normalizedHostname === "0.0.0.0"
-  ) {
-    return true;
-  }
-
-  if (
-    normalizedHostname.startsWith("fe80:") ||
-    normalizedHostname.startsWith("fc") ||
-    normalizedHostname.startsWith("fd")
-  ) {
-    return true;
-  }
-
-  const ipv4Match = normalizedHostname.match(IPV4_PATTERN);
-
-  if (!ipv4Match) {
-    return false;
-  }
-
-  const octets = ipv4Match.slice(1).map(Number);
-
-  if (octets.some((octet) => octet > 255)) {
-    return false;
-  }
-
-  const [first, second] = octets;
-
-  return (
-    first === 127 ||
-    first === 10 ||
-    first === 0 ||
-    (first === 169 && second === 254) ||
-    (first === 172 && second >= 16 && second <= 31) ||
-    (first === 192 && second === 168)
-  );
-}
-
-function isUsableServerUrl(serverUrl: string) {
-  try {
-    const parsedUrl = new URL(serverUrl);
-
-    return (
-      (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") &&
-      !isPrivateOrLocalHostname(parsedUrl.hostname)
-    );
-  } catch {
-    return false;
-  }
 }
 
 function buildTargetUrl(
@@ -287,7 +229,11 @@ async function executeServerRequest({
   const response = await fetch(targetUrl, {
     body: hasRequestBody ? requestBody : undefined,
     cache: "no-store",
-    headers: buildRequestHeaders(requestParameters, hasRequestBody, contentType),
+    headers: buildRequestHeaders(
+      requestParameters,
+      hasRequestBody,
+      contentType,
+    ),
     method: normalizedMethod,
     signal: AbortSignal.timeout(10_000),
   });
@@ -341,7 +287,7 @@ export async function POST(request: Request) {
     });
 
     if (
-      isUsableServerUrl(serverUrl) &&
+      isPublicHttpServerUrl(serverUrl) &&
       new URL(serverUrl).hostname !== DEFAULT_SERVER_HOSTNAME
     ) {
       try {

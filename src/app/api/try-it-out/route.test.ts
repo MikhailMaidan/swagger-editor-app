@@ -188,9 +188,9 @@ describe("try-it-out route", () => {
   });
 
   it("executes a real request against a lookalike hostname instead of mistaking it for the demo placeholder", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response("{}", { status: 200 }),
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
 
     try {
       await POST(
@@ -209,6 +209,34 @@ describe("try-it-out route", () => {
       expect(fetchMock).toHaveBeenCalledWith(
         "https://backend-api.example.com.br/users",
         expect.anything(),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("allows public hostnames that begin like private IPv6 ranges", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    try {
+      await POST(
+        new Request("http://localhost/api/try-it-out", {
+          body: JSON.stringify({
+            method: "GET",
+            path: "/users",
+            responseBody: "fallback",
+            serverUrl: "https://fca.example.com",
+            status: "200",
+          }),
+          method: "POST",
+        }),
+      );
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://fca.example.com/users",
+        expect.any(Object),
       );
     } finally {
       fetchMock.mockRestore();

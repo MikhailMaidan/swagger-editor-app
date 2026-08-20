@@ -3,6 +3,7 @@
 import type {
   ChangeEvent,
   DragEvent as ReactDragEvent,
+  FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
   SyntheticEvent,
 } from "react";
@@ -27,6 +28,7 @@ import {
   saveSchemaDraft,
 } from "@/lib/schema-draft";
 import { downloadSchemaFile } from "@/lib/schema-download";
+import { isPublicHttpServerUrl } from "@/lib/server-url";
 import {
   readSavedSchema,
   readServerSavedSchemas,
@@ -88,6 +90,9 @@ export function SwaggerWorkspace({
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
+  const [serverOverrideInput, setServerOverrideInput] = useState("");
+  const [serverUrlOverride, setServerUrlOverride] = useState("");
+  const [serverOverrideError, setServerOverrideError] = useState(false);
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -106,12 +111,13 @@ export function SwaggerWorkspace({
     ? parseResult.value.endpoints
     : EMPTY_ENDPOINTS;
   const serverUrls = parseResult.ok ? parseResult.value.serverUrls : [];
-  const activeServerUrl =
+  const declaredServerUrl =
     selectedServerUrl && serverUrls.includes(selectedServerUrl)
       ? selectedServerUrl
       : parseResult.ok
         ? parseResult.value.serverUrl
         : "";
+  const activeServerUrl = serverUrlOverride || declaredServerUrl;
   const endpoints = useMemo(
     () =>
       parsedEndpoints.map((endpoint) =>
@@ -466,12 +472,41 @@ export function SwaggerWorkspace({
     setSelectedMethod("all");
     setSelectedTag("all");
     setSelectedServerUrl("");
+    setServerOverrideInput("");
+    setServerUrlOverride("");
+    setServerOverrideError(false);
   }
 
   function handleResetEndpointFilters() {
     setEndpointFilter("");
     setSelectedMethod("all");
     setSelectedTag("all");
+  }
+
+  function handleApplyServerOverride(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const serverUrl = serverOverrideInput.trim();
+
+    if (!isPublicHttpServerUrl(serverUrl)) {
+      setServerOverrideError(true);
+      return;
+    }
+
+    setServerOverrideInput(serverUrl);
+    setServerUrlOverride(serverUrl);
+    setServerOverrideError(false);
+  }
+
+  function handleClearServerOverride() {
+    setServerOverrideInput("");
+    setServerUrlOverride("");
+    setServerOverrideError(false);
+  }
+
+  function handleDeclaredServerChange(serverUrl: string) {
+    setSelectedServerUrl(serverUrl);
+    handleClearServerOverride();
   }
 
   function handleEditorSelection(event: SyntheticEvent<HTMLTextAreaElement>) {
@@ -812,9 +847,9 @@ export function SwaggerWorkspace({
                   <select
                     aria-label={t("workspace.serverSelector")}
                     className="h-9 min-w-0 max-w-full rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 font-mono text-xs text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
-                    value={activeServerUrl}
+                    value={declaredServerUrl}
                     onChange={(event) =>
-                      setSelectedServerUrl(event.target.value)
+                      handleDeclaredServerChange(event.target.value)
                     }
                   >
                     {serverUrls.map((serverUrl) => (
@@ -827,6 +862,49 @@ export function SwaggerWorkspace({
                   <code className="break-all">{activeServerUrl}</code>
                 )}
               </div>
+              <form
+                className="flex flex-wrap items-center gap-2"
+                noValidate
+                onSubmit={handleApplyServerOverride}
+              >
+                <label
+                  className="font-bold text-[color:var(--color-brand-navy)]"
+                  htmlFor="custom-server-url"
+                >
+                  {t("workspace.customServerUrl")}
+                </label>
+                <input
+                  className="h-9 min-w-0 flex-1 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 font-mono text-xs text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                  id="custom-server-url"
+                  placeholder={t("workspace.customServerUrlPlaceholder")}
+                  type="url"
+                  value={serverOverrideInput}
+                  onChange={(event) => {
+                    setServerOverrideInput(event.target.value);
+                    setServerOverrideError(false);
+                  }}
+                />
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                  type="submit"
+                >
+                  {t("workspace.applyServerOverride")}
+                </button>
+                {serverUrlOverride ? (
+                  <button
+                    className="h-9 rounded-lg border border-[color:var(--color-brand-border)] px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                    type="button"
+                    onClick={handleClearServerOverride}
+                  >
+                    {t("workspace.clearServerOverride")}
+                  </button>
+                ) : null}
+              </form>
+              {serverOverrideError ? (
+                <p className="text-xs font-semibold text-red-700" role="alert">
+                  {t("workspace.invalidServerOverride")}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>

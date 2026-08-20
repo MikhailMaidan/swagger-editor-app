@@ -196,6 +196,44 @@ paths:
     );
   });
 
+  it("applies and clears a validated custom server URL", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const serverInput = screen.getByLabelText("Custom server URL");
+    const getPreview = () => screen.getByLabelText("cURL GET /users/{id}");
+
+    await user.type(serverInput, "/api");
+    await user.click(screen.getByRole("button", { name: "Apply server" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Enter a public HTTP or HTTPS server URL.",
+    );
+    expect(getPreview()).toHaveTextContent(
+      "https://jsonplaceholder.typicode.com/users/",
+    );
+
+    await user.clear(serverInput);
+    await user.type(serverInput, "  https://staging.example.net/v3/  ");
+    await user.click(screen.getByRole("button", { name: "Apply server" }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(serverInput).toHaveValue("https://staging.example.net/v3/");
+    expect(getPreview()).toHaveTextContent(
+      "https://staging.example.net/v3/users/",
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Clear custom server" }),
+    );
+
+    expect(serverInput).toHaveValue("");
+    expect(getPreview()).toHaveTextContent(
+      "https://jsonplaceholder.typicode.com/users/",
+    );
+  });
+
   it("filters the endpoint list by method, path, summary, and method tab", () => {
     render(<SwaggerWorkspace />);
 
