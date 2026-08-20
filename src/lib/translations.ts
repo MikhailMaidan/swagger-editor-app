@@ -201,6 +201,7 @@ export const translations = {
     "workspace.copyEndpointLink": "Copy link",
     "workspace.copyEndpointLinkAriaLabel": "Copy link to {method} {path}",
     "workspace.copyFetch": "Copy fetch",
+    "workspace.copyHttp": "Copy HTTP",
     "workspace.copyRequestUrl": "Copy request URL",
     "workspace.copyResponse": "Copy response body",
     "workspace.copyResponseHeaders": "Copy response headers",
@@ -244,6 +245,8 @@ export const translations = {
     "workspace.goToError": "Go to error",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
+    "workspace.http": "HTTP",
+    "workspace.httpCopied": "HTTP request copied.",
     "workspace.import": "Import",
     "workspace.invalid": "Invalid",
     "workspace.invalidServerOverride":
@@ -516,6 +519,7 @@ export const translations = {
     "workspace.copyEndpointLinkAriaLabel":
       "Скопировать ссылку на {method} {path}",
     "workspace.copyFetch": "Скопировать fetch",
+    "workspace.copyHttp": "Скопировать HTTP",
     "workspace.copyRequestUrl": "Скопировать URL запроса",
     "workspace.copyResponse": "Скопировать тело ответа",
     "workspace.copyResponseHeaders": "Скопировать заголовки ответа",
@@ -561,6 +565,8 @@ export const translations = {
     "workspace.goToError": "Перейти к ошибке",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
+    "workspace.http": "HTTP",
+    "workspace.httpCopied": "HTTP-запрос скопирован.",
     "workspace.import": "Импорт",
     "workspace.invalid": "Невалидно",
     "workspace.invalidServerOverride":

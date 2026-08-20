@@ -523,6 +523,32 @@ export function createFetchPreview(
   contentType = "application/json",
 ) {
   const url = buildRequestUrl(serverUrl, path, parameters);
+  const headers = createRequestPreviewHeaders(
+    parameters,
+    hasRequestBody,
+    contentType,
+  );
+
+  const options: Record<string, unknown> = {
+    method: method.toUpperCase(),
+  };
+
+  if (Object.keys(headers).length > 0) {
+    options.headers = headers;
+  }
+
+  if (hasRequestBody) {
+    options.body = requestBody.trim() || "{...}";
+  }
+
+  return `fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});`;
+}
+
+function createRequestPreviewHeaders(
+  parameters: CurlParameter[],
+  hasRequestBody: boolean,
+  contentType: string,
+) {
   const headers: Record<string, string> = {};
 
   parameters
@@ -541,19 +567,40 @@ export function createFetchPreview(
     headers["Content-Type"] = contentType;
   }
 
-  const options: Record<string, unknown> = {
-    method: method.toUpperCase(),
-  };
+  return headers;
+}
 
-  if (Object.keys(headers).length > 0) {
-    options.headers = headers;
-  }
+export function createHttpPreview(
+  method: string,
+  path: string,
+  hasRequestBody: boolean,
+  serverUrl = "https://api.example.com",
+  parameters: CurlParameter[] = [],
+  requestBody = "",
+  contentType = "application/json",
+) {
+  const url = buildRequestUrl(serverUrl, path, parameters).replace(
+    /[\r\n]+/g,
+    "",
+  );
+  const headers = createRequestPreviewHeaders(
+    parameters,
+    hasRequestBody,
+    contentType,
+  );
+  const lines = [`${method.toUpperCase()} ${url} HTTP/1.1`];
+
+  Object.entries(headers).forEach(([name, value]) => {
+    lines.push(
+      `${name.replace(/[\r\n]+/g, "")}: ${value.replace(/[\r\n]+/g, " ")}`,
+    );
+  });
 
   if (hasRequestBody) {
-    options.body = requestBody.trim() || "{...}";
+    lines.push("", requestBody.trim() || "{...}");
   }
 
-  return `fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});`;
+  return lines.join("\n");
 }
 
 export function detectSchemaFormat(schemaText: string): SchemaFormat {

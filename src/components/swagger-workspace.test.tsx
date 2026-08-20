@@ -1268,7 +1268,7 @@ paths: {}`,
     }
   });
 
-  it("previews and copies JavaScript fetch snippets", async () => {
+  it("previews and copies Fetch and raw HTTP snippets", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
 
@@ -1284,6 +1284,10 @@ paths: {}`,
     await user.type(
       screen.getByLabelText("Header parameter X-Trace-Id"),
       "trace-1",
+    );
+    await user.type(
+      screen.getByLabelText("Cookie parameter sessionId"),
+      "session-1",
     );
 
     const codeFormat = screen.getAllByRole("group", {
@@ -1307,9 +1311,27 @@ paths: {}`,
       "Fetch snippet copied.",
     );
 
+    await user.click(within(codeFormat).getByRole("button", { name: "HTTP" }));
+
+    const httpPreview = screen.getByLabelText("HTTP GET /users/{id}");
+
+    expect(httpPreview).toHaveTextContent(
+      "GET https://jsonplaceholder.typicode.com/users/42?search=Alex HTTP/1.1",
+    );
+    expect(httpPreview).toHaveTextContent("X-Trace-Id: trace-1");
+    expect(httpPreview).toHaveTextContent("Cookie: sessionId=session-1");
+
+    await user.click(screen.getAllByRole("button", { name: "Copy HTTP" })[0]);
+
+    expect(writeText).toHaveBeenLastCalledWith(httpPreview.textContent);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "HTTP request copied.",
+    );
+
     await user.type(screen.getByLabelText("Query parameter search"), " Smith");
 
     expect(screen.queryByText("Fetch snippet copied.")).not.toBeInTheDocument();
+    expect(screen.queryByText("HTTP request copied.")).not.toBeInTheDocument();
   });
 
   it("omits the request body and Content-Type from the cURL preview once the body textarea is cleared", () => {

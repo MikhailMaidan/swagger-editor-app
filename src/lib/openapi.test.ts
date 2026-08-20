@@ -4,6 +4,7 @@ import {
   createEndpointStats,
   createCurlPreview,
   createFetchPreview,
+  createHttpPreview,
   detectSchemaFormat,
   extractEndpoints,
   formatOpenApiSchema,
@@ -570,6 +571,56 @@ describe("openapi helpers", () => {
     expect(createFetchPreview("GET", "/users", false)).toBe(
       'fetch("https://api.example.com/users", {\n  "method": "GET"\n});',
     );
+  });
+
+  it("creates raw HTTP previews from the current request values", () => {
+    expect(
+      createHttpPreview(
+        "post",
+        "/users/{id}",
+        true,
+        "https://api.example.com/",
+        [
+          { location: "path", name: "id", value: "42" },
+          { location: "query", name: "search", value: "Alex Smith" },
+          { location: "header", name: "X-Trace-Id", value: "trace-1" },
+          { location: "cookie", name: "sessionId", value: "abc 123" },
+        ],
+        '{"name":"Mikhail"}',
+      ),
+    ).toBe(`POST https://api.example.com/users/42?search=Alex%20Smith HTTP/1.1
+X-Trace-Id: trace-1
+Cookie: sessionId=abc%20123
+Content-Type: application/json
+
+{"name":"Mikhail"}`);
+  });
+
+  it("omits HTTP preview headers and body when they are not needed", () => {
+    expect(createHttpPreview("GET", "/users", false)).toBe(
+      "GET https://api.example.com/users HTTP/1.1",
+    );
+  });
+
+  it("keeps raw HTTP header values on a single line", () => {
+    const preview = createHttpPreview(
+      "GET",
+      "/users",
+      false,
+      "https://api.example.com",
+      [
+        {
+          location: "header",
+          name: "X-Trace-Id",
+          value: "trace-1\r\nX-Injected: true",
+        },
+      ],
+    );
+
+    expect(preview.split("\n")).toEqual([
+      "GET https://api.example.com/users HTTP/1.1",
+      "X-Trace-Id: trace-1 X-Injected: true",
+    ]);
   });
 
   it("parses JSON schemas and supports format conversion", () => {
