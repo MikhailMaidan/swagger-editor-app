@@ -257,14 +257,16 @@ paths:
       screen.queryByLabelText("cURL GET /users/{id}"),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText("No endpoints match your search."),
+      screen.queryByText("No endpoints match the current filters."),
     ).not.toBeInTheDocument();
 
     fireEvent.click(
       within(methodFilters).getByRole("button", { name: "GET (1)" }),
     );
 
-    expect(screen.getByText("No endpoints match your search.")).toBeVisible();
+    expect(
+      screen.getByText("No endpoints match the current filters."),
+    ).toBeVisible();
 
     expect(screen.getByText("Showing 0 of 2 endpoints")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
@@ -279,7 +281,9 @@ paths:
 
     fireEvent.change(filterInput, { target: { value: "does-not-exist" } });
 
-    expect(screen.getByText("No endpoints match your search.")).toBeVisible();
+    expect(
+      screen.getByText("No endpoints match the current filters."),
+    ).toBeVisible();
     expect(
       screen.queryByLabelText("cURL POST /users/{id}"),
     ).not.toBeInTheDocument();
@@ -425,7 +429,7 @@ paths:
     expect(screen.queryByLabelText("cURL GET /status")).not.toBeInTheDocument();
   });
 
-  it("filters endpoints by security and deprecation traits", async () => {
+  it("filters endpoints by security, deprecation, and request body traits", async () => {
     const user = userEvent.setup();
 
     render(<SwaggerWorkspace />);
@@ -450,6 +454,15 @@ paths:
     get:
       deprecated: true
       security: []
+      responses: {}
+  /create:
+    post:
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses: {}`,
       },
     });
@@ -462,7 +475,7 @@ paths:
     await user.selectOptions(traitFilter, "secured");
     expect(screen.getByLabelText("cURL GET /private")).toBeInTheDocument();
     expect(screen.queryByLabelText("cURL GET /public")).not.toBeInTheDocument();
-    expect(screen.getByText("Showing 1 of 3 endpoints")).toBeVisible();
+    expect(screen.getByText("Showing 1 of 4 endpoints")).toBeVisible();
 
     await user.selectOptions(traitFilter, "unsecured");
     expect(
@@ -470,9 +483,24 @@ paths:
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText("cURL GET /public")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /create")).toBeInTheDocument();
 
     await user.selectOptions(traitFilter, "deprecated");
     expect(screen.queryByLabelText("cURL GET /public")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+
+    await user.selectOptions(traitFilter, "with-request-body");
+    expect(screen.getByLabelText("cURL POST /create")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("cURL GET /private"),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(traitFilter, "without-request-body");
+    expect(
+      screen.queryByLabelText("cURL POST /create"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /private")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL GET /public")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Reset filters" }));
@@ -480,6 +508,7 @@ paths:
     expect(screen.getByLabelText("cURL GET /private")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL GET /public")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL GET /legacy")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /create")).toBeInTheDocument();
   });
 
   it("prefills try-it-out parameter inputs from schema examples and defaults", async () => {

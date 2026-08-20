@@ -251,7 +251,7 @@ export const translations = {
     "workspace.methodFilterLabel": "Filter endpoints by HTTP method",
     "workspace.methods": "Methods",
     "workspace.namedExample": "Example: {name}",
-    "workspace.noEndpointsMatch": "No endpoints match your search.",
+    "workspace.noEndpointsMatch": "No endpoints match the current filters.",
     "workspace.noResponseExample":
       "No response example available for {method} {path}.",
     "workspace.none": "None",
@@ -313,6 +313,8 @@ export const translations = {
     "workspace.version": "Version {version}",
     "workspace.viewer": "Viewer",
     "workspace.withRequestBodies": "With bodies",
+    "workspace.withRequestBodyOnly": "With request body",
+    "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
     "about.courseTextAfter": ".",
@@ -566,7 +568,8 @@ export const translations = {
     "workspace.methodFilterLabel": "Фильтр эндпоинтов по HTTP-методу",
     "workspace.methods": "Методы",
     "workspace.namedExample": "Пример: {name}",
-    "workspace.noEndpointsMatch": "Нет эндпоинтов, соответствующих запросу.",
+    "workspace.noEndpointsMatch":
+      "Нет эндпоинтов, соответствующих текущим фильтрам.",
     "workspace.noResponseExample":
       "Пример ответа недоступен для {method} {path}.",
     "workspace.none": "Нет",
@@ -630,6 +633,8 @@ export const translations = {
     "workspace.version": "Версия {version}",
     "workspace.viewer": "Просмотр",
     "workspace.withRequestBodies": "С телом",
+    "workspace.withRequestBodyOnly": "С телом запроса",
+    "workspace.withoutRequestBodyOnly": "Без тела запроса",
   },
 } as const;
 

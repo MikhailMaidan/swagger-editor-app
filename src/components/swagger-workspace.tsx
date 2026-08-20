@@ -1009,6 +1009,12 @@ export function SwaggerWorkspace({
                 <option value="deprecated">
                   {t("workspace.deprecatedOnly")}
                 </option>
+                <option value="with-request-body">
+                  {t("workspace.withRequestBodyOnly")}
+                </option>
+                <option value="without-request-body">
+                  {t("workspace.withoutRequestBodyOnly")}
+                </option>
               </select>
               {endpointFilter ? (
                 <button

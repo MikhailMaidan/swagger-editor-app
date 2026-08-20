@@ -4,10 +4,12 @@ import type { EndpointSummary } from "./openapi";
 
 function createEndpoint({
   deprecated = false,
+  hasRequestBody = false,
   path,
   secured = false,
 }: {
   deprecated?: boolean;
+  hasRequestBody?: boolean;
   path: string;
   secured?: boolean;
 }) {
@@ -18,7 +20,21 @@ function createEndpoint({
     operationId: "",
     parameters: [],
     path,
-    requestBodies: [],
+    requestBodies: hasRequestBody
+      ? [
+          {
+            contentType: "application/json",
+            description: "",
+            required: false,
+            schema: {
+              example: "{}",
+              exampleName: "",
+              properties: [],
+              type: "object",
+            },
+          },
+        ]
+      : [],
     responses: [],
     secured,
     securityRequirements: secured ? ["bearerAuth"] : [],
@@ -33,6 +49,7 @@ describe("endpoint trait filtering", () => {
     createEndpoint({ path: "/public" }),
     createEndpoint({ path: "/private", secured: true }),
     createEndpoint({ deprecated: true, path: "/legacy" }),
+    createEndpoint({ hasRequestBody: true, path: "/create" }),
   ];
 
   it("preserves the original endpoint collection for the all filter", () => {
@@ -49,11 +66,24 @@ describe("endpoint trait filtering", () => {
       filterEndpointsByTrait(endpoints, "unsecured").map(
         (endpoint) => endpoint.path,
       ),
-    ).toEqual(["/public", "/legacy"]);
+    ).toEqual(["/public", "/legacy", "/create"]);
     expect(
       filterEndpointsByTrait(endpoints, "deprecated").map(
         (endpoint) => endpoint.path,
       ),
     ).toEqual(["/legacy"]);
+  });
+
+  it("filters endpoints by request body availability", () => {
+    expect(
+      filterEndpointsByTrait(endpoints, "with-request-body").map(
+        (endpoint) => endpoint.path,
+      ),
+    ).toEqual(["/create"]);
+    expect(
+      filterEndpointsByTrait(endpoints, "without-request-body").map(
+        (endpoint) => endpoint.path,
+      ),
+    ).toEqual(["/public", "/private", "/legacy"]);
   });
 });
