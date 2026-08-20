@@ -1,6 +1,14 @@
 "use client";
 
-import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
@@ -18,6 +26,7 @@ import {
   SchemaDetails as SchemaDetailsSummary,
   selectDefaultResponse,
 } from "@/lib/openapi";
+import { isRunRequestShortcut } from "@/lib/keyboard-shortcut";
 import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
@@ -739,6 +748,15 @@ function EndpointCardComponent({
     setWasRequestCancelled(true);
   }
 
+  function handleEndpointKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+    if (event.defaultPrevented || !isRunRequestShortcut(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    void handleTryItOut();
+  }
+
   async function handleTryItOut() {
     if (isExecuting || isRequestBodyInvalid) {
       return;
@@ -854,6 +872,7 @@ function EndpointCardComponent({
     <article
       className="scroll-mt-36 rounded-2xl border border-[color:var(--color-brand-border)] p-4"
       id={endpointAnchor}
+      onKeyDown={handleEndpointKeyDown}
     >
       <div className="flex flex-wrap items-center gap-3">
         <span
@@ -1273,6 +1292,7 @@ function EndpointCardComponent({
             </button>
             <button
               aria-busy={isExecuting}
+              aria-keyshortcuts="Control+Enter Meta+Enter"
               className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={
                 isExecuting ||

@@ -2431,6 +2431,53 @@ paths:
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toBeNull();
   });
 
+  it("runs the focused endpoint with the primary-modifier Enter shortcut", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        body: '{"id":"42"}',
+        durationMs: 18,
+        errorDetails: null,
+        headers: { "content-type": "application/json" },
+        requestSize: 24,
+        responseSize: 11,
+        status: "200",
+        url: "https://jsonplaceholder.typicode.com/users/42",
+      }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const pathInput = screen.getAllByLabelText("Path parameter id")[0];
+      const executeButton = screen.getAllByRole("button", {
+        name: "Try It Out",
+      })[0];
+
+      fireEvent.change(pathInput, { target: { value: "42" } });
+
+      expect(executeButton).toHaveAttribute(
+        "aria-keyshortcuts",
+        "Control+Enter Meta+Enter",
+      );
+
+      fireEvent.keyDown(pathInput, { ctrlKey: true, key: "Enter" });
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const requestPayload = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+
+      expect(requestPayload).toMatchObject({
+        method: "GET",
+        path: "/users/{id}",
+        requestParameters: [{ location: "path", name: "id", value: "42" }],
+      });
+      expect(await screen.findByRole("status")).toHaveTextContent("Response");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("prevents duplicate requests while an endpoint is executing", async () => {
     let finishRequest: (response: Response) => void = () => {};
     const requestPromise = new Promise<Response>((resolve) => {
