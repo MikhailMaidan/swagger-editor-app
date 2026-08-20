@@ -2524,7 +2524,7 @@ paths:
     }
   });
 
-  it("cancels an in-flight request without showing or saving a fallback response", async () => {
+  it("cancels an in-flight request with Escape without showing or saving a fallback response", async () => {
     const user = userEvent.setup();
     let requestSignal: AbortSignal | null = null;
     const fetchMock = vi
@@ -2544,13 +2544,19 @@ paths:
 
     try {
       render(<SwaggerWorkspace />);
-      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      const pathInput = screen.getAllByLabelText("Path parameter id")[0];
+
+      await user.type(pathInput, "42");
       await user.click(
         screen.getAllByRole("button", { name: "Try It Out" })[0],
       );
 
       expect((requestSignal as AbortSignal | null)?.aborted).toBe(false);
-      await user.click(screen.getByRole("button", { name: "Cancel request" }));
+      expect(
+        screen.getByRole("button", { name: "Cancel request" }),
+      ).toHaveAttribute("aria-keyshortcuts", "Escape");
+
+      fireEvent.keyDown(pathInput, { key: "Escape" });
 
       await waitFor(() =>
         expect(

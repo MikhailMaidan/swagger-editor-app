@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isRunRequestShortcut } from "./keyboard-shortcut";
+import {
+  isCancelRequestShortcut,
+  isRunRequestShortcut,
+  type KeyboardShortcutEvent,
+} from "./keyboard-shortcut";
 
 function createKeyboardEvent(
-  overrides: Partial<Parameters<typeof isRunRequestShortcut>[0]> = {},
-) {
+  overrides: Partial<KeyboardShortcutEvent> = {},
+): KeyboardShortcutEvent {
   return {
     altKey: false,
     ctrlKey: false,
@@ -37,6 +41,18 @@ describe("keyboard shortcut helpers", () => {
     expect(
       isRunRequestShortcut(
         createKeyboardEvent({ altKey: true, metaKey: true }),
+      ),
+    ).toBe(false);
+  });
+
+  it("recognizes an unmodified Escape cancellation shortcut", () => {
+    expect(
+      isCancelRequestShortcut(createKeyboardEvent({ key: "Escape" })),
+    ).toBe(true);
+    expect(isCancelRequestShortcut(createKeyboardEvent())).toBe(false);
+    expect(
+      isCancelRequestShortcut(
+        createKeyboardEvent({ key: "Escape", metaKey: true }),
       ),
     ).toBe(false);
   });

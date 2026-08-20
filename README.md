@@ -12,7 +12,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - JSON and YAML OpenAPI editing, validation, and conversion
 - Generated endpoint documentation and Try It Out requests through the server
 - cURL, Fetch, and raw HTTP generation with snippet downloads
-- Scoped request execution with `Ctrl+Enter` or `Cmd+Enter`
+- Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation
+  with `Escape`
 - Authentication-aware schema saving and request history
 - Server-rendered history analytics in English and Russian
 

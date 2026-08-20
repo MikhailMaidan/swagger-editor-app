@@ -26,7 +26,10 @@ import {
   SchemaDetails as SchemaDetailsSummary,
   selectDefaultResponse,
 } from "@/lib/openapi";
-import { isRunRequestShortcut } from "@/lib/keyboard-shortcut";
+import {
+  isCancelRequestShortcut,
+  isRunRequestShortcut,
+} from "@/lib/keyboard-shortcut";
 import {
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
@@ -749,7 +752,17 @@ function EndpointCardComponent({
   }
 
   function handleEndpointKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
-    if (event.defaultPrevented || !isRunRequestShortcut(event)) {
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    if (isExecuting && isCancelRequestShortcut(event)) {
+      event.preventDefault();
+      handleCancelTryItOut();
+      return;
+    }
+
+    if (!isRunRequestShortcut(event)) {
       return;
     }
 
@@ -1306,6 +1319,7 @@ function EndpointCardComponent({
             </button>
             {isExecuting ? (
               <button
+                aria-keyshortcuts="Escape"
                 className="h-10 rounded-2xl border border-red-300 bg-white px-4 text-sm font-extrabold text-red-700 transition hover:bg-red-50"
                 type="button"
                 onClick={handleCancelTryItOut}
