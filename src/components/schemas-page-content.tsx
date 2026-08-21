@@ -17,6 +17,10 @@ import {
   SavedSchemaRecord,
   stageSavedSchemaForEditor,
 } from "@/lib/schema-storage";
+import {
+  filterSavedSchemas,
+  SavedSchemaFormatFilter,
+} from "@/lib/saved-schema-filter";
 import { getByteSize } from "@/lib/text-encoding";
 
 type SchemaSort = "largest" | "newest" | "oldest" | "title";
@@ -36,20 +40,15 @@ export function SchemasPageContent({
   const router = useRouter();
   const [schemas, setSchemas] = useState(initialSchemas);
   const [schemaFilter, setSchemaFilter] = useState("");
+  const [schemaFormat, setSchemaFormat] =
+    useState<SavedSchemaFormatFilter>("all");
   const [schemaSort, setSchemaSort] = useState<SchemaSort>("newest");
-  const normalizedSchemaFilter = schemaFilter.trim().toLowerCase();
   const filteredSchemas = useMemo(
-    () =>
-      normalizedSchemaFilter
-        ? schemas.filter(
-            (schema) =>
-              schema.title.toLowerCase().includes(normalizedSchemaFilter) ||
-              schema.version.toLowerCase().includes(normalizedSchemaFilter) ||
-              schema.format.toLowerCase().includes(normalizedSchemaFilter),
-          )
-        : schemas,
-    [normalizedSchemaFilter, schemas],
+    () => filterSavedSchemas(schemas, schemaFilter, schemaFormat),
+    [schemaFilter, schemaFormat, schemas],
   );
+  const hasActiveFilters =
+    Boolean(schemaFilter.trim()) || schemaFormat !== "all";
   // Encoding every schema's full text to get its byte size isn't free, and
   // this list re-renders on every keystroke while renaming any one row -
   // caching by id means an edit to one schema's title doesn't re-encode
@@ -214,6 +213,11 @@ export function SchemasPageContent({
     downloadSchemaCollectionFile(schemas);
   }
 
+  function handleResetFilters() {
+    setSchemaFilter("");
+    setSchemaFormat("all");
+  }
+
   async function handleCopy(schema: SavedSchemaRecord) {
     setCopyingId(schema.id);
     setCopiedId(null);
@@ -295,6 +299,31 @@ export function SchemasPageContent({
                   value={schemaFilter}
                   onChange={(event) => setSchemaFilter(event.target.value)}
                 />
+                <label className="sr-only" htmlFor="saved-schema-format">
+                  {t("schemas.formatFilterLabel")}
+                </label>
+                <select
+                  className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                  id="saved-schema-format"
+                  value={schemaFormat}
+                  onChange={(event) =>
+                    setSchemaFormat(
+                      event.target.value as SavedSchemaFormatFilter,
+                    )
+                  }
+                >
+                  <option value="all">{t("schemas.allFormats")}</option>
+                  <option value="yaml">YAML</option>
+                  <option value="json">JSON</option>
+                </select>
+                <button
+                  className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-extrabold text-[color:var(--color-brand-muted)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!hasActiveFilters}
+                  type="button"
+                  onClick={handleResetFilters}
+                >
+                  {t("schemas.resetFilters")}
+                </button>
                 <label className="sr-only" htmlFor="saved-schema-sort">
                   {t("schemas.sortLabel")}
                 </label>

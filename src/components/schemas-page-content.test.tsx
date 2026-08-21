@@ -293,9 +293,54 @@ describe("SchemasPageContent", () => {
     await user.type(filter, "missing");
 
     expect(
-      screen.getByText("No saved schemas match your search."),
+      screen.getByText("No saved schemas match the current filters."),
     ).toBeVisible();
     expect(screen.getByText("Showing 0 of 2 schemas")).toBeVisible();
+  });
+
+  it("filters saved schemas by format and resets active filters", async () => {
+    const user = userEvent.setup();
+    const jsonSchema = {
+      createdAt: "2026-07-09T10:00:00.000Z",
+      format: "json",
+      id: "json-schema",
+      schemaText: '{"openapi":"3.0.0"}',
+      title: "JSON API",
+      updatedAt: "2026-07-09T10:00:00.000Z",
+      version: "2.0.0",
+    };
+
+    render(<SchemasPageContent initialSchemas={[savedSchema, jsonSchema]} />);
+
+    const searchFilter = screen.getByLabelText("Filter saved schemas");
+    const formatFilter = screen.getByLabelText(
+      "Filter saved schemas by format",
+    );
+    const resetButton = screen.getByRole("button", { name: "Reset filters" });
+
+    expect(resetButton).toBeDisabled();
+
+    await user.selectOptions(formatFilter, "yaml");
+
+    expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "JSON API" }),
+    ).not.toBeInTheDocument();
+    expect(resetButton).toBeEnabled();
+
+    await user.type(searchFilter, "JSON");
+
+    expect(
+      screen.getByText("No saved schemas match the current filters."),
+    ).toBeVisible();
+
+    await user.click(resetButton);
+
+    expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "JSON API" })).toBeVisible();
+    expect(searchFilter).toHaveValue("");
+    expect(formatFilter).toHaveValue("all");
+    expect(resetButton).toBeDisabled();
   });
 
   it("sorts saved schemas without changing their records", async () => {
