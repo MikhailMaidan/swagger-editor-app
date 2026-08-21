@@ -213,6 +213,10 @@ export function SchemasPageContent({
     downloadSchemaCollectionFile(schemas);
   }
 
+  function handleExportVisible() {
+    downloadSchemaCollectionFile(displayedSchemas, "visible");
+  }
+
   function handleResetFilters() {
     setSchemaFilter("");
     setSchemaFormat("all");
@@ -348,6 +352,14 @@ export function SchemasPageContent({
                 </span>
               </div>
               <div className="flex shrink-0 flex-wrap items-center gap-3">
+                <button
+                  className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={displayedSchemas.length === 0}
+                  type="button"
+                  onClick={handleExportVisible}
+                >
+                  {t("schemas.exportVisible")}
+                </button>
                 <button
                   className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
                   type="button"

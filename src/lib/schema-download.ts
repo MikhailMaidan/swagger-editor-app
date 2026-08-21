@@ -11,6 +11,8 @@ export type SchemaCollectionExport = {
   fileName: string;
 };
 
+export type SchemaCollectionExportScope = "all" | "visible";
+
 function slugifyTitle(title: string) {
   const slug = title
     .toLowerCase()
@@ -35,8 +37,10 @@ export function getSchemaDownloadMetadata(
 export function createSchemaCollectionExport(
   schemas: SavedSchemaRecord[],
   exportedAt = new Date(),
+  scope: SchemaCollectionExportScope = "all",
 ): SchemaCollectionExport {
   const exportedAtIso = exportedAt.toISOString();
+  const scopeSuffix = scope === "visible" ? "-visible" : "";
 
   return {
     content: JSON.stringify(
@@ -49,7 +53,7 @@ export function createSchemaCollectionExport(
       2,
     ),
     contentType: "application/json",
-    fileName: `openapi-schemas-${exportedAtIso.slice(0, 10)}.json`,
+    fileName: `openapi-schemas${scopeSuffix}-${exportedAtIso.slice(0, 10)}.json`,
   };
 }
 
@@ -79,9 +83,15 @@ export function downloadSchemaFile(
   downloadFile(schemaText, fileName, contentType);
 }
 
-export function downloadSchemaCollectionFile(schemas: SavedSchemaRecord[]) {
-  const { content, contentType, fileName } =
-    createSchemaCollectionExport(schemas);
+export function downloadSchemaCollectionFile(
+  schemas: SavedSchemaRecord[],
+  scope: SchemaCollectionExportScope = "all",
+) {
+  const { content, contentType, fileName } = createSchemaCollectionExport(
+    schemas,
+    new Date(),
+    scope,
+  );
 
   downloadFile(content, fileName, contentType);
 }

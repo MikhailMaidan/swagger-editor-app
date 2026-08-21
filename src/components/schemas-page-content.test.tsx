@@ -122,7 +122,7 @@ describe("SchemasPageContent", () => {
     }
   });
 
-  it("exports every saved schema even when the list is filtered", async () => {
+  it("exports all schemas or only the currently visible schemas", async () => {
     const user = userEvent.setup();
     const createObjectURL = vi.fn().mockReturnValue("blob:schema-collection");
     const revokeObjectURL = vi.fn();
@@ -180,6 +180,24 @@ describe("SchemasPageContent", () => {
       );
       expect(anchors[0]?.click).toHaveBeenCalledTimes(1);
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:schema-collection");
+
+      await user.click(screen.getByRole("button", { name: "Export visible" }));
+
+      const visibleBlob = createObjectURL.mock.calls[1][0] as Blob;
+      const visibleText = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(reader.error);
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(visibleBlob);
+      });
+      const visibleCollection = JSON.parse(visibleText);
+
+      expect(visibleCollection.schemas).toEqual([otherSchema]);
+      expect(anchors[1]?.download).toMatch(
+        /^openapi-schemas-visible-\d{4}-\d{2}-\d{2}\.json$/,
+      );
+      expect(anchors[1]?.click).toHaveBeenCalledTimes(1);
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
@@ -296,6 +314,9 @@ describe("SchemasPageContent", () => {
       screen.getByText("No saved schemas match the current filters."),
     ).toBeVisible();
     expect(screen.getByText("Showing 0 of 2 schemas")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Export visible" }),
+    ).toBeDisabled();
   });
 
   it("filters saved schemas by format and resets active filters", async () => {
