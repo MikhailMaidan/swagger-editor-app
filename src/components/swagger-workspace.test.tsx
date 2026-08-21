@@ -294,6 +294,33 @@ paths:
     expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
   });
 
+  it("focuses endpoint search with slash and clears it with Escape", () => {
+    render(<SwaggerWorkspace />);
+
+    const filterInput = screen.getByLabelText(
+      "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
+    );
+
+    expect(filterInput).toHaveAttribute("aria-keyshortcuts", "/");
+
+    fireEvent.keyDown(document.body, { key: "/" });
+
+    expect(filterInput).toHaveFocus();
+
+    fireEvent.change(filterInput, { target: { value: "users" } });
+    fireEvent.keyDown(filterInput, { key: "Escape" });
+
+    expect(filterInput).toHaveValue("");
+
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+
+    editor.focus();
+    fireEvent.keyDown(editor, { key: "/" });
+
+    expect(editor).toHaveFocus();
+    expect(filterInput).not.toHaveFocus();
+  });
+
   it("sorts visible endpoints without changing the default schema order", async () => {
     const user = userEvent.setup();
 

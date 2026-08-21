@@ -24,3 +24,34 @@ export function isCancelRequestShortcut(event: KeyboardShortcutEvent) {
     !event.shiftKey
   );
 }
+
+export function isEndpointSearchShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key === "/" &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.shiftKey
+  );
+}
+
+export function isEditableShortcutTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const editableContainer = target.closest<HTMLElement>("[contenteditable]");
+  const hasEditableContainer =
+    editableContainer !== null &&
+    editableContainer.getAttribute("contenteditable") !== "false";
+
+  return (
+    target.isContentEditable ||
+    target.contentEditable === "true" ||
+    target.contentEditable === "plaintext-only" ||
+    hasEditableContainer ||
+    target.tagName === "INPUT" ||
+    target.tagName === "SELECT" ||
+    target.tagName === "TEXTAREA"
+  );
+}

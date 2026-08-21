@@ -13,6 +13,11 @@ import { useI18n } from "@/components/i18n-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
+import {
+  isCancelRequestShortcut,
+  isEditableShortcutTarget,
+  isEndpointSearchShortcut,
+} from "@/lib/keyboard-shortcut";
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
 import { sortEndpoints } from "@/lib/endpoint-sort";
@@ -72,6 +77,7 @@ export function SwaggerWorkspace({
 }: SwaggerWorkspaceProps = {}) {
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const endpointFilterInputRef = useRef<HTMLInputElement>(null);
   const pendingEditorSelectionRef = useRef<{
     end: number;
     start: number;
@@ -219,6 +225,29 @@ export function SwaggerWorkspace({
       pendingEditorSelectionRef.current = null;
     }
   }, [schemaText]);
+
+  useEffect(() => {
+    function handleEndpointSearchShortcut(event: KeyboardEvent) {
+      const filterInput = endpointFilterInputRef.current;
+
+      if (
+        !filterInput ||
+        !isEndpointSearchShortcut(event) ||
+        isEditableShortcutTarget(event.target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      filterInput.focus();
+    }
+
+    window.addEventListener("keydown", handleEndpointSearchShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleEndpointSearchShortcut);
+    };
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated || hasEditedSchemaRef.current) {
@@ -978,12 +1007,20 @@ export function SwaggerWorkspace({
           <div className="mt-5 grid gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <input
+                aria-keyshortcuts="/"
                 className="min-w-0 flex-1 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-4 py-3 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
                 type="search"
                 aria-label={t("workspace.filterEndpoints")}
                 placeholder={t("workspace.filterEndpoints")}
+                ref={endpointFilterInputRef}
                 value={endpointFilter}
                 onChange={(event) => setEndpointFilter(event.target.value)}
+                onKeyDown={(event) => {
+                  if (endpointFilter && isCancelRequestShortcut(event)) {
+                    event.preventDefault();
+                    setEndpointFilter("");
+                  }
+                }}
               />
               <select
                 aria-label={t("workspace.endpointSortLabel")}

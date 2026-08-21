@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   isCancelRequestShortcut,
+  isEditableShortcutTarget,
+  isEndpointSearchShortcut,
   isRunRequestShortcut,
   type KeyboardShortcutEvent,
 } from "./keyboard-shortcut";
@@ -55,5 +57,38 @@ describe("keyboard shortcut helpers", () => {
         createKeyboardEvent({ key: "Escape", metaKey: true }),
       ),
     ).toBe(false);
+  });
+
+  it("recognizes only an unmodified endpoint-search shortcut", () => {
+    expect(isEndpointSearchShortcut(createKeyboardEvent({ key: "/" }))).toBe(
+      true,
+    );
+    expect(
+      isEndpointSearchShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "/" }),
+      ),
+    ).toBe(false);
+    expect(isEndpointSearchShortcut(createKeyboardEvent())).toBe(false);
+  });
+
+  it("recognizes controls and editable content as typing targets", () => {
+    const editable = document.createElement("div");
+
+    editable.contentEditable = "true";
+
+    expect(isEditableShortcutTarget(document.createElement("input"))).toBe(
+      true,
+    );
+    expect(isEditableShortcutTarget(document.createElement("select"))).toBe(
+      true,
+    );
+    expect(isEditableShortcutTarget(document.createElement("textarea"))).toBe(
+      true,
+    );
+    expect(isEditableShortcutTarget(editable)).toBe(true);
+    expect(isEditableShortcutTarget(document.createElement("button"))).toBe(
+      false,
+    );
+    expect(isEditableShortcutTarget(null)).toBe(false);
   });
 });
