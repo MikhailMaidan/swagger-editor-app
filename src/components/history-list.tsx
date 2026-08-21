@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { getClientAuth } from "@/lib/client-auth";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
 import {
   clearRequestHistory,
@@ -24,6 +25,7 @@ import {
   RequestHistoryAgeFilter,
   RequestHistoryOutcomeFilter,
 } from "@/lib/request-history-filter";
+import { serializeRequestHistoryRecords } from "@/lib/request-history-clipboard";
 import { createRequestHistoryStats } from "@/lib/request-history-stats";
 import { getStatusColorClasses } from "@/lib/status-color";
 
@@ -73,6 +75,11 @@ export function HistoryList({
   const [historyMethod, setHistoryMethod] = useState("all");
   const [historyAge, setHistoryAge] = useState<RequestHistoryAgeFilter>("all");
   const [historySort, setHistorySort] = useState<RequestHistorySort>("newest");
+  const [isCopyingVisible, setIsCopyingVisible] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<{
+    kind: "copied" | "error";
+    text: string;
+  } | null>(null);
   const historyMethods = useMemo(
     () => getRequestHistoryMethods(records),
     [records],
@@ -89,6 +96,10 @@ export function HistoryList({
   const sortedRecords = useMemo(
     () => sortRequestHistory(filteredRecords, historySort),
     [filteredRecords, historySort],
+  );
+  const visibleHistoryText = useMemo(
+    () => serializeRequestHistoryRecords(sortedRecords),
+    [sortedRecords],
   );
   const historyStats = useMemo(
     () => createRequestHistoryStats(filteredRecords),
@@ -172,6 +183,19 @@ export function HistoryList({
     setHistoryOutcome("all");
     setHistoryMethod("all");
     setHistoryAge("all");
+  }
+
+  async function handleCopyVisible() {
+    if (sortedRecords.length === 0 || isCopyingVisible) {
+      return;
+    }
+
+    const text = visibleHistoryText;
+
+    setIsCopyingVisible(true);
+    const copied = await writeTextToClipboard(text);
+    setCopyFeedback({ kind: copied ? "copied" : "error", text });
+    setIsCopyingVisible(false);
   }
 
   if (records.length === 0) {
@@ -302,6 +326,16 @@ export function HistoryList({
           <option value="failures">{t("history.sortFailures")}</option>
         </select>
         <button
+          className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={sortedRecords.length === 0 || isCopyingVisible}
+          type="button"
+          onClick={handleCopyVisible}
+        >
+          {isCopyingVisible
+            ? t("history.copyingVisible")
+            : t("history.copyVisible")}
+        </button>
+        <button
           aria-label={t("history.exportAriaLabel")}
           className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={sortedRecords.length === 0}
@@ -317,6 +351,19 @@ export function HistoryList({
           })}
         </span>
       </div>
+
+      {copyFeedback?.text === visibleHistoryText ? (
+        <p
+          className={`mt-3 text-sm font-semibold ${
+            copyFeedback.kind === "error" ? "text-red-600" : "text-emerald-700"
+          }`}
+          role={copyFeedback.kind === "error" ? "alert" : "status"}
+        >
+          {copyFeedback.kind === "error"
+            ? t("history.copyVisibleError")
+            : t("history.copyVisibleSuccess")}
+        </p>
+      ) : null}
 
       <dl
         aria-label={t("history.statsLabel")}

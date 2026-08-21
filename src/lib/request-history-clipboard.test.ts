@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { RequestHistoryRecord } from "./request-history";
-import { serializeRequestHistoryRecord } from "./request-history-clipboard";
+import {
+  serializeRequestHistoryRecord,
+  serializeRequestHistoryRecords,
+} from "./request-history-clipboard";
 
 describe("request history clipboard", () => {
   it("serializes a request record as stable, readable JSON", () => {
@@ -53,5 +56,35 @@ describe("request history clipboard", () => {
       requestSize: 0,
       responseSize: 0,
     });
+  });
+
+  it("serializes an ordered collection using the same normalized shape", () => {
+    const firstRecord = {
+      createdAt: "2026-07-11T08:00:00.000Z",
+      durationMs: 42,
+      id: "history-1",
+      method: "GET",
+      path: "/users",
+      status: 200,
+      summary: "List users",
+      url: "/users",
+    } as RequestHistoryRecord;
+    const secondRecord = {
+      ...firstRecord,
+      id: "history-2",
+      method: "POST",
+      path: "/reports",
+      url: "/reports",
+    };
+    const serialized = serializeRequestHistoryRecords([
+      secondRecord,
+      firstRecord,
+    ]);
+
+    expect(serialized.endsWith("\n")).toBe(true);
+    expect(JSON.parse(serialized)).toMatchObject([
+      { id: "history-2", requestSize: 0, responseSize: 0 },
+      { id: "history-1", requestSize: 0, responseSize: 0 },
+    ]);
   });
 });

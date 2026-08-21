@@ -484,8 +484,16 @@ describe("HistoryList", () => {
     ).toBeVisible();
   });
 
-  it("exports the currently filtered and sorted history as JSON", async () => {
+  it("exports and copies the currently filtered and sorted history", async () => {
     const user = userEvent.setup();
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
     const createObjectURL = vi.fn().mockReturnValue("blob:request-history");
     const revokeObjectURL = vi.fn();
     const originalCreateObjectURL = URL.createObjectURL;
@@ -495,6 +503,10 @@ describe("HistoryList", () => {
 
     URL.createObjectURL = createObjectURL;
     URL.revokeObjectURL = revokeObjectURL;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
 
     const createElementSpy = vi
       .spyOn(document, "createElement")
@@ -561,9 +573,32 @@ describe("HistoryList", () => {
       const exportButton = screen.getByRole("button", {
         name: "Export visible request history",
       });
+      const copyButton = screen.getByRole("button", { name: "Copy visible" });
 
       await user.type(filter, "GET");
       await user.selectOptions(sort, "oldest");
+      await user.click(copyButton);
+
+      const copiedHistory = JSON.parse(
+        String(writeText.mock.calls[0][0]),
+      ) as Array<{
+        id: string;
+      }>;
+
+      expect(copiedHistory.map((record) => record.id)).toEqual([
+        "oldest-get",
+        "newest-get",
+      ]);
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Visible request history copied.",
+      );
+
+      await user.click(copyButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not copy visible request history.",
+      );
+
       await user.click(exportButton);
 
       const exportBlob = createObjectURL.mock.calls[0][0] as Blob;
@@ -597,9 +632,15 @@ describe("HistoryList", () => {
       await user.type(filter, "missing");
 
       expect(exportButton).toBeDisabled();
+      expect(copyButton).toBeDisabled();
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
       createElementSpy.mockRestore();
     }
   });
