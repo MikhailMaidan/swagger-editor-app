@@ -19,6 +19,7 @@ import {
 import { downloadRequestHistoryFile } from "@/lib/request-history-export";
 import {
   filterRequestHistory,
+  RequestHistoryAgeFilter,
   RequestHistoryOutcomeFilter,
 } from "@/lib/request-history-filter";
 import { createRequestHistoryStats } from "@/lib/request-history-stats";
@@ -67,11 +68,12 @@ export function HistoryList({
   const [historyFilter, setHistoryFilter] = useState("");
   const [historyOutcome, setHistoryOutcome] =
     useState<RequestHistoryOutcomeFilter>("all");
-  const [historySort, setHistorySort] =
-    useState<RequestHistorySort>("newest");
+  const [historyAge, setHistoryAge] = useState<RequestHistoryAgeFilter>("all");
+  const [historySort, setHistorySort] = useState<RequestHistorySort>("newest");
   const filteredRecords = useMemo(
-    () => filterRequestHistory(records, historyFilter, historyOutcome),
-    [historyFilter, historyOutcome, records],
+    () =>
+      filterRequestHistory(records, historyFilter, historyOutcome, historyAge),
+    [historyAge, historyFilter, historyOutcome, records],
   );
   const sortedRecords = useMemo(
     () => sortRequestHistory(filteredRecords, historySort),
@@ -81,6 +83,10 @@ export function HistoryList({
     () => createRequestHistoryStats(filteredRecords),
     [filteredRecords],
   );
+  const hasActiveFilters =
+    Boolean(historyFilter.trim()) ||
+    historyOutcome !== "all" ||
+    historyAge !== "all";
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -93,7 +99,9 @@ export function HistoryList({
   }, [initialRecords]);
 
   async function handleDelete(record: RequestHistoryRecord) {
-    if (!window.confirm(t("history.deleteConfirm", { summary: record.summary }))) {
+    if (
+      !window.confirm(t("history.deleteConfirm", { summary: record.summary }))
+    ) {
       return;
     }
 
@@ -145,6 +153,12 @@ export function HistoryList({
     }
 
     setIsClearingAll(false);
+  }
+
+  function handleResetFilters() {
+    setHistoryFilter("");
+    setHistoryOutcome("all");
+    setHistoryAge("all");
   }
 
   if (records.length === 0) {
@@ -218,6 +232,30 @@ export function HistoryList({
             </button>
           ))}
         </div>
+        <label className="sr-only" htmlFor="request-history-age">
+          {t("history.ageFilterLabel")}
+        </label>
+        <select
+          className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+          id="request-history-age"
+          value={historyAge}
+          onChange={(event) =>
+            setHistoryAge(event.target.value as RequestHistoryAgeFilter)
+          }
+        >
+          <option value="all">{t("history.allTime")}</option>
+          <option value="24-hours">{t("history.last24Hours")}</option>
+          <option value="7-days">{t("history.last7Days")}</option>
+          <option value="30-days">{t("history.last30Days")}</option>
+        </select>
+        <button
+          className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-extrabold text-[color:var(--color-brand-muted)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!hasActiveFilters}
+          type="button"
+          onClick={handleResetFilters}
+        >
+          {t("history.resetFilters")}
+        </button>
         <label className="sr-only" htmlFor="request-history-sort">
           {t("history.sortLabel")}
         </label>
@@ -334,68 +372,68 @@ export function HistoryList({
               </tr>
             ) : (
               sortedRecords.map((record) => (
-              <tr
-                className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)] transition-colors hover:bg-[color:var(--color-brand-soft)]/60 motion-reduce:transition-none"
-                key={record.id}
-              >
-                <td className="px-4 py-4 font-extrabold text-[color:var(--color-brand-purple)]">
-                  {record.method}
-                </td>
-                <td className="px-4 py-4 font-mono font-bold text-[color:var(--color-brand-navy)]">
-                  <Link
-                    aria-label={t("history.viewDetails", {
-                      summary: record.summary,
-                    })}
-                    className="text-[color:var(--color-brand-purple)] underline decoration-2 underline-offset-4"
-                    href={`/history/${encodeURIComponent(record.id)}`}
-                  >
-                    {record.url}
-                  </Link>
-                </td>
-                <td className="px-4 py-4 font-medium">{record.summary}</td>
-                <td className="px-4 py-4">
-                  <span
-                    className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(record.status)}`}
-                  >
-                    {record.status}
-                  </span>
-                </td>
-                <td className="px-4 py-4 font-medium">
-                  {record.durationMs} ms
-                </td>
-                <td className="px-4 py-4 font-medium">
-                  {record.requestSize ?? 0} B
-                </td>
-                <td className="px-4 py-4 font-medium">
-                  {record.responseSize ?? 0} B
-                </td>
-                <td className="px-4 py-4 font-medium">
-                  {formatEuropeanDateTime(record.createdAt, language)}
-                </td>
-                <td className="px-4 py-4">
-                  <button
-                    aria-label={t("history.deleteAriaLabel", {
-                      summary: record.summary,
-                    })}
-                    className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={deletingId === record.id}
-                    type="button"
-                    onClick={() => handleDelete(record)}
-                  >
-                    {deletingId === record.id
-                      ? t("history.deleting")
-                      : t("history.delete")}
-                  </button>
-                  {errorId === record.id ? (
-                    <p
-                      className="mt-2 text-sm font-semibold text-red-600"
-                      role="alert"
+                <tr
+                  className="border-t border-[color:var(--color-brand-border)] text-[color:var(--color-brand-muted)] transition-colors hover:bg-[color:var(--color-brand-soft)]/60 motion-reduce:transition-none"
+                  key={record.id}
+                >
+                  <td className="px-4 py-4 font-extrabold text-[color:var(--color-brand-purple)]">
+                    {record.method}
+                  </td>
+                  <td className="px-4 py-4 font-mono font-bold text-[color:var(--color-brand-navy)]">
+                    <Link
+                      aria-label={t("history.viewDetails", {
+                        summary: record.summary,
+                      })}
+                      className="text-[color:var(--color-brand-purple)] underline decoration-2 underline-offset-4"
+                      href={`/history/${encodeURIComponent(record.id)}`}
                     >
-                      {t("history.deleteError")}
-                    </p>
-                  ) : null}
-                </td>
-              </tr>
+                      {record.url}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-4 font-medium">{record.summary}</td>
+                  <td className="px-4 py-4">
+                    <span
+                      className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(record.status)}`}
+                    >
+                      {record.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 font-medium">
+                    {record.durationMs} ms
+                  </td>
+                  <td className="px-4 py-4 font-medium">
+                    {record.requestSize ?? 0} B
+                  </td>
+                  <td className="px-4 py-4 font-medium">
+                    {record.responseSize ?? 0} B
+                  </td>
+                  <td className="px-4 py-4 font-medium">
+                    {formatEuropeanDateTime(record.createdAt, language)}
+                  </td>
+                  <td className="px-4 py-4">
+                    <button
+                      aria-label={t("history.deleteAriaLabel", {
+                        summary: record.summary,
+                      })}
+                      className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-extrabold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={deletingId === record.id}
+                      type="button"
+                      onClick={() => handleDelete(record)}
+                    >
+                      {deletingId === record.id
+                        ? t("history.deleting")
+                        : t("history.delete")}
+                    </button>
+                    {errorId === record.id ? (
+                      <p
+                        className="mt-2 text-sm font-semibold text-red-600"
+                        role="alert"
+                      >
+                        {t("history.deleteError")}
+                      </p>
+                    ) : null}
+                  </td>
+                </tr>
               ))
             )}
           </tbody>

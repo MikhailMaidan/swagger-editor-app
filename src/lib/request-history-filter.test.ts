@@ -72,4 +72,48 @@ describe("request history filters", () => {
     ).toEqual([]);
     expect(records).toHaveLength(3);
   });
+
+  it("filters records by rolling age windows and keeps boundary records", () => {
+    const now = Date.parse("2026-07-31T12:00:00.000Z");
+    const agedRecords: RequestHistoryRecord[] = [
+      {
+        ...records[0],
+        createdAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+        id: "recent",
+      },
+      {
+        ...records[0],
+        createdAt: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        id: "week-boundary",
+      },
+      {
+        ...records[0],
+        createdAt: new Date(now - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        id: "this-month",
+      },
+      {
+        ...records[0],
+        createdAt: new Date(now - 31 * 24 * 60 * 60 * 1000).toISOString(),
+        id: "older",
+      },
+      { ...records[0], createdAt: "invalid", id: "invalid" },
+    ];
+
+    expect(
+      filterRequestHistory(agedRecords, "", "all", "24-hours", now).map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["recent"]);
+    expect(
+      filterRequestHistory(agedRecords, "", "all", "7-days", now).map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["recent", "week-boundary"]);
+    expect(
+      filterRequestHistory(agedRecords, "", "all", "30-days", now).map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["recent", "week-boundary", "this-month"]);
+    expect(filterRequestHistory(agedRecords, "")).toHaveLength(5);
+  });
 });

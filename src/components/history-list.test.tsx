@@ -56,7 +56,9 @@ describe("HistoryList", () => {
     const serverRow = screen.getByText("Server record").closest("tr");
 
     expect(serverRow).not.toBeNull();
-    expect(within(serverRow as HTMLTableRowElement).getByText("52 ms")).toBeVisible();
+    expect(
+      within(serverRow as HTMLTableRowElement).getByText("52 ms"),
+    ).toBeVisible();
     expect(screen.getByText("/server")).toBeVisible();
     expect(
       screen.getByRole("link", { name: "View details for Server record" }),
@@ -137,18 +139,18 @@ describe("HistoryList", () => {
 
     const stats = screen.getByLabelText("Visible request statistics");
 
-    expect(within(stats).getByText("Total requests").parentElement).toHaveTextContent(
-      "2",
-    );
-    expect(within(stats).getByText("Successful").parentElement).toHaveTextContent(
-      "1",
-    );
+    expect(
+      within(stats).getByText("Total requests").parentElement,
+    ).toHaveTextContent("2");
+    expect(
+      within(stats).getByText("Successful").parentElement,
+    ).toHaveTextContent("1");
     expect(within(stats).getByText("Failed").parentElement).toHaveTextContent(
       "1",
     );
-    expect(within(stats).getByText("Average duration").parentElement).toHaveTextContent(
-      "32 ms",
-    );
+    expect(
+      within(stats).getByText("Average duration").parentElement,
+    ).toHaveTextContent("32 ms");
   });
 
   it("filters visible history and analytics by request outcome", async () => {
@@ -190,7 +192,9 @@ describe("HistoryList", () => {
     const outcomeFilter = screen.getByRole("group", {
       name: "Filter history by outcome",
     });
-    const allButton = within(outcomeFilter).getByRole("button", { name: "All" });
+    const allButton = within(outcomeFilter).getByRole("button", {
+      name: "All",
+    });
     const successfulButton = within(outcomeFilter).getByRole("button", {
       name: "Successful",
     });
@@ -207,9 +211,9 @@ describe("HistoryList", () => {
     expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
     expect(failedButton).toHaveAttribute("aria-pressed", "true");
     expect(
-      within(screen.getByLabelText("Visible request statistics"))
-        .getByText("Total requests")
-        .parentElement,
+      within(screen.getByLabelText("Visible request statistics")).getByText(
+        "Total requests",
+      ).parentElement,
     ).toHaveTextContent("1");
 
     await user.click(successfulButton);
@@ -223,6 +227,79 @@ describe("HistoryList", () => {
     expect(screen.getByText("Successful request")).toBeVisible();
     expect(screen.getByText("Failed request")).toBeVisible();
     expect(allButton).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("filters history by age and resets all active filters", async () => {
+    const user = userEvent.setup();
+    const now = Date.now();
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: new Date(now - 60 * 60 * 1000).toISOString(),
+            durationMs: 18,
+            errorDetails: null,
+            id: "recent-record",
+            method: "GET",
+            path: "/recent",
+            requestSize: 20,
+            responseSize: 40,
+            status: 200,
+            summary: "Recent request",
+            url: "/recent",
+          },
+          {
+            createdAt: new Date(now - 8 * 24 * 60 * 60 * 1000).toISOString(),
+            durationMs: 60,
+            errorDetails: "Service unavailable",
+            id: "older-record",
+            method: "POST",
+            path: "/older",
+            requestSize: 30,
+            responseSize: 0,
+            status: 503,
+            summary: "Older request",
+            url: "/older",
+          },
+        ]}
+      />,
+    );
+
+    const ageFilter = screen.getByLabelText("Filter history by age");
+    const searchFilter = screen.getByLabelText("Filter request history");
+    const outcomeFilter = screen.getByRole("group", {
+      name: "Filter history by outcome",
+    });
+    const resetButton = screen.getByRole("button", { name: "Reset filters" });
+
+    expect(resetButton).toBeDisabled();
+
+    await user.selectOptions(ageFilter, "24-hours");
+    await user.type(searchFilter, "recent");
+
+    expect(screen.getByText("Recent request")).toBeVisible();
+    expect(screen.queryByText("Older request")).not.toBeInTheDocument();
+    expect(resetButton).toBeEnabled();
+
+    await user.click(
+      within(outcomeFilter).getByRole("button", { name: "Failed" }),
+    );
+
+    expect(
+      screen.getByText("No history records match the current filters."),
+    ).toBeVisible();
+
+    await user.click(resetButton);
+
+    expect(screen.getByText("Recent request")).toBeVisible();
+    expect(screen.getByText("Older request")).toBeVisible();
+    expect(searchFilter).toHaveValue("");
+    expect(ageFilter).toHaveValue("all");
+    expect(
+      within(outcomeFilter).getByRole("button", { name: "All" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(resetButton).toBeDisabled();
   });
 
   it("renders saved requests newest first", async () => {
@@ -325,16 +402,24 @@ describe("HistoryList", () => {
 
     const sort = screen.getByLabelText("Sort request history");
 
-    expect(within(screen.getAllByRole("row")[1]).getByText("Newest request")).toBeVisible();
+    expect(
+      within(screen.getAllByRole("row")[1]).getByText("Newest request"),
+    ).toBeVisible();
 
     await user.selectOptions(sort, "oldest");
-    expect(within(screen.getAllByRole("row")[1]).getByText("Oldest request")).toBeVisible();
+    expect(
+      within(screen.getAllByRole("row")[1]).getByText("Oldest request"),
+    ).toBeVisible();
 
     await user.selectOptions(sort, "slowest");
-    expect(within(screen.getAllByRole("row")[1]).getByText("Newest request")).toBeVisible();
+    expect(
+      within(screen.getAllByRole("row")[1]).getByText("Newest request"),
+    ).toBeVisible();
 
     await user.selectOptions(sort, "failures");
-    expect(within(screen.getAllByRole("row")[1]).getByText("Failed request")).toBeVisible();
+    expect(
+      within(screen.getAllByRole("row")[1]).getByText("Failed request"),
+    ).toBeVisible();
   });
 
   it("exports the currently filtered and sorted history as JSON", async () => {
@@ -507,7 +592,7 @@ describe("HistoryList", () => {
     await user.type(filter, "missing");
 
     expect(
-      screen.getByText("No history records match your search."),
+      screen.getByText("No history records match the current filters."),
     ).toBeVisible();
     expect(screen.getByText("Showing 0 of 2 requests")).toBeVisible();
   });
