@@ -13,6 +13,33 @@ const AGE_FILTER_DURATION_MS: Record<
   "30-days": 30 * 24 * 60 * 60 * 1000,
 };
 
+export function getRequestHistoryMethods(records: RequestHistoryRecord[]) {
+  return Array.from(
+    new Set(
+      records
+        .map((record) => record.method.trim().toUpperCase())
+        .filter(Boolean),
+    ),
+  ).sort((firstMethod, secondMethod) =>
+    firstMethod.localeCompare(secondMethod),
+  );
+}
+
+export function filterRequestHistoryByMethod(
+  records: RequestHistoryRecord[],
+  method = "all",
+) {
+  const normalizedMethod = method.trim().toUpperCase();
+
+  if (!normalizedMethod || normalizedMethod === "ALL") {
+    return records;
+  }
+
+  return records.filter(
+    (record) => record.method.trim().toUpperCase() === normalizedMethod,
+  );
+}
+
 export function filterRequestHistory(
   records: RequestHistoryRecord[],
   search: string,

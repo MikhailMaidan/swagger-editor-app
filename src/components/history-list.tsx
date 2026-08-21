@@ -19,6 +19,8 @@ import {
 import { downloadRequestHistoryFile } from "@/lib/request-history-export";
 import {
   filterRequestHistory,
+  filterRequestHistoryByMethod,
+  getRequestHistoryMethods,
   RequestHistoryAgeFilter,
   RequestHistoryOutcomeFilter,
 } from "@/lib/request-history-filter";
@@ -68,12 +70,21 @@ export function HistoryList({
   const [historyFilter, setHistoryFilter] = useState("");
   const [historyOutcome, setHistoryOutcome] =
     useState<RequestHistoryOutcomeFilter>("all");
+  const [historyMethod, setHistoryMethod] = useState("all");
   const [historyAge, setHistoryAge] = useState<RequestHistoryAgeFilter>("all");
   const [historySort, setHistorySort] = useState<RequestHistorySort>("newest");
-  const filteredRecords = useMemo(
+  const historyMethods = useMemo(
+    () => getRequestHistoryMethods(records),
+    [records],
+  );
+  const searchedRecords = useMemo(
     () =>
       filterRequestHistory(records, historyFilter, historyOutcome, historyAge),
     [historyAge, historyFilter, historyOutcome, records],
+  );
+  const filteredRecords = useMemo(
+    () => filterRequestHistoryByMethod(searchedRecords, historyMethod),
+    [historyMethod, searchedRecords],
   );
   const sortedRecords = useMemo(
     () => sortRequestHistory(filteredRecords, historySort),
@@ -86,6 +97,7 @@ export function HistoryList({
   const hasActiveFilters =
     Boolean(historyFilter.trim()) ||
     historyOutcome !== "all" ||
+    historyMethod !== "all" ||
     historyAge !== "all";
 
   useEffect(() => {
@@ -158,6 +170,7 @@ export function HistoryList({
   function handleResetFilters() {
     setHistoryFilter("");
     setHistoryOutcome("all");
+    setHistoryMethod("all");
     setHistoryAge("all");
   }
 
@@ -232,6 +245,22 @@ export function HistoryList({
             </button>
           ))}
         </div>
+        <label className="sr-only" htmlFor="request-history-method">
+          {t("history.methodFilterLabel")}
+        </label>
+        <select
+          className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+          id="request-history-method"
+          value={historyMethod}
+          onChange={(event) => setHistoryMethod(event.target.value)}
+        >
+          <option value="all">{t("history.allMethods")}</option>
+          {historyMethods.map((method) => (
+            <option key={method} value={method}>
+              {method}
+            </option>
+          ))}
+        </select>
         <label className="sr-only" htmlFor="request-history-age">
           {t("history.ageFilterLabel")}
         </label>

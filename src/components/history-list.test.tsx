@@ -229,6 +229,68 @@ describe("HistoryList", () => {
     expect(allButton).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("filters history by exact HTTP method and resets the selection", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            createdAt: "2026-07-06T10:00:00.000Z",
+            durationMs: 25,
+            errorDetails: null,
+            id: "get-record",
+            method: "GET",
+            path: "/migration-report",
+            requestSize: 20,
+            responseSize: 40,
+            status: 200,
+            summary: "POST migration report",
+            url: "/migration-report",
+          },
+          {
+            createdAt: "2026-07-06T09:00:00.000Z",
+            durationMs: 35,
+            errorDetails: null,
+            id: "post-record",
+            method: "POST",
+            path: "/reports",
+            requestSize: 30,
+            responseSize: 50,
+            status: 201,
+            summary: "Create report",
+            url: "/reports",
+          },
+        ]}
+      />,
+    );
+
+    const methodFilter = screen.getByLabelText("Filter history by HTTP method");
+    const resetButton = screen.getByRole("button", { name: "Reset filters" });
+
+    expect(methodFilter).toHaveValue("all");
+    expect(
+      within(methodFilter).getByRole("option", { name: "GET" }),
+    ).toBeVisible();
+    expect(
+      within(methodFilter).getByRole("option", { name: "POST" }),
+    ).toBeVisible();
+
+    await user.selectOptions(methodFilter, "POST");
+
+    expect(screen.getByText("Create report")).toBeVisible();
+    expect(screen.queryByText("POST migration report")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
+    expect(resetButton).toBeEnabled();
+
+    await user.click(resetButton);
+
+    expect(screen.getByText("Create report")).toBeVisible();
+    expect(screen.getByText("POST migration report")).toBeVisible();
+    expect(methodFilter).toHaveValue("all");
+    expect(resetButton).toBeDisabled();
+  });
+
   it("filters history by age and resets all active filters", async () => {
     const user = userEvent.setup();
     const now = Date.now();

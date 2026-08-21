@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { RequestHistoryRecord } from "./request-history";
-import { filterRequestHistory } from "./request-history-filter";
+import {
+  filterRequestHistory,
+  filterRequestHistoryByMethod,
+  getRequestHistoryMethods,
+} from "./request-history-filter";
 
 const records: RequestHistoryRecord[] = [
   {
@@ -71,6 +75,23 @@ describe("request history filters", () => {
       filterRequestHistory(records, "users", "failed").map(({ id }) => id),
     ).toEqual([]);
     expect(records).toHaveLength(3);
+  });
+
+  it("derives normalized methods and filters them by exact match", () => {
+    const mixedCaseRecords = [
+      ...records,
+      { ...records[0], id: "lowercase", method: " get " },
+    ];
+
+    expect(getRequestHistoryMethods(mixedCaseRecords)).toEqual(["GET", "POST"]);
+    expect(
+      filterRequestHistoryByMethod(mixedCaseRecords, "post").map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["failed"]);
+    expect(filterRequestHistoryByMethod(mixedCaseRecords)).toBe(
+      mixedCaseRecords,
+    );
   });
 
   it("filters records by rolling age windows and keeps boundary records", () => {
