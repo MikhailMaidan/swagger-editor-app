@@ -1223,6 +1223,55 @@ paths: {}`,
     expect(screen.queryByText("Schema copied.")).not.toBeInTheDocument();
   });
 
+  it("copies schema text when the modern Clipboard API is unavailable", async () => {
+    const user = userEvent.setup();
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+    const execCommandDescriptor = Object.getOwnPropertyDescriptor(
+      document,
+      "execCommand",
+    );
+    const execCommand = vi.fn().mockReturnValue(true);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand,
+    });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const copyButton = screen.getByRole("button", { name: "Copy schema" });
+
+      await user.click(copyButton);
+
+      expect(execCommand).toHaveBeenCalledWith("copy");
+      expect(copyButton).toHaveFocus();
+      expect(screen.getByRole("status")).toHaveTextContent("Schema copied.");
+      expect(
+        document.querySelector("[data-clipboard-fallback]"),
+      ).not.toBeInTheDocument();
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+
+      if (execCommandDescriptor) {
+        Object.defineProperty(document, "execCommand", execCommandDescriptor);
+      } else {
+        Reflect.deleteProperty(document, "execCommand");
+      }
+    }
+  });
+
   it("copies generated cURL commands", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);

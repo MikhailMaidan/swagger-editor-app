@@ -21,4 +21,44 @@ describe("clipboard helpers", () => {
       false,
     );
   });
+
+  it("falls back to a temporary textarea and restores input focus", async () => {
+    const execCommandDescriptor = Object.getOwnPropertyDescriptor(
+      document,
+      "execCommand",
+    );
+    const execCommand = vi.fn().mockReturnValue(true);
+    const input = document.createElement("input");
+
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand,
+    });
+    document.body.appendChild(input);
+    input.value = "focused value";
+    input.focus();
+    input.setSelectionRange(2, 7);
+
+    try {
+      await expect(
+        writeTextToClipboard("fallback text", undefined),
+      ).resolves.toBe(true);
+
+      expect(execCommand).toHaveBeenCalledWith("copy");
+      expect(document.activeElement).toBe(input);
+      expect(input.selectionStart).toBe(2);
+      expect(input.selectionEnd).toBe(7);
+      expect(
+        document.querySelector("[data-clipboard-fallback]"),
+      ).not.toBeInTheDocument();
+    } finally {
+      input.remove();
+
+      if (execCommandDescriptor) {
+        Object.defineProperty(document, "execCommand", execCommandDescriptor);
+      } else {
+        Reflect.deleteProperty(document, "execCommand");
+      }
+    }
+  });
 });

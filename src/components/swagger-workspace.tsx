@@ -12,6 +12,7 @@ import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
 import { sortEndpoints } from "@/lib/endpoint-sort";
@@ -390,19 +391,10 @@ export function SwaggerWorkspace({
   async function handleCopySchema() {
     setCopiedSchemaText(null);
     setSaveMessage("");
-
-    if (!navigator.clipboard) {
-      return;
-    }
-
     const schemaToCopy = schemaText;
+    const copied = await writeTextToClipboard(schemaToCopy);
 
-    try {
-      await navigator.clipboard.writeText(schemaToCopy);
-      setCopiedSchemaText(schemaToCopy);
-    } catch {
-      setCopiedSchemaText(null);
-    }
+    setCopiedSchemaText(copied ? schemaToCopy : null);
   }
 
   function handleImportClick() {

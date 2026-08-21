@@ -613,31 +613,25 @@ function EndpointCardComponent({
   async function handleCopyResponse() {
     setCopiedResponseHeaders("");
 
-    if (!navigator.clipboard || !formattedResponseBody) {
+    if (!formattedResponseBody) {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(formattedResponseBody);
-      setCopiedResponseBody(formattedResponseBody);
-    } catch {
-      setCopiedResponseBody("");
-    }
+    const copied = await writeTextToClipboard(formattedResponseBody);
+
+    setCopiedResponseBody(copied ? formattedResponseBody : "");
   }
 
   async function handleCopyResponseHeaders() {
     setCopiedResponseBody("");
 
-    if (!navigator.clipboard || !formattedResponseHeaders) {
+    if (!formattedResponseHeaders) {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(formattedResponseHeaders);
-      setCopiedResponseHeaders(formattedResponseHeaders);
-    } catch {
-      setCopiedResponseHeaders("");
-    }
+    const copied = await writeTextToClipboard(formattedResponseHeaders);
+
+    setCopiedResponseHeaders(copied ? formattedResponseHeaders : "");
   }
 
   function handleDownloadResponse() {
