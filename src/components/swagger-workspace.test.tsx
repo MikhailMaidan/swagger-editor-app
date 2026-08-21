@@ -2482,9 +2482,21 @@ paths:
     try {
       render(<SwaggerWorkspace />);
 
-      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      const pathInput = screen.getAllByLabelText("Path parameter id")[0];
+      const endpointCard = pathInput.closest("article");
+
+      expect(endpointCard).not.toBeNull();
+      const timeoutSelect = within(endpointCard as HTMLElement).getByLabelText(
+        "Request timeout",
+      );
+
+      await user.type(pathInput, "42");
+      await user.selectOptions(timeoutSelect, "30000");
+      expect(timeoutSelect).toHaveValue("30000");
       await user.click(
-        screen.getAllByRole("button", { name: "Try It Out" })[0],
+        within(endpointCard as HTMLElement).getByRole("button", {
+          name: "Try It Out",
+        }),
       );
 
       expect(fetchMock).toHaveBeenCalledWith(
@@ -2493,6 +2505,7 @@ paths:
           method: "POST",
         }),
       );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
       const requestBody = JSON.parse(
         String((fetchMock.mock.calls[0][1] as RequestInit).body),
       );
@@ -2502,6 +2515,7 @@ paths:
         path: "/users/{id}",
         requestParameters: [{ location: "path", name: "id", value: "42" }],
         serverUrl: "https://jsonplaceholder.typicode.com",
+        timeoutMs: 30000,
       });
       expect(screen.getByRole("status")).toHaveTextContent("88 ms");
       expect(screen.getByRole("status")).toHaveTextContent("Request 123 B");
@@ -2511,6 +2525,13 @@ paths:
       expect(screen.getByLabelText("Response body").textContent).toBe(
         '{\n  "ok": true\n}',
       );
+
+      await user.click(
+        within(endpointCard as HTMLElement).getByRole("button", {
+          name: "Reset values",
+        }),
+      );
+      expect(timeoutSelect).toHaveValue("10000");
     } finally {
       fetchMock.mockRestore();
     }

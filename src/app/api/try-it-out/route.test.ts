@@ -127,6 +127,40 @@ describe("try-it-out route", () => {
     }
   });
 
+  it("bounds custom request timeouts and defaults invalid values", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => new Response("{}", { status: 200 }));
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
+
+    function createRequest(timeoutMs: unknown) {
+      return new Request("http://localhost/api/try-it-out", {
+        body: JSON.stringify({
+          method: "GET",
+          path: "/users",
+          responseBody: "fallback",
+          serverUrl: "https://example.com",
+          status: "200",
+          timeoutMs,
+        }),
+        method: "POST",
+      });
+    }
+
+    try {
+      await POST(createRequest(90_000));
+      await POST(createRequest(250));
+      await POST(createRequest("slow"));
+
+      expect(timeoutSpy.mock.calls.map(([timeoutMs]) => timeoutMs)).toEqual([
+        30_000, 1_000, 10_000,
+      ]);
+    } finally {
+      timeoutSpy.mockRestore();
+      fetchMock.mockRestore();
+    }
+  });
+
   it("sends the endpoint's declared content type instead of always assuming JSON", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")

@@ -62,6 +62,9 @@ const methodColorClasses: Record<string, string> = {
   PUT: "bg-violet-100 text-violet-700",
 };
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const REQUEST_TIMEOUT_OPTIONS_MS = [5_000, 10_000, 30_000] as const;
+
 const parameterLabelKeys: Record<
   EndpointParameter["location"],
   TranslationKey
@@ -104,6 +107,7 @@ type TryItOutPayload = {
   responseBody: string;
   serverUrl: string;
   status: string;
+  timeoutMs: number;
 };
 
 function formatResponseBody(value: string) {
@@ -331,6 +335,9 @@ function EndpointCardComponent({
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
+  const [requestTimeoutMs, setRequestTimeoutMs] = useState(
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  );
   const [requestCodeFormat, setRequestCodeFormat] =
     useState<RequestPreviewFormat>("curl");
   const [wasRequestCancelled, setWasRequestCancelled] = useState(false);
@@ -708,6 +715,10 @@ function EndpointCardComponent({
     setCopiedResponseHeaders("");
   }
 
+  function handleRequestTimeoutChange(value: string) {
+    setRequestTimeoutMs(Number(value));
+  }
+
   function handleResetTryItOut() {
     const defaultRequestBody = endpoint.requestBodies[0];
     const defaultResponseStatus =
@@ -723,6 +734,7 @@ function EndpointCardComponent({
     setSelectedRequestContentType(defaultRequestBody?.contentType || "");
     setRequestBodyValue(defaultRequestBody?.schema.example || "");
     setSelectedResponseStatus(defaultResponseStatus);
+    setRequestTimeoutMs(DEFAULT_REQUEST_TIMEOUT_MS);
     setHasAttemptedExecution(false);
     setWasRequestCancelled(false);
     setMockResult(null);
@@ -828,6 +840,7 @@ function EndpointCardComponent({
         responseBody: response.body,
         serverUrl: endpoint.serverUrl,
         status: response.status,
+        timeoutMs: requestTimeoutMs,
       },
       fallbackResult,
       abortController.signal,
@@ -1036,18 +1049,41 @@ function EndpointCardComponent({
           <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
             {t("workspace.tryItOut")}
           </p>
-          {endpoint.parameters.length > 0 ||
-          endpoint.requestBodies.length > 0 ||
-          endpoint.responses.length > 1 ? (
-            <button
-              className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isExecuting}
-              type="button"
-              onClick={handleResetTryItOut}
-            >
-              {t("workspace.resetTryItOut")}
-            </button>
-          ) : null}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <label className="flex items-center gap-2 text-xs font-bold text-[color:var(--color-brand-muted)]">
+              {t("workspace.requestTimeout")}
+              <select
+                aria-label={t("workspace.requestTimeout")}
+                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-navy)] outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isExecuting}
+                value={requestTimeoutMs}
+                onChange={(event) =>
+                  handleRequestTimeoutChange(event.target.value)
+                }
+              >
+                {REQUEST_TIMEOUT_OPTIONS_MS.map((timeoutMs) => (
+                  <option key={timeoutMs} value={timeoutMs}>
+                    {t("workspace.timeoutSeconds", {
+                      seconds: String(timeoutMs / 1000),
+                    })}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {endpoint.parameters.length > 0 ||
+            endpoint.requestBodies.length > 0 ||
+            endpoint.responses.length > 1 ||
+            requestTimeoutMs !== DEFAULT_REQUEST_TIMEOUT_MS ? (
+              <button
+                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isExecuting}
+                type="button"
+                onClick={handleResetTryItOut}
+              >
+                {t("workspace.resetTryItOut")}
+              </button>
+            ) : null}
+          </div>
         </div>
         {endpoint.parameters.length > 0 ? (
           <div className="mt-3 grid gap-3 md:grid-cols-2">

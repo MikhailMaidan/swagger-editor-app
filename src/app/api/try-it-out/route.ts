@@ -10,6 +10,9 @@ import { isPublicHttpServerUrl } from "@/lib/server-url";
 import { getByteSize } from "@/lib/text-encoding";
 
 const DEFAULT_SERVER_HOSTNAME = new URL(DEFAULT_SERVER_URL).hostname;
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const MIN_REQUEST_TIMEOUT_MS = 1_000;
+const MAX_REQUEST_TIMEOUT_MS = 30_000;
 
 type RequestParameterLocation = "path" | "query" | "header" | "cookie";
 
@@ -32,6 +35,7 @@ type TryItOutPayload = {
   responseBody?: string;
   serverUrl?: string;
   status?: string;
+  timeoutMs?: unknown;
 };
 
 type TryItOutResult = {
@@ -48,6 +52,17 @@ type TryItOutResult = {
 
 function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
+}
+
+function readRequestTimeoutMs(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_REQUEST_TIMEOUT_MS;
+  }
+
+  return Math.min(
+    MAX_REQUEST_TIMEOUT_MS,
+    Math.max(MIN_REQUEST_TIMEOUT_MS, Math.round(value)),
+  );
 }
 
 function isRequestParameterLocation(
@@ -214,6 +229,7 @@ async function executeServerRequest({
   requestBody,
   requestParameters,
   serverUrl,
+  timeoutMs,
 }: {
   contentType: string;
   method: string;
@@ -221,6 +237,7 @@ async function executeServerRequest({
   requestBody: string;
   requestParameters: RequestParameter[];
   serverUrl: string;
+  timeoutMs: number;
 }): Promise<TryItOutResult> {
   const normalizedMethod = method.toUpperCase();
   const hasRequestBody = hasSendableRequestBody(method, requestBody);
@@ -235,7 +252,7 @@ async function executeServerRequest({
       contentType,
     ),
     method: normalizedMethod,
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const body = await response.text();
   const requestSnapshot = JSON.stringify({
@@ -275,6 +292,7 @@ export async function POST(request: Request) {
     const responseBody = readString(payload.responseBody, "{}");
     const serverUrl = readString(payload.serverUrl);
     const status = readString(payload.status, "200");
+    const timeoutMs = readRequestTimeoutMs(payload.timeoutMs);
     const fallbackResult = createFallbackResult({
       method,
       path,
@@ -298,6 +316,7 @@ export async function POST(request: Request) {
           requestBody,
           requestParameters,
           serverUrl,
+          timeoutMs,
         });
 
         return Response.json(serverResult);
