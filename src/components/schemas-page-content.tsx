@@ -11,9 +11,12 @@ import {
   downloadSchemaFile,
 } from "@/lib/schema-download";
 import {
+  createSavedSchemaRecord,
   deleteAllServerSchemaRecords,
   deleteServerSchemaRecord,
+  mergeSavedSchemas,
   renameServerSchemaRecord,
+  saveServerSchemaRecord,
   SavedSchemaRecord,
   stageSavedSchemaForEditor,
 } from "@/lib/schema-storage";
@@ -105,6 +108,8 @@ export function SchemasPageContent({
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copyErrorId, setCopyErrorId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [duplicateErrorId, setDuplicateErrorId] = useState<string | null>(null);
   const [previewSchemaIds, setPreviewSchemaIds] = useState<Set<string>>(
     new Set(),
   );
@@ -236,6 +241,31 @@ export function SchemasPageContent({
     }
 
     setCopyingId(null);
+  }
+
+  async function handleDuplicate(schema: SavedSchemaRecord) {
+    if (duplicatingId !== null) {
+      return;
+    }
+
+    const duplicate = createSavedSchemaRecord(schema.schemaText, {
+      format: schema.format,
+      title: t("schemas.duplicateTitle", { title: schema.title }),
+      version: schema.version,
+    });
+
+    setDuplicatingId(schema.id);
+    setDuplicateErrorId(null);
+
+    if (await saveServerSchemaRecord(duplicate)) {
+      setSchemas((currentSchemas) =>
+        mergeSavedSchemas([...currentSchemas, duplicate]),
+      );
+    } else {
+      setDuplicateErrorId(schema.id);
+    }
+
+    setDuplicatingId(null);
   }
 
   function handleOpenInEditor(schema: SavedSchemaRecord) {
@@ -503,6 +533,19 @@ export function SchemasPageContent({
                             ? t("schemas.copying")
                             : t("schemas.copy")}
                         </button>
+                        <button
+                          aria-label={t("schemas.duplicateAriaLabel", {
+                            title: schema.title,
+                          })}
+                          className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={duplicatingId !== null}
+                          type="button"
+                          onClick={() => handleDuplicate(schema)}
+                        >
+                          {duplicatingId === schema.id
+                            ? t("schemas.duplicating")
+                            : t("schemas.duplicate")}
+                        </button>
                         {renamingId === schema.id ? null : (
                           <button
                             aria-label={t("schemas.renameAriaLabel", {
@@ -573,6 +616,15 @@ export function SchemasPageContent({
                         role="alert"
                       >
                         {t("schemas.copyError")}
+                      </p>
+                    ) : null}
+
+                    {duplicateErrorId === schema.id ? (
+                      <p
+                        className="mt-3 text-sm font-semibold text-red-600"
+                        role="alert"
+                      >
+                        {t("schemas.duplicateError")}
                       </p>
                     ) : null}
 

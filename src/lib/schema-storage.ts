@@ -209,15 +209,18 @@ export async function readServerSavedSchemas() {
 
 export async function saveServerSchemaRecord(record: SavedSchemaRecord) {
   try {
-    await fetch("/api/schemas", {
+    const response = await fetch("/api/schemas", {
       body: JSON.stringify(record),
       headers: {
         "Content-Type": "application/json",
       },
       method: "POST",
     });
+
+    return response.ok;
   } catch {
     // Local schema storage is still available if the server sync fails.
+    return false;
   }
 }
 

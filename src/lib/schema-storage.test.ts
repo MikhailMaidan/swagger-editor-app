@@ -200,15 +200,17 @@ describe("schema storage", () => {
     );
 
     try {
-      await saveServerSchemaRecord({
-        createdAt: "2026-07-10T10:00:00.000Z",
-        format: "yaml",
-        id: "schema-sync",
-        schemaText: "openapi: 3.0.0",
-        title: "Sync API",
-        updatedAt: "2026-07-10T10:00:00.000Z",
-        version: "1.0.0",
-      });
+      await expect(
+        saveServerSchemaRecord({
+          createdAt: "2026-07-10T10:00:00.000Z",
+          format: "yaml",
+          id: "schema-sync",
+          schemaText: "openapi: 3.0.0",
+          title: "Sync API",
+          updatedAt: "2026-07-10T10:00:00.000Z",
+          version: "1.0.0",
+        }),
+      ).resolves.toBe(true);
 
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/schemas",
@@ -216,6 +218,28 @@ describe("schema storage", () => {
           method: "POST",
         }),
       );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("reports unsuccessful server sync responses", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+
+    try {
+      await expect(
+        saveServerSchemaRecord({
+          createdAt: "2026-07-10T10:00:00.000Z",
+          format: "yaml",
+          id: "schema-sync",
+          schemaText: "openapi: 3.0.0",
+          title: "Sync API",
+          updatedAt: "2026-07-10T10:00:00.000Z",
+          version: "1.0.0",
+        }),
+      ).resolves.toBe(false);
     } finally {
       fetchMock.mockRestore();
     }

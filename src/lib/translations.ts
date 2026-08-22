@@ -164,6 +164,11 @@ export const translations = {
       "Saved schemas from the editor are shown here newest first.",
     "schemas.download": "Download",
     "schemas.downloadAriaLabel": "Download {title}",
+    "schemas.duplicate": "Duplicate",
+    "schemas.duplicateAriaLabel": "Duplicate {title}",
+    "schemas.duplicateError": "Could not duplicate this schema. Try again.",
+    "schemas.duplicateTitle": "{title} copy",
+    "schemas.duplicating": "Duplicating...",
     "schemas.empty":
       "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
     "schemas.exportAll": "Export all",
@@ -512,6 +517,11 @@ export const translations = {
       "Сохраненные в редакторе схемы показаны здесь от новых к старым.",
     "schemas.download": "Скачать",
     "schemas.downloadAriaLabel": "Скачать {title}",
+    "schemas.duplicate": "Дублировать",
+    "schemas.duplicateAriaLabel": "Дублировать {title}",
+    "schemas.duplicateError": "Не удалось дублировать схему. Попробуйте снова.",
+    "schemas.duplicateTitle": "{title} (копия)",
+    "schemas.duplicating": "Дублирование...",
     "schemas.empty":
       "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
     "schemas.exportAll": "Экспортировать все",

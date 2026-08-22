@@ -40,6 +40,66 @@ describe("SchemasPageContent", () => {
     );
   });
 
+  it("duplicates a saved schema after a successful server save", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Duplicate Saved API" }),
+      );
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/schemas",
+        expect.objectContaining({ method: "POST" }),
+      );
+      const requestBody = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+      expect(requestBody).toMatchObject({
+        format: savedSchema.format,
+        schemaText: savedSchema.schemaText,
+        title: "Saved API copy",
+        version: savedSchema.version,
+      });
+      expect(requestBody.id).not.toBe(savedSchema.id);
+      expect(
+        await screen.findByRole("heading", { name: "Saved API copy" }),
+      ).toBeVisible();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("keeps the list unchanged when duplicating a schema fails", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 500 }));
+
+    try {
+      render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Duplicate Saved API" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Could not duplicate this schema. Try again.",
+      );
+      expect(
+        screen.queryByRole("heading", { name: "Saved API copy" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("stages a saved schema and opens it in the editor", async () => {
     const user = userEvent.setup();
 
