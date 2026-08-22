@@ -486,6 +486,54 @@ describe("SchemasPageContent", () => {
     expect(visibleTitles()).toEqual(["Saved API", "Other API"]);
   });
 
+  it("sorts valid schemas by endpoint count", async () => {
+    const user = userEvent.setup();
+    const createSchemaText = (paths: Record<string, unknown>) =>
+      JSON.stringify({
+        info: { title: "Sort API", version: "1.0.0" },
+        openapi: "3.0.0",
+        paths,
+      });
+
+    render(
+      <SchemasPageContent
+        initialSchemas={[
+          {
+            ...savedSchema,
+            id: "one-endpoint",
+            schemaText: createSchemaText({
+              "/users": { get: { responses: {} } },
+            }),
+            title: "One Endpoint API",
+          },
+          {
+            ...savedSchema,
+            id: "three-endpoints",
+            schemaText: createSchemaText({
+              "/health": { get: { responses: {} } },
+              "/users": {
+                get: { responses: {} },
+                post: { responses: {} },
+              },
+            }),
+            title: "Three Endpoint API",
+          },
+        ]}
+      />,
+    );
+
+    await user.selectOptions(
+      screen.getByLabelText("Sort saved schemas"),
+      "endpoints",
+    );
+
+    expect(
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((heading) => heading.textContent),
+    ).toEqual(["Three Endpoint API", "One Endpoint API"]);
+  });
+
   it("does not recompute schema text statistics on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");

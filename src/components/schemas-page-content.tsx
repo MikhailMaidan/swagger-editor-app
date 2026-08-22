@@ -25,14 +25,10 @@ import {
   SavedSchemaFormatFilter,
 } from "@/lib/saved-schema-filter";
 import { getSavedSchemaInsights } from "@/lib/saved-schema-insights";
-
-type SchemaSort = "largest" | "newest" | "oldest" | "title";
-
-function getSchemaTimestamp(value: string) {
-  const timestamp = Date.parse(value);
-
-  return Number.isNaN(timestamp) ? 0 : timestamp;
-}
+import {
+  SavedSchemaSort,
+  sortSavedSchemaRecords,
+} from "@/lib/saved-schema-sort";
 
 export function SchemasPageContent({
   initialSchemas,
@@ -45,7 +41,7 @@ export function SchemasPageContent({
   const [schemaFilter, setSchemaFilter] = useState("");
   const [schemaFormat, setSchemaFormat] =
     useState<SavedSchemaFormatFilter>("all");
-  const [schemaSort, setSchemaSort] = useState<SchemaSort>("newest");
+  const [schemaSort, setSchemaSort] = useState<SavedSchemaSort>("newest");
   const filteredSchemas = useMemo(
     () => filterSavedSchemas(schemas, schemaFilter, schemaFormat),
     [schemaFilter, schemaFormat, schemas],
@@ -66,38 +62,16 @@ export function SchemasPageContent({
       ),
     [schemas],
   );
-  const displayedSchemas = useMemo(() => {
-    const sortedSchemas = [...filteredSchemas];
-    const compareTitles = (
-      firstSchema: SavedSchemaRecord,
-      secondSchema: SavedSchemaRecord,
-    ) => firstSchema.title.localeCompare(secondSchema.title, language);
-
-    sortedSchemas.sort((firstSchema, secondSchema) => {
-      if (schemaSort === "title") {
-        return compareTitles(firstSchema, secondSchema);
-      }
-
-      if (schemaSort === "largest") {
-        return (
-          (schemaInsights.get(secondSchema.id)?.byteSize ?? 0) -
-            (schemaInsights.get(firstSchema.id)?.byteSize ?? 0) ||
-          compareTitles(firstSchema, secondSchema)
-        );
-      }
-
-      const difference =
-        getSchemaTimestamp(firstSchema.updatedAt) -
-        getSchemaTimestamp(secondSchema.updatedAt);
-
-      return (
-        (schemaSort === "oldest" ? difference : -difference) ||
-        compareTitles(firstSchema, secondSchema)
-      );
-    });
-
-    return sortedSchemas;
-  }, [filteredSchemas, language, schemaInsights, schemaSort]);
+  const displayedSchemas = useMemo(
+    () =>
+      sortSavedSchemaRecords(
+        filteredSchemas,
+        schemaSort,
+        language,
+        schemaInsights,
+      ),
+    [filteredSchemas, language, schemaInsights, schemaSort],
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
@@ -369,13 +343,16 @@ export function SchemasPageContent({
                   id="saved-schema-sort"
                   value={schemaSort}
                   onChange={(event) =>
-                    setSchemaSort(event.target.value as SchemaSort)
+                    setSchemaSort(event.target.value as SavedSchemaSort)
                   }
                 >
                   <option value="newest">{t("schemas.sortNewest")}</option>
                   <option value="oldest">{t("schemas.sortOldest")}</option>
                   <option value="title">{t("schemas.sortTitle")}</option>
                   <option value="largest">{t("schemas.sortLargest")}</option>
+                  <option value="endpoints">
+                    {t("schemas.sortEndpoints")}
+                  </option>
                 </select>
                 <span className="shrink-0 text-sm font-semibold text-[color:var(--color-brand-muted)]">
                   {t("schemas.filterSummary", {
