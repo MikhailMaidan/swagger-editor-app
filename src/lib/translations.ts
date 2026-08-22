@@ -151,6 +151,7 @@ export const translations = {
       "The page does not exist or the link is no longer available.",
     "notFound.label": "404",
     "notFound.title": "Page not found",
+    "schemas.allEndpointStates": "All endpoint states",
     "schemas.allFormats": "All formats",
     "schemas.characters": "Characters",
     "schemas.clearAll": "Clear all",
@@ -179,6 +180,8 @@ export const translations = {
     "schemas.duplicating": "Duplicating...",
     "schemas.empty":
       "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
+    "schemas.endpointFilterLabel":
+      "Filter saved schemas by endpoint availability",
     "schemas.endpoints": "Endpoints",
     "schemas.exportAll": "Export all",
     "schemas.exportVisible": "Export visible",
@@ -218,6 +221,8 @@ export const translations = {
     "schemas.unavailable": "Unavailable",
     "schemas.updated": "Updated",
     "schemas.version": "Version",
+    "schemas.withEndpoints": "With endpoints",
+    "schemas.withoutEndpoints": "No endpoints",
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
     "workspace.allEndpoints": "All endpoints",
@@ -515,6 +520,7 @@ export const translations = {
       "Страница не существует или ссылка больше недоступна.",
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
+    "schemas.allEndpointStates": "Все состояния эндпоинтов",
     "schemas.allFormats": "Все форматы",
     "schemas.characters": "Символы",
     "schemas.clearAll": "Очистить всё",
@@ -543,6 +549,8 @@ export const translations = {
     "schemas.duplicating": "Дублирование...",
     "schemas.empty":
       "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
+    "schemas.endpointFilterLabel":
+      "Фильтр сохраненных схем по наличию эндпоинтов",
     "schemas.endpoints": "Эндпоинты",
     "schemas.exportAll": "Экспортировать все",
     "schemas.exportVisible": "Экспортировать видимые",
@@ -582,6 +590,8 @@ export const translations = {
     "schemas.unavailable": "Недоступно",
     "schemas.updated": "Обновлено",
     "schemas.version": "Версия",
+    "schemas.withEndpoints": "С эндпоинтами",
+    "schemas.withoutEndpoints": "Без эндпоинтов",
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
     "workspace.allEndpoints": "Все эндпоинты",

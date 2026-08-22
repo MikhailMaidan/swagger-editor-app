@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { SavedSchemaRecord } from "./schema-storage";
-import { filterSavedSchemas } from "./saved-schema-filter";
+import {
+  filterSavedSchemas,
+  filterSavedSchemasByEndpointState,
+} from "./saved-schema-filter";
 
 const schemas: SavedSchemaRecord[] = [
   {
@@ -43,5 +46,47 @@ describe("saved schema filters", () => {
     ).toEqual(["billing"]);
     expect(filterSavedSchemas(schemas, "billing", "yaml")).toEqual([]);
     expect(filterSavedSchemas(schemas, "", "all")).toEqual(schemas);
+  });
+
+  it("filters schemas by parsed endpoint availability", () => {
+    const unavailableSchema = {
+      ...schemas[0],
+      id: "unavailable",
+      title: "Unavailable API",
+    };
+    const schemasWithUnavailable = [...schemas, unavailableSchema];
+    const insights = new Map([
+      ["petstore", { endpointCount: 3 }],
+      ["billing", { endpointCount: 0 }],
+    ]);
+
+    expect(
+      filterSavedSchemasByEndpointState(
+        schemasWithUnavailable,
+        "with-endpoints",
+        insights,
+      ).map(({ id }) => id),
+    ).toEqual(["petstore"]);
+    expect(
+      filterSavedSchemasByEndpointState(
+        schemasWithUnavailable,
+        "without-endpoints",
+        insights,
+      ).map(({ id }) => id),
+    ).toEqual(["billing"]);
+    expect(
+      filterSavedSchemasByEndpointState(
+        schemasWithUnavailable,
+        "unavailable",
+        insights,
+      ).map(({ id }) => id),
+    ).toEqual(["unavailable"]);
+    expect(
+      filterSavedSchemasByEndpointState(
+        schemasWithUnavailable,
+        "all",
+        insights,
+      ),
+    ).toBe(schemasWithUnavailable);
   });
 });

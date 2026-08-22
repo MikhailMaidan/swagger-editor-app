@@ -22,6 +22,8 @@ import {
 } from "@/lib/schema-storage";
 import {
   filterSavedSchemas,
+  filterSavedSchemasByEndpointState,
+  SavedSchemaEndpointFilter,
   SavedSchemaFormatFilter,
 } from "@/lib/saved-schema-filter";
 import { getSavedSchemaInsights } from "@/lib/saved-schema-insights";
@@ -41,13 +43,9 @@ export function SchemasPageContent({
   const [schemaFilter, setSchemaFilter] = useState("");
   const [schemaFormat, setSchemaFormat] =
     useState<SavedSchemaFormatFilter>("all");
+  const [schemaEndpoints, setSchemaEndpoints] =
+    useState<SavedSchemaEndpointFilter>("all");
   const [schemaSort, setSchemaSort] = useState<SavedSchemaSort>("newest");
-  const filteredSchemas = useMemo(
-    () => filterSavedSchemas(schemas, schemaFilter, schemaFormat),
-    [schemaFilter, schemaFormat, schemas],
-  );
-  const hasActiveFilters =
-    Boolean(schemaFilter.trim()) || schemaFormat !== "all";
   // Parsing and scanning every schema's full text for insights isn't free, and
   // this list re-renders on every keystroke while renaming any one row -
   // caching by id means an edit to one schema's title doesn't rescan
@@ -62,6 +60,23 @@ export function SchemasPageContent({
       ),
     [schemas],
   );
+  const searchedSchemas = useMemo(
+    () => filterSavedSchemas(schemas, schemaFilter, schemaFormat),
+    [schemaFilter, schemaFormat, schemas],
+  );
+  const filteredSchemas = useMemo(
+    () =>
+      filterSavedSchemasByEndpointState(
+        searchedSchemas,
+        schemaEndpoints,
+        schemaInsights,
+      ),
+    [schemaEndpoints, schemaInsights, searchedSchemas],
+  );
+  const hasActiveFilters =
+    Boolean(schemaFilter.trim()) ||
+    schemaFormat !== "all" ||
+    schemaEndpoints !== "all";
   const displayedSchemas = useMemo(
     () =>
       sortSavedSchemaRecords(
@@ -202,6 +217,7 @@ export function SchemasPageContent({
   function handleResetFilters() {
     setSchemaFilter("");
     setSchemaFormat("all");
+    setSchemaEndpoints("all");
   }
 
   async function handleCopy(schema: SavedSchemaRecord) {
@@ -326,6 +342,30 @@ export function SchemasPageContent({
                   <option value="all">{t("schemas.allFormats")}</option>
                   <option value="yaml">YAML</option>
                   <option value="json">JSON</option>
+                </select>
+                <label className="sr-only" htmlFor="saved-schema-endpoints">
+                  {t("schemas.endpointFilterLabel")}
+                </label>
+                <select
+                  className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                  id="saved-schema-endpoints"
+                  value={schemaEndpoints}
+                  onChange={(event) =>
+                    setSchemaEndpoints(
+                      event.target.value as SavedSchemaEndpointFilter,
+                    )
+                  }
+                >
+                  <option value="all">{t("schemas.allEndpointStates")}</option>
+                  <option value="with-endpoints">
+                    {t("schemas.withEndpoints")}
+                  </option>
+                  <option value="without-endpoints">
+                    {t("schemas.withoutEndpoints")}
+                  </option>
+                  <option value="unavailable">
+                    {t("schemas.unavailable")}
+                  </option>
                 </select>
                 <button
                   className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-extrabold text-[color:var(--color-brand-muted)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"

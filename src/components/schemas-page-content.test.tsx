@@ -454,6 +454,74 @@ describe("SchemasPageContent", () => {
     expect(resetButton).toBeDisabled();
   });
 
+  it("filters schemas by endpoint availability and resets the selection", async () => {
+    const user = userEvent.setup();
+    const createSchemaText = (paths: Record<string, unknown>) =>
+      JSON.stringify({
+        info: { title: "Filter API", version: "1.0.0" },
+        openapi: "3.0.0",
+        paths,
+      });
+
+    render(
+      <SchemasPageContent
+        initialSchemas={[
+          {
+            ...savedSchema,
+            id: "with-endpoints",
+            schemaText: createSchemaText({
+              "/users": { get: { responses: {} } },
+            }),
+            title: "With Endpoints API",
+          },
+          {
+            ...savedSchema,
+            id: "without-endpoints",
+            schemaText: createSchemaText({}),
+            title: "Empty API",
+          },
+          { ...savedSchema, id: "unavailable", title: "Unavailable API" },
+        ]}
+      />,
+    );
+
+    const endpointFilter = screen.getByLabelText(
+      "Filter saved schemas by endpoint availability",
+    );
+    const resetButton = screen.getByRole("button", { name: "Reset filters" });
+
+    await user.selectOptions(endpointFilter, "with-endpoints");
+    expect(
+      screen.getByRole("heading", { name: "With Endpoints API" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Empty API" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 3 schemas")).toBeVisible();
+
+    await user.selectOptions(endpointFilter, "without-endpoints");
+    expect(screen.getByRole("heading", { name: "Empty API" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "With Endpoints API" }),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(endpointFilter, "unavailable");
+    expect(
+      screen.getByRole("heading", { name: "Unavailable API" }),
+    ).toBeVisible();
+
+    await user.click(resetButton);
+    expect(endpointFilter).toHaveValue("all");
+    expect(
+      screen.getByRole("heading", { name: "With Endpoints API" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Empty API" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Unavailable API" }),
+    ).toBeVisible();
+    expect(resetButton).toBeDisabled();
+  });
+
   it("sorts saved schemas without changing their records", async () => {
     const user = userEvent.setup();
     const olderSchema = {
