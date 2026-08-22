@@ -21,7 +21,7 @@ import {
   filterSavedSchemas,
   SavedSchemaFormatFilter,
 } from "@/lib/saved-schema-filter";
-import { getByteSize } from "@/lib/text-encoding";
+import { getTextStats } from "@/lib/text-stats";
 
 type SchemaSort = "largest" | "newest" | "oldest" | "title";
 
@@ -49,14 +49,14 @@ export function SchemasPageContent({
   );
   const hasActiveFilters =
     Boolean(schemaFilter.trim()) || schemaFormat !== "all";
-  // Encoding every schema's full text to get its byte size isn't free, and
+  // Scanning every schema's full text for its statistics isn't free, and
   // this list re-renders on every keystroke while renaming any one row -
-  // caching by id means an edit to one schema's title doesn't re-encode
+  // caching by id means an edit to one schema's title doesn't rescan
   // every other unrelated schema's text on each render.
-  const schemaByteSizes = useMemo(
+  const schemaTextStats = useMemo(
     () =>
       new Map(
-        schemas.map((schema) => [schema.id, getByteSize(schema.schemaText)]),
+        schemas.map((schema) => [schema.id, getTextStats(schema.schemaText)]),
       ),
     [schemas],
   );
@@ -74,8 +74,8 @@ export function SchemasPageContent({
 
       if (schemaSort === "largest") {
         return (
-          (schemaByteSizes.get(secondSchema.id) ?? 0) -
-            (schemaByteSizes.get(firstSchema.id) ?? 0) ||
+          (schemaTextStats.get(secondSchema.id)?.byteSize ?? 0) -
+            (schemaTextStats.get(firstSchema.id)?.byteSize ?? 0) ||
           compareTitles(firstSchema, secondSchema)
         );
       }
@@ -91,7 +91,7 @@ export function SchemasPageContent({
     });
 
     return sortedSchemas;
-  }, [filteredSchemas, language, schemaByteSizes, schemaSort]);
+  }, [filteredSchemas, language, schemaSort, schemaTextStats]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
@@ -576,7 +576,7 @@ export function SchemasPageContent({
                       </p>
                     ) : null}
 
-                    <dl className="mt-5 grid gap-4 text-sm md:grid-cols-3">
+                    <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
                       <div>
                         <dt className="font-extrabold text-[color:var(--color-brand-navy)]">
                           {t("schemas.format")}
@@ -590,7 +590,23 @@ export function SchemasPageContent({
                           {t("schemas.schemaSize")}
                         </dt>
                         <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                          {schemaByteSizes.get(schema.id) ?? 0} B
+                          {schemaTextStats.get(schema.id)?.byteSize ?? 0} B
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-extrabold text-[color:var(--color-brand-navy)]">
+                          {t("schemas.lines")}
+                        </dt>
+                        <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                          {schemaTextStats.get(schema.id)?.lineCount ?? 1}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-extrabold text-[color:var(--color-brand-navy)]">
+                          {t("schemas.characters")}
+                        </dt>
+                        <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                          {schemaTextStats.get(schema.id)?.characterCount ?? 0}
                         </dd>
                       </div>
                       <div>

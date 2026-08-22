@@ -144,6 +144,7 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Page not found",
     "schemas.allFormats": "All formats",
+    "schemas.characters": "Characters",
     "schemas.clearAll": "Clear all",
     "schemas.clearAllConfirm":
       "Delete all {count} saved schemas? This cannot be undone.",
@@ -175,6 +176,7 @@ export const translations = {
     "schemas.hidePreview": "Hide preview",
     "schemas.hidePreviewAriaLabel": "Hide preview for {title}",
     "schemas.label": "Schemas",
+    "schemas.lines": "Lines",
     "schemas.noMatches": "No saved schemas match the current filters.",
     "schemas.openEditor": "Open in editor",
     "schemas.openEditorAriaLabel": "Open {title} in editor",
@@ -490,6 +492,7 @@ export const translations = {
     "notFound.label": "404",
     "notFound.title": "Страница не найдена",
     "schemas.allFormats": "Все форматы",
+    "schemas.characters": "Символы",
     "schemas.clearAll": "Очистить всё",
     "schemas.clearAllConfirm":
       "Удалить все {count} сохраненные схемы? Это действие необратимо.",
@@ -521,6 +524,7 @@ export const translations = {
     "schemas.hidePreview": "Скрыть просмотр",
     "schemas.hidePreviewAriaLabel": "Скрыть просмотр схемы {title}",
     "schemas.label": "Схемы",
+    "schemas.lines": "Строки",
     "schemas.noMatches": "Нет сохраненных схем, соответствующих текущим фильтрам.",
     "schemas.openEditor": "Открыть в редакторе",
     "schemas.openEditorAriaLabel": "Открыть {title} в редакторе",

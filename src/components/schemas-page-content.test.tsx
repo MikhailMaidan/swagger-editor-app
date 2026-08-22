@@ -32,6 +32,12 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("Version 1.0.0")).toBeVisible();
     expect(screen.getAllByText("yaml")).toHaveLength(2);
     expect(screen.getByText("14 B")).toBeVisible();
+    expect(screen.getByText("Lines").parentElement).toHaveTextContent(
+      /Lines\s*1/,
+    );
+    expect(screen.getByText("Characters").parentElement).toHaveTextContent(
+      /Characters\s*14/,
+    );
   });
 
   it("stages a saved schema and opens it in the editor", async () => {
@@ -396,7 +402,7 @@ describe("SchemasPageContent", () => {
     expect(visibleTitles()).toEqual(["Saved API", "Other API"]);
   });
 
-  it("does not re-encode every schema's byte size on unrelated re-renders", async () => {
+  it("does not recompute schema text statistics on unrelated re-renders", async () => {
     const user = userEvent.setup();
     const encodeSpy = vi.spyOn(TextEncoder.prototype, "encode");
 
