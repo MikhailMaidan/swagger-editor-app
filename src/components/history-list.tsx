@@ -397,7 +397,7 @@ export function HistoryList({
 
       <dl
         aria-label={t("history.statsLabel")}
-        className="mt-5 grid border-y border-[color:var(--color-brand-border)] sm:grid-cols-2 lg:grid-cols-4"
+        className="mt-5 grid border-y border-[color:var(--color-brand-border)] sm:grid-cols-2 lg:grid-cols-5"
       >
         <div className="px-4 py-4">
           <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
@@ -421,6 +421,14 @@ export function HistoryList({
           </dt>
           <dd className="mt-1 text-2xl font-extrabold text-red-700">
             {historyStats.failed}
+          </dd>
+        </div>
+        <div className="px-4 py-4">
+          <dt className="text-sm font-semibold text-[color:var(--color-brand-muted)]">
+            {t("history.successRate")}
+          </dt>
+          <dd className="mt-1 text-2xl font-extrabold text-emerald-700">
+            {historyStats.successRatePercent}%
           </dd>
         </div>
         <div className="px-4 py-4">

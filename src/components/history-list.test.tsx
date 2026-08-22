@@ -149,6 +149,9 @@ describe("HistoryList", () => {
       "1",
     );
     expect(
+      within(stats).getByText("Success rate").parentElement,
+    ).toHaveTextContent("50%");
+    expect(
       within(stats).getByText("Average duration").parentElement,
     ).toHaveTextContent("32 ms");
   });
@@ -215,12 +218,22 @@ describe("HistoryList", () => {
         "Total requests",
       ).parentElement,
     ).toHaveTextContent("1");
+    expect(
+      within(screen.getByLabelText("Visible request statistics")).getByText(
+        "Success rate",
+      ).parentElement,
+    ).toHaveTextContent("0%");
 
     await user.click(successfulButton);
 
     expect(screen.getByText("Successful request")).toBeVisible();
     expect(screen.queryByText("Failed request")).not.toBeInTheDocument();
     expect(successfulButton).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(screen.getByLabelText("Visible request statistics")).getByText(
+        "Success rate",
+      ).parentElement,
+    ).toHaveTextContent("100%");
 
     await user.click(allButton);
 

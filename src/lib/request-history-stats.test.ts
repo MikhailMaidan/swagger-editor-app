@@ -33,6 +33,7 @@ describe("request history statistics", () => {
     ).toEqual({
       averageDurationMs: 25,
       failed: 2,
+      successRatePercent: 50,
       successful: 2,
       total: 4,
     });
@@ -42,8 +43,25 @@ describe("request history statistics", () => {
     expect(createRequestHistoryStats([])).toEqual({
       averageDurationMs: 0,
       failed: 0,
+      successRatePercent: 0,
       successful: 0,
       total: 0,
+    });
+  });
+
+  it("excludes invalid durations from the average without losing outcomes", () => {
+    expect(
+      createRequestHistoryStats([
+        createRecord(200, 10),
+        createRecord(500, Number.NaN),
+        createRecord(204, -1),
+      ]),
+    ).toEqual({
+      averageDurationMs: 10,
+      failed: 1,
+      successRatePercent: 67,
+      successful: 2,
+      total: 3,
     });
   });
 });
