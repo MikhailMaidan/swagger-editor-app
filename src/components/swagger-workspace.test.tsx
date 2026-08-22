@@ -120,6 +120,27 @@ describe("SwaggerWorkspace", () => {
     }
   });
 
+  it("toggles word wrap with Alt+Z and prevents browser save while signed out", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+    const wordWrap = screen.getByRole("checkbox", { name: "Word wrap" });
+
+    expect(editor).toHaveAttribute("aria-keyshortcuts", "Alt+Z");
+    expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
+    expect(wordWrap).toBeChecked();
+    expect(editor).toHaveAttribute("wrap", "soft");
+    expect(window.localStorage.getItem(EDITOR_WORD_WRAP_STORAGE_KEY)).toBe(
+      "true",
+    );
+
+    expect(fireEvent.keyDown(editor, { altKey: true, key: "Z" })).toBe(false);
+    expect(wordWrap).not.toBeChecked();
+    expect(editor).toHaveAttribute("wrap", "off");
+
+    expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "s" })).toBe(false);
+  });
+
   it("supports Tab and Shift+Tab indentation in the schema editor", () => {
     render(<SwaggerWorkspace />);
 

@@ -6,6 +6,7 @@ import {
   isFormatSchemaShortcut,
   isRunRequestShortcut,
   isSaveSchemaShortcut,
+  isToggleWordWrapShortcut,
   type KeyboardShortcutEvent,
 } from "./keyboard-shortcut";
 
@@ -98,6 +99,23 @@ describe("keyboard shortcut helpers", () => {
         createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
       ),
     ).toBe(false);
+  });
+
+  it("recognizes only Alt+Z as the word wrap shortcut", () => {
+    expect(
+      isToggleWordWrapShortcut(createKeyboardEvent({ altKey: true, key: "z" })),
+    ).toBe(true);
+    expect(
+      isToggleWordWrapShortcut(createKeyboardEvent({ altKey: true, key: "Z" })),
+    ).toBe(true);
+    expect(
+      isToggleWordWrapShortcut(
+        createKeyboardEvent({ altKey: true, ctrlKey: true, key: "z" }),
+      ),
+    ).toBe(false);
+    expect(isToggleWordWrapShortcut(createKeyboardEvent({ key: "z" }))).toBe(
+      false,
+    );
   });
 
   it("recognizes controls and editable content as typing targets", () => {

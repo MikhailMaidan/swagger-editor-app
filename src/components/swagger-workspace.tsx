@@ -23,6 +23,7 @@ import {
   isEndpointSearchShortcut,
   isFormatSchemaShortcut,
   isSaveSchemaShortcut,
+  isToggleWordWrapShortcut,
 } from "@/lib/keyboard-shortcut";
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
@@ -602,16 +603,19 @@ export function SwaggerWorkspace({
   }
 
   function handleWordWrapChange(event: ChangeEvent<HTMLInputElement>) {
-    const enabled = event.currentTarget.checked;
+    updateWordWrapPreference(event.currentTarget.checked);
+  }
 
+  function updateWordWrapPreference(enabled: boolean) {
     setIsWordWrapEnabled(enabled);
     saveEditorWordWrapPreference(enabled);
   }
 
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (isSaveSchemaShortcut(event)) {
+      event.preventDefault();
+
       if (isAuthenticated) {
-        event.preventDefault();
         handleSaveSchema();
       }
 
@@ -621,6 +625,12 @@ export function SwaggerWorkspace({
     if (isFormatSchemaShortcut(event)) {
       event.preventDefault();
       handleFormatSchema();
+      return;
+    }
+
+    if (isToggleWordWrapShortcut(event)) {
+      event.preventDefault();
+      updateWordWrapPreference(!isWordWrapEnabled);
       return;
     }
 
@@ -827,6 +837,7 @@ export function SwaggerWorkspace({
           }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
+          aria-keyshortcuts="Alt+Z"
           spellCheck={false}
           wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}
