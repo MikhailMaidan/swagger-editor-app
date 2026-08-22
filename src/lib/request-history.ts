@@ -4,7 +4,8 @@ export const REQUEST_HISTORY_STORAGE_KEY = "rsswagger-request-history";
 export const SERVER_REQUEST_HISTORY_COOKIE = "rsswagger-server-history";
 export const MAX_REQUEST_HISTORY_RECORDS = 20;
 
-export type RequestHistorySort = "failures" | "newest" | "oldest" | "slowest";
+export type RequestHistorySort =
+  "failures" | "fastest" | "newest" | "oldest" | "slowest";
 
 export type RequestHistoryRecord = {
   id: string;
@@ -104,6 +105,36 @@ function compareNewestFirst(
   );
 }
 
+function compareDuration(
+  firstRecord: RequestHistoryRecord,
+  secondRecord: RequestHistoryRecord,
+  direction: "fastest" | "slowest",
+) {
+  const firstDuration =
+    Number.isFinite(firstRecord.durationMs) && firstRecord.durationMs >= 0
+      ? firstRecord.durationMs
+      : null;
+  const secondDuration =
+    Number.isFinite(secondRecord.durationMs) && secondRecord.durationMs >= 0
+      ? secondRecord.durationMs
+      : null;
+
+  if (firstDuration === null || secondDuration === null) {
+    if (firstDuration === secondDuration) {
+      return compareNewestFirst(firstRecord, secondRecord);
+    }
+
+    return firstDuration === null ? 1 : -1;
+  }
+
+  return (
+    (direction === "fastest"
+      ? firstDuration - secondDuration
+      : secondDuration - firstDuration) ||
+    compareNewestFirst(firstRecord, secondRecord)
+  );
+}
+
 export function sortRequestHistory(
   records: RequestHistoryRecord[],
   sort: RequestHistorySort = "newest",
@@ -113,20 +144,8 @@ export function sortRequestHistory(
       return compareNewestFirst(secondRecord, firstRecord);
     }
 
-    if (sort === "slowest") {
-      const firstDuration =
-        Number.isFinite(firstRecord.durationMs) && firstRecord.durationMs >= 0
-          ? firstRecord.durationMs
-          : 0;
-      const secondDuration =
-        Number.isFinite(secondRecord.durationMs) && secondRecord.durationMs >= 0
-          ? secondRecord.durationMs
-          : 0;
-
-      return (
-        secondDuration - firstDuration ||
-        compareNewestFirst(firstRecord, secondRecord)
-      );
+    if (sort === "fastest" || sort === "slowest") {
+      return compareDuration(firstRecord, secondRecord, sort);
     }
 
     if (sort === "failures") {

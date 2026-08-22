@@ -352,6 +352,7 @@ export function HistoryList({
           <option value="newest">{t("history.sortNewest")}</option>
           <option value="oldest">{t("history.sortOldest")}</option>
           <option value="slowest">{t("history.sortSlowest")}</option>
+          <option value="fastest">{t("history.sortFastest")}</option>
           <option value="failures">{t("history.sortFailures")}</option>
         </select>
         <button

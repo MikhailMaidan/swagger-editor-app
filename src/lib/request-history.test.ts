@@ -161,8 +161,25 @@ describe("request history storage", () => {
       sortRequestHistory(records, "slowest").map((record) => record.id),
     ).toEqual(["oldest", "newest", "failed"]);
     expect(
+      sortRequestHistory(records, "fastest").map((record) => record.id),
+    ).toEqual(["failed", "newest", "oldest"]);
+    expect(
       sortRequestHistory(records, "failures").map((record) => record.id),
     ).toEqual(["failed", "newest", "oldest"]);
+    const invalidDurationRecord = {
+      ...records[0],
+      durationMs: Number.NaN,
+      id: "invalid-duration",
+    };
+
+    expect(
+      sortRequestHistory([...records, invalidDurationRecord], "fastest").at(-1)
+        ?.id,
+    ).toBe("invalid-duration");
+    expect(
+      sortRequestHistory([...records, invalidDurationRecord], "slowest").at(-1)
+        ?.id,
+    ).toBe("invalid-duration");
     expect(records.map((record) => record.id)).toEqual([
       "newest",
       "failed",

@@ -537,6 +537,11 @@ describe("HistoryList", () => {
       within(screen.getAllByRole("row")[1]).getByText("Newest request"),
     ).toBeVisible();
 
+    await user.selectOptions(sort, "fastest");
+    expect(
+      within(screen.getAllByRole("row")[1]).getByText("Oldest request"),
+    ).toBeVisible();
+
     await user.selectOptions(sort, "failures");
     expect(
       within(screen.getAllByRole("row")[1]).getByText("Failed request"),
