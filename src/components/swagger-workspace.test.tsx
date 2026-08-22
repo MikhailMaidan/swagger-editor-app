@@ -93,7 +93,7 @@ describe("SwaggerWorkspace", () => {
     expect(screen.getByText("Line 1, column 1")).toBeVisible();
   });
 
-  it("updates schema line and UTF-8 byte statistics", () => {
+  it("updates document and Unicode selection statistics", () => {
     render(<SwaggerWorkspace />);
 
     const schemaText = "openapi: 3.0.0\r\ninfo: {title: Café}";
@@ -108,8 +108,16 @@ describe("SwaggerWorkspace", () => {
     expect(
       screen.getByLabelText("Schema document statistics"),
     ).toHaveTextContent(
-      `Lines 2, ${new TextEncoder().encode(editor.value).length} B`,
+      `Lines 2, ${Array.from(editor.value).length} characters, ${new TextEncoder().encode(editor.value).length} B`,
     );
+
+    const emojiSchema = "openapi: 3.0.0\ninfo: {title: A😀B}";
+
+    fireEvent.change(editor, { target: { value: emojiSchema } });
+    editor.setSelectionRange(30, 32);
+    fireEvent.select(editor);
+
+    expect(screen.getByText("Selected 1")).toBeVisible();
   });
 
   it("renders the default schema and dynamically populated endpoints", () => {

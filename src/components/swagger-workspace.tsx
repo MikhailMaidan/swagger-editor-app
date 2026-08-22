@@ -51,7 +51,7 @@ import {
 } from "@/lib/schema-storage";
 import { changeTextIndentation } from "@/lib/text-indentation";
 import { getTextPosition } from "@/lib/text-position";
-import { getTextStats } from "@/lib/text-stats";
+import { getSelectedCharacterCount, getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
 
 const schemaErrorKeys: Record<string, TranslationKey> = {
@@ -87,6 +87,7 @@ export function SwaggerWorkspace({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
+  const [selectedCharacterCount, setSelectedCharacterCount] = useState(0);
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
@@ -226,6 +227,14 @@ export function SwaggerWorkspace({
       editor.setSelectionRange(pendingSelection.start, pendingSelection.end);
       pendingEditorSelectionRef.current = null;
     }
+
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(
+        editor.value,
+        editor.selectionStart,
+        editor.selectionEnd,
+      ),
+    );
   }, [schemaText]);
 
   useEffect(() => {
@@ -509,6 +518,8 @@ export function SwaggerWorkspace({
     lastSavedSchemaRef.current = null;
     setSchemaText(DEFAULT_OPENAPI_SCHEMA);
     setEditorCursor({ column: 1, line: 1 });
+    setSelectedCharacterCount(0);
+    editorRef.current?.setSelectionRange(0, 0);
     setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
@@ -561,6 +572,13 @@ export function SwaggerWorkspace({
     const editor = event.currentTarget;
 
     setEditorCursor(getTextPosition(editor.value, editor.selectionStart));
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(
+        editor.value,
+        editor.selectionStart,
+        editor.selectionEnd,
+      ),
+    );
   }
 
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
@@ -594,6 +612,13 @@ export function SwaggerWorkspace({
     );
 
     setEditorCursor(getTextPosition(result.value, result.selectionStart));
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(
+        result.value,
+        result.selectionStart,
+        result.selectionEnd,
+      ),
+    );
 
     if (result.value === editor.value) {
       editor.setSelectionRange(result.selectionStart, result.selectionEnd);
@@ -664,6 +689,7 @@ export function SwaggerWorkspace({
     editor.focus();
     editor.setSelectionRange(offset, offset);
     setEditorCursor(getTextPosition(schemaText, offset));
+    setSelectedCharacterCount(0);
   }
 
   function getSchemaErrorMessage(error: string) {
@@ -785,6 +811,13 @@ export function SwaggerWorkspace({
             setEditorCursor(
               getTextPosition(event.target.value, event.target.selectionStart),
             );
+            setSelectedCharacterCount(
+              getSelectedCharacterCount(
+                event.target.value,
+                event.target.selectionStart,
+                event.target.selectionEnd,
+              ),
+            );
             setCopiedSchemaText(null);
             setSaveMessage("");
             setImportError("");
@@ -794,16 +827,26 @@ export function SwaggerWorkspace({
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 border-t border-[color:var(--color-brand-border)] bg-white px-5 py-2 font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
           <span aria-label={t("workspace.editorDocumentStatsLabel")}>
             {t("workspace.editorDocumentStats", {
+              characters: String(schemaStats.characterCount),
               lines: String(schemaStats.lineCount),
               size: String(schemaStats.byteSize),
             })}
           </span>
-          <span>
-            {t("workspace.editorCursorPosition", {
-              column: String(editorCursor.column),
-              line: String(editorCursor.line),
-            })}
-          </span>
+          <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+            {selectedCharacterCount > 0 ? (
+              <span>
+                {t("workspace.editorSelectionStats", {
+                  count: String(selectedCharacterCount),
+                })}
+              </span>
+            ) : null}
+            <span>
+              {t("workspace.editorCursorPosition", {
+                column: String(editorCursor.column),
+                line: String(editorCursor.line),
+              })}
+            </span>
+          </div>
         </div>
         {!isAuthenticated ? (
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 border-t border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] px-5 py-3 text-sm font-semibold text-[color:var(--color-brand-muted)]">

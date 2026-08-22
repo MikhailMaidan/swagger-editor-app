@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getTextStats } from "./text-stats";
+import { getSelectedCharacterCount, getTextStats } from "./text-stats";
 
 describe("text statistics helpers", () => {
   it("treats an empty document as one empty line", () => {
@@ -24,5 +24,16 @@ describe("text statistics helpers", () => {
       characterCount: 3,
       lineCount: 2,
     });
+  });
+
+  it("counts selected Unicode characters within safe bounds", () => {
+    const value = "A😀BC";
+
+    expect(getSelectedCharacterCount(value, 1, 3)).toBe(1);
+    expect(getSelectedCharacterCount(value, 4, 1)).toBe(2);
+    expect(getSelectedCharacterCount(value, -10, 100)).toBe(4);
+    expect(
+      getSelectedCharacterCount(value, Number.NaN, Number.POSITIVE_INFINITY),
+    ).toBe(0);
   });
 });

@@ -265,16 +265,17 @@ export const translations = {
     "workspace.draftSaving": "Saving draft...",
     "workspace.editor": "Editor",
     "workspace.editorCursorPosition": "Line {line}, column {column}",
-    "workspace.editorDocumentStats": "Lines {lines}, {size} B",
+    "workspace.editorDocumentStats":
+      "Lines {lines}, {characters} characters, {size} B",
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
+    "workspace.editorSelectionStats": "Selected {count}",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
     "workspace.endpointLinkCopied": "Link copied.",
     "workspace.endpointResponseFilterLabel":
       "Filter endpoints by documented responses",
     "workspace.endpointSortLabel": "Sort endpoints",
-    "workspace.endpointTraitFilterLabel":
-      "Filter endpoints by characteristic",
+    "workspace.endpointTraitFilterLabel": "Filter endpoints by characteristic",
     "workspace.errorPosition": "Error at line {line}, column {column}",
     "workspace.executing": "Executing...",
     "workspace.errors.fileReadFailed": "Could not read that file.",
@@ -483,7 +484,8 @@ export const translations = {
     "history.method": "Метод",
     "history.methodFilterLabel": "Фильтр истории по HTTP-методу",
     "history.noErrors": "Ошибки не зафиксированы.",
-    "history.noMatches": "Нет записей истории, соответствующих текущим фильтрам.",
+    "history.noMatches":
+      "Нет записей истории, соответствующих текущим фильтрам.",
     "history.notFound": "Эта запись истории недоступна.",
     "history.openEndpoint": "Открыть эндпоинт в редакторе",
     "history.outcomeFilterLabel": "Фильтр истории по результату",
@@ -563,7 +565,8 @@ export const translations = {
     "schemas.hidePreviewAriaLabel": "Скрыть просмотр схемы {title}",
     "schemas.label": "Схемы",
     "schemas.lines": "Строки",
-    "schemas.noMatches": "Нет сохраненных схем, соответствующих текущим фильтрам.",
+    "schemas.noMatches":
+      "Нет сохраненных схем, соответствующих текущим фильтрам.",
     "schemas.openEditor": "Открыть в редакторе",
     "schemas.openEditorAriaLabel": "Открыть {title} в редакторе",
     "schemas.openEditorError": "Не удалось открыть схему в редакторе.",
@@ -635,8 +638,10 @@ export const translations = {
     "workspace.draftSaving": "Сохранение черновика...",
     "workspace.editor": "Редактор",
     "workspace.editorCursorPosition": "Строка {line}, столбец {column}",
-    "workspace.editorDocumentStats": "Строк: {lines}, {size} Б",
+    "workspace.editorDocumentStats":
+      "Строк: {lines}, символов: {characters}, {size} Б",
     "workspace.editorDocumentStatsLabel": "Статистика документа схемы",
+    "workspace.editorSelectionStats": "Выделено: {count}",
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
@@ -644,10 +649,8 @@ export const translations = {
     "workspace.endpointResponseFilterLabel":
       "Фильтр эндпоинтов по документированным ответам",
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
-    "workspace.endpointTraitFilterLabel":
-      "Фильтр эндпоинтов по характеристике",
-    "workspace.errorPosition":
-      "Ошибка в строке {line}, столбец {column}",
+    "workspace.endpointTraitFilterLabel": "Фильтр эндпоинтов по характеристике",
+    "workspace.errorPosition": "Ошибка в строке {line}, столбец {column}",
     "workspace.executing": "Выполняется...",
     "workspace.errors.fileReadFailed": "Не удалось прочитать файл.",
     "workspace.errors.infoTitleRequired": "Поле schema info.title обязательно.",
