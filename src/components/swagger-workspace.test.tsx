@@ -1046,6 +1046,30 @@ paths:
     expect(screen.getByText("Line 1, column 1")).toBeVisible();
   });
 
+  it("formats the current schema with the editor keyboard shortcut", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const formatButton = screen.getByRole("button", { name: "Format schema" });
+    const compactSchema =
+      '{"openapi":"3.0.0","info":{"title":"Shortcut API","version":"1.0.0"},"paths":{}}';
+
+    fireEvent.change(editor, { target: { value: compactSchema } });
+
+    expect(formatButton).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Control+Shift+F Meta+Shift+F",
+    );
+    expect(
+      fireEvent.keyDown(editor, { ctrlKey: true, key: "f", shiftKey: true }),
+    ).toBe(false);
+    expect(editor.value).toBe(
+      JSON.stringify(JSON.parse(compactSchema), null, 2),
+    );
+  });
+
   it("imports a schema from a local file", async () => {
     const user = userEvent.setup();
 
@@ -2147,6 +2171,10 @@ paths:
           screen.getByRole("button", { name: "Save schema" }),
         ).not.toBeDisabled();
       });
+
+      expect(
+        screen.getByRole("button", { name: "Save schema" }),
+      ).toHaveAttribute("aria-keyshortcuts", "Control+S Meta+S");
 
       const editor = screen.getByLabelText("OpenAPI schema editor");
       const latestSchema = DEFAULT_OPENAPI_SCHEMA.replace(

@@ -35,6 +35,24 @@ export function isEndpointSearchShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function isSaveSchemaShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "s" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    !event.shiftKey
+  );
+}
+
+export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "f" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    event.shiftKey
+  );
+}
+
 export function isEditableShortcutTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
     return false;

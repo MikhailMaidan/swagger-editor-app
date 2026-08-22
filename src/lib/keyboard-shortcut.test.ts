@@ -3,7 +3,9 @@ import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
+  isFormatSchemaShortcut,
   isRunRequestShortcut,
+  isSaveSchemaShortcut,
   type KeyboardShortcutEvent,
 } from "./keyboard-shortcut";
 
@@ -69,6 +71,33 @@ describe("keyboard shortcut helpers", () => {
       ),
     ).toBe(false);
     expect(isEndpointSearchShortcut(createKeyboardEvent())).toBe(false);
+  });
+
+  it("recognizes cross-platform schema save and format shortcuts", () => {
+    expect(
+      isSaveSchemaShortcut(createKeyboardEvent({ ctrlKey: true, key: "s" })),
+    ).toBe(true);
+    expect(
+      isSaveSchemaShortcut(createKeyboardEvent({ key: "S", metaKey: true })),
+    ).toBe(true);
+    expect(
+      isFormatSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "f", shiftKey: true }),
+      ),
+    ).toBe(true);
+    expect(
+      isFormatSchemaShortcut(
+        createKeyboardEvent({ key: "F", metaKey: true, shiftKey: true }),
+      ),
+    ).toBe(true);
+    expect(
+      isFormatSchemaShortcut(createKeyboardEvent({ ctrlKey: true, key: "f" })),
+    ).toBe(false);
+    expect(
+      isSaveSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
+      ),
+    ).toBe(false);
   });
 
   it("recognizes controls and editable content as typing targets", () => {

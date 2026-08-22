@@ -17,6 +17,8 @@ import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
+  isFormatSchemaShortcut,
+  isSaveSchemaShortcut,
 } from "@/lib/keyboard-shortcut";
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
@@ -562,18 +564,18 @@ export function SwaggerWorkspace({
   }
 
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
-    const isSaveShortcut =
-      event.key.toLowerCase() === "s" &&
-      (event.ctrlKey || event.metaKey) &&
-      !event.altKey &&
-      !event.shiftKey;
-
-    if (isSaveShortcut) {
+    if (isSaveSchemaShortcut(event)) {
       if (isAuthenticated) {
         event.preventDefault();
         handleSaveSchema();
       }
 
+      return;
+    }
+
+    if (isFormatSchemaShortcut(event)) {
+      event.preventDefault();
+      handleFormatSchema();
       return;
     }
 
@@ -732,6 +734,7 @@ export function SwaggerWorkspace({
               {t("workspace.download")}
             </button>
             <button
+              aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
               disabled={!parseResult.ok}
               type="button"
@@ -750,6 +753,7 @@ export function SwaggerWorkspace({
               })}
             </button>
             <button
+              aria-keyshortcuts="Control+S Meta+S"
               className="rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.2)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-none disabled:bg-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)] disabled:shadow-none disabled:hover:translate-y-0"
               disabled={!isAuthenticated || !parseResult.ok}
               type="button"
