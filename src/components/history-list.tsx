@@ -20,9 +20,11 @@ import {
 import { downloadRequestHistoryFile } from "@/lib/request-history-export";
 import {
   filterRequestHistory,
+  filterRequestHistoryByDuration,
   filterRequestHistoryByMethod,
   getRequestHistoryMethods,
   RequestHistoryAgeFilter,
+  RequestHistoryDurationFilter,
   RequestHistoryOutcomeFilter,
 } from "@/lib/request-history-filter";
 import { serializeRequestHistoryRecords } from "@/lib/request-history-clipboard";
@@ -74,6 +76,8 @@ export function HistoryList({
     useState<RequestHistoryOutcomeFilter>("all");
   const [historyMethod, setHistoryMethod] = useState("all");
   const [historyAge, setHistoryAge] = useState<RequestHistoryAgeFilter>("all");
+  const [historyDuration, setHistoryDuration] =
+    useState<RequestHistoryDurationFilter>("all");
   const [historySort, setHistorySort] = useState<RequestHistorySort>("newest");
   const [isCopyingVisible, setIsCopyingVisible] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<{
@@ -89,9 +93,14 @@ export function HistoryList({
       filterRequestHistory(records, historyFilter, historyOutcome, historyAge),
     [historyAge, historyFilter, historyOutcome, records],
   );
-  const filteredRecords = useMemo(
+  const methodFilteredRecords = useMemo(
     () => filterRequestHistoryByMethod(searchedRecords, historyMethod),
     [historyMethod, searchedRecords],
+  );
+  const filteredRecords = useMemo(
+    () =>
+      filterRequestHistoryByDuration(methodFilteredRecords, historyDuration),
+    [historyDuration, methodFilteredRecords],
   );
   const sortedRecords = useMemo(
     () => sortRequestHistory(filteredRecords, historySort),
@@ -109,7 +118,8 @@ export function HistoryList({
     Boolean(historyFilter.trim()) ||
     historyOutcome !== "all" ||
     historyMethod !== "all" ||
-    historyAge !== "all";
+    historyAge !== "all" ||
+    historyDuration !== "all";
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -183,6 +193,7 @@ export function HistoryList({
     setHistoryOutcome("all");
     setHistoryMethod("all");
     setHistoryAge("all");
+    setHistoryDuration("all");
   }
 
   async function handleCopyVisible() {
@@ -300,6 +311,24 @@ export function HistoryList({
           <option value="24-hours">{t("history.last24Hours")}</option>
           <option value="7-days">{t("history.last7Days")}</option>
           <option value="30-days">{t("history.last30Days")}</option>
+        </select>
+        <label className="sr-only" htmlFor="request-history-duration">
+          {t("history.durationFilterLabel")}
+        </label>
+        <select
+          className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+          id="request-history-duration"
+          value={historyDuration}
+          onChange={(event) =>
+            setHistoryDuration(
+              event.target.value as RequestHistoryDurationFilter,
+            )
+          }
+        >
+          <option value="all">{t("history.allDurations")}</option>
+          <option value="under-100">{t("history.durationUnder100")}</option>
+          <option value="100-to-499">{t("history.duration100To499")}</option>
+          <option value="500-plus">{t("history.duration500Plus")}</option>
         </select>
         <button
           className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-extrabold text-[color:var(--color-brand-muted)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"

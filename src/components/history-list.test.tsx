@@ -364,6 +364,65 @@ describe("HistoryList", () => {
     expect(resetButton).toBeDisabled();
   });
 
+  it("filters history by request duration and resets the selection", async () => {
+    const user = userEvent.setup();
+    const durationRecord = {
+      ...localRecord,
+      errorDetails: null,
+      url: localRecord.path,
+    };
+
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            ...durationRecord,
+            durationMs: 99,
+            id: "fast-record",
+            summary: "Fast request",
+          },
+          {
+            ...durationRecord,
+            durationMs: 250,
+            id: "medium-record",
+            summary: "Medium request",
+          },
+          {
+            ...durationRecord,
+            durationMs: 500,
+            id: "slow-record",
+            summary: "Slow request",
+          },
+        ]}
+      />,
+    );
+
+    const durationFilter = screen.getByLabelText(
+      "Filter history by request duration",
+    );
+    const resetButton = screen.getByRole("button", { name: "Reset filters" });
+
+    await user.selectOptions(durationFilter, "100-to-499");
+
+    expect(screen.getByText("Medium request")).toBeVisible();
+    expect(screen.queryByText("Fast request")).not.toBeInTheDocument();
+    expect(screen.queryByText("Slow request")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 3 requests")).toBeVisible();
+
+    await user.selectOptions(durationFilter, "500-plus");
+
+    expect(screen.getByText("Slow request")).toBeVisible();
+    expect(screen.queryByText("Medium request")).not.toBeInTheDocument();
+
+    await user.click(resetButton);
+
+    expect(durationFilter).toHaveValue("all");
+    expect(screen.getByText("Fast request")).toBeVisible();
+    expect(screen.getByText("Medium request")).toBeVisible();
+    expect(screen.getByText("Slow request")).toBeVisible();
+    expect(resetButton).toBeDisabled();
+  });
+
   it("renders saved requests newest first", async () => {
     window.localStorage.setItem(
       REQUEST_HISTORY_STORAGE_KEY,

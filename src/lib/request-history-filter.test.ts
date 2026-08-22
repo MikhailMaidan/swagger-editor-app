@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RequestHistoryRecord } from "./request-history";
 import {
   filterRequestHistory,
+  filterRequestHistoryByDuration,
   filterRequestHistoryByMethod,
   getRequestHistoryMethods,
 } from "./request-history-filter";
@@ -91,6 +92,36 @@ describe("request history filters", () => {
     ).toEqual(["failed"]);
     expect(filterRequestHistoryByMethod(mixedCaseRecords)).toBe(
       mixedCaseRecords,
+    );
+  });
+
+  it("filters durations at exact bucket boundaries", () => {
+    const durationRecords = [
+      { ...records[0], durationMs: 99, id: "fast" },
+      { ...records[0], durationMs: 100, id: "medium-start" },
+      { ...records[0], durationMs: 499, id: "medium-end" },
+      { ...records[0], durationMs: 500, id: "slow" },
+      { ...records[0], durationMs: -1, id: "negative" },
+      { ...records[0], durationMs: Number.NaN, id: "invalid" },
+    ];
+
+    expect(
+      filterRequestHistoryByDuration(durationRecords, "under-100").map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["fast"]);
+    expect(
+      filterRequestHistoryByDuration(durationRecords, "100-to-499").map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["medium-start", "medium-end"]);
+    expect(
+      filterRequestHistoryByDuration(durationRecords, "500-plus").map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["slow"]);
+    expect(filterRequestHistoryByDuration(durationRecords)).toBe(
+      durationRecords,
     );
   });
 

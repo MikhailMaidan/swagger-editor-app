@@ -3,6 +3,8 @@ import { isErrorStatus } from "./status-color";
 
 export type RequestHistoryOutcomeFilter = "all" | "failed" | "successful";
 export type RequestHistoryAgeFilter = "all" | "24-hours" | "7-days" | "30-days";
+export type RequestHistoryDurationFilter =
+  "all" | "under-100" | "100-to-499" | "500-plus";
 
 const AGE_FILTER_DURATION_MS: Record<
   Exclude<RequestHistoryAgeFilter, "all">,
@@ -38,6 +40,33 @@ export function filterRequestHistoryByMethod(
   return records.filter(
     (record) => record.method.trim().toUpperCase() === normalizedMethod,
   );
+}
+
+export function filterRequestHistoryByDuration(
+  records: RequestHistoryRecord[],
+  duration: RequestHistoryDurationFilter = "all",
+) {
+  if (duration === "all") {
+    return records;
+  }
+
+  return records.filter((record) => {
+    const durationMs = record.durationMs;
+
+    if (!Number.isFinite(durationMs) || durationMs < 0) {
+      return false;
+    }
+
+    if (duration === "under-100") {
+      return durationMs < 100;
+    }
+
+    if (duration === "100-to-499") {
+      return durationMs >= 100 && durationMs < 500;
+    }
+
+    return durationMs >= 500;
+  });
 }
 
 export function filterRequestHistory(
