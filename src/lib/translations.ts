@@ -179,6 +179,7 @@ export const translations = {
     "schemas.duplicating": "Duplicating...",
     "schemas.empty":
       "You have not saved any schemas yet. Save a valid OpenAPI schema from the editor to see it here.",
+    "schemas.endpoints": "Endpoints",
     "schemas.exportAll": "Export all",
     "schemas.exportVisible": "Export visible",
     "schemas.filterLabel": "Filter saved schemas",
@@ -213,6 +214,7 @@ export const translations = {
     "schemas.sortOldest": "Oldest first",
     "schemas.sortTitle": "Title A-Z",
     "schemas.title": "Saved OpenAPI Schemas",
+    "schemas.unavailable": "Unavailable",
     "schemas.updated": "Updated",
     "schemas.version": "Version",
     "workspace.addValidSchema":
@@ -540,6 +542,7 @@ export const translations = {
     "schemas.duplicating": "Дублирование...",
     "schemas.empty":
       "Вы еще не сохраняли схемы. Сохраните валидную схему OpenAPI в редакторе, чтобы увидеть ее здесь.",
+    "schemas.endpoints": "Эндпоинты",
     "schemas.exportAll": "Экспортировать все",
     "schemas.exportVisible": "Экспортировать видимые",
     "schemas.filterLabel": "Фильтр сохраненных схем",
@@ -574,6 +577,7 @@ export const translations = {
     "schemas.sortOldest": "Сначала старые",
     "schemas.sortTitle": "Название А-Я",
     "schemas.title": "Сохраненные схемы OpenAPI",
+    "schemas.unavailable": "Недоступно",
     "schemas.updated": "Обновлено",
     "schemas.version": "Версия",
     "workspace.addValidSchema":

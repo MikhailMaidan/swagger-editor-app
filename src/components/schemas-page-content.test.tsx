@@ -38,6 +38,30 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("Characters").parentElement).toHaveTextContent(
       /Characters\s*14/,
     );
+    expect(screen.getByText("Endpoints").parentElement).toHaveTextContent(
+      /Endpoints\s*Unavailable/,
+    );
+  });
+
+  it("shows the parsed endpoint count for a valid saved schema", () => {
+    const schemaText = JSON.stringify({
+      info: { title: "Saved API", version: "1.0.0" },
+      openapi: "3.0.0",
+      paths: {
+        "/users": {
+          get: { responses: {} },
+          post: { responses: {} },
+        },
+      },
+    });
+
+    render(
+      <SchemasPageContent initialSchemas={[{ ...savedSchema, schemaText }]} />,
+    );
+
+    expect(screen.getByText("Endpoints").parentElement).toHaveTextContent(
+      /Endpoints\s*2/,
+    );
   });
 
   it("duplicates a saved schema after a successful server save", async () => {

@@ -24,7 +24,7 @@ import {
   filterSavedSchemas,
   SavedSchemaFormatFilter,
 } from "@/lib/saved-schema-filter";
-import { getTextStats } from "@/lib/text-stats";
+import { getSavedSchemaInsights } from "@/lib/saved-schema-insights";
 
 type SchemaSort = "largest" | "newest" | "oldest" | "title";
 
@@ -52,14 +52,17 @@ export function SchemasPageContent({
   );
   const hasActiveFilters =
     Boolean(schemaFilter.trim()) || schemaFormat !== "all";
-  // Scanning every schema's full text for its statistics isn't free, and
+  // Parsing and scanning every schema's full text for insights isn't free, and
   // this list re-renders on every keystroke while renaming any one row -
   // caching by id means an edit to one schema's title doesn't rescan
   // every other unrelated schema's text on each render.
-  const schemaTextStats = useMemo(
+  const schemaInsights = useMemo(
     () =>
       new Map(
-        schemas.map((schema) => [schema.id, getTextStats(schema.schemaText)]),
+        schemas.map((schema) => [
+          schema.id,
+          getSavedSchemaInsights(schema.schemaText),
+        ]),
       ),
     [schemas],
   );
@@ -77,8 +80,8 @@ export function SchemasPageContent({
 
       if (schemaSort === "largest") {
         return (
-          (schemaTextStats.get(secondSchema.id)?.byteSize ?? 0) -
-            (schemaTextStats.get(firstSchema.id)?.byteSize ?? 0) ||
+          (schemaInsights.get(secondSchema.id)?.byteSize ?? 0) -
+            (schemaInsights.get(firstSchema.id)?.byteSize ?? 0) ||
           compareTitles(firstSchema, secondSchema)
         );
       }
@@ -94,7 +97,7 @@ export function SchemasPageContent({
     });
 
     return sortedSchemas;
-  }, [filteredSchemas, language, schemaSort, schemaTextStats]);
+  }, [filteredSchemas, language, schemaInsights, schemaSort]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
@@ -628,7 +631,7 @@ export function SchemasPageContent({
                       </p>
                     ) : null}
 
-                    <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
+                    <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                       <div>
                         <dt className="font-extrabold text-[color:var(--color-brand-navy)]">
                           {t("schemas.format")}
@@ -642,7 +645,7 @@ export function SchemasPageContent({
                           {t("schemas.schemaSize")}
                         </dt>
                         <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                          {schemaTextStats.get(schema.id)?.byteSize ?? 0} B
+                          {schemaInsights.get(schema.id)?.byteSize ?? 0} B
                         </dd>
                       </div>
                       <div>
@@ -650,7 +653,7 @@ export function SchemasPageContent({
                           {t("schemas.lines")}
                         </dt>
                         <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                          {schemaTextStats.get(schema.id)?.lineCount ?? 1}
+                          {schemaInsights.get(schema.id)?.lineCount ?? 1}
                         </dd>
                       </div>
                       <div>
@@ -658,7 +661,16 @@ export function SchemasPageContent({
                           {t("schemas.characters")}
                         </dt>
                         <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                          {schemaTextStats.get(schema.id)?.characterCount ?? 0}
+                          {schemaInsights.get(schema.id)?.characterCount ?? 0}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-extrabold text-[color:var(--color-brand-navy)]">
+                          {t("schemas.endpoints")}
+                        </dt>
+                        <dd className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                          {schemaInsights.get(schema.id)?.endpointCount ??
+                            t("schemas.unavailable")}
                         </dd>
                       </div>
                       <div>
