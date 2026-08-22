@@ -13,6 +13,7 @@ import {
   createEndpointPermalink,
   getEndpointAnchor,
 } from "@/lib/endpoint-link";
+import { EDITOR_WORD_WRAP_STORAGE_KEY } from "@/lib/editor-preferences";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
@@ -56,6 +57,55 @@ describe("SwaggerWorkspace", () => {
       fireEvent.select(editor);
 
       expect(screen.getByText("Line 3, column 5")).toBeVisible();
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(
+          HTMLTextAreaElement.prototype,
+          "scrollHeight",
+          originalDescriptor,
+        );
+      } else {
+        delete (HTMLTextAreaElement.prototype as { scrollHeight?: number })
+          .scrollHeight;
+      }
+    }
+  });
+
+  it("restores and persists the editor word wrap preference", async () => {
+    const user = userEvent.setup();
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "scrollHeight",
+    );
+
+    Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
+      configurable: true,
+      get(this: HTMLTextAreaElement) {
+        return this.wrap === "soft" ? 640 : 520;
+      },
+    });
+    window.localStorage.setItem(EDITOR_WORD_WRAP_STORAGE_KEY, "true");
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const wordWrap = screen.getByRole("checkbox", { name: "Word wrap" });
+
+      await waitFor(() => expect(wordWrap).toBeChecked());
+      expect(editor).toHaveAttribute("wrap", "soft");
+      expect(editor).toHaveStyle({ height: "640px" });
+      expect(editor.className).toContain("overflow-x-hidden");
+
+      await user.click(wordWrap);
+
+      expect(wordWrap).not.toBeChecked();
+      expect(editor).toHaveAttribute("wrap", "off");
+      expect(editor).toHaveStyle({ height: "520px" });
+      expect(editor.className).toContain("overflow-x-auto");
+      expect(
+        window.localStorage.getItem(EDITOR_WORD_WRAP_STORAGE_KEY),
+      ).toBeNull();
     } finally {
       if (originalDescriptor) {
         Object.defineProperty(

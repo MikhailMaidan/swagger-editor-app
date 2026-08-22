@@ -14,6 +14,10 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
+  readEditorWordWrapPreference,
+  saveEditorWordWrapPreference,
+} from "@/lib/editor-preferences";
+import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
@@ -88,6 +92,7 @@ export function SwaggerWorkspace({
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
   const [selectedCharacterCount, setSelectedCharacterCount] = useState(0);
+  const [isWordWrapEnabled, setIsWordWrapEnabled] = useState(false);
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
@@ -235,7 +240,22 @@ export function SwaggerWorkspace({
         editor.selectionEnd,
       ),
     );
-  }, [schemaText]);
+  }, [isWordWrapEnabled, schemaText]);
+
+  useEffect(() => {
+    const storedPreference = readEditorWordWrapPreference();
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setIsWordWrapEnabled(storedPreference);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     function handleEndpointSearchShortcut(event: KeyboardEvent) {
@@ -581,6 +601,13 @@ export function SwaggerWorkspace({
     );
   }
 
+  function handleWordWrapChange(event: ChangeEvent<HTMLInputElement>) {
+    const enabled = event.currentTarget.checked;
+
+    setIsWordWrapEnabled(enabled);
+    saveEditorWordWrapPreference(enabled);
+  }
+
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (isSaveSchemaShortcut(event)) {
       if (isAuthenticated) {
@@ -792,6 +819,8 @@ export function SwaggerWorkspace({
         <textarea
           ref={editorRef}
           className={`block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none transition-shadow ${
+            isWordWrapEnabled ? "overflow-x-hidden" : "overflow-x-auto"
+          } ${
             isDraggingSchemaFile
               ? "ring-2 ring-inset ring-[color:var(--color-brand-purple)]"
               : ""
@@ -799,7 +828,7 @@ export function SwaggerWorkspace({
           value={schemaText}
           aria-label="OpenAPI schema editor"
           spellCheck={false}
-          wrap="off"
+          wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}
           onDragLeave={handleEditorFileDragLeave}
           onDragOver={handleEditorFileDrag}
@@ -833,6 +862,15 @@ export function SwaggerWorkspace({
             })}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                className="h-4 w-4 accent-[color:var(--color-brand-purple)]"
+                type="checkbox"
+                checked={isWordWrapEnabled}
+                onChange={handleWordWrapChange}
+              />
+              <span>{t("workspace.wordWrap")}</span>
+            </label>
             {selectedCharacterCount > 0 ? (
               <span>
                 {t("workspace.editorSelectionStats", {

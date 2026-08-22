@@ -269,6 +269,7 @@ export const translations = {
       "Lines {lines}, {characters} characters, {size} B",
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
     "workspace.editorSelectionStats": "Selected {count}",
+    "workspace.wordWrap": "Word wrap",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
     "workspace.endpointLinkCopied": "Link copied.",
@@ -642,6 +643,7 @@ export const translations = {
       "Строк: {lines}, символов: {characters}, {size} Б",
     "workspace.editorDocumentStatsLabel": "Статистика документа схемы",
     "workspace.editorSelectionStats": "Выделено: {count}",
+    "workspace.wordWrap": "Перенос строк",
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
