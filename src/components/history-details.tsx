@@ -8,6 +8,7 @@ import { formatEuropeanDateTime } from "@/lib/date-format";
 import { getEndpointEditorHref } from "@/lib/endpoint-link";
 import type { RequestHistoryRecord } from "@/lib/request-history";
 import { serializeRequestHistoryRecord } from "@/lib/request-history-clipboard";
+import { downloadRequestHistoryRecordFile } from "@/lib/request-history-export";
 import { getStatusColorClasses } from "@/lib/status-color";
 
 export function HistoryDetails({
@@ -102,6 +103,13 @@ export function HistoryDetails({
                 onClick={handleCopyDetails}
               >
                 {t("history.copyDetails")}
+              </button>
+              <button
+                className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={() => downloadRequestHistoryRecordFile(record)}
+              >
+                {t("history.downloadDetails")}
               </button>
             </>
           ) : null}

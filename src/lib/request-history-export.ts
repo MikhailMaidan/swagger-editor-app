@@ -6,13 +6,26 @@ export type RequestHistoryExport = {
   fileName: string;
 };
 
+function getSafeExportedAt(exportedAt: Date) {
+  return Number.isFinite(exportedAt.getTime()) ? exportedAt : new Date(0);
+}
+
+function getRequestSlug(record: RequestHistoryRecord) {
+  const slug = `${record.method}-${record.path}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+    .replace(/-+$/g, "");
+
+  return slug || "request";
+}
+
 export function createRequestHistoryExport(
   records: RequestHistoryRecord[],
   exportedAt = new Date(),
 ): RequestHistoryExport {
-  const safeExportedAt = Number.isFinite(exportedAt.getTime())
-    ? exportedAt
-    : new Date(0);
+  const safeExportedAt = getSafeExportedAt(exportedAt);
 
   return {
     content: `${JSON.stringify(
@@ -29,9 +42,24 @@ export function createRequestHistoryExport(
   };
 }
 
-export function downloadRequestHistoryFile(records: RequestHistoryRecord[]) {
-  const { content, contentType, fileName } =
-    createRequestHistoryExport(records);
+export function createRequestHistoryRecordExport(
+  record: RequestHistoryRecord,
+  exportedAt = new Date(),
+): RequestHistoryExport {
+  const safeExportedAt = getSafeExportedAt(exportedAt);
+  const exportData = createRequestHistoryExport([record], safeExportedAt);
+
+  return {
+    ...exportData,
+    fileName: `rsswag-${getRequestSlug(record)}-${safeExportedAt.toISOString().slice(0, 10)}.json`,
+  };
+}
+
+function downloadRequestHistoryExport({
+  content,
+  contentType,
+  fileName,
+}: RequestHistoryExport) {
   const objectUrl = URL.createObjectURL(
     new Blob([content], { type: contentType }),
   );
@@ -45,4 +73,12 @@ export function downloadRequestHistoryFile(records: RequestHistoryRecord[]) {
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+export function downloadRequestHistoryFile(records: RequestHistoryRecord[]) {
+  downloadRequestHistoryExport(createRequestHistoryExport(records));
+}
+
+export function downloadRequestHistoryRecordFile(record: RequestHistoryRecord) {
+  downloadRequestHistoryExport(createRequestHistoryRecordExport(record));
 }

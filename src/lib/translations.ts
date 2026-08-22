@@ -92,6 +92,7 @@ export const translations = {
     "history.deleting": "Deleting...",
     "history.detailsCopied": "Request details copied.",
     "history.detailsTitle": "Request Details",
+    "history.downloadDetails": "Download JSON",
     "history.empty":
       "You have not executed any requests yet. Start from the editor or open the API reference to explore the current schema.",
     "history.endpoint": "Endpoint",
@@ -444,6 +445,7 @@ export const translations = {
     "history.deleting": "Удаление...",
     "history.detailsCopied": "Детали запроса скопированы.",
     "history.detailsTitle": "Детали запроса",
+    "history.downloadDetails": "Скачать JSON",
     "history.empty":
       "Вы еще не выполняли запросы. Начните с редактора или откройте API справочник, чтобы изучить текущую схему.",
     "history.endpoint": "Эндпоинт",

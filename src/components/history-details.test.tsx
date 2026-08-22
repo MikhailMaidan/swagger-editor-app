@@ -176,6 +176,67 @@ describe("HistoryDetails", () => {
     }
   });
 
+  it("downloads the current request as a JSON history export", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn().mockReturnValue("blob:history-record");
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalCreateElement = document.createElement.bind(document);
+    const anchors: HTMLAnchorElement[] = [];
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    try {
+      render(
+        <HistoryDetails
+          record={{
+            createdAt: "2026-07-11T08:00:00.000Z",
+            durationMs: 42,
+            errorDetails: null,
+            id: "history-1",
+            method: "GET",
+            path: "/users/{id}",
+            requestSize: 80,
+            responseSize: 120,
+            status: 200,
+            summary: "Get user",
+            url: "https://api.example.com/users/42",
+          }}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Download JSON" }));
+
+      const downloadAnchor = anchors.find((anchor) => anchor.download);
+
+      expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+      expect(downloadAnchor?.download).toMatch(
+        /^rsswag-get-users-id-\d{4}-\d{2}-\d{2}\.json$/,
+      );
+      expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:history-record");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElementSpy.mockRestore();
+    }
+  });
+
   it("shows a friendly message for a missing record", () => {
     render(<HistoryDetails record={null} />);
 
@@ -184,6 +245,9 @@ describe("HistoryDetails", () => {
     ).toBeVisible();
     expect(
       screen.queryByRole("button", { name: "Copy request details" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Download JSON" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Open endpoint in editor" }),
