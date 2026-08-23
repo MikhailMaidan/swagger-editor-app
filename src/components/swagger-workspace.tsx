@@ -14,9 +14,13 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
+  DEFAULT_EDITOR_FONT_SIZE,
+  readEditorFontSizePreference,
   readEditorWordWrapPreference,
+  saveEditorFontSizePreference,
   saveEditorWordWrapPreference,
 } from "@/lib/editor-preferences";
+import type { EditorFontSize } from "@/lib/editor-preferences";
 import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
@@ -72,6 +76,11 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
 // instant since the textarea always renders the undebounced schemaText.
 const SCHEMA_PARSE_DEBOUNCE_MS = 200;
 const EMPTY_ENDPOINTS: EndpointSummary[] = [];
+const EDITOR_FONT_SIZE_CLASSES: Record<EditorFontSize, string> = {
+  large: "text-base leading-8",
+  medium: "text-sm leading-7",
+  small: "text-xs leading-6",
+};
 
 type SwaggerWorkspaceProps = {
   initialIsAuthenticated?: boolean;
@@ -94,6 +103,9 @@ export function SwaggerWorkspace({
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
   const [selectedCharacterCount, setSelectedCharacterCount] = useState(0);
   const [isWordWrapEnabled, setIsWordWrapEnabled] = useState(false);
+  const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(
+    DEFAULT_EDITOR_FONT_SIZE,
+  );
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
@@ -241,15 +253,17 @@ export function SwaggerWorkspace({
         editor.selectionEnd,
       ),
     );
-  }, [isWordWrapEnabled, schemaText]);
+  }, [editorFontSize, isWordWrapEnabled, schemaText]);
 
   useEffect(() => {
-    const storedPreference = readEditorWordWrapPreference();
+    const storedWordWrapPreference = readEditorWordWrapPreference();
+    const storedFontSizePreference = readEditorFontSizePreference();
     let cancelled = false;
 
     queueMicrotask(() => {
       if (!cancelled) {
-        setIsWordWrapEnabled(storedPreference);
+        setIsWordWrapEnabled(storedWordWrapPreference);
+        setEditorFontSize(storedFontSizePreference);
       }
     });
 
@@ -606,6 +620,13 @@ export function SwaggerWorkspace({
     updateWordWrapPreference(event.currentTarget.checked);
   }
 
+  function handleEditorFontSizeChange(event: ChangeEvent<HTMLSelectElement>) {
+    const fontSize = event.currentTarget.value as EditorFontSize;
+
+    setEditorFontSize(fontSize);
+    saveEditorFontSizePreference(fontSize);
+  }
+
   function updateWordWrapPreference(enabled: boolean) {
     setIsWordWrapEnabled(enabled);
     saveEditorWordWrapPreference(enabled);
@@ -828,9 +849,9 @@ export function SwaggerWorkspace({
         </div>
         <textarea
           ref={editorRef}
-          className={`block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-sm leading-7 text-[color:var(--color-brand-navy)] outline-none transition-shadow ${
-            isWordWrapEnabled ? "overflow-x-hidden" : "overflow-x-auto"
-          } ${
+          className={`block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-[color:var(--color-brand-navy)] outline-none transition-shadow ${
+            EDITOR_FONT_SIZE_CLASSES[editorFontSize]
+          } ${isWordWrapEnabled ? "overflow-x-hidden" : "overflow-x-auto"} ${
             isDraggingSchemaFile
               ? "ring-2 ring-inset ring-[color:var(--color-brand-purple)]"
               : ""
@@ -873,6 +894,24 @@ export function SwaggerWorkspace({
             })}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+            <label className="flex items-center gap-2">
+              <span>{t("workspace.editorFontSize")}</span>
+              <select
+                className="min-w-20 rounded-md border border-[color:var(--color-brand-border)] bg-white px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                value={editorFontSize}
+                onChange={handleEditorFontSizeChange}
+              >
+                <option value="small">
+                  {t("workspace.editorFontSizeSmall")}
+                </option>
+                <option value="medium">
+                  {t("workspace.editorFontSizeMedium")}
+                </option>
+                <option value="large">
+                  {t("workspace.editorFontSizeLarge")}
+                </option>
+              </select>
+            </label>
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 className="h-4 w-4 accent-[color:var(--color-brand-purple)]"

@@ -13,7 +13,10 @@ import {
   createEndpointPermalink,
   getEndpointAnchor,
 } from "@/lib/endpoint-link";
-import { EDITOR_WORD_WRAP_STORAGE_KEY } from "@/lib/editor-preferences";
+import {
+  EDITOR_FONT_SIZE_STORAGE_KEY,
+  EDITOR_WORD_WRAP_STORAGE_KEY,
+} from "@/lib/editor-preferences";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
@@ -105,6 +108,61 @@ describe("SwaggerWorkspace", () => {
       expect(editor.className).toContain("overflow-x-auto");
       expect(
         window.localStorage.getItem(EDITOR_WORD_WRAP_STORAGE_KEY),
+      ).toBeNull();
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(
+          HTMLTextAreaElement.prototype,
+          "scrollHeight",
+          originalDescriptor,
+        );
+      } else {
+        delete (HTMLTextAreaElement.prototype as { scrollHeight?: number })
+          .scrollHeight;
+      }
+    }
+  });
+
+  it("restores font size and resizes the editor when it changes", async () => {
+    const user = userEvent.setup();
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "scrollHeight",
+    );
+
+    Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
+      configurable: true,
+      get(this: HTMLTextAreaElement) {
+        return this.className.includes("text-base") ? 700 : 480;
+      },
+    });
+    window.localStorage.setItem(EDITOR_FONT_SIZE_STORAGE_KEY, "large");
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const fontSize = screen.getByRole("combobox", {
+        name: "Editor font size",
+      });
+
+      await waitFor(() => expect(fontSize).toHaveValue("large"));
+      expect(editor.className).toContain("text-base");
+      expect(editor).toHaveStyle({ height: "700px" });
+
+      await user.selectOptions(fontSize, "small");
+
+      expect(editor.className).toContain("text-xs");
+      expect(editor).toHaveStyle({ height: "480px" });
+      expect(window.localStorage.getItem(EDITOR_FONT_SIZE_STORAGE_KEY)).toBe(
+        "small",
+      );
+
+      await user.selectOptions(fontSize, "medium");
+
+      expect(editor.className).toContain("text-sm");
+      expect(
+        window.localStorage.getItem(EDITOR_FONT_SIZE_STORAGE_KEY),
       ).toBeNull();
     } finally {
       if (originalDescriptor) {

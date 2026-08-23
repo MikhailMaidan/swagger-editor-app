@@ -268,6 +268,10 @@ export const translations = {
     "workspace.editorDocumentStats":
       "Lines {lines}, {characters} characters, {size} B",
     "workspace.editorDocumentStatsLabel": "Schema document statistics",
+    "workspace.editorFontSize": "Editor font size",
+    "workspace.editorFontSizeLarge": "Large",
+    "workspace.editorFontSizeMedium": "Medium",
+    "workspace.editorFontSizeSmall": "Small",
     "workspace.editorSelectionStats": "Selected {count}",
     "workspace.wordWrap": "Word wrap",
     "workspace.endpointStats": "Endpoint statistics",
@@ -642,6 +646,10 @@ export const translations = {
     "workspace.editorDocumentStats":
       "Строк: {lines}, символов: {characters}, {size} Б",
     "workspace.editorDocumentStatsLabel": "Статистика документа схемы",
+    "workspace.editorFontSize": "Размер шрифта редактора",
+    "workspace.editorFontSizeLarge": "Крупный",
+    "workspace.editorFontSizeMedium": "Средний",
+    "workspace.editorFontSizeSmall": "Мелкий",
     "workspace.editorSelectionStats": "Выделено: {count}",
     "workspace.wordWrap": "Перенос строк",
     "workspace.endpointStats": "Статистика эндпоинтов",
