@@ -187,7 +187,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+G Meta+G",
+      "Alt+Z Control+F Meta+F Control+G Meta+G",
     );
     expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
     expect(wordWrap).toBeChecked();
@@ -217,7 +217,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+G Meta+G",
+      "Alt+Z Control+F Meta+F Control+G Meta+G",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "g" })).toBe(false);
     expect(lineInput).toHaveFocus();
@@ -342,6 +342,59 @@ describe("SwaggerWorkspace", () => {
     });
 
     expect(lineEndings).toHaveValue("crlf");
+  });
+
+  it("searches the schema with shortcut and wrapped navigation", () => {
+    render(<SwaggerWorkspace />);
+
+    const schemaText =
+      "openapi: 3.0.0\ninfo:\n  title: Alpha\n  version: 1.0.0\n  description: alpha\npaths: {}\nx-label: ALPHA";
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search schema",
+    });
+
+    fireEvent.change(editor, { target: { value: schemaText } });
+
+    expect(searchInput).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Control+F Meta+F",
+    );
+    expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "f" })).toBe(false);
+    expect(searchInput).toHaveFocus();
+
+    fireEvent.change(searchInput, { target: { value: "alpha" } });
+
+    expect(screen.getByText("0 of 3")).toBeVisible();
+
+    fireEvent.submit(searchInput.closest("form")!);
+
+    expect(searchInput).toHaveFocus();
+    expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe(
+      "Alpha",
+    );
+    expect(screen.getByText("1 of 3")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next match" }));
+
+    expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe(
+      "alpha",
+    );
+    expect(screen.getByText("2 of 3")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous match" }));
+
+    expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe(
+      "Alpha",
+    );
+    expect(screen.getByText("1 of 3")).toBeVisible();
+
+    expect(fireEvent.keyDown(searchInput, { key: "Escape" })).toBe(false);
+    expect(searchInput).toHaveValue("");
+    expect(editor).toHaveFocus();
+    expect(screen.getByText("0 of 0")).toBeVisible();
   });
 
   it("updates document and Unicode selection statistics", () => {

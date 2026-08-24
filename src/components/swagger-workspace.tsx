@@ -31,6 +31,7 @@ import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
+  isFindInSchemaShortcut,
   isFormatSchemaShortcut,
   isGoToLineShortcut,
   isSaveSchemaShortcut,
@@ -72,6 +73,8 @@ import {
 } from "@/lib/text-line-endings";
 import type { NormalizedLineEnding } from "@/lib/text-line-endings";
 import { getTextOffset, getTextPosition } from "@/lib/text-position";
+import { findTextMatches, getNextTextMatchIndex } from "@/lib/text-search";
+import type { TextSearchDirection } from "@/lib/text-search";
 import { getSelectedCharacterCount, getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -107,6 +110,7 @@ export function SwaggerWorkspace({
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const endpointFilterInputRef = useRef<HTMLInputElement>(null);
   const goToLineInputRef = useRef<HTMLInputElement>(null);
+  const schemaSearchInputRef = useRef<HTMLInputElement>(null);
   const editorSelectionRef = useRef({ end: 0, start: 0 });
   const pendingEditorSelectionRef = useRef<{
     end: number;
@@ -123,6 +127,8 @@ export function SwaggerWorkspace({
   const [editorIndentSize, setEditorIndentSize] = useState<EditorIndentSize>(
     DEFAULT_EDITOR_INDENT_SIZE,
   );
+  const [schemaSearch, setSchemaSearch] = useState("");
+  const [activeSchemaMatchIndex, setActiveSchemaMatchIndex] = useState(-1);
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
   const { isAuthenticated } = useClientAuthState({
@@ -159,6 +165,19 @@ export function SwaggerWorkspace({
     () => detectTextLineEnding(schemaText),
     [schemaText],
   );
+  const schemaEditorText = useMemo(
+    () => normalizeTextLineEndings(schemaText, "lf"),
+    [schemaText],
+  );
+  const schemaSearchMatches = useMemo(
+    () => findTextMatches(schemaEditorText, schemaSearch),
+    [schemaEditorText, schemaSearch],
+  );
+  const activeSchemaMatchNumber =
+    activeSchemaMatchIndex >= 0 &&
+    activeSchemaMatchIndex < schemaSearchMatches.length
+      ? activeSchemaMatchIndex + 1
+      : 0;
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
     : parseResult.format;
@@ -432,6 +451,7 @@ export function SwaggerWorkspace({
 
   function markSchemaEdited() {
     hasEditedSchemaRef.current = true;
+    setActiveSchemaMatchIndex(-1);
 
     if (!isAuthenticated) {
       setDraftStatus("pending");
@@ -587,6 +607,8 @@ export function SwaggerWorkspace({
     setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
+    setSchemaSearch("");
+    setActiveSchemaMatchIndex(-1);
     setEndpointFilter("");
     setEndpointResponseFilter("all");
     setEndpointTraitFilter("all");
@@ -721,6 +743,72 @@ export function SwaggerWorkspace({
     saveEditorWordWrapPreference(enabled);
   }
 
+  function focusSchemaSearch() {
+    const input = schemaSearchInputRef.current;
+
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+
+  function navigateSchemaSearch(direction: TextSearchDirection) {
+    const editor = editorRef.current;
+
+    if (!editor) {
+      return;
+    }
+
+    const currentSelection = editorSelectionRef.current;
+    const matchIndex = getNextTextMatchIndex(
+      schemaSearchMatches,
+      currentSelection.start,
+      currentSelection.end,
+      direction,
+    );
+    const match = schemaSearchMatches[matchIndex];
+
+    if (!match) {
+      setActiveSchemaMatchIndex(-1);
+      return;
+    }
+
+    editor.focus();
+    editor.setSelectionRange(match.start, match.end);
+    editorSelectionRef.current = { end: match.end, start: match.start };
+    setEditorCursor(getTextPosition(editor.value, match.start));
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(editor.value, match.start, match.end),
+    );
+    setActiveSchemaMatchIndex(matchIndex);
+    schemaSearchInputRef.current?.focus();
+  }
+
+  function handleSchemaSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    navigateSchemaSearch("next");
+  }
+
+  function handleSchemaSearchKeyDown(
+    event: ReactKeyboardEvent<HTMLInputElement>,
+  ) {
+    if (!isCancelRequestShortcut(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    setSchemaSearch("");
+    setActiveSchemaMatchIndex(-1);
+
+    const editor = editorRef.current;
+    const currentSelection = editorSelectionRef.current;
+
+    if (editor) {
+      editor.focus();
+      editor.setSelectionRange(currentSelection.start, currentSelection.end);
+    }
+  }
+
   function handleGoToLine(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -735,13 +823,13 @@ export function SwaggerWorkspace({
     const line = Number.isFinite(requestedLine)
       ? Math.min(Math.max(Math.trunc(requestedLine), 1), schemaStats.lineCount)
       : 1;
-    const offset = getTextOffset(schemaText, { column: 1, line });
+    const offset = getTextOffset(schemaEditorText, { column: 1, line });
 
     input.value = String(line);
     editor.focus();
     editor.setSelectionRange(offset, offset);
     editorSelectionRef.current = { end: offset, start: offset };
-    setEditorCursor(getTextPosition(schemaText, offset));
+    setEditorCursor(getTextPosition(schemaEditorText, offset));
     setSelectedCharacterCount(0);
   }
 
@@ -753,6 +841,12 @@ export function SwaggerWorkspace({
         handleSaveSchema();
       }
 
+      return;
+    }
+
+    if (isFindInSchemaShortcut(event)) {
+      event.preventDefault();
+      focusSchemaSearch();
       return;
     }
 
@@ -983,6 +1077,52 @@ export function SwaggerWorkspace({
             </button>
           </div>
         </div>
+        <div className="border-b border-[color:var(--color-brand-border)] bg-white px-5 py-3">
+          <form
+            className="flex flex-wrap items-center gap-2"
+            role="search"
+            onSubmit={handleSchemaSearchSubmit}
+          >
+            <input
+              ref={schemaSearchInputRef}
+              aria-keyshortcuts="Control+F Meta+F"
+              aria-label={t("workspace.searchSchema")}
+              className="min-w-48 flex-1 rounded-md border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-3 py-2 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+              type="search"
+              placeholder={t("workspace.searchSchema")}
+              value={schemaSearch}
+              onChange={(event) => {
+                setSchemaSearch(event.target.value);
+                setActiveSchemaMatchIndex(-1);
+              }}
+              onKeyDown={handleSchemaSearchKeyDown}
+            />
+            <span
+              aria-live="polite"
+              className="min-w-16 text-center text-xs font-bold text-[color:var(--color-brand-muted)]"
+            >
+              {t("workspace.schemaSearchSummary", {
+                current: String(activeSchemaMatchNumber),
+                total: String(schemaSearchMatches.length),
+              })}
+            </span>
+            <button
+              className="rounded-md border border-[color:var(--color-brand-border)] bg-white px-3 py-2 text-xs font-extrabold text-[color:var(--color-brand-navy)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:text-[color:var(--color-brand-muted)]"
+              disabled={schemaSearchMatches.length === 0}
+              type="button"
+              onClick={() => navigateSchemaSearch("previous")}
+            >
+              {t("workspace.previousMatch")}
+            </button>
+            <button
+              className="rounded-md border border-[color:var(--color-brand-border)] bg-white px-3 py-2 text-xs font-extrabold text-[color:var(--color-brand-navy)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:text-[color:var(--color-brand-muted)]"
+              disabled={schemaSearchMatches.length === 0}
+              type="submit"
+            >
+              {t("workspace.nextMatch")}
+            </button>
+          </form>
+        </div>
         <textarea
           ref={editorRef}
           className={`block min-h-[430px] w-full resize-none overflow-y-hidden bg-[#fbfaff] p-5 font-mono text-[color:var(--color-brand-navy)] outline-none transition-shadow ${
@@ -994,7 +1134,7 @@ export function SwaggerWorkspace({
           }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
-          aria-keyshortcuts="Alt+Z Control+G Meta+G"
+          aria-keyshortcuts="Alt+Z Control+F Meta+F Control+G Meta+G"
           spellCheck={false}
           wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}

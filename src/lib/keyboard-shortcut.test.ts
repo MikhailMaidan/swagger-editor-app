@@ -3,6 +3,7 @@ import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
+  isFindInSchemaShortcut,
   isFormatSchemaShortcut,
   isGoToLineShortcut,
   isRunRequestShortcut,
@@ -100,6 +101,23 @@ describe("keyboard shortcut helpers", () => {
         createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
       ),
     ).toBe(false);
+  });
+
+  it("distinguishes schema find from schema formatting", () => {
+    expect(
+      isFindInSchemaShortcut(createKeyboardEvent({ ctrlKey: true, key: "f" })),
+    ).toBe(true);
+    expect(
+      isFindInSchemaShortcut(createKeyboardEvent({ key: "F", metaKey: true })),
+    ).toBe(true);
+    expect(
+      isFindInSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "f", shiftKey: true }),
+      ),
+    ).toBe(false);
+    expect(isFindInSchemaShortcut(createKeyboardEvent({ key: "f" }))).toBe(
+      false,
+    );
   });
 
   it("recognizes the cross-platform go-to-line shortcut", () => {

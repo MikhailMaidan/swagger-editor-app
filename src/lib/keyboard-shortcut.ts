@@ -53,6 +53,15 @@ export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function isFindInSchemaShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "f" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    !event.shiftKey
+  );
+}
+
 export function isGoToLineShortcut(event: KeyboardShortcutEvent) {
   return (
     event.key.toLowerCase() === "g" &&
