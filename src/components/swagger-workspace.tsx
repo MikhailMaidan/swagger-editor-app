@@ -78,7 +78,11 @@ import {
 } from "@/lib/text-line-endings";
 import type { NormalizedLineEnding } from "@/lib/text-line-endings";
 import { getTextOffset, getTextPosition } from "@/lib/text-position";
-import { findTextMatches, getNextTextMatchIndex } from "@/lib/text-search";
+import {
+  findTextMatches,
+  getNextTextMatchIndex,
+  getSearchQueryFromSelection,
+} from "@/lib/text-search";
 import type { TextSearchDirection } from "@/lib/text-search";
 import { getSelectedCharacterCount, getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
@@ -768,12 +772,27 @@ export function SwaggerWorkspace({
     saveEditorWordWrapPreference(enabled);
   }
 
-  function focusSchemaSearch() {
+  function focusSchemaSearch(query: string | null = null) {
     const input = schemaSearchInputRef.current;
 
     if (input) {
+      const shouldUpdateQuery = query !== null && query !== schemaSearch;
+
+      if (shouldUpdateQuery) {
+        setSchemaSearch(query);
+        setActiveSchemaMatchIndex(-1);
+      }
+
       input.focus();
       input.select();
+
+      if (shouldUpdateQuery) {
+        queueMicrotask(() => {
+          if (schemaSearchInputRef.current === input) {
+            input.select();
+          }
+        });
+      }
     }
   }
 
@@ -879,7 +898,13 @@ export function SwaggerWorkspace({
 
     if (isFindInSchemaShortcut(event)) {
       event.preventDefault();
-      focusSchemaSearch();
+      focusSchemaSearch(
+        getSearchQueryFromSelection(
+          event.currentTarget.value,
+          event.currentTarget.selectionStart,
+          event.currentTarget.selectionEnd,
+        ),
+      );
       return;
     }
 

@@ -39,6 +39,31 @@ function hasWholeWordBoundaries(value: string, match: TextMatch) {
   );
 }
 
+export function getSearchQueryFromSelection(
+  value: string,
+  selectionStart: number,
+  selectionEnd: number,
+) {
+  const start = Math.max(
+    0,
+    Math.min(
+      Math.trunc(selectionStart),
+      Math.trunc(selectionEnd),
+      value.length,
+    ),
+  );
+  const end = Math.max(
+    0,
+    Math.min(
+      Math.max(Math.trunc(selectionStart), Math.trunc(selectionEnd)),
+      value.length,
+    ),
+  );
+  const query = value.slice(start, end);
+
+  return query && !/[\r\n\u2028\u2029]/u.test(query) ? query : null;
+}
+
 export function findTextMatches(
   value: string,
   query: string,

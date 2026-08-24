@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { findTextMatches, getNextTextMatchIndex } from "./text-search";
+import {
+  findTextMatches,
+  getNextTextMatchIndex,
+  getSearchQueryFromSelection,
+} from "./text-search";
 
 describe("text search helpers", () => {
   it("finds case-insensitive literal matches", () => {
@@ -26,6 +30,16 @@ describe("text search helpers", () => {
     expect(findTextMatches("тест тесты предтест", "тест", false, true)).toEqual(
       [{ end: 4, start: 0 }],
     );
+  });
+
+  it("creates search queries from single-line selections", () => {
+    expect(getSearchQueryFromSelection("Alpha beta", 0, 5)).toBe("Alpha");
+    expect(getSearchQueryFromSelection("Alpha beta", 10, 6)).toBe("beta");
+    expect(getSearchQueryFromSelection("Alpha beta", -5, 50)).toBe(
+      "Alpha beta",
+    );
+    expect(getSearchQueryFromSelection("Alpha beta", 3, 3)).toBeNull();
+    expect(getSearchQueryFromSelection("Alpha\nbeta", 0, 10)).toBeNull();
   });
 
   it("navigates from selections and wraps in both directions", () => {

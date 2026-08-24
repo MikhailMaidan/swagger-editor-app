@@ -360,13 +360,21 @@ describe("SwaggerWorkspace", () => {
 
     fireEvent.change(editor, { target: { value: schemaText } });
 
+    const selectedTitleStart = schemaText.indexOf("Alpha");
+    editor.setSelectionRange(selectedTitleStart, selectedTitleStart + 5);
+    fireEvent.select(editor);
+
     expect(searchInput).toHaveAttribute(
       "aria-keyshortcuts",
       "Control+F Meta+F Enter Shift+Enter F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "f" })).toBe(false);
     expect(searchInput).toHaveFocus();
+    expect(searchInput).toHaveValue("Alpha");
+    expect(screen.getByText("0 of 4")).toBeVisible();
 
+    editor.setSelectionRange(0, 0);
+    fireEvent.select(editor);
     fireEvent.change(searchInput, { target: { value: "alpha" } });
 
     expect(screen.getByText("0 of 4")).toBeVisible();
