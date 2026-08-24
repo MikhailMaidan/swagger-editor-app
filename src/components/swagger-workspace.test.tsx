@@ -23,6 +23,7 @@ import {
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
+import { MAX_SCHEMA_IMPORT_SIZE_BYTES } from "@/lib/schema-import";
 import {
   SAVED_SCHEMA_STORAGE_KEY,
   SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
@@ -1546,6 +1547,39 @@ paths: {}`,
     expect((editor as HTMLTextAreaElement).value).toContain(
       "title: Dropped API",
     );
+  });
+
+  it("confirms oversized schema imports without removing the option to continue", () => {
+    const readAsTextSpy = vi
+      .spyOn(FileReader.prototype, "readAsText")
+      .mockImplementation(() => undefined);
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const fileInput = screen.getByLabelText("Import OpenAPI schema file");
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const oversizedFile = new File(["openapi: 3.0.0"], "large.yaml");
+      Object.defineProperty(oversizedFile, "size", {
+        value: MAX_SCHEMA_IMPORT_SIZE_BYTES + 1,
+      });
+      fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        "This file is larger than 5 MB and may slow the editor. Import it anyway?",
+      );
+      expect(readAsTextSpy).not.toHaveBeenCalled();
+      expect(editor).toHaveValue(DEFAULT_OPENAPI_SCHEMA);
+
+      confirmSpy.mockReturnValue(true);
+      fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
+
+      expect(readAsTextSpy).toHaveBeenCalledWith(oversizedFile);
+    } finally {
+      readAsTextSpy.mockRestore();
+      confirmSpy.mockRestore();
+    }
   });
 
   it("shows an error instead of silently failing when the imported file can't be read", async () => {

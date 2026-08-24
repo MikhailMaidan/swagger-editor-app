@@ -295,6 +295,8 @@ export const translations = {
     "workspace.matchCase": "Match case",
     "workspace.wholeWord": "Whole word",
     "workspace.errors.fileReadFailed": "Could not read that file.",
+    "workspace.confirmLargeImport":
+      "This file is larger than 5 MB and may slow the editor. Import it anyway?",
     "workspace.errors.infoTitleRequired": "Schema info.title is required.",
     "workspace.errors.pathsRequired": "Schema paths object is required.",
     "workspace.errors.schemaObject": "Schema must be an object.",
@@ -689,6 +691,8 @@ export const translations = {
     "workspace.matchCase": "Учитывать регистр",
     "workspace.wholeWord": "Слово целиком",
     "workspace.errors.fileReadFailed": "Не удалось прочитать файл.",
+    "workspace.confirmLargeImport":
+      "Размер файла превышает 5 МБ, что может замедлить редактор. Все равно импортировать?",
     "workspace.errors.infoTitleRequired": "Поле schema info.title обязательно.",
     "workspace.errors.pathsRequired": "Объект schema paths обязателен.",
     "workspace.errors.schemaObject": "Схема должна быть объектом.",

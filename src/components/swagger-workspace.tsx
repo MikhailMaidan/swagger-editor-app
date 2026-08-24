@@ -62,6 +62,7 @@ import {
   saveSchemaDraft,
 } from "@/lib/schema-draft";
 import { downloadSchemaFile } from "@/lib/schema-download";
+import { shouldConfirmSchemaImport } from "@/lib/schema-import";
 import { isPublicHttpServerUrl } from "@/lib/server-url";
 import {
   readSavedSchema,
@@ -554,9 +555,16 @@ export function SwaggerWorkspace({
   }
 
   function readSchemaFile(file: File) {
-    const reader = new FileReader();
-
     setImportError("");
+
+    if (
+      shouldConfirmSchemaImport(file.size) &&
+      !window.confirm(t("workspace.confirmLargeImport"))
+    ) {
+      return;
+    }
+
+    const reader = new FileReader();
 
     reader.onload = () => {
       if (typeof reader.result !== "string") {
