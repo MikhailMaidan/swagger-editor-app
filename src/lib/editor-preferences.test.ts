@@ -4,16 +4,34 @@ import {
   DEFAULT_EDITOR_INDENT_SIZE,
   EDITOR_FONT_SIZE_STORAGE_KEY,
   EDITOR_INDENT_SIZE_STORAGE_KEY,
+  EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
   EDITOR_WORD_WRAP_STORAGE_KEY,
   readEditorFontSizePreference,
   readEditorIndentSizePreference,
+  readEditorSearchMatchCasePreference,
   readEditorWordWrapPreference,
   saveEditorFontSizePreference,
   saveEditorIndentSizePreference,
+  saveEditorSearchMatchCasePreference,
   saveEditorWordWrapPreference,
 } from "./editor-preferences";
 
 describe("editor preferences", () => {
+  it("persists and removes case-sensitive schema search", () => {
+    expect(readEditorSearchMatchCasePreference()).toBe(false);
+    expect(saveEditorSearchMatchCasePreference(true)).toBe(true);
+    expect(readEditorSearchMatchCasePreference()).toBe(true);
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY),
+    ).toBe("true");
+
+    expect(saveEditorSearchMatchCasePreference(false)).toBe(true);
+    expect(readEditorSearchMatchCasePreference()).toBe(false);
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY),
+    ).toBeNull();
+  });
+
   it("persists non-default indentation and removes the default", () => {
     expect(readEditorIndentSizePreference()).toBe(DEFAULT_EDITOR_INDENT_SIZE);
     expect(saveEditorIndentSizePreference(4)).toBe(true);
@@ -65,10 +83,15 @@ describe("editor preferences", () => {
     window.localStorage.setItem(EDITOR_WORD_WRAP_STORAGE_KEY, "yes");
     window.localStorage.setItem(EDITOR_FONT_SIZE_STORAGE_KEY, "huge");
     window.localStorage.setItem(EDITOR_INDENT_SIZE_STORAGE_KEY, "8");
+    window.localStorage.setItem(
+      EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
+      "yes",
+    );
 
     expect(readEditorWordWrapPreference()).toBe(false);
     expect(readEditorFontSizePreference()).toBe(DEFAULT_EDITOR_FONT_SIZE);
     expect(readEditorIndentSizePreference()).toBe(DEFAULT_EDITOR_INDENT_SIZE);
+    expect(readEditorSearchMatchCasePreference()).toBe(false);
   });
 
   it("keeps the editor usable when storage is unavailable", () => {
@@ -90,6 +113,8 @@ describe("editor preferences", () => {
       expect(saveEditorFontSizePreference("large")).toBe(false);
       expect(readEditorIndentSizePreference()).toBe(DEFAULT_EDITOR_INDENT_SIZE);
       expect(saveEditorIndentSizePreference(4)).toBe(false);
+      expect(readEditorSearchMatchCasePreference()).toBe(false);
+      expect(saveEditorSearchMatchCasePreference(true)).toBe(false);
     } finally {
       getItemSpy.mockRestore();
       setItemSpy.mockRestore();

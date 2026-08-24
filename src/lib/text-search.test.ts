@@ -9,6 +9,9 @@ describe("text search helpers", () => {
       { end: 19, start: 14 },
     ]);
     expect(findTextMatches("a.b a-b", "a.b")).toEqual([{ end: 3, start: 0 }]);
+    expect(findTextMatches("Alpha . alpha ALPHA.", "alpha", true)).toEqual([
+      { end: 13, start: 8 },
+    ]);
     expect(findTextMatches("anything", "")).toEqual([]);
   });
 

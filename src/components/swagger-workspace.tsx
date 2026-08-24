@@ -18,9 +18,11 @@ import {
   DEFAULT_EDITOR_INDENT_SIZE,
   readEditorFontSizePreference,
   readEditorIndentSizePreference,
+  readEditorSearchMatchCasePreference,
   readEditorWordWrapPreference,
   saveEditorFontSizePreference,
   saveEditorIndentSizePreference,
+  saveEditorSearchMatchCasePreference,
   saveEditorWordWrapPreference,
 } from "@/lib/editor-preferences";
 import type {
@@ -128,6 +130,8 @@ export function SwaggerWorkspace({
     DEFAULT_EDITOR_INDENT_SIZE,
   );
   const [schemaSearch, setSchemaSearch] = useState("");
+  const [isSchemaSearchCaseSensitive, setIsSchemaSearchCaseSensitive] =
+    useState(false);
   const [activeSchemaMatchIndex, setActiveSchemaMatchIndex] = useState(-1);
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
@@ -170,8 +174,13 @@ export function SwaggerWorkspace({
     [schemaText],
   );
   const schemaSearchMatches = useMemo(
-    () => findTextMatches(schemaEditorText, schemaSearch),
-    [schemaEditorText, schemaSearch],
+    () =>
+      findTextMatches(
+        schemaEditorText,
+        schemaSearch,
+        isSchemaSearchCaseSensitive,
+      ),
+    [isSchemaSearchCaseSensitive, schemaEditorText, schemaSearch],
   );
   const activeSchemaMatchNumber =
     activeSchemaMatchIndex >= 0 &&
@@ -304,6 +313,8 @@ export function SwaggerWorkspace({
     const storedWordWrapPreference = readEditorWordWrapPreference();
     const storedFontSizePreference = readEditorFontSizePreference();
     const storedIndentSizePreference = readEditorIndentSizePreference();
+    const storedSearchMatchCasePreference =
+      readEditorSearchMatchCasePreference();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -311,6 +322,7 @@ export function SwaggerWorkspace({
         setIsWordWrapEnabled(storedWordWrapPreference);
         setEditorFontSize(storedFontSizePreference);
         setEditorIndentSize(storedIndentSizePreference);
+        setIsSchemaSearchCaseSensitive(storedSearchMatchCasePreference);
       }
     });
 
@@ -1097,6 +1109,21 @@ export function SwaggerWorkspace({
               }}
               onKeyDown={handleSchemaSearchKeyDown}
             />
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[color:var(--color-brand-muted)]">
+              <input
+                className="h-4 w-4 accent-[color:var(--color-brand-purple)]"
+                type="checkbox"
+                checked={isSchemaSearchCaseSensitive}
+                onChange={(event) => {
+                  const enabled = event.currentTarget.checked;
+
+                  setIsSchemaSearchCaseSensitive(enabled);
+                  saveEditorSearchMatchCasePreference(enabled);
+                  setActiveSchemaMatchIndex(-1);
+                }}
+              />
+              <span>{t("workspace.matchCase")}</span>
+            </label>
             <span
               aria-live="polite"
               className="min-w-16 text-center text-xs font-bold text-[color:var(--color-brand-muted)]"

@@ -9,12 +9,19 @@ function escapeRegularExpression(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function findTextMatches(value: string, query: string): TextMatch[] {
+export function findTextMatches(
+  value: string,
+  query: string,
+  caseSensitive = false,
+): TextMatch[] {
   if (!query) {
     return [];
   }
 
-  const pattern = new RegExp(escapeRegularExpression(query), "giu");
+  const pattern = new RegExp(
+    escapeRegularExpression(query),
+    caseSensitive ? "gu" : "giu",
+  );
 
   return Array.from(value.matchAll(pattern), (match) => ({
     end: match.index + match[0].length,

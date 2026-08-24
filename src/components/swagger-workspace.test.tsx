@@ -16,6 +16,7 @@ import {
 import {
   EDITOR_FONT_SIZE_STORAGE_KEY,
   EDITOR_INDENT_SIZE_STORAGE_KEY,
+  EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
   EDITOR_WORD_WRAP_STORAGE_KEY,
 } from "@/lib/editor-preferences";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
@@ -390,6 +391,31 @@ describe("SwaggerWorkspace", () => {
       "Alpha",
     );
     expect(screen.getByText("1 of 3")).toBeVisible();
+
+    const matchCase = screen.getByRole("checkbox", { name: "Match case" });
+
+    fireEvent.click(matchCase);
+
+    expect(matchCase).toBeChecked();
+    expect(screen.getByText("0 of 1")).toBeVisible();
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY),
+    ).toBe("true");
+
+    fireEvent.submit(searchInput.closest("form")!);
+
+    expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe(
+      "alpha",
+    );
+    expect(screen.getByText("1 of 1")).toBeVisible();
+
+    fireEvent.click(matchCase);
+
+    expect(matchCase).not.toBeChecked();
+    expect(screen.getByText("0 of 3")).toBeVisible();
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY),
+    ).toBeNull();
 
     expect(fireEvent.keyDown(searchInput, { key: "Escape" })).toBe(false);
     expect(searchInput).toHaveValue("");
