@@ -189,7 +189,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G",
+      "Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
     expect(wordWrap).toBeChecked();
@@ -219,7 +219,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G",
+      "Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "g" })).toBe(false);
     expect(lineInput).toHaveFocus();
@@ -362,7 +362,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(searchInput).toHaveAttribute(
       "aria-keyshortcuts",
-      "Control+F Meta+F",
+      "Control+F Meta+F Enter Shift+Enter F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "f" })).toBe(false);
     expect(searchInput).toHaveFocus();
@@ -447,6 +447,47 @@ describe("SwaggerWorkspace", () => {
     expect(searchInput).toHaveValue("");
     expect(editor).toHaveFocus();
     expect(screen.getByText("0 of 0")).toBeVisible();
+  });
+
+  it("navigates schema search results with Enter and F3", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search schema",
+    });
+
+    fireEvent.change(editor, { target: { value: "alpha beta alpha" } });
+    fireEvent.change(searchInput, { target: { value: "alpha" } });
+
+    expect(searchInput).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Control+F Meta+F Enter Shift+Enter F3 Shift+F3",
+    );
+    expect(fireEvent.keyDown(searchInput, { key: "F3" })).toBe(false);
+    expect(screen.getByText("1 of 2")).toBeVisible();
+
+    expect(fireEvent.keyDown(searchInput, { key: "F3", shiftKey: true })).toBe(
+      false,
+    );
+    expect(screen.getByText("2 of 2")).toBeVisible();
+
+    expect(
+      fireEvent.keyDown(searchInput, { key: "Enter", shiftKey: true }),
+    ).toBe(false);
+    expect(screen.getByText("1 of 2")).toBeVisible();
+
+    expect(fireEvent.keyDown(searchInput, { key: "Enter" })).toBe(false);
+    expect(screen.getByText("2 of 2")).toBeVisible();
+
+    expect(fireEvent.keyDown(editor, { key: "F3" })).toBe(false);
+    expect(searchInput).toHaveFocus();
+    expect(screen.getByText("1 of 2")).toBeVisible();
+    expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe(
+      "alpha",
+    );
   });
 
   it("updates document and Unicode selection statistics", () => {

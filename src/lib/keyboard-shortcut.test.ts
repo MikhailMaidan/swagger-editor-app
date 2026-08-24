@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getSchemaSearchNavigationDirection,
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
@@ -118,6 +119,33 @@ describe("keyboard shortcut helpers", () => {
     expect(isFindInSchemaShortcut(createKeyboardEvent({ key: "f" }))).toBe(
       false,
     );
+  });
+
+  it("maps schema search navigation keys in both directions", () => {
+    expect(getSchemaSearchNavigationDirection(createKeyboardEvent())).toBe(
+      "next",
+    );
+    expect(
+      getSchemaSearchNavigationDirection(
+        createKeyboardEvent({ shiftKey: true }),
+      ),
+    ).toBe("previous");
+    expect(
+      getSchemaSearchNavigationDirection(createKeyboardEvent({ key: "F3" })),
+    ).toBe("next");
+    expect(
+      getSchemaSearchNavigationDirection(
+        createKeyboardEvent({ key: "F3", shiftKey: true }),
+      ),
+    ).toBe("previous");
+    expect(
+      getSchemaSearchNavigationDirection(
+        createKeyboardEvent({ ctrlKey: true }),
+      ),
+    ).toBeNull();
+    expect(
+      getSchemaSearchNavigationDirection(createKeyboardEvent({ key: "f" })),
+    ).toBeNull();
   });
 
   it("recognizes the cross-platform go-to-line shortcut", () => {

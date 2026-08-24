@@ -62,6 +62,18 @@ export function isFindInSchemaShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function getSchemaSearchNavigationDirection(
+  event: KeyboardShortcutEvent,
+): "next" | "previous" | null {
+  const isNavigationKey = event.key === "Enter" || event.key === "F3";
+
+  if (!isNavigationKey || event.altKey || event.ctrlKey || event.metaKey) {
+    return null;
+  }
+
+  return event.shiftKey ? "previous" : "next";
+}
+
 export function isGoToLineShortcut(event: KeyboardShortcutEvent) {
   return (
     event.key.toLowerCase() === "g" &&

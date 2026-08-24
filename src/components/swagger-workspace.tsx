@@ -32,6 +32,7 @@ import type {
   EditorIndentSize,
 } from "@/lib/editor-preferences";
 import {
+  getSchemaSearchNavigationDirection,
   isCancelRequestShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
@@ -816,6 +817,14 @@ export function SwaggerWorkspace({
   function handleSchemaSearchKeyDown(
     event: ReactKeyboardEvent<HTMLInputElement>,
   ) {
+    const navigationDirection = getSchemaSearchNavigationDirection(event);
+
+    if (navigationDirection) {
+      event.preventDefault();
+      navigateSchemaSearch(navigationDirection);
+      return;
+    }
+
     if (!isCancelRequestShortcut(event)) {
       return;
     }
@@ -871,6 +880,14 @@ export function SwaggerWorkspace({
     if (isFindInSchemaShortcut(event)) {
       event.preventDefault();
       focusSchemaSearch();
+      return;
+    }
+
+    const searchNavigationDirection = getSchemaSearchNavigationDirection(event);
+
+    if (schemaSearch && event.key === "F3" && searchNavigationDirection) {
+      event.preventDefault();
+      navigateSchemaSearch(searchNavigationDirection);
       return;
     }
 
@@ -1109,7 +1126,7 @@ export function SwaggerWorkspace({
           >
             <input
               ref={schemaSearchInputRef}
-              aria-keyshortcuts="Control+F Meta+F"
+              aria-keyshortcuts="Control+F Meta+F Enter Shift+Enter F3 Shift+F3"
               aria-label={t("workspace.searchSchema")}
               className="min-w-48 flex-1 rounded-md border border-[color:var(--color-brand-border)] bg-[#fbfaff] px-3 py-2 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
               type="search"
@@ -1188,7 +1205,7 @@ export function SwaggerWorkspace({
           }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
-          aria-keyshortcuts="Alt+Z Control+F Meta+F Control+G Meta+G"
+          aria-keyshortcuts="Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3"
           spellCheck={false}
           wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}
