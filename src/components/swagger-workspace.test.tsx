@@ -295,6 +295,55 @@ describe("SwaggerWorkspace", () => {
     ).toBeNull();
   });
 
+  it("converts line endings without moving the logical selection", async () => {
+    const schemaText =
+      "openapi: 3.0.0\r\ninfo:\r\n  title: Line Endings\r\n  version: 1.0.0\r\npaths: {}";
+    window.localStorage.setItem(SCHEMA_DRAFT_STORAGE_KEY, schemaText);
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const lineEndings = screen.getByRole("combobox", {
+      name: "Line endings",
+    });
+
+    await waitFor(() => expect(lineEndings).toHaveValue("crlf"));
+
+    const selectionStart = editor.value.indexOf("title");
+
+    editor.setSelectionRange(selectionStart, selectionStart + 5);
+    fireEvent.select(editor);
+
+    expect(screen.getByText("Selected 5")).toBeVisible();
+
+    fireEvent.change(lineEndings, { target: { value: "lf" } });
+
+    expect(editor.value).not.toContain("\r");
+    await waitFor(() =>
+      expect(
+        editor.value.slice(editor.selectionStart, editor.selectionEnd),
+      ).toBe("title"),
+    );
+    expect(screen.getByText("Line 3, column 3")).toBeVisible();
+    expect(lineEndings).toHaveValue("lf");
+
+    fireEvent.change(lineEndings, { target: { value: "crlf" } });
+
+    await waitFor(() =>
+      expect(
+        editor.value.slice(editor.selectionStart, editor.selectionEnd),
+      ).toBe("title"),
+    );
+    expect(lineEndings).toHaveValue("crlf");
+
+    fireEvent.change(editor, {
+      target: { value: `${editor.value}\ncomponents: {}` },
+    });
+
+    expect(lineEndings).toHaveValue("crlf");
+  });
+
   it("updates document and Unicode selection statistics", () => {
     render(<SwaggerWorkspace />);
 

@@ -66,6 +66,11 @@ import {
   takeStagedSavedSchemaForEditor,
 } from "@/lib/schema-storage";
 import { changeTextIndentation } from "@/lib/text-indentation";
+import {
+  detectTextLineEnding,
+  normalizeTextLineEndings,
+} from "@/lib/text-line-endings";
+import type { NormalizedLineEnding } from "@/lib/text-line-endings";
 import { getTextOffset, getTextPosition } from "@/lib/text-position";
 import { getSelectedCharacterCount, getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
@@ -102,6 +107,7 @@ export function SwaggerWorkspace({
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const endpointFilterInputRef = useRef<HTMLInputElement>(null);
   const goToLineInputRef = useRef<HTMLInputElement>(null);
+  const editorSelectionRef = useRef({ end: 0, start: 0 });
   const pendingEditorSelectionRef = useRef<{
     end: number;
     start: number;
@@ -149,6 +155,10 @@ export function SwaggerWorkspace({
     [debouncedSchemaText],
   );
   const schemaStats = useMemo(() => getTextStats(schemaText), [schemaText]);
+  const detectedLineEnding = useMemo(
+    () => detectTextLineEnding(schemaText),
+    [schemaText],
+  );
   const detectedFormat = parseResult.ok
     ? parseResult.value.format
     : parseResult.format;
@@ -256,6 +266,11 @@ export function SwaggerWorkspace({
       editor.setSelectionRange(pendingSelection.start, pendingSelection.end);
       pendingEditorSelectionRef.current = null;
     }
+
+    editorSelectionRef.current = {
+      end: editor.selectionEnd,
+      start: editor.selectionStart,
+    };
 
     setSelectedCharacterCount(
       getSelectedCharacterCount(
@@ -568,6 +583,7 @@ export function SwaggerWorkspace({
     setEditorCursor({ column: 1, line: 1 });
     setSelectedCharacterCount(0);
     editorRef.current?.setSelectionRange(0, 0);
+    editorSelectionRef.current = { end: 0, start: 0 };
     setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
@@ -619,6 +635,10 @@ export function SwaggerWorkspace({
   function handleEditorSelection(event: SyntheticEvent<HTMLTextAreaElement>) {
     const editor = event.currentTarget;
 
+    editorSelectionRef.current = {
+      end: editor.selectionEnd,
+      start: editor.selectionStart,
+    };
     setEditorCursor(getTextPosition(editor.value, editor.selectionStart));
     setSelectedCharacterCount(
       getSelectedCharacterCount(
@@ -647,6 +667,55 @@ export function SwaggerWorkspace({
     saveEditorIndentSizePreference(indentSize);
   }
 
+  function handleLineEndingChange(event: ChangeEvent<HTMLSelectElement>) {
+    const lineEnding = event.currentTarget.value;
+    const editor = editorRef.current;
+
+    if (!editor || (lineEnding !== "lf" && lineEnding !== "crlf")) {
+      return;
+    }
+
+    const normalizedLineEnding: NormalizedLineEnding = lineEnding;
+    const currentSelection = editorSelectionRef.current;
+    const selectionStartPosition = getTextPosition(
+      editor.value,
+      currentSelection.start,
+    );
+    const selectionEndPosition = getTextPosition(
+      editor.value,
+      currentSelection.end,
+    );
+    const nextSchemaText = normalizeTextLineEndings(
+      schemaText,
+      normalizedLineEnding,
+    );
+
+    if (nextSchemaText === schemaText) {
+      return;
+    }
+
+    const nextEditorValue = normalizeTextLineEndings(nextSchemaText, "lf");
+    const selectionStart = getTextOffset(
+      nextEditorValue,
+      selectionStartPosition,
+    );
+    const selectionEnd = getTextOffset(nextEditorValue, selectionEndPosition);
+
+    markSchemaEdited();
+    pendingEditorSelectionRef.current = {
+      end: selectionEnd,
+      start: selectionStart,
+    };
+    setSchemaText(nextSchemaText);
+    setEditorCursor(getTextPosition(nextEditorValue, selectionStart));
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(nextEditorValue, selectionStart, selectionEnd),
+    );
+    setCopiedSchemaText(null);
+    setSaveMessage("");
+    setImportError("");
+  }
+
   function updateWordWrapPreference(enabled: boolean) {
     setIsWordWrapEnabled(enabled);
     saveEditorWordWrapPreference(enabled);
@@ -671,6 +740,7 @@ export function SwaggerWorkspace({
     input.value = String(line);
     editor.focus();
     editor.setSelectionRange(offset, offset);
+    editorSelectionRef.current = { end: offset, start: offset };
     setEditorCursor(getTextPosition(schemaText, offset));
     setSelectedCharacterCount(0);
   }
@@ -727,6 +797,10 @@ export function SwaggerWorkspace({
     );
 
     setEditorCursor(getTextPosition(result.value, result.selectionStart));
+    editorSelectionRef.current = {
+      end: result.selectionEnd,
+      start: result.selectionStart,
+    };
     setSelectedCharacterCount(
       getSelectedCharacterCount(
         result.value,
@@ -745,7 +819,11 @@ export function SwaggerWorkspace({
       end: result.selectionEnd,
       start: result.selectionStart,
     };
-    setSchemaText(result.value);
+    setSchemaText(
+      detectedLineEnding === "crlf"
+        ? normalizeTextLineEndings(result.value, "crlf")
+        : result.value,
+    );
     setCopiedSchemaText(null);
     setSaveMessage("");
     setImportError("");
@@ -803,6 +881,7 @@ export function SwaggerWorkspace({
 
     editor.focus();
     editor.setSelectionRange(offset, offset);
+    editorSelectionRef.current = { end: offset, start: offset };
     setEditorCursor(getTextPosition(schemaText, offset));
     setSelectedCharacterCount(0);
   }
@@ -924,14 +1003,24 @@ export function SwaggerWorkspace({
           onDrop={handleEditorFileDrop}
           onKeyDown={handleEditorKeyDown}
           onChange={(event) => {
+            const editorValue = event.target.value;
+
+            editorSelectionRef.current = {
+              end: event.target.selectionEnd,
+              start: event.target.selectionStart,
+            };
             markSchemaEdited();
-            setSchemaText(event.target.value);
+            setSchemaText(
+              detectedLineEnding === "crlf"
+                ? normalizeTextLineEndings(editorValue, "crlf")
+                : editorValue,
+            );
             setEditorCursor(
-              getTextPosition(event.target.value, event.target.selectionStart),
+              getTextPosition(editorValue, event.target.selectionStart),
             );
             setSelectedCharacterCount(
               getSelectedCharacterCount(
-                event.target.value,
+                editorValue,
                 event.target.selectionStart,
                 event.target.selectionEnd,
               ),
@@ -974,6 +1063,33 @@ export function SwaggerWorkspace({
                 {t("workspace.goToLineAction")}
               </button>
             </form>
+            <label className="flex items-center gap-2">
+              <span>{t("workspace.lineEndings")}</span>
+              <select
+                className="min-w-20 rounded-md border border-[color:var(--color-brand-border)] bg-white px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:bg-[color:var(--color-brand-soft)]"
+                disabled={detectedLineEnding === "none"}
+                value={detectedLineEnding}
+                onChange={handleLineEndingChange}
+              >
+                {detectedLineEnding === "none" ? (
+                  <option disabled value="none">
+                    {t("workspace.lineEndingsNone")}
+                  </option>
+                ) : null}
+                {detectedLineEnding === "mixed" ? (
+                  <option disabled value="mixed">
+                    {t("workspace.lineEndingsMixed")}
+                  </option>
+                ) : null}
+                {detectedLineEnding === "cr" ? (
+                  <option disabled value="cr">
+                    {t("workspace.lineEndingsCr")}
+                  </option>
+                ) : null}
+                <option value="lf">LF</option>
+                <option value="crlf">CRLF</option>
+              </select>
+            </label>
             <label className="flex items-center gap-2">
               <span>{t("workspace.editorIndentSize")}</span>
               <select
