@@ -15,6 +15,19 @@ describe("text search helpers", () => {
     expect(findTextMatches("anything", "")).toEqual([]);
   });
 
+  it("matches whole words across ASCII and Unicode text", () => {
+    expect(
+      findTextMatches("cat cats cat-id _cat cat2 cat", "cat", false, true),
+    ).toEqual([
+      { end: 3, start: 0 },
+      { end: 12, start: 9 },
+      { end: 29, start: 26 },
+    ]);
+    expect(findTextMatches("тест тесты предтест", "тест", false, true)).toEqual(
+      [{ end: 4, start: 0 }],
+    );
+  });
+
   it("navigates from selections and wraps in both directions", () => {
     const matches = findTextMatches("one two one", "one");
 

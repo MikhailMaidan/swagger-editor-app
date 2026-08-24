@@ -19,10 +19,12 @@ import {
   readEditorFontSizePreference,
   readEditorIndentSizePreference,
   readEditorSearchMatchCasePreference,
+  readEditorSearchWholeWordPreference,
   readEditorWordWrapPreference,
   saveEditorFontSizePreference,
   saveEditorIndentSizePreference,
   saveEditorSearchMatchCasePreference,
+  saveEditorSearchWholeWordPreference,
   saveEditorWordWrapPreference,
 } from "@/lib/editor-preferences";
 import type {
@@ -132,6 +134,7 @@ export function SwaggerWorkspace({
   const [schemaSearch, setSchemaSearch] = useState("");
   const [isSchemaSearchCaseSensitive, setIsSchemaSearchCaseSensitive] =
     useState(false);
+  const [isSchemaSearchWholeWord, setIsSchemaSearchWholeWord] = useState(false);
   const [activeSchemaMatchIndex, setActiveSchemaMatchIndex] = useState(-1);
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
@@ -179,8 +182,14 @@ export function SwaggerWorkspace({
         schemaEditorText,
         schemaSearch,
         isSchemaSearchCaseSensitive,
+        isSchemaSearchWholeWord,
       ),
-    [isSchemaSearchCaseSensitive, schemaEditorText, schemaSearch],
+    [
+      isSchemaSearchCaseSensitive,
+      isSchemaSearchWholeWord,
+      schemaEditorText,
+      schemaSearch,
+    ],
   );
   const activeSchemaMatchNumber =
     activeSchemaMatchIndex >= 0 &&
@@ -315,6 +324,8 @@ export function SwaggerWorkspace({
     const storedIndentSizePreference = readEditorIndentSizePreference();
     const storedSearchMatchCasePreference =
       readEditorSearchMatchCasePreference();
+    const storedSearchWholeWordPreference =
+      readEditorSearchWholeWordPreference();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -323,6 +334,7 @@ export function SwaggerWorkspace({
         setEditorFontSize(storedFontSizePreference);
         setEditorIndentSize(storedIndentSizePreference);
         setIsSchemaSearchCaseSensitive(storedSearchMatchCasePreference);
+        setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
       }
     });
 
@@ -1123,6 +1135,21 @@ export function SwaggerWorkspace({
                 }}
               />
               <span>{t("workspace.matchCase")}</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[color:var(--color-brand-muted)]">
+              <input
+                className="h-4 w-4 accent-[color:var(--color-brand-purple)]"
+                type="checkbox"
+                checked={isSchemaSearchWholeWord}
+                onChange={(event) => {
+                  const enabled = event.currentTarget.checked;
+
+                  setIsSchemaSearchWholeWord(enabled);
+                  saveEditorSearchWholeWordPreference(enabled);
+                  setActiveSchemaMatchIndex(-1);
+                }}
+              />
+              <span>{t("workspace.wholeWord")}</span>
             </label>
             <span
               aria-live="polite"

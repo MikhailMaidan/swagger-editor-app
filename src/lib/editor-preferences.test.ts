@@ -5,14 +5,17 @@ import {
   EDITOR_FONT_SIZE_STORAGE_KEY,
   EDITOR_INDENT_SIZE_STORAGE_KEY,
   EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
+  EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
   EDITOR_WORD_WRAP_STORAGE_KEY,
   readEditorFontSizePreference,
   readEditorIndentSizePreference,
   readEditorSearchMatchCasePreference,
+  readEditorSearchWholeWordPreference,
   readEditorWordWrapPreference,
   saveEditorFontSizePreference,
   saveEditorIndentSizePreference,
   saveEditorSearchMatchCasePreference,
+  saveEditorSearchWholeWordPreference,
   saveEditorWordWrapPreference,
 } from "./editor-preferences";
 
@@ -29,6 +32,21 @@ describe("editor preferences", () => {
     expect(readEditorSearchMatchCasePreference()).toBe(false);
     expect(
       window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY),
+    ).toBeNull();
+  });
+
+  it("persists and removes whole-word schema search", () => {
+    expect(readEditorSearchWholeWordPreference()).toBe(false);
+    expect(saveEditorSearchWholeWordPreference(true)).toBe(true);
+    expect(readEditorSearchWholeWordPreference()).toBe(true);
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY),
+    ).toBe("true");
+
+    expect(saveEditorSearchWholeWordPreference(false)).toBe(true);
+    expect(readEditorSearchWholeWordPreference()).toBe(false);
+    expect(
+      window.localStorage.getItem(EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY),
     ).toBeNull();
   });
 
@@ -87,11 +105,16 @@ describe("editor preferences", () => {
       EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
       "yes",
     );
+    window.localStorage.setItem(
+      EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
+      "yes",
+    );
 
     expect(readEditorWordWrapPreference()).toBe(false);
     expect(readEditorFontSizePreference()).toBe(DEFAULT_EDITOR_FONT_SIZE);
     expect(readEditorIndentSizePreference()).toBe(DEFAULT_EDITOR_INDENT_SIZE);
     expect(readEditorSearchMatchCasePreference()).toBe(false);
+    expect(readEditorSearchWholeWordPreference()).toBe(false);
   });
 
   it("keeps the editor usable when storage is unavailable", () => {
@@ -115,6 +138,8 @@ describe("editor preferences", () => {
       expect(saveEditorIndentSizePreference(4)).toBe(false);
       expect(readEditorSearchMatchCasePreference()).toBe(false);
       expect(saveEditorSearchMatchCasePreference(true)).toBe(false);
+      expect(readEditorSearchWholeWordPreference()).toBe(false);
+      expect(saveEditorSearchWholeWordPreference(true)).toBe(false);
     } finally {
       getItemSpy.mockRestore();
       setItemSpy.mockRestore();

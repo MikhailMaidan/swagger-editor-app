@@ -5,14 +5,45 @@ export type TextMatch = {
 
 export type TextSearchDirection = "next" | "previous";
 
+const WORD_CHARACTER_PATTERN = /[\p{L}\p{N}_]/u;
+
 function escapeRegularExpression(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getCodePointBefore(value: string, index: number) {
+  if (index <= 0) {
+    return "";
+  }
+
+  const trailingCodeUnit = value.charCodeAt(index - 1);
+  if (trailingCodeUnit >= 0xdc00 && trailingCodeUnit <= 0xdfff && index >= 2) {
+    const leadingCodeUnit = value.charCodeAt(index - 2);
+    if (leadingCodeUnit >= 0xd800 && leadingCodeUnit <= 0xdbff) {
+      return value.slice(index - 2, index);
+    }
+  }
+
+  return value[index - 1];
+}
+
+function getCodePointAt(value: string, index: number) {
+  const codePoint = value.codePointAt(index);
+  return codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+}
+
+function hasWholeWordBoundaries(value: string, match: TextMatch) {
+  return (
+    !WORD_CHARACTER_PATTERN.test(getCodePointBefore(value, match.start)) &&
+    !WORD_CHARACTER_PATTERN.test(getCodePointAt(value, match.end))
+  );
 }
 
 export function findTextMatches(
   value: string,
   query: string,
   caseSensitive = false,
+  wholeWord = false,
 ): TextMatch[] {
   if (!query) {
     return [];
@@ -23,10 +54,14 @@ export function findTextMatches(
     caseSensitive ? "gu" : "giu",
   );
 
-  return Array.from(value.matchAll(pattern), (match) => ({
+  const matches = Array.from(value.matchAll(pattern), (match) => ({
     end: match.index + match[0].length,
     start: match.index,
   }));
+
+  return wholeWord
+    ? matches.filter((match) => hasWholeWordBoundaries(value, match))
+    : matches;
 }
 
 export function getNextTextMatchIndex(

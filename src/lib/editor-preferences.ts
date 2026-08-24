@@ -3,6 +3,8 @@ export const EDITOR_FONT_SIZE_STORAGE_KEY = "rsswagger-editor-font-size";
 export const EDITOR_INDENT_SIZE_STORAGE_KEY = "rsswagger-editor-indent-size";
 export const EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY =
   "rsswagger-editor-schema-search-match-case";
+export const EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY =
+  "rsswagger-editor-schema-search-whole-word";
 
 export type EditorFontSize = "large" | "medium" | "small";
 export type EditorIndentSize = 2 | 4;
@@ -40,6 +42,46 @@ export function saveEditorSearchMatchCasePreference(enabled: boolean): boolean {
     } else {
       window.localStorage.removeItem(
         EDITOR_SCHEMA_SEARCH_MATCH_CASE_STORAGE_KEY,
+      );
+    }
+
+    return true;
+  } catch {
+    // Search still works for the current session when storage is blocked.
+    return false;
+  }
+}
+
+export function readEditorSearchWholeWordPreference(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return (
+      window.localStorage.getItem(
+        EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
+      ) === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function saveEditorSearchWholeWordPreference(enabled: boolean): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    if (enabled) {
+      window.localStorage.setItem(
+        EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
+        "true",
+      );
+    } else {
+      window.localStorage.removeItem(
+        EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
       );
     }
 
