@@ -26,6 +26,7 @@ import {
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
   isFormatSchemaShortcut,
+  isGoToLineShortcut,
   isSaveSchemaShortcut,
   isToggleWordWrapShortcut,
 } from "@/lib/keyboard-shortcut";
@@ -59,7 +60,7 @@ import {
   takeStagedSavedSchemaForEditor,
 } from "@/lib/schema-storage";
 import { changeTextIndentation } from "@/lib/text-indentation";
-import { getTextPosition } from "@/lib/text-position";
+import { getTextOffset, getTextPosition } from "@/lib/text-position";
 import { getSelectedCharacterCount, getTextStats } from "@/lib/text-stats";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -94,6 +95,7 @@ export function SwaggerWorkspace({
   const { t } = useI18n();
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const endpointFilterInputRef = useRef<HTMLInputElement>(null);
+  const goToLineInputRef = useRef<HTMLInputElement>(null);
   const pendingEditorSelectionRef = useRef<{
     end: number;
     start: number;
@@ -632,6 +634,29 @@ export function SwaggerWorkspace({
     saveEditorWordWrapPreference(enabled);
   }
 
+  function handleGoToLine(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const editor = editorRef.current;
+    const input = goToLineInputRef.current;
+
+    if (!editor || !input) {
+      return;
+    }
+
+    const requestedLine = Number(input.value);
+    const line = Number.isFinite(requestedLine)
+      ? Math.min(Math.max(Math.trunc(requestedLine), 1), schemaStats.lineCount)
+      : 1;
+    const offset = getTextOffset(schemaText, { column: 1, line });
+
+    input.value = String(line);
+    editor.focus();
+    editor.setSelectionRange(offset, offset);
+    setEditorCursor(getTextPosition(schemaText, offset));
+    setSelectedCharacterCount(0);
+  }
+
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (isSaveSchemaShortcut(event)) {
       event.preventDefault();
@@ -652,6 +677,19 @@ export function SwaggerWorkspace({
     if (isToggleWordWrapShortcut(event)) {
       event.preventDefault();
       updateWordWrapPreference(!isWordWrapEnabled);
+      return;
+    }
+
+    if (isGoToLineShortcut(event)) {
+      event.preventDefault();
+
+      const input = goToLineInputRef.current;
+
+      if (input) {
+        input.value = String(editorCursor.line);
+        input.focus();
+      }
+
       return;
     }
 
@@ -858,7 +896,7 @@ export function SwaggerWorkspace({
           }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
-          aria-keyshortcuts="Alt+Z"
+          aria-keyshortcuts="Alt+Z Control+G Meta+G"
           spellCheck={false}
           wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}
@@ -894,6 +932,29 @@ export function SwaggerWorkspace({
             })}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+            <form
+              className="flex items-center gap-2"
+              noValidate
+              onSubmit={handleGoToLine}
+            >
+              <label className="flex items-center gap-2">
+                <span>{t("workspace.goToLine")}</span>
+                <input
+                  ref={goToLineInputRef}
+                  className="w-16 rounded-md border border-[color:var(--color-brand-border)] bg-white px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                  type="number"
+                  defaultValue="1"
+                  min="1"
+                  max={schemaStats.lineCount}
+                />
+              </label>
+              <button
+                className="rounded-md border border-[color:var(--color-brand-border)] bg-white px-2 py-1 text-xs font-bold text-[color:var(--color-brand-navy)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                type="submit"
+              >
+                {t("workspace.goToLineAction")}
+              </button>
+            </form>
             <label className="flex items-center gap-2">
               <span>{t("workspace.editorFontSize")}</span>
               <select

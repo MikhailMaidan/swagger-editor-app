@@ -184,7 +184,10 @@ describe("SwaggerWorkspace", () => {
     const editor = screen.getByLabelText("OpenAPI schema editor");
     const wordWrap = screen.getByRole("checkbox", { name: "Word wrap" });
 
-    expect(editor).toHaveAttribute("aria-keyshortcuts", "Alt+Z");
+    expect(editor).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Alt+Z Control+G Meta+G",
+    );
     expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
     expect(wordWrap).toBeChecked();
     expect(editor).toHaveAttribute("wrap", "soft");
@@ -197,6 +200,45 @@ describe("SwaggerWorkspace", () => {
     expect(editor).toHaveAttribute("wrap", "off");
 
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "s" })).toBe(false);
+  });
+
+  it("focuses go to line with the shortcut and clamps navigation", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const lineInput = screen.getByRole("spinbutton", { name: "Go to line" });
+    const titleOffset = editor.value.indexOf("title") + 2;
+
+    editor.setSelectionRange(titleOffset, titleOffset);
+    fireEvent.select(editor);
+
+    expect(editor).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Alt+Z Control+G Meta+G",
+    );
+    expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "g" })).toBe(false);
+    expect(lineInput).toHaveFocus();
+    expect(lineInput).toHaveValue(3);
+
+    fireEvent.change(lineInput, { target: { value: "999" } });
+    fireEvent.submit(lineInput.closest("form")!);
+
+    const lastLineOffset = editor.value.lastIndexOf("\n") + 1;
+
+    expect(editor).toHaveFocus();
+    expect(editor.selectionStart).toBe(lastLineOffset);
+    expect(editor.selectionEnd).toBe(lastLineOffset);
+    expect(lineInput).toHaveValue(editor.value.split("\n").length);
+    expect(screen.getByText(/Line \d+, column 1/)).toBeVisible();
+
+    fireEvent.change(lineInput, { target: { value: "" } });
+    fireEvent.submit(lineInput.closest("form")!);
+
+    expect(editor.selectionStart).toBe(0);
+    expect(lineInput).toHaveValue(1);
+    expect(screen.getByText("Line 1, column 1")).toBeVisible();
   });
 
   it("supports Tab and Shift+Tab indentation in the schema editor", () => {

@@ -4,6 +4,7 @@ import {
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
   isFormatSchemaShortcut,
+  isGoToLineShortcut,
   isRunRequestShortcut,
   isSaveSchemaShortcut,
   isToggleWordWrapShortcut,
@@ -99,6 +100,21 @@ describe("keyboard shortcut helpers", () => {
         createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
       ),
     ).toBe(false);
+  });
+
+  it("recognizes the cross-platform go-to-line shortcut", () => {
+    expect(
+      isGoToLineShortcut(createKeyboardEvent({ ctrlKey: true, key: "g" })),
+    ).toBe(true);
+    expect(
+      isGoToLineShortcut(createKeyboardEvent({ key: "G", metaKey: true })),
+    ).toBe(true);
+    expect(
+      isGoToLineShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "g", shiftKey: true }),
+      ),
+    ).toBe(false);
+    expect(isGoToLineShortcut(createKeyboardEvent({ key: "g" }))).toBe(false);
   });
 
   it("recognizes only Alt+Z as the word wrap shortcut", () => {

@@ -53,6 +53,15 @@ export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function isGoToLineShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "g" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    !event.shiftKey
+  );
+}
+
 export function isToggleWordWrapShortcut(event: KeyboardShortcutEvent) {
   return (
     event.key.toLowerCase() === "z" &&

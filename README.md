@@ -17,6 +17,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Schema save with `Ctrl+S` or `Cmd+S`, and formatting with `Ctrl+Shift+F` or
   `Cmd+Shift+F`
 - Persistent editor word wrap with `Alt+Z`
+- Line navigation with `Ctrl+G` or `Cmd+G`
 - Endpoint search focus with `/` outside editable controls
 - Authentication-aware schema saving and request history
 - Server-rendered history analytics in English and Russian
