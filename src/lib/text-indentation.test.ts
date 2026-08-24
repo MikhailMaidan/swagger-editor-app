@@ -10,6 +10,14 @@ describe("text indentation helpers", () => {
     });
   });
 
+  it("supports configurable indentation widths", () => {
+    expect(changeTextIndentation("name", 2, 2, false, 4)).toEqual({
+      selectionEnd: 6,
+      selectionStart: 6,
+      value: "na    me",
+    });
+  });
+
   it("indents every line touched by a selection", () => {
     const value = "root:\nchild:\nleaf:";
 
@@ -25,6 +33,23 @@ describe("text indentation helpers", () => {
       selectionEnd: 6,
       selectionStart: 2,
       value: "  one\ntwo\nthree",
+    });
+  });
+
+  it("supports CR-only lines and CRLF selection boundaries", () => {
+    const crValue = "root:\rchild:\rleaf:";
+
+    expect(changeTextIndentation(crValue, 0, crValue.length, false, 4)).toEqual(
+      {
+        selectionEnd: crValue.length + 12,
+        selectionStart: 4,
+        value: "    root:\r    child:\r    leaf:",
+      },
+    );
+    expect(changeTextIndentation("one\r\ntwo", 0, 5, false, 4)).toEqual({
+      selectionEnd: 9,
+      selectionStart: 4,
+      value: "    one\r\ntwo",
     });
   });
 
@@ -45,6 +70,16 @@ describe("text indentation helpers", () => {
       selectionEnd: 0,
       selectionStart: 0,
       value: "child",
+    });
+  });
+
+  it("outdents mixed whitespace up to the configured width", () => {
+    const value = "    one\n  two\n\tthree";
+
+    expect(changeTextIndentation(value, 0, value.length, true, 4)).toEqual({
+      selectionEnd: value.length - 7,
+      selectionStart: 0,
+      value: "one\ntwo\nthree",
     });
   });
 });

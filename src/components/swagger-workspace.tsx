@@ -15,12 +15,18 @@ import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   DEFAULT_EDITOR_FONT_SIZE,
+  DEFAULT_EDITOR_INDENT_SIZE,
   readEditorFontSizePreference,
+  readEditorIndentSizePreference,
   readEditorWordWrapPreference,
   saveEditorFontSizePreference,
+  saveEditorIndentSizePreference,
   saveEditorWordWrapPreference,
 } from "@/lib/editor-preferences";
-import type { EditorFontSize } from "@/lib/editor-preferences";
+import type {
+  EditorFontSize,
+  EditorIndentSize,
+} from "@/lib/editor-preferences";
 import {
   isCancelRequestShortcut,
   isEditableShortcutTarget,
@@ -107,6 +113,9 @@ export function SwaggerWorkspace({
   const [isWordWrapEnabled, setIsWordWrapEnabled] = useState(false);
   const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(
     DEFAULT_EDITOR_FONT_SIZE,
+  );
+  const [editorIndentSize, setEditorIndentSize] = useState<EditorIndentSize>(
+    DEFAULT_EDITOR_INDENT_SIZE,
   );
   const hasEditedSchemaRef = useRef(false);
   const lastSavedSchemaRef = useRef<SavedSchemaRecord | null>(null);
@@ -260,12 +269,14 @@ export function SwaggerWorkspace({
   useEffect(() => {
     const storedWordWrapPreference = readEditorWordWrapPreference();
     const storedFontSizePreference = readEditorFontSizePreference();
+    const storedIndentSizePreference = readEditorIndentSizePreference();
     let cancelled = false;
 
     queueMicrotask(() => {
       if (!cancelled) {
         setIsWordWrapEnabled(storedWordWrapPreference);
         setEditorFontSize(storedFontSizePreference);
+        setEditorIndentSize(storedIndentSizePreference);
       }
     });
 
@@ -629,6 +640,13 @@ export function SwaggerWorkspace({
     saveEditorFontSizePreference(fontSize);
   }
 
+  function handleEditorIndentSizeChange(event: ChangeEvent<HTMLSelectElement>) {
+    const indentSize = Number(event.currentTarget.value) as EditorIndentSize;
+
+    setEditorIndentSize(indentSize);
+    saveEditorIndentSizePreference(indentSize);
+  }
+
   function updateWordWrapPreference(enabled: boolean) {
     setIsWordWrapEnabled(enabled);
     saveEditorWordWrapPreference(enabled);
@@ -705,6 +723,7 @@ export function SwaggerWorkspace({
       editor.selectionStart,
       editor.selectionEnd,
       event.shiftKey,
+      editorIndentSize,
     );
 
     setEditorCursor(getTextPosition(result.value, result.selectionStart));
@@ -955,6 +974,21 @@ export function SwaggerWorkspace({
                 {t("workspace.goToLineAction")}
               </button>
             </form>
+            <label className="flex items-center gap-2">
+              <span>{t("workspace.editorIndentSize")}</span>
+              <select
+                className="min-w-20 rounded-md border border-[color:var(--color-brand-border)] bg-white px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
+                value={editorIndentSize}
+                onChange={handleEditorIndentSizeChange}
+              >
+                <option value="2">
+                  {t("workspace.editorIndentSizeTwoSpaces")}
+                </option>
+                <option value="4">
+                  {t("workspace.editorIndentSizeFourSpaces")}
+                </option>
+              </select>
+            </label>
             <label className="flex items-center gap-2">
               <span>{t("workspace.editorFontSize")}</span>
               <select

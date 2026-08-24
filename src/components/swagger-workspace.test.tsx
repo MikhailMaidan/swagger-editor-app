@@ -15,6 +15,7 @@ import {
 } from "@/lib/endpoint-link";
 import {
   EDITOR_FONT_SIZE_STORAGE_KEY,
+  EDITOR_INDENT_SIZE_STORAGE_KEY,
   EDITOR_WORD_WRAP_STORAGE_KEY,
 } from "@/lib/editor-preferences";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
@@ -262,6 +263,36 @@ describe("SwaggerWorkspace", () => {
     expect(editor.selectionStart).toBe(0);
     expect(editor.selectionEnd).toBe(0);
     expect(screen.getByText("Line 1, column 1")).toBeVisible();
+  });
+
+  it("restores and applies four-space editor indentation", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(EDITOR_INDENT_SIZE_STORAGE_KEY, "4");
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const indentSize = screen.getByRole("combobox", { name: "Indent size" });
+
+    await waitFor(() => expect(indentSize).toHaveValue("4"));
+
+    editor.setSelectionRange(0, 0);
+    fireEvent.keyDown(editor, { key: "Tab" });
+
+    expect(editor.value).toBe(`    ${DEFAULT_OPENAPI_SCHEMA}`);
+    expect(editor.selectionStart).toBe(4);
+
+    fireEvent.keyDown(editor, { key: "Tab", shiftKey: true });
+
+    expect(editor.value).toBe(DEFAULT_OPENAPI_SCHEMA);
+    expect(editor.selectionStart).toBe(0);
+
+    await user.selectOptions(indentSize, "2");
+
+    expect(
+      window.localStorage.getItem(EDITOR_INDENT_SIZE_STORAGE_KEY),
+    ).toBeNull();
   });
 
   it("updates document and Unicode selection statistics", () => {

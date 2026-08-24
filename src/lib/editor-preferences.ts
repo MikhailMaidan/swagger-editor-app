@@ -1,9 +1,50 @@
 export const EDITOR_WORD_WRAP_STORAGE_KEY = "rsswagger-editor-word-wrap";
 export const EDITOR_FONT_SIZE_STORAGE_KEY = "rsswagger-editor-font-size";
+export const EDITOR_INDENT_SIZE_STORAGE_KEY = "rsswagger-editor-indent-size";
 
 export type EditorFontSize = "large" | "medium" | "small";
+export type EditorIndentSize = 2 | 4;
 
 export const DEFAULT_EDITOR_FONT_SIZE: EditorFontSize = "medium";
+export const DEFAULT_EDITOR_INDENT_SIZE: EditorIndentSize = 2;
+
+export function readEditorIndentSizePreference(): EditorIndentSize {
+  if (typeof window === "undefined") {
+    return DEFAULT_EDITOR_INDENT_SIZE;
+  }
+
+  try {
+    return window.localStorage.getItem(EDITOR_INDENT_SIZE_STORAGE_KEY) === "4"
+      ? 4
+      : DEFAULT_EDITOR_INDENT_SIZE;
+  } catch {
+    return DEFAULT_EDITOR_INDENT_SIZE;
+  }
+}
+
+export function saveEditorIndentSizePreference(
+  indentSize: EditorIndentSize,
+): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    if (indentSize === DEFAULT_EDITOR_INDENT_SIZE) {
+      window.localStorage.removeItem(EDITOR_INDENT_SIZE_STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(
+        EDITOR_INDENT_SIZE_STORAGE_KEY,
+        String(indentSize),
+      );
+    }
+
+    return true;
+  } catch {
+    // Indentation still works for the current session when storage is blocked.
+    return false;
+  }
+}
 
 function isEditorFontSize(value: string | null): value is EditorFontSize {
   return value === "small" || value === "medium" || value === "large";
