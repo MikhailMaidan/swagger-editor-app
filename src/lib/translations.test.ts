@@ -16,4 +16,13 @@ describe("translations", () => {
       "Версия 1.0.0",
     );
   });
+
+  it("provides localized schema action errors", () => {
+    expect(translate("en", "workspace.schemaCopyFailed")).toBe(
+      "Could not copy schema.",
+    );
+    expect(translate("ru", "workspace.schemaCopyFailed")).toBe(
+      "Не удалось скопировать схему.",
+    );
+  });
 });

@@ -158,6 +158,7 @@ export function SwaggerWorkspace({
     userName: "User",
   });
   const [saveMessage, setSaveMessage] = useState("");
+  const [schemaActionError, setSchemaActionError] = useState("");
   const [copiedSchemaText, setCopiedSchemaText] = useState<string | null>(null);
   const [importError, setImportError] = useState("");
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("idle");
@@ -529,6 +530,7 @@ export function SwaggerWorkspace({
     setEditorCursor({ column: 1, line: 1 });
     setCopiedSchemaText(null);
     setSaveMessage("");
+    setSchemaActionError("");
     setImportError("");
   }
 
@@ -555,10 +557,19 @@ export function SwaggerWorkspace({
   async function handleCopySchema() {
     setCopiedSchemaText(null);
     setSaveMessage("");
+    setSchemaActionError("");
     const schemaToCopy = schemaText;
     const copied = await writeTextToClipboard(schemaToCopy);
 
-    setCopiedSchemaText(copied ? schemaToCopy : null);
+    if (editorRef.current?.value !== schemaToCopy) {
+      return;
+    }
+
+    if (copied) {
+      setCopiedSchemaText(schemaToCopy);
+    } else {
+      setSchemaActionError(t("workspace.schemaCopyFailed"));
+    }
   }
 
   function handleImportClick() {
@@ -579,6 +590,7 @@ export function SwaggerWorkspace({
     const reader = new FileReader();
 
     setSaveMessage("");
+    setSchemaActionError("");
 
     reader.onload = () => {
       if (typeof reader.result !== "string") {
@@ -662,6 +674,7 @@ export function SwaggerWorkspace({
     editorSelectionRef.current = { end: 0, start: 0 };
     setCopiedSchemaText(null);
     setSaveMessage("");
+    setSchemaActionError("");
     setImportError("");
     setSchemaSearch("");
     setActiveSchemaMatchIndex(-1);
@@ -791,6 +804,7 @@ export function SwaggerWorkspace({
     );
     setCopiedSchemaText(null);
     setSaveMessage("");
+    setSchemaActionError("");
     setImportError("");
   }
 
@@ -1025,6 +1039,7 @@ export function SwaggerWorkspace({
     );
     setCopiedSchemaText(null);
     setSaveMessage("");
+    setSchemaActionError("");
     setImportError("");
   }
 
@@ -1054,9 +1069,11 @@ export function SwaggerWorkspace({
       clearSchemaDraft();
       setDraftStatus("idle");
       void saveServerSchemaRecord(savedSchema);
+      setSchemaActionError("");
       setSaveMessage(t("workspace.schemaSaved"));
     } else {
-      setSaveMessage(t("workspace.schemaSaveFailed"));
+      setSaveMessage("");
+      setSchemaActionError(t("workspace.schemaSaveFailed"));
     }
 
     setCopiedSchemaText(null);
@@ -1304,6 +1321,7 @@ export function SwaggerWorkspace({
             );
             setCopiedSchemaText(null);
             setSaveMessage("");
+            setSchemaActionError("");
             setImportError("");
           }}
           onSelect={handleEditorSelection}
@@ -1451,6 +1469,14 @@ export function SwaggerWorkspace({
             role="status"
           >
             {isSchemaCopied ? t("workspace.schemaCopied") : saveMessage}
+          </p>
+        ) : null}
+        {schemaActionError ? (
+          <p
+            className="border-t border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+            role="alert"
+          >
+            {schemaActionError}
           </p>
         ) : null}
         {importError ? (

@@ -1847,6 +1847,56 @@ paths: {}`,
     }
   });
 
+  it("shows an alert when schema copying fails", async () => {
+    const user = userEvent.setup();
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+    const execCommandDescriptor = Object.getOwnPropertyDescriptor(
+      document,
+      "execCommand",
+    );
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error("Blocked")) },
+    });
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: vi.fn().mockReturnValue(false),
+    });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Copy schema" }));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not copy schema.",
+      );
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: "openapi: 3.0.0" },
+      });
+      expect(
+        screen.queryByText("Could not copy schema."),
+      ).not.toBeInTheDocument();
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+
+      if (execCommandDescriptor) {
+        Object.defineProperty(document, "execCommand", execCommandDescriptor);
+      } else {
+        Reflect.deleteProperty(document, "execCommand");
+      }
+    }
+  });
+
   it("copies generated cURL commands", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -2658,7 +2708,7 @@ paths:
       try {
         await user.click(screen.getByRole("button", { name: "Save schema" }));
 
-        expect(screen.getByRole("status")).toHaveTextContent(
+        expect(screen.getByRole("alert")).toHaveTextContent(
           "Schema could not be saved locally.",
         );
         expect(

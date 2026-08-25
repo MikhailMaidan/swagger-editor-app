@@ -12,6 +12,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
+- Localized success and error feedback for schema actions
 - Generated endpoint documentation and Try It Out requests through the server
 - cURL, Fetch, and raw HTTP generation with snippet downloads
 - Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation
