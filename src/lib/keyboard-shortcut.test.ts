@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getSchemaSearchNavigationDirection,
   isCancelRequestShortcut,
+  isDownloadSchemaShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
   isFindInSchemaShortcut,
@@ -101,6 +102,29 @@ describe("keyboard shortcut helpers", () => {
     expect(
       isSaveSchemaShortcut(
         createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
+      ),
+    ).toBe(false);
+  });
+
+  it("distinguishes schema download from schema save", () => {
+    expect(
+      isDownloadSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "s", shiftKey: true }),
+      ),
+    ).toBe(true);
+    expect(
+      isDownloadSchemaShortcut(
+        createKeyboardEvent({ key: "S", metaKey: true, shiftKey: true }),
+      ),
+    ).toBe(true);
+    expect(
+      isDownloadSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "s" }),
+      ),
+    ).toBe(false);
+    expect(
+      isDownloadSchemaShortcut(
+        createKeyboardEvent({ altKey: true, key: "s", shiftKey: true }),
       ),
     ).toBe(false);
   });

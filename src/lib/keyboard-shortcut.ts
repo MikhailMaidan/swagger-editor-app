@@ -44,6 +44,15 @@ export function isSaveSchemaShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function isDownloadSchemaShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "s" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    event.shiftKey
+  );
+}
+
 export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
     event.key.toLowerCase() === "f" &&

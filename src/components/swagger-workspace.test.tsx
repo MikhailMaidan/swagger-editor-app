@@ -191,7 +191,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O F3 Shift+F3",
+      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O Control+Shift+S Meta+Shift+S F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
     expect(wordWrap).toBeChecked();
@@ -221,7 +221,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O F3 Shift+F3",
+      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O Control+Shift+S Meta+Shift+S F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "g" })).toBe(false);
     expect(lineInput).toHaveFocus();
@@ -1721,19 +1721,38 @@ paths: {}`,
         paths: {},
       });
 
-      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      const editor = screen.getByLabelText("OpenAPI schema editor");
+      const downloadButton = screen.getByRole("button", { name: "Download" });
+
+      fireEvent.change(editor, {
         target: { value: latestSchema },
       });
-      fireEvent.click(screen.getByRole("button", { name: "Download" }));
+      expect(downloadButton).toHaveAttribute(
+        "aria-keyshortcuts",
+        "Control+Shift+S Meta+Shift+S",
+      );
+      fireEvent.click(downloadButton);
+      expect(
+        fireEvent.keyDown(editor, {
+          ctrlKey: true,
+          key: "s",
+          shiftKey: true,
+        }),
+      ).toBe(false);
 
-      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect(createObjectURL).toHaveBeenCalledTimes(2);
       const blobArg = createObjectURL.mock.calls[0][0] as Blob;
       expect(blobArg.type).toBe("application/json");
-      const downloadAnchor = anchors[0];
-      expect(downloadAnchor?.download).toBe("fresh-download-api.json");
-      expect(downloadAnchor?.getAttribute("href")).toBe("blob:mock-url");
-      expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
-      expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+      expect(anchors).toHaveLength(2);
+
+      for (const downloadAnchor of anchors) {
+        expect(downloadAnchor.download).toBe("fresh-download-api.json");
+        expect(downloadAnchor.getAttribute("href")).toBe("blob:mock-url");
+        expect(downloadAnchor.click).toHaveBeenCalledTimes(1);
+      }
+
+      expect(revokeObjectURL).toHaveBeenCalledTimes(2);
+      expect(revokeObjectURL).toHaveBeenLastCalledWith("blob:mock-url");
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
