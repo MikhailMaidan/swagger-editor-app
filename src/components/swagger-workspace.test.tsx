@@ -20,6 +20,7 @@ import {
   EDITOR_SCHEMA_SEARCH_WHOLE_WORD_STORAGE_KEY,
   EDITOR_WORD_WRAP_STORAGE_KEY,
 } from "@/lib/editor-preferences";
+import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
@@ -775,6 +776,7 @@ paths:
     const sort = screen.getByLabelText("Sort endpoints");
 
     await user.selectOptions(sort, "path");
+    expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBe("path");
     expect(endpointOrder()).toEqual([
       "cURL POST /alpha",
       "cURL GET /beta",
@@ -782,6 +784,9 @@ paths:
     ]);
 
     await user.selectOptions(sort, "method");
+    expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBe(
+      "method",
+    );
     expect(endpointOrder()).toEqual([
       "cURL GET /beta",
       "cURL POST /alpha",
@@ -789,11 +794,22 @@ paths:
     ]);
 
     await user.selectOptions(sort, "schema");
+    expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBeNull();
     expect(endpointOrder()).toEqual([
       "cURL DELETE /zeta",
       "cURL POST /alpha",
       "cURL GET /beta",
     ]);
+  });
+
+  it("restores the saved endpoint sort preference", async () => {
+    window.localStorage.setItem(ENDPOINT_SORT_STORAGE_KEY, "method");
+
+    render(<SwaggerWorkspace />);
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Sort endpoints")).toHaveValue("method"),
+    );
   });
 
   it("shows endpoint tags, security badges, deprecated badges, and metadata stats", async () => {

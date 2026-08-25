@@ -44,7 +44,11 @@ import {
 } from "@/lib/keyboard-shortcut";
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
-import { sortEndpoints } from "@/lib/endpoint-sort";
+import {
+  readEndpointSortPreference,
+  saveEndpointSortPreference,
+  sortEndpoints,
+} from "@/lib/endpoint-sort";
 import type { EndpointSort } from "@/lib/endpoint-sort";
 import { filterEndpointsByTrait } from "@/lib/endpoint-trait-filter";
 import type { EndpointTraitFilter } from "@/lib/endpoint-trait-filter";
@@ -332,6 +336,7 @@ export function SwaggerWorkspace({
       readEditorSearchMatchCasePreference();
     const storedSearchWholeWordPreference =
       readEditorSearchWholeWordPreference();
+    const storedEndpointSortPreference = readEndpointSortPreference();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -341,6 +346,7 @@ export function SwaggerWorkspace({
         setEditorIndentSize(storedIndentSizePreference);
         setIsSchemaSearchCaseSensitive(storedSearchMatchCasePreference);
         setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
+        setEndpointSort(storedEndpointSortPreference);
       }
     });
 
@@ -1616,9 +1622,12 @@ export function SwaggerWorkspace({
                 aria-label={t("workspace.endpointSortLabel")}
                 className="h-11 min-w-40 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
                 value={endpointSort}
-                onChange={(event) =>
-                  setEndpointSort(event.target.value as EndpointSort)
-                }
+                onChange={(event) => {
+                  const sort = event.target.value as EndpointSort;
+
+                  setEndpointSort(sort);
+                  saveEndpointSortPreference(sort);
+                }}
               >
                 <option value="schema">{t("workspace.sortSchemaOrder")}</option>
                 <option value="path">{t("workspace.sortByPath")}</option>

@@ -2,6 +2,8 @@ import type { EndpointSummary } from "./openapi";
 
 export type EndpointSort = "method" | "path" | "schema";
 
+export const ENDPOINT_SORT_STORAGE_KEY = "rsswagger-editor-endpoint-sort";
+
 const METHOD_ORDER = [
   "GET",
   "POST",
@@ -11,6 +13,41 @@ const METHOD_ORDER = [
   "OPTIONS",
   "HEAD",
 ];
+
+export function readEndpointSortPreference(): EndpointSort {
+  if (typeof window === "undefined") {
+    return "schema";
+  }
+
+  try {
+    const storedSort = window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY);
+
+    return storedSort === "method" || storedSort === "path"
+      ? storedSort
+      : "schema";
+  } catch {
+    return "schema";
+  }
+}
+
+export function saveEndpointSortPreference(sort: EndpointSort) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    if (sort === "schema") {
+      window.localStorage.removeItem(ENDPOINT_SORT_STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(ENDPOINT_SORT_STORAGE_KEY, sort);
+    }
+
+    return true;
+  } catch {
+    // Sorting remains available for the current session when storage is blocked.
+    return false;
+  }
+}
 
 function compareMethods(firstMethod: string, secondMethod: string) {
   const firstIndex = METHOD_ORDER.indexOf(firstMethod);

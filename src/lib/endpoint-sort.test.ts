@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { sortEndpoints } from "./endpoint-sort";
+import { describe, expect, it, vi } from "vitest";
+import {
+  ENDPOINT_SORT_STORAGE_KEY,
+  readEndpointSortPreference,
+  saveEndpointSortPreference,
+  sortEndpoints,
+} from "./endpoint-sort";
 import type { EndpointSummary } from "./openapi";
 
 function createEndpoint(method: string, path: string) {
@@ -49,5 +54,40 @@ describe("endpoint sorting", () => {
       "/beta",
       "/alpha",
     ]);
+  });
+
+  it("persists non-default sorting and removes the default", () => {
+    expect(readEndpointSortPreference()).toBe("schema");
+    expect(saveEndpointSortPreference("path")).toBe(true);
+    expect(readEndpointSortPreference()).toBe("path");
+    expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBe("path");
+
+    expect(saveEndpointSortPreference("schema")).toBe(true);
+    expect(readEndpointSortPreference()).toBe("schema");
+    expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBeNull();
+  });
+
+  it("ignores malformed values and blocked storage", () => {
+    window.localStorage.setItem(ENDPOINT_SORT_STORAGE_KEY, "newest");
+    expect(readEndpointSortPreference()).toBe("schema");
+
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(readEndpointSortPreference()).toBe("schema");
+      expect(saveEndpointSortPreference("method")).toBe(false);
+    } finally {
+      getItemSpy.mockRestore();
+      setItemSpy.mockRestore();
+    }
   });
 });
