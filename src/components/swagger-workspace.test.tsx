@@ -191,7 +191,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3",
+      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { altKey: true, key: "z" })).toBe(false);
     expect(wordWrap).toBeChecked();
@@ -221,7 +221,7 @@ describe("SwaggerWorkspace", () => {
 
     expect(editor).toHaveAttribute(
       "aria-keyshortcuts",
-      "Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3",
+      "Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O F3 Shift+F3",
     );
     expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "g" })).toBe(false);
     expect(lineInput).toHaveFocus();
@@ -244,6 +244,35 @@ describe("SwaggerWorkspace", () => {
     expect(editor.selectionStart).toBe(0);
     expect(lineInput).toHaveValue(1);
     expect(screen.getByText("Line 1, column 1")).toBeVisible();
+  });
+
+  it("opens the schema import picker with the keyboard shortcut", () => {
+    render(<SwaggerWorkspace />);
+
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+    const fileInput = screen.getByLabelText(
+      "Import OpenAPI schema file",
+    ) as HTMLInputElement;
+    const importButton = screen.getByRole("button", { name: "Import" });
+    const clickSpy = vi
+      .spyOn(fileInput, "click")
+      .mockImplementation(() => undefined);
+
+    try {
+      expect(importButton).toHaveAttribute(
+        "aria-keyshortcuts",
+        "Control+O Meta+O",
+      );
+      expect(fireEvent.keyDown(editor, { ctrlKey: true, key: "o" })).toBe(
+        false,
+      );
+      expect(fireEvent.keyDown(editor, { key: "O", metaKey: true })).toBe(
+        false,
+      );
+      expect(clickSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      clickSpy.mockRestore();
+    }
   });
 
   it("supports Tab and Shift+Tab indentation in the schema editor", () => {

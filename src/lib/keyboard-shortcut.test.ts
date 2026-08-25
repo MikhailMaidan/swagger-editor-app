@@ -7,6 +7,7 @@ import {
   isFindInSchemaShortcut,
   isFormatSchemaShortcut,
   isGoToLineShortcut,
+  isImportSchemaShortcut,
   isRunRequestShortcut,
   isSaveSchemaShortcut,
   isToggleWordWrapShortcut,
@@ -117,6 +118,23 @@ describe("keyboard shortcut helpers", () => {
       ),
     ).toBe(false);
     expect(isFindInSchemaShortcut(createKeyboardEvent({ key: "f" }))).toBe(
+      false,
+    );
+  });
+
+  it("recognizes the cross-platform schema import shortcut", () => {
+    expect(
+      isImportSchemaShortcut(createKeyboardEvent({ ctrlKey: true, key: "o" })),
+    ).toBe(true);
+    expect(
+      isImportSchemaShortcut(createKeyboardEvent({ key: "O", metaKey: true })),
+    ).toBe(true);
+    expect(
+      isImportSchemaShortcut(
+        createKeyboardEvent({ ctrlKey: true, key: "o", shiftKey: true }),
+      ),
+    ).toBe(false);
+    expect(isImportSchemaShortcut(createKeyboardEvent({ key: "o" }))).toBe(
       false,
     );
   });

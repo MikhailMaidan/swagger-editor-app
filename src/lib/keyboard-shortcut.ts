@@ -62,6 +62,15 @@ export function isFindInSchemaShortcut(event: KeyboardShortcutEvent) {
   );
 }
 
+export function isImportSchemaShortcut(event: KeyboardShortcutEvent) {
+  return (
+    event.key.toLowerCase() === "o" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    !event.shiftKey
+  );
+}
+
 export function getSchemaSearchNavigationDirection(
   event: KeyboardShortcutEvent,
 ): "next" | "previous" | null {

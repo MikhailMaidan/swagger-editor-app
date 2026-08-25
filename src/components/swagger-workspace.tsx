@@ -39,6 +39,7 @@ import {
   isFindInSchemaShortcut,
   isFormatSchemaShortcut,
   isGoToLineShortcut,
+  isImportSchemaShortcut,
   isSaveSchemaShortcut,
   isToggleWordWrapShortcut,
 } from "@/lib/keyboard-shortcut";
@@ -922,6 +923,12 @@ export function SwaggerWorkspace({
       return;
     }
 
+    if (isImportSchemaShortcut(event)) {
+      event.preventDefault();
+      handleImportClick();
+      return;
+    }
+
     const searchNavigationDirection = getSchemaSearchNavigationDirection(event);
 
     if (schemaSearch && event.key === "F3" && searchNavigationDirection) {
@@ -1107,6 +1114,7 @@ export function SwaggerWorkspace({
               {t("workspace.resetEditor")}
             </button>
             <button
+              aria-keyshortcuts="Control+O Meta+O"
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
               onClick={handleImportClick}
@@ -1244,7 +1252,7 @@ export function SwaggerWorkspace({
           }`}
           value={schemaText}
           aria-label="OpenAPI schema editor"
-          aria-keyshortcuts="Alt+Z Control+F Meta+F Control+G Meta+G F3 Shift+F3"
+          aria-keyshortcuts="Alt+Z Control+F Meta+F Control+G Meta+G Control+O Meta+O F3 Shift+F3"
           spellCheck={false}
           wrap={isWordWrapEnabled ? "soft" : "off"}
           onDragEnter={handleEditorFileDrag}
