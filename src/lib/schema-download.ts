@@ -58,18 +58,35 @@ export function createSchemaCollectionExport(
 }
 
 function downloadFile(content: string, fileName: string, contentType: string) {
-  const objectUrl = URL.createObjectURL(
-    new Blob([content], { type: contentType }),
-  );
-  const link = document.createElement("a");
+  if (
+    typeof document === "undefined" ||
+    typeof URL === "undefined" ||
+    typeof URL.createObjectURL !== "function"
+  ) {
+    return false;
+  }
 
-  link.href = objectUrl;
-  link.download = fileName;
+  let objectUrl = "";
 
   try {
+    objectUrl = URL.createObjectURL(new Blob([content], { type: contentType }));
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = fileName;
     link.click();
+
+    return true;
+  } catch {
+    return false;
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    if (objectUrl) {
+      try {
+        URL.revokeObjectURL(objectUrl);
+      } catch {
+        // A failed cleanup should not turn a started download into an error.
+      }
+    }
   }
 }
 
@@ -80,7 +97,7 @@ export function downloadSchemaFile(
 ) {
   const { contentType, fileName } = getSchemaDownloadMetadata(title, format);
 
-  downloadFile(schemaText, fileName, contentType);
+  return downloadFile(schemaText, fileName, contentType);
 }
 
 export function downloadSchemaCollectionFile(
@@ -93,5 +110,5 @@ export function downloadSchemaCollectionFile(
     scope,
   );
 
-  downloadFile(content, fileName, contentType);
+  return downloadFile(content, fileName, contentType);
 }

@@ -544,14 +544,23 @@ export function SwaggerWorkspace({
 
   function handleDownloadSchema() {
     const currentParseResult = parseOpenApiSchema(schemaText);
-
-    downloadSchemaFile(
+    const downloaded = downloadSchemaFile(
       schemaText,
       currentParseResult.ok ? currentParseResult.value.title : "openapi-schema",
       currentParseResult.ok
         ? currentParseResult.value.format
         : currentParseResult.format,
     );
+
+    setCopiedSchemaText(null);
+
+    if (downloaded) {
+      setSchemaActionError("");
+      setSaveMessage(t("workspace.schemaDownloadStarted"));
+    } else {
+      setSaveMessage("");
+      setSchemaActionError(t("workspace.schemaDownloadFailed"));
+    }
   }
 
   async function handleCopySchema() {

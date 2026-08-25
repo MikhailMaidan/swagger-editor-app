@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createSchemaCollectionExport,
+  downloadSchemaFile,
   getSchemaDownloadMetadata,
 } from "./schema-download";
 
@@ -61,5 +62,18 @@ describe("schema download helpers", () => {
 
     expect(result.fileName).toBe("openapi-schemas-visible-2026-08-20.json");
     expect(JSON.parse(result.content).schemas).toEqual([schema]);
+  });
+
+  it("returns failure instead of throwing when a browser download cannot start", () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    URL.createObjectURL = () => {
+      throw new DOMException("Downloads blocked", "SecurityError");
+    };
+
+    try {
+      expect(downloadSchemaFile("openapi: 3.0.0", "Demo", "yaml")).toBe(false);
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+    }
   });
 });

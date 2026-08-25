@@ -1766,6 +1766,18 @@ paths: {}`,
 
       expect(revokeObjectURL).toHaveBeenCalledTimes(2);
       expect(revokeObjectURL).toHaveBeenLastCalledWith("blob:mock-url");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Schema download started.",
+      );
+
+      createObjectURL.mockImplementationOnce(() => {
+        throw new DOMException("Downloads blocked", "SecurityError");
+      });
+      fireEvent.click(downloadButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not download schema.",
+      );
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;

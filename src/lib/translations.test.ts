@@ -24,5 +24,8 @@ describe("translations", () => {
     expect(translate("ru", "workspace.schemaCopyFailed")).toBe(
       "Не удалось скопировать схему.",
     );
+    expect(translate("en", "workspace.schemaDownloadFailed")).toBe(
+      "Could not download schema.",
+    );
   });
 });
