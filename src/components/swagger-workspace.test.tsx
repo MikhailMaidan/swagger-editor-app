@@ -1561,6 +1561,16 @@ paths:
       await screen.findByRole("heading", { name: "Imported API" }),
     ).toBeVisible();
     expect(screen.getByText("/imported")).toBeVisible();
+    expect(
+      screen.getByText(`Imported schema.yaml (${file.size} B).`),
+    ).toBeVisible();
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: { value: `${file.size}` },
+    });
+    expect(
+      screen.queryByText(`Imported schema.yaml (${file.size} B).`),
+    ).not.toBeInTheDocument();
   });
 
   it("imports a schema file dropped onto the editor", async () => {
@@ -1592,6 +1602,9 @@ paths: {}`,
     expect((editor as HTMLTextAreaElement).value).toContain(
       "title: Dropped API",
     );
+    expect(
+      screen.getByText(`Imported dropped.yaml (${file.size} B).`),
+    ).toBeVisible();
   });
 
   it("confirms oversized schema imports without removing the option to continue", () => {

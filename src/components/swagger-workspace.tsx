@@ -68,7 +68,10 @@ import {
   saveSchemaDraft,
 } from "@/lib/schema-draft";
 import { downloadSchemaFile } from "@/lib/schema-download";
-import { shouldConfirmSchemaImport } from "@/lib/schema-import";
+import {
+  getSchemaImportDetails,
+  shouldConfirmSchemaImport,
+} from "@/lib/schema-import";
 import { isPublicHttpServerUrl } from "@/lib/server-url";
 import {
   readSavedSchema,
@@ -572,7 +575,10 @@ export function SwaggerWorkspace({
       return;
     }
 
+    const importDetails = getSchemaImportDetails(file);
     const reader = new FileReader();
+
+    setSaveMessage("");
 
     reader.onload = () => {
       if (typeof reader.result !== "string") {
@@ -588,7 +594,12 @@ export function SwaggerWorkspace({
       setSchemaText(reader.result);
       setEditorCursor({ column: 1, line: 1 });
       setCopiedSchemaText(null);
-      setSaveMessage("");
+      setSaveMessage(
+        t("workspace.schemaImported", {
+          file: importDetails.fileName,
+          size: String(importDetails.byteSize),
+        }),
+      );
     };
     reader.onerror = () => {
       setImportError(t("workspace.errors.fileReadFailed"));

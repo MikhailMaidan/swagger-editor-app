@@ -9,7 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
-- JSON and YAML OpenAPI editing, large-file import confirmation, validation, and conversion
+- JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Generated endpoint documentation and Try It Out requests through the server
