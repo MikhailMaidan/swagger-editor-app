@@ -80,8 +80,8 @@ export function HistoryList({
     useState<RequestHistoryDurationFilter>("all");
   const [historySort, setHistorySort] = useState<RequestHistorySort>("newest");
   const [isCopyingVisible, setIsCopyingVisible] = useState(false);
-  const [copyFeedback, setCopyFeedback] = useState<{
-    kind: "copied" | "error";
+  const [visibleActionFeedback, setVisibleActionFeedback] = useState<{
+    kind: "copy-error" | "copy-success" | "export-error" | "export-success";
     text: string;
   } | null>(null);
   const historyMethods = useMemo(
@@ -205,8 +205,24 @@ export function HistoryList({
 
     setIsCopyingVisible(true);
     const copied = await writeTextToClipboard(text);
-    setCopyFeedback({ kind: copied ? "copied" : "error", text });
+    setVisibleActionFeedback({
+      kind: copied ? "copy-success" : "copy-error",
+      text,
+    });
     setIsCopyingVisible(false);
+  }
+
+  function handleExportVisible() {
+    if (sortedRecords.length === 0) {
+      return;
+    }
+
+    setVisibleActionFeedback({
+      kind: downloadRequestHistoryFile(sortedRecords)
+        ? "export-success"
+        : "export-error",
+      text: visibleHistoryText,
+    });
   }
 
   if (records.length === 0) {
@@ -370,7 +386,7 @@ export function HistoryList({
           className="h-11 shrink-0 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={sortedRecords.length === 0}
           type="button"
-          onClick={() => downloadRequestHistoryFile(sortedRecords)}
+          onClick={handleExportVisible}
         >
           {t("history.exportVisible")}
         </button>
@@ -382,16 +398,26 @@ export function HistoryList({
         </span>
       </div>
 
-      {copyFeedback?.text === visibleHistoryText ? (
+      {visibleActionFeedback?.text === visibleHistoryText ? (
         <p
           className={`mt-3 text-sm font-semibold ${
-            copyFeedback.kind === "error" ? "text-red-600" : "text-emerald-700"
+            visibleActionFeedback.kind.endsWith("error")
+              ? "text-red-600"
+              : "text-emerald-700"
           }`}
-          role={copyFeedback.kind === "error" ? "alert" : "status"}
+          role={
+            visibleActionFeedback.kind.endsWith("error") ? "alert" : "status"
+          }
         >
-          {copyFeedback.kind === "error"
-            ? t("history.copyVisibleError")
-            : t("history.copyVisibleSuccess")}
+          {t(
+            visibleActionFeedback.kind === "copy-error"
+              ? "history.copyVisibleError"
+              : visibleActionFeedback.kind === "copy-success"
+                ? "history.copyVisibleSuccess"
+                : visibleActionFeedback.kind === "export-error"
+                  ? "history.exportVisibleError"
+                  : "history.exportVisibleSuccess",
+          )}
         </p>
       ) : null}
 

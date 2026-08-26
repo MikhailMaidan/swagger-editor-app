@@ -3,6 +3,7 @@ import type { RequestHistoryRecord } from "./request-history";
 import {
   createRequestHistoryExport,
   createRequestHistoryRecordExport,
+  downloadRequestHistoryFile,
 } from "./request-history-export";
 
 const record: RequestHistoryRecord = {
@@ -82,5 +83,18 @@ describe("request history export", () => {
         new Date("2026-08-18T12:30:00.000Z"),
       ).fileName,
     ).toBe("rsswag-request-2026-08-18.json");
+  });
+
+  it("returns failure instead of throwing when downloads are blocked", () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    URL.createObjectURL = () => {
+      throw new DOMException("Downloads blocked", "SecurityError");
+    };
+
+    try {
+      expect(downloadRequestHistoryFile([record])).toBe(false);
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+    }
   });
 });

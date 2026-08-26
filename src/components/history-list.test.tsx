@@ -704,6 +704,18 @@ describe("HistoryList", () => {
       );
       expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:request-history");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Visible request history exported.",
+      );
+
+      createObjectURL.mockImplementationOnce(() => {
+        throw new DOMException("Downloads blocked", "SecurityError");
+      });
+      await user.click(exportButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not export visible request history.",
+      );
 
       await user.clear(filter);
       await user.type(filter, "missing");

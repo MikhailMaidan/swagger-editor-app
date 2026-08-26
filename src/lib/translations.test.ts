@@ -30,5 +30,8 @@ describe("translations", () => {
     expect(translate("en", "schemas.downloadError")).toBe(
       "Could not start download.",
     );
+    expect(translate("en", "history.exportVisibleError")).toBe(
+      "Could not export visible request history.",
+    );
   });
 });

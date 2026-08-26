@@ -60,25 +60,42 @@ function downloadRequestHistoryExport({
   contentType,
   fileName,
 }: RequestHistoryExport) {
-  const objectUrl = URL.createObjectURL(
-    new Blob([content], { type: contentType }),
-  );
-  const link = document.createElement("a");
+  if (
+    typeof document === "undefined" ||
+    typeof URL === "undefined" ||
+    typeof URL.createObjectURL !== "function"
+  ) {
+    return false;
+  }
 
-  link.href = objectUrl;
-  link.download = fileName;
+  let objectUrl = "";
 
   try {
+    objectUrl = URL.createObjectURL(new Blob([content], { type: contentType }));
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = fileName;
     link.click();
+
+    return true;
+  } catch {
+    return false;
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    if (objectUrl) {
+      try {
+        URL.revokeObjectURL(objectUrl);
+      } catch {
+        // Cleanup failure does not mean the browser failed to start a download.
+      }
+    }
   }
 }
 
 export function downloadRequestHistoryFile(records: RequestHistoryRecord[]) {
-  downloadRequestHistoryExport(createRequestHistoryExport(records));
+  return downloadRequestHistoryExport(createRequestHistoryExport(records));
 }
 
 export function downloadRequestHistoryRecordFile(record: RequestHistoryRecord) {
-  downloadRequestHistoryExport(createRequestHistoryRecordExport(record));
+  return downloadRequestHistoryExport(createRequestHistoryRecordExport(record));
 }

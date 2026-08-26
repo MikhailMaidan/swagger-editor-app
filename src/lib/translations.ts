@@ -104,6 +104,8 @@ export const translations = {
     "history.errorDetails": "Error details",
     "history.exportAriaLabel": "Export visible request history",
     "history.exportVisible": "Export visible",
+    "history.exportVisibleError": "Could not export visible request history.",
+    "history.exportVisibleSuccess": "Visible request history exported.",
     "history.failedRequests": "Failed",
     "history.filterLabel": "Filter request history",
     "history.filterPlaceholder": "Search request history",
@@ -501,6 +503,9 @@ export const translations = {
     "history.errorDetails": "Детали ошибки",
     "history.exportAriaLabel": "Экспортировать видимую историю запросов",
     "history.exportVisible": "Экспортировать",
+    "history.exportVisibleError":
+      "Не удалось экспортировать видимую историю запросов.",
+    "history.exportVisibleSuccess": "Видимая история запросов экспортирована.",
     "history.failedRequests": "С ошибкой",
     "history.filterLabel": "Фильтр истории запросов",
     "history.filterPlaceholder": "Поиск в истории запросов",
