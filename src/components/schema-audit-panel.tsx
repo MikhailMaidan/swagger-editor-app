@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { writeTextToClipboard } from "@/lib/clipboard";
 import type {
   SchemaAuditIssue,
   SchemaAuditIssueCode,
@@ -9,7 +10,10 @@ import type {
   SchemaAuditReport,
   SchemaAuditSeverity,
 } from "@/lib/schema-audit";
-import { downloadSchemaAuditFile } from "@/lib/schema-audit-export";
+import {
+  createSchemaAuditMarkdown,
+  downloadSchemaAuditFile,
+} from "@/lib/schema-audit-export";
 import type { TranslationKey } from "@/lib/translations";
 
 type AuditFilter = "all" | SchemaAuditSeverity;
@@ -69,10 +73,10 @@ export function SchemaAuditPanel({
   report: SchemaAuditReport;
   schema: { title: string; version: string };
 }) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [activeFilter, setActiveFilter] = useState<AuditFilter>("all");
-  const [exportStatus, setExportStatus] = useState<
-    "error" | "idle" | "success"
+  const [actionStatus, setActionStatus] = useState<
+    "copy-error" | "copy-success" | "export-error" | "export-success" | "idle"
   >("idle");
   const [showAll, setShowAll] = useState(false);
   const filteredIssues =
@@ -117,7 +121,15 @@ export function SchemaAuditPanel({
   function handleExport() {
     const downloaded = downloadSchemaAuditFile(report, schema);
 
-    setExportStatus(downloaded ? "success" : "error");
+    setActionStatus(downloaded ? "export-success" : "export-error");
+  }
+
+  async function handleCopy() {
+    const copied = await writeTextToClipboard(
+      createSchemaAuditMarkdown(report, schema, language),
+    );
+
+    setActionStatus(copied ? "copy-success" : "copy-error");
   }
 
   function getIssueMessage(issue: SchemaAuditIssue) {
@@ -146,26 +158,39 @@ export function SchemaAuditPanel({
             {t("workspace.auditScore", { score: String(report.score) })}
           </span>
         </div>
-        <button
-          className="h-9 rounded-md border border-[color:var(--color-brand-purple)] px-3 text-xs font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
-          type="button"
-          onClick={handleExport}
-        >
-          {t("workspace.auditExport")}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="h-9 rounded-md border border-[color:var(--color-brand-border)] px-3 text-xs font-extrabold text-[color:var(--color-brand-navy)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+            type="button"
+            onClick={handleCopy}
+          >
+            {t("workspace.auditCopy")}
+          </button>
+          <button
+            className="h-9 rounded-md border border-[color:var(--color-brand-purple)] px-3 text-xs font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+            type="button"
+            onClick={handleExport}
+          >
+            {t("workspace.auditExport")}
+          </button>
+        </div>
       </div>
 
-      {exportStatus !== "idle" ? (
+      {actionStatus !== "idle" ? (
         <p
           className={`mt-2 text-sm font-semibold ${
-            exportStatus === "error" ? "text-red-700" : "text-emerald-700"
+            actionStatus.endsWith("error") ? "text-red-700" : "text-emerald-700"
           }`}
-          role={exportStatus === "error" ? "alert" : "status"}
+          role={actionStatus.endsWith("error") ? "alert" : "status"}
         >
           {t(
-            exportStatus === "error"
-              ? "workspace.auditExportError"
-              : "workspace.auditExportSuccess",
+            actionStatus === "copy-error"
+              ? "workspace.auditCopyError"
+              : actionStatus === "copy-success"
+                ? "workspace.auditCopySuccess"
+                : actionStatus === "export-error"
+                  ? "workspace.auditExportError"
+                  : "workspace.auditExportSuccess",
           )}
         </p>
       ) : null}
@@ -220,8 +245,19 @@ export function SchemaAuditPanel({
       </div>
 
       {filteredIssues.length === 0 ? (
-        <p className="mt-4 text-sm font-bold text-emerald-700" role="status">
-          {t("workspace.auditNoIssues")}
+        <p
+          className={`mt-4 text-sm font-bold ${
+            report.issues.length === 0
+              ? "text-emerald-700"
+              : "text-[color:var(--color-brand-muted)]"
+          }`}
+          role="status"
+        >
+          {t(
+            report.issues.length === 0
+              ? "workspace.auditNoIssues"
+              : "workspace.auditNoFilteredIssues",
+          )}
         </p>
       ) : (
         <>

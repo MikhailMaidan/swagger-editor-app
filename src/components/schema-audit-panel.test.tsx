@@ -59,6 +59,99 @@ describe("SchemaAuditPanel", () => {
     expect(onSelectEndpoint).toHaveBeenCalledWith("GET", "/users/{id}");
   });
 
+  it("distinguishes an empty severity filter from a clean audit", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchemaAuditPanel
+        onSelectEndpoint={vi.fn()}
+        report={createSchemaAuditReport([
+          {
+            ...endpoint,
+            parameters: [
+              {
+                description: "User identifier",
+                example: "42",
+                location: "path",
+                name: "id",
+                required: true,
+              },
+            ],
+            responses: [
+              ...endpoint.responses,
+              {
+                contentTypes: [],
+                description: "Not found",
+                schema: null,
+                status: "404",
+              },
+            ],
+          },
+        ])}
+        schema={{ title: "Users API", version: "1.0.0" }}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Errors (0)" }));
+
+    expect(screen.getByText("No findings for this severity.")).toBeVisible();
+    expect(
+      screen.queryByText("All quality checks passed."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("copies a Markdown audit summary and reports clipboard failures", async () => {
+    const user = userEvent.setup();
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    try {
+      render(
+        <SchemaAuditPanel
+          onSelectEndpoint={vi.fn()}
+          report={createSchemaAuditReport([endpoint])}
+          schema={{ title: "Users API", version: "1.0.0" }}
+        />,
+      );
+
+      const copyButton = screen.getByRole("button", {
+        name: "Copy audit summary",
+      });
+
+      await user.click(copyButton);
+
+      expect(writeText).toHaveBeenCalledWith(
+        expect.stringContaining("# Users API quality audit"),
+      );
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Audit summary copied.",
+      );
+
+      await user.click(copyButton);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not copy the audit summary.",
+      );
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+    }
+  });
+
   it("reports successful and blocked audit exports", async () => {
     const user = userEvent.setup();
     const originalCreateObjectURL = URL.createObjectURL;

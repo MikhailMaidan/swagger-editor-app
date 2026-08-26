@@ -45,5 +45,11 @@ describe("translations", () => {
         parameter: "id",
       }),
     ).toBe('Определите параметр пути "id".');
+    expect(translate("en", "workspace.auditCopySuccess")).toBe(
+      "Audit summary copied.",
+    );
+    expect(translate("ru", "workspace.auditNoFilteredIssues")).toBe(
+      "Для выбранного уровня замечаний нет.",
+    );
   });
 });
