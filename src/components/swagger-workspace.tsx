@@ -10,6 +10,7 @@ import type {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
+import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
@@ -54,6 +55,7 @@ import {
 import type { EndpointSort } from "@/lib/endpoint-sort";
 import { filterEndpointsByTrait } from "@/lib/endpoint-trait-filter";
 import type { EndpointTraitFilter } from "@/lib/endpoint-trait-filter";
+import { getEndpointAnchor } from "@/lib/endpoint-link";
 import {
   DEFAULT_OPENAPI_SCHEMA,
   createEndpointStats,
@@ -67,6 +69,7 @@ import {
   readSchemaDraft,
   saveSchemaDraft,
 } from "@/lib/schema-draft";
+import { createSchemaAuditReport } from "@/lib/schema-audit";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -240,6 +243,10 @@ export function SwaggerWorkspace({
   const endpointStats = useMemo(
     () => createEndpointStats(endpoints),
     [endpoints],
+  );
+  const schemaAuditReport = useMemo(
+    () => createSchemaAuditReport(parsedEndpoints),
+    [parsedEndpoints],
   );
   const activeMethod =
     selectedMethod === "all" || endpointStats.methods.includes(selectedMethod)
@@ -704,6 +711,22 @@ export function SwaggerWorkspace({
     setEndpointTraitFilter("all");
     setSelectedMethod("all");
     setSelectedTag("all");
+  }
+
+  function handleSelectAuditEndpoint(method: string, path: string) {
+    const endpointAnchor = getEndpointAnchor(method, path);
+
+    setEndpointFilter(path);
+    setEndpointResponseFilter("all");
+    setEndpointTraitFilter("all");
+    setSelectedMethod(method);
+    setSelectedTag("all");
+    window.history.replaceState(null, "", `#${endpointAnchor}`);
+    window.setTimeout(() => {
+      document
+        .getElementById(endpointAnchor)
+        ?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    }, 0);
   }
 
   function handleApplyServerOverride(event: FormEvent<HTMLFormElement>) {
@@ -1659,6 +1682,17 @@ export function SwaggerWorkspace({
               </p>
             </div>
           </div>
+        ) : null}
+
+        {parseResult.ok ? (
+          <SchemaAuditPanel
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            report={schemaAuditReport}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
         ) : null}
 
         {endpoints.length > 0 ? (

@@ -3357,4 +3357,66 @@ paths:
       fetchMock.mockRestore();
     }
   });
+
+  it("opens an audited operation and clears conflicting endpoint filters", async () => {
+    const user = userEvent.setup();
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const originalScrollIntoView = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollIntoView",
+    );
+    const scrollIntoView = vi.fn();
+
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const auditPanel = screen
+        .getByRole("heading", { name: "API quality audit" })
+        .closest("section");
+
+      expect(auditPanel).not.toBeNull();
+      expect(
+        within(auditPanel as HTMLElement).getByText(/quality score/),
+      ).toBeVisible();
+      await user.click(
+        within(auditPanel as HTMLElement).getAllByRole("button", {
+          name: "View endpoint",
+        })[0],
+      );
+
+      expect(
+        screen.getByRole("searchbox", {
+          name: /Filter endpoints by method/,
+        }),
+      ).toHaveValue("/users/{id}");
+      expect(
+        within(
+          screen.getByRole("group", {
+            name: "Filter endpoints by HTTP method",
+          }),
+        ).getByRole("button", { name: "GET (1)" }),
+      ).toHaveAttribute("aria-pressed", "true");
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("GET", "/users/{id}")}`,
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+
+      if (originalScrollIntoView) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "scrollIntoView",
+          originalScrollIntoView,
+        );
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+      }
+    }
+  });
 });

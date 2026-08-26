@@ -39,5 +39,11 @@ describe("translations", () => {
     expect(translate("ru", "history.downloadDetailsSuccess")).toBe(
       "Экспорт запроса начался.",
     );
+    expect(translate("en", "workspace.auditTitle")).toBe("API quality audit");
+    expect(
+      translate("ru", "workspace.auditIssueMissingPathParameter", {
+        parameter: "id",
+      }),
+    ).toBe('Определите параметр пути "id".');
   });
 });
