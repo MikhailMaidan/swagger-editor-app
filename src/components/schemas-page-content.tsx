@@ -32,6 +32,11 @@ import {
   sortSavedSchemaRecords,
 } from "@/lib/saved-schema-sort";
 
+type SchemaDownloadFeedback = {
+  kind: "error" | "success";
+  schemaId: string | null;
+};
+
 export function SchemasPageContent({
   initialSchemas,
 }: {
@@ -102,6 +107,8 @@ export function SchemasPageContent({
   const [copyErrorId, setCopyErrorId] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [duplicateErrorId, setDuplicateErrorId] = useState<string | null>(null);
+  const [downloadFeedback, setDownloadFeedback] =
+    useState<SchemaDownloadFeedback | null>(null);
   const [previewSchemaIds, setPreviewSchemaIds] = useState<Set<string>>(
     new Set(),
   );
@@ -203,15 +210,32 @@ export function SchemasPageContent({
   }
 
   function handleDownload(schema: SavedSchemaRecord) {
-    downloadSchemaFile(schema.schemaText, schema.title, schema.format);
+    const downloaded = downloadSchemaFile(
+      schema.schemaText,
+      schema.title,
+      schema.format,
+    );
+
+    setDownloadFeedback({
+      kind: downloaded ? "success" : "error",
+      schemaId: schema.id,
+    });
   }
 
   function handleExportAll() {
-    downloadSchemaCollectionFile(schemas);
+    setDownloadFeedback({
+      kind: downloadSchemaCollectionFile(schemas) ? "success" : "error",
+      schemaId: null,
+    });
   }
 
   function handleExportVisible() {
-    downloadSchemaCollectionFile(displayedSchemas, "visible");
+    setDownloadFeedback({
+      kind: downloadSchemaCollectionFile(displayedSchemas, "visible")
+        ? "success"
+        : "error",
+      schemaId: null,
+    });
   }
 
   function handleResetFilters() {
@@ -437,6 +461,22 @@ export function SchemasPageContent({
                 {t("schemas.clearAllError")}
               </p>
             ) : null}
+            {downloadFeedback?.schemaId === null ? (
+              <p
+                className={`mt-3 text-sm font-semibold ${
+                  downloadFeedback.kind === "success"
+                    ? "text-emerald-700"
+                    : "text-red-600"
+                }`}
+                role={downloadFeedback.kind === "success" ? "status" : "alert"}
+              >
+                {t(
+                  downloadFeedback.kind === "success"
+                    ? "schemas.downloadStarted"
+                    : "schemas.downloadError",
+                )}
+              </p>
+            ) : null}
             {filteredSchemas.length === 0 ? (
               <p className="mt-4 border-t border-[color:var(--color-brand-border)] py-6 text-center text-sm font-semibold text-[color:var(--color-brand-muted)]">
                 {t("schemas.noMatches")}
@@ -645,6 +685,27 @@ export function SchemasPageContent({
                         role="alert"
                       >
                         {t("schemas.duplicateError")}
+                      </p>
+                    ) : null}
+
+                    {downloadFeedback?.schemaId === schema.id ? (
+                      <p
+                        className={`mt-3 text-sm font-semibold ${
+                          downloadFeedback.kind === "success"
+                            ? "text-emerald-700"
+                            : "text-red-600"
+                        }`}
+                        role={
+                          downloadFeedback.kind === "success"
+                            ? "status"
+                            : "alert"
+                        }
+                      >
+                        {t(
+                          downloadFeedback.kind === "success"
+                            ? "schemas.downloadStarted"
+                            : "schemas.downloadError",
+                        )}
                       </p>
                     ) : null}
 

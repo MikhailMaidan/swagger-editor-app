@@ -13,6 +13,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
+- Saved-schema and collection export download feedback
 - Generated endpoint documentation and Try It Out requests through the server
 - cURL, Fetch, and raw HTTP generation with snippet downloads
 - Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation

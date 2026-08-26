@@ -27,5 +27,8 @@ describe("translations", () => {
     expect(translate("en", "workspace.schemaDownloadFailed")).toBe(
       "Could not download schema.",
     );
+    expect(translate("en", "schemas.downloadError")).toBe(
+      "Could not start download.",
+    );
   });
 });

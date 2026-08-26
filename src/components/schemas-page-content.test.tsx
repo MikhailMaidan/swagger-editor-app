@@ -205,6 +205,18 @@ describe("SchemasPageContent", () => {
       expect(anchors[0]?.download).toBe("saved-api.yaml");
       expect(anchors[0]?.click).toHaveBeenCalledTimes(1);
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:saved-schema");
+      expect(screen.getByRole("status")).toHaveTextContent("Download started.");
+
+      createObjectURL.mockImplementationOnce(() => {
+        throw new DOMException("Downloads blocked", "SecurityError");
+      });
+      await user.click(
+        screen.getByRole("button", { name: "Download Saved API" }),
+      );
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not start download.",
+      );
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
@@ -288,6 +300,16 @@ describe("SchemasPageContent", () => {
         /^openapi-schemas-visible-\d{4}-\d{2}-\d{2}\.json$/,
       );
       expect(anchors[1]?.click).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("status")).toHaveTextContent("Download started.");
+
+      createObjectURL.mockImplementationOnce(() => {
+        throw new DOMException("Downloads blocked", "SecurityError");
+      });
+      await user.click(screen.getByRole("button", { name: "Export all" }));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not start download.",
+      );
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
