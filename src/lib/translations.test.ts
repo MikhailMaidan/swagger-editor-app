@@ -33,5 +33,11 @@ describe("translations", () => {
     expect(translate("en", "history.exportVisibleError")).toBe(
       "Could not export visible request history.",
     );
+    expect(translate("en", "history.downloadDetailsError")).toBe(
+      "Could not export this request.",
+    );
+    expect(translate("ru", "history.downloadDetailsSuccess")).toBe(
+      "Экспорт запроса начался.",
+    );
   });
 });

@@ -176,7 +176,7 @@ describe("HistoryDetails", () => {
     }
   });
 
-  it("downloads the current request as a JSON history export", async () => {
+  it("reports current request JSON export results", async () => {
     const user = userEvent.setup();
     const createObjectURL = vi.fn().mockReturnValue("blob:history-record");
     const revokeObjectURL = vi.fn();
@@ -230,6 +230,21 @@ describe("HistoryDetails", () => {
       );
       expect(downloadAnchor?.click).toHaveBeenCalledTimes(1);
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:history-record");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Request export started.",
+      );
+
+      createObjectURL.mockImplementationOnce(() => {
+        throw new Error("Downloads blocked");
+      });
+      await user.click(screen.getByRole("button", { name: "Download JSON" }));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not export this request.",
+      );
+      expect(
+        screen.queryByText("Request export started."),
+      ).not.toBeInTheDocument();
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;

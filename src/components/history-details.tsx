@@ -17,15 +17,19 @@ export function HistoryDetails({
   record: RequestHistoryRecord | null;
 }) {
   const { language, t } = useI18n();
-  const [copyStatus, setCopyStatus] = useState<"copied" | "error" | "idle">(
-    "idle",
-  );
+  const [actionStatus, setActionStatus] = useState<
+    | "copy-error"
+    | "copy-success"
+    | "download-error"
+    | "download-success"
+    | "idle"
+  >("idle");
 
   async function handleCopyDetails() {
-    setCopyStatus("idle");
+    setActionStatus("idle");
 
     if (!record) {
-      setCopyStatus("error");
+      setActionStatus("copy-error");
       return;
     }
 
@@ -33,8 +37,31 @@ export function HistoryDetails({
       serializeRequestHistoryRecord(record),
     );
 
-    setCopyStatus(copied ? "copied" : "error");
+    setActionStatus(copied ? "copy-success" : "copy-error");
   }
+
+  function handleDownloadDetails() {
+    if (!record) {
+      setActionStatus("download-error");
+      return;
+    }
+
+    const downloaded = downloadRequestHistoryRecordFile(record);
+    setActionStatus(downloaded ? "download-success" : "download-error");
+  }
+
+  const actionFailed =
+    actionStatus === "copy-error" || actionStatus === "download-error";
+  const actionFeedback =
+    actionStatus === "copy-error"
+      ? t("history.copyDetailsError")
+      : actionStatus === "copy-success"
+        ? t("history.detailsCopied")
+        : actionStatus === "download-error"
+          ? t("history.downloadDetailsError")
+          : actionStatus === "download-success"
+            ? t("history.downloadDetailsSuccess")
+            : null;
 
   return (
     <div className="w-full px-4 py-10 md:px-8 lg:px-10">
@@ -107,7 +134,7 @@ export function HistoryDetails({
               <button
                 className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-5 text-base font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
                 type="button"
-                onClick={() => downloadRequestHistoryRecordFile(record)}
+                onClick={handleDownloadDetails}
               >
                 {t("history.downloadDetails")}
               </button>
@@ -120,16 +147,14 @@ export function HistoryDetails({
             {t("history.backToHistory")}
           </Link>
         </div>
-        {copyStatus !== "idle" ? (
+        {actionFeedback ? (
           <p
             className={`mt-3 text-sm font-semibold ${
-              copyStatus === "error" ? "text-red-600" : "text-emerald-700"
+              actionFailed ? "text-red-600" : "text-emerald-700"
             }`}
-            role={copyStatus === "error" ? "alert" : "status"}
+            role={actionFailed ? "alert" : "status"}
           >
-            {copyStatus === "error"
-              ? t("history.copyDetailsError")
-              : t("history.detailsCopied")}
+            {actionFeedback}
           </p>
         ) : null}
       </section>
