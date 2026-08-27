@@ -11,6 +11,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
+import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
@@ -76,6 +77,14 @@ import {
   saveSchemaDraft,
 } from "@/lib/schema-draft";
 import { createSchemaAuditReport } from "@/lib/schema-audit";
+import { createSchemaChangeReport } from "@/lib/schema-change";
+import {
+  clearSchemaComparisonBaseline,
+  createSchemaComparisonBaseline,
+  readSchemaComparisonBaseline,
+  saveSchemaComparisonBaseline,
+} from "@/lib/schema-comparison-baseline";
+import type { SchemaComparisonBaseline } from "@/lib/schema-comparison-baseline";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -184,6 +193,12 @@ export function SwaggerWorkspace({
   const [showFavoriteEndpointsOnly, setShowFavoriteEndpointsOnly] =
     useState(false);
   const [favoriteSaveError, setFavoriteSaveError] = useState(false);
+  const [schemaComparisonBaseline, setSchemaComparisonBaseline] =
+    useState<SchemaComparisonBaseline | null>(null);
+  const [schemaComparisonStorageError, setSchemaComparisonStorageError] =
+    useState(false);
+  const [schemaComparisonCaptureError, setSchemaComparisonCaptureError] =
+    useState(false);
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
@@ -259,6 +274,16 @@ export function SwaggerWorkspace({
   const schemaAuditReport = useMemo(
     () => createSchemaAuditReport(parsedEndpoints),
     [parsedEndpoints],
+  );
+  const schemaChangeReport = useMemo(
+    () =>
+      schemaComparisonBaseline
+        ? createSchemaChangeReport(
+            schemaComparisonBaseline.endpoints,
+            parsedEndpoints,
+          )
+        : null,
+    [parsedEndpoints, schemaComparisonBaseline],
   );
   const activeMethod =
     selectedMethod === "all" || endpointStats.methods.includes(selectedMethod)
@@ -377,6 +402,7 @@ export function SwaggerWorkspace({
       readEditorSearchWholeWordPreference();
     const storedEndpointSortPreference = readEndpointSortPreference();
     const storedEndpointFavorites = readEndpointFavorites();
+    const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -388,6 +414,7 @@ export function SwaggerWorkspace({
         setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
         setEndpointSort(storedEndpointSortPreference);
         setFavoriteEndpointKeys(storedEndpointFavorites);
+        setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
       }
     });
 
@@ -733,6 +760,7 @@ export function SwaggerWorkspace({
     setServerUrlOverride("");
     setServerOverrideError(false);
     setFavoriteSaveError(false);
+    setSchemaComparisonCaptureError(false);
   }
 
   function handleResetEndpointFilters() {
@@ -753,6 +781,33 @@ export function SwaggerWorkspace({
 
     setFavoriteEndpointKeys(nextFavorites);
     setFavoriteSaveError(!saveEndpointFavorites(nextFavorites));
+  }
+
+  function handleSetSchemaComparisonBaseline() {
+    const currentParseResult = parseOpenApiSchema(schemaText);
+
+    if (!currentParseResult.ok) {
+      setSchemaComparisonCaptureError(true);
+      return;
+    }
+
+    const baseline = createSchemaComparisonBaseline(
+      currentParseResult.value.endpoints,
+      {
+        title: currentParseResult.value.title,
+        version: currentParseResult.value.version,
+      },
+    );
+
+    setSchemaComparisonBaseline(baseline);
+    setSchemaComparisonCaptureError(false);
+    setSchemaComparisonStorageError(!saveSchemaComparisonBaseline(baseline));
+  }
+
+  function handleClearSchemaComparisonBaseline() {
+    setSchemaComparisonBaseline(null);
+    setSchemaComparisonCaptureError(false);
+    setSchemaComparisonStorageError(!clearSchemaComparisonBaseline());
   }
 
   function handleSelectAuditEndpoint(method: string, path: string) {
@@ -1398,6 +1453,7 @@ export function SwaggerWorkspace({
             setSaveMessage("");
             setSchemaActionError("");
             setImportError("");
+            setSchemaComparisonCaptureError(false);
           }}
           onSelect={handleEditorSelection}
         />
@@ -1735,6 +1791,21 @@ export function SwaggerWorkspace({
               title: parseResult.value.title,
               version: parseResult.value.version,
             }}
+          />
+        ) : null}
+
+        {parseResult.ok ? (
+          <SchemaChangePanel
+            baseline={schemaComparisonBaseline}
+            captureError={schemaComparisonCaptureError}
+            current={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+            onClearBaseline={handleClearSchemaComparisonBaseline}
+            onSetBaseline={handleSetSchemaComparisonBaseline}
+            report={schemaChangeReport}
+            storageError={schemaComparisonStorageError}
           />
         ) : null}
 

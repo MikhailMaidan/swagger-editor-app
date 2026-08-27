@@ -25,6 +25,7 @@ import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
+import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
 import { MAX_SCHEMA_IMPORT_SIZE_BYTES } from "@/lib/schema-import";
 import {
   SAVED_SCHEMA_STORAGE_KEY,
@@ -3474,5 +3475,52 @@ paths:
         Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
       }
     }
+  });
+
+  it("captures a comparison baseline and reports removed operations", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Set current as baseline" }),
+    );
+
+    expect(
+      window.localStorage.getItem(SCHEMA_COMPARISON_BASELINE_STORAGE_KEY),
+    ).not.toBeNull();
+
+    const editor = screen.getByLabelText("OpenAPI schema editor");
+    const schemaWithoutPost = DEFAULT_OPENAPI_SCHEMA.replace(
+      /\n    post:[\s\S]*$/,
+      "",
+    );
+
+    fireEvent.change(editor, { target: { value: schemaWithoutPost } });
+
+    const changePanel = screen
+      .getByRole("heading", { name: "API change review" })
+      .closest("section") as HTMLElement;
+
+    await waitFor(() =>
+      expect(
+        within(changePanel).getByRole("button", { name: "Removed (1)" }),
+      ).toBeVisible(),
+    );
+    expect(within(changePanel).getByText("POST /users/{id}")).toBeVisible();
+    expect(within(changePanel).getByText("Operation removed.")).toBeVisible();
+    expect(editor).toHaveValue(schemaWithoutPost);
+
+    await user.click(
+      within(changePanel).getByRole("button", { name: "Clear baseline" }),
+    );
+
+    expect(
+      within(changePanel).getByText("No comparison baseline"),
+    ).toBeVisible();
+    expect(
+      window.localStorage.getItem(SCHEMA_COMPARISON_BASELINE_STORAGE_KEY),
+    ).toBeNull();
+    expect(editor).toHaveValue(schemaWithoutPost);
   });
 });

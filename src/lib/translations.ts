@@ -285,6 +285,73 @@ export const translations = {
     "workspace.auditTitle": "API quality audit",
     "workspace.auditViewEndpoint": "View endpoint",
     "workspace.authRequired": "Auth: {schemes}",
+    "workspace.changeAddedLabel": "Added",
+    "workspace.changeBaseline": "Baseline: {title} v{version} | {date}",
+    "workspace.changeBreakingLabel": "Breaking",
+    "workspace.changeClearBaseline": "Clear baseline",
+    "workspace.changeDetailDeprecated": "Operation marked deprecated.",
+    "workspace.changeDetailDocumentationChanged":
+      "Summary or description changed.",
+    "workspace.changeDetailOperationIdAdded": 'operationId "{current}" added.',
+    "workspace.changeDetailOperationIdChanged":
+      'operationId changed from "{previous}" to "{current}".',
+    "workspace.changeDetailOperationIdRemoved":
+      'operationId "{previous}" removed.',
+    "workspace.changeDetailOptionalParameterAdded":
+      "Optional {location} parameter {name} added.",
+    "workspace.changeDetailParameterBecameOptional":
+      "{location} parameter {name} became optional.",
+    "workspace.changeDetailParameterBecameRequired":
+      "{location} parameter {name} became required.",
+    "workspace.changeDetailParameterRemoved":
+      "{location} parameter {name} removed.",
+    "workspace.changeDetailRequestBodyAdded":
+      "Request body {contentType} added.",
+    "workspace.changeDetailRequestBodyBecameOptional":
+      "Request body {contentType} became optional.",
+    "workspace.changeDetailRequestBodyBecameRequired":
+      "Request body {contentType} became required.",
+    "workspace.changeDetailRequestBodyRemoved":
+      "Request body {contentType} removed.",
+    "workspace.changeDetailRequiredParameterAdded":
+      "Required {location} parameter {name} added.",
+    "workspace.changeDetailResponseAdded": "Response {status} added.",
+    "workspace.changeDetailResponseRemoved": "Response {status} removed.",
+    "workspace.changeDetailSecurityAdded": "Authentication is now required.",
+    "workspace.changeDetailSecurityRemoved":
+      "Authentication is no longer required.",
+    "workspace.changeDetailTagsChanged": "Operation tags changed.",
+    "workspace.changeDetailUndeprecated": "Deprecated marker removed.",
+    "workspace.changeEndpointAdded": "Operation added.",
+    "workspace.changeEndpointModified": "{count} contract changes.",
+    "workspace.changeEndpointRemoved": "Operation removed.",
+    "workspace.changeExport": "Export change report",
+    "workspace.changeExportError": "Could not export the change report.",
+    "workspace.changeExportSuccess": "Change report export started.",
+    "workspace.changeFilterAdded": "Added ({count})",
+    "workspace.changeFilterAll": "All ({count})",
+    "workspace.changeFilterBreaking": "Breaking ({count})",
+    "workspace.changeFilterLabel": "Filter API changes",
+    "workspace.changeFilterModified": "Modified ({count})",
+    "workspace.changeFilterRemoved": "Removed ({count})",
+    "workspace.changeImpactBreaking": "Breaking",
+    "workspace.changeImpactNonBreaking": "Non-breaking",
+    "workspace.changeInvalidBaseline":
+      "Fix schema errors before setting the comparison baseline.",
+    "workspace.changeModifiedLabel": "Modified",
+    "workspace.changeMoreDetails": "{count} more changes",
+    "workspace.changeNoBaseline": "No comparison baseline",
+    "workspace.changeNoChanges": "No API changes from the baseline.",
+    "workspace.changeNoFilteredChanges": "No changes match this filter.",
+    "workspace.changeRemovedLabel": "Removed",
+    "workspace.changeSetBaseline": "Set current as baseline",
+    "workspace.changeShowAll": "Show all ({count})",
+    "workspace.changeShowLess": "Show fewer",
+    "workspace.changeStorageError":
+      "Baseline changed for this session, but local storage could not be updated.",
+    "workspace.changeTitle": "API change review",
+    "workspace.changeUnchangedLabel": "Unchanged",
+    "workspace.changeUpdateBaseline": "Update baseline",
     "workspace.cancelRequest": "Cancel request",
     "workspace.clearEndpointFilter": "Clear search",
     "workspace.clearResponse": "Clear response",
@@ -745,6 +812,76 @@ export const translations = {
     "workspace.auditTitle": "Аудит качества API",
     "workspace.auditViewEndpoint": "Открыть эндпоинт",
     "workspace.authRequired": "Auth: {schemes}",
+    "workspace.changeAddedLabel": "Добавлено",
+    "workspace.changeBaseline": "Базовая версия: {title} v{version} | {date}",
+    "workspace.changeBreakingLabel": "Критические",
+    "workspace.changeClearBaseline": "Удалить базовую версию",
+    "workspace.changeDetailDeprecated": "Операция помечена устаревшей.",
+    "workspace.changeDetailDocumentationChanged":
+      "Изменено краткое или подробное описание.",
+    "workspace.changeDetailOperationIdAdded":
+      'Добавлен operationId "{current}".',
+    "workspace.changeDetailOperationIdChanged":
+      'operationId изменен с "{previous}" на "{current}".',
+    "workspace.changeDetailOperationIdRemoved":
+      'Удален operationId "{previous}".',
+    "workspace.changeDetailOptionalParameterAdded":
+      "Добавлен необязательный параметр {location} {name}.",
+    "workspace.changeDetailParameterBecameOptional":
+      "Параметр {location} {name} стал необязательным.",
+    "workspace.changeDetailParameterBecameRequired":
+      "Параметр {location} {name} стал обязательным.",
+    "workspace.changeDetailParameterRemoved":
+      "Удален параметр {location} {name}.",
+    "workspace.changeDetailRequestBodyAdded":
+      "Добавлено тело запроса {contentType}.",
+    "workspace.changeDetailRequestBodyBecameOptional":
+      "Тело запроса {contentType} стало необязательным.",
+    "workspace.changeDetailRequestBodyBecameRequired":
+      "Тело запроса {contentType} стало обязательным.",
+    "workspace.changeDetailRequestBodyRemoved":
+      "Удалено тело запроса {contentType}.",
+    "workspace.changeDetailRequiredParameterAdded":
+      "Добавлен обязательный параметр {location} {name}.",
+    "workspace.changeDetailResponseAdded": "Добавлен ответ {status}.",
+    "workspace.changeDetailResponseRemoved": "Удален ответ {status}.",
+    "workspace.changeDetailSecurityAdded": "Теперь требуется аутентификация.",
+    "workspace.changeDetailSecurityRemoved":
+      "Аутентификация больше не требуется.",
+    "workspace.changeDetailTagsChanged": "Изменены теги операции.",
+    "workspace.changeDetailUndeprecated": "Метка устаревания удалена.",
+    "workspace.changeEndpointAdded": "Операция добавлена.",
+    "workspace.changeEndpointModified": "Изменений контракта: {count}.",
+    "workspace.changeEndpointRemoved": "Операция удалена.",
+    "workspace.changeExport": "Экспорт отчета об изменениях",
+    "workspace.changeExportError":
+      "Не удалось экспортировать отчет об изменениях.",
+    "workspace.changeExportSuccess": "Экспорт отчета начался.",
+    "workspace.changeFilterAdded": "Добавлено ({count})",
+    "workspace.changeFilterAll": "Все ({count})",
+    "workspace.changeFilterBreaking": "Критические ({count})",
+    "workspace.changeFilterLabel": "Фильтр изменений API",
+    "workspace.changeFilterModified": "Изменено ({count})",
+    "workspace.changeFilterRemoved": "Удалено ({count})",
+    "workspace.changeImpactBreaking": "Критическое",
+    "workspace.changeImpactNonBreaking": "Некритическое",
+    "workspace.changeInvalidBaseline":
+      "Исправьте ошибки схемы перед созданием базовой версии.",
+    "workspace.changeModifiedLabel": "Изменено",
+    "workspace.changeMoreDetails": "Еще изменений: {count}",
+    "workspace.changeNoBaseline": "Нет базовой версии для сравнения",
+    "workspace.changeNoChanges": "Изменений API относительно базы нет.",
+    "workspace.changeNoFilteredChanges":
+      "Нет изменений, соответствующих фильтру.",
+    "workspace.changeRemovedLabel": "Удалено",
+    "workspace.changeSetBaseline": "Сделать текущую схему базовой",
+    "workspace.changeShowAll": "Показать все ({count})",
+    "workspace.changeShowLess": "Показать меньше",
+    "workspace.changeStorageError":
+      "Базовая версия изменена для этого сеанса, но локальное хранилище не обновлено.",
+    "workspace.changeTitle": "Обзор изменений API",
+    "workspace.changeUnchangedLabel": "Без изменений",
+    "workspace.changeUpdateBaseline": "Обновить базовую версию",
     "workspace.cancelRequest": "Отменить запрос",
     "workspace.clearEndpointFilter": "Очистить поиск",
     "workspace.clearResponse": "Очистить ответ",

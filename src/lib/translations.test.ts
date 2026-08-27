@@ -60,5 +60,11 @@ describe("translations", () => {
     expect(translate("ru", "workspace.favoriteEndpoints", { count: "2" })).toBe(
       "Избранное (2)",
     );
+    expect(translate("en", "workspace.changeTitle")).toBe("API change review");
+    expect(
+      translate("ru", "workspace.changeDetailResponseRemoved", {
+        status: "404",
+      }),
+    ).toBe("Удален ответ 404.");
   });
 });
