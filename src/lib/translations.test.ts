@@ -51,5 +51,14 @@ describe("translations", () => {
     expect(translate("ru", "workspace.auditNoFilteredIssues")).toBe(
       "Для выбранного уровня замечаний нет.",
     );
+    expect(
+      translate("en", "workspace.addEndpointFavorite", {
+        method: "GET",
+        path: "/users",
+      }),
+    ).toBe("Add GET /users to favorites");
+    expect(translate("ru", "workspace.favoriteEndpoints", { count: "2" })).toBe(
+      "Избранное (2)",
+    );
   });
 });

@@ -55,6 +55,12 @@ import {
 import type { EndpointSort } from "@/lib/endpoint-sort";
 import { filterEndpointsByTrait } from "@/lib/endpoint-trait-filter";
 import type { EndpointTraitFilter } from "@/lib/endpoint-trait-filter";
+import {
+  getEndpointFavoriteKey,
+  readEndpointFavorites,
+  saveEndpointFavorites,
+  toggleEndpointFavorite,
+} from "@/lib/endpoint-favorites";
 import { getEndpointAnchor } from "@/lib/endpoint-link";
 import {
   DEFAULT_OPENAPI_SCHEMA,
@@ -172,6 +178,12 @@ export function SwaggerWorkspace({
     useState<EndpointTraitFilter>("all");
   const [endpointResponseFilter, setEndpointResponseFilter] =
     useState<EndpointResponseFilter>("all");
+  const [favoriteEndpointKeys, setFavoriteEndpointKeys] = useState<string[]>(
+    [],
+  );
+  const [showFavoriteEndpointsOnly, setShowFavoriteEndpointsOnly] =
+    useState(false);
+  const [favoriteSaveError, setFavoriteSaveError] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedServerUrl, setSelectedServerUrl] = useState("");
@@ -289,8 +301,21 @@ export function SwaggerWorkspace({
       : methodFilteredEndpoints.filter((endpoint) =>
           endpoint.tags.includes(activeTag),
         );
+  const favoriteEndpointKeySet = new Set(favoriteEndpointKeys);
+  const favoriteEndpointCount = endpoints.filter((endpoint) =>
+    favoriteEndpointKeySet.has(
+      getEndpointFavoriteKey(endpoint.method, endpoint.path),
+    ),
+  ).length;
+  const favoriteFilteredEndpoints = showFavoriteEndpointsOnly
+    ? tagFilteredEndpoints.filter((endpoint) =>
+        favoriteEndpointKeySet.has(
+          getEndpointFavoriteKey(endpoint.method, endpoint.path),
+        ),
+      )
+    : tagFilteredEndpoints;
   const traitFilteredEndpoints = filterEndpointsByTrait(
-    tagFilteredEndpoints,
+    favoriteFilteredEndpoints,
     endpointTraitFilter,
   );
   const responseFilteredEndpoints = filterEndpointsByResponse(
@@ -305,6 +330,7 @@ export function SwaggerWorkspace({
     Boolean(endpointFilter) ||
     selectedMethod !== "all" ||
     selectedTag !== "all" ||
+    showFavoriteEndpointsOnly ||
     endpointTraitFilter !== "all" ||
     endpointResponseFilter !== "all";
   const isSchemaCopied =
@@ -350,6 +376,7 @@ export function SwaggerWorkspace({
     const storedSearchWholeWordPreference =
       readEditorSearchWholeWordPreference();
     const storedEndpointSortPreference = readEndpointSortPreference();
+    const storedEndpointFavorites = readEndpointFavorites();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -360,6 +387,7 @@ export function SwaggerWorkspace({
         setIsSchemaSearchCaseSensitive(storedSearchMatchCasePreference);
         setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
         setEndpointSort(storedEndpointSortPreference);
+        setFavoriteEndpointKeys(storedEndpointFavorites);
       }
     });
 
@@ -697,20 +725,34 @@ export function SwaggerWorkspace({
     setEndpointFilter("");
     setEndpointResponseFilter("all");
     setEndpointTraitFilter("all");
+    setShowFavoriteEndpointsOnly(false);
     setSelectedMethod("all");
     setSelectedTag("all");
     setSelectedServerUrl("");
     setServerOverrideInput("");
     setServerUrlOverride("");
     setServerOverrideError(false);
+    setFavoriteSaveError(false);
   }
 
   function handleResetEndpointFilters() {
     setEndpointFilter("");
     setEndpointResponseFilter("all");
     setEndpointTraitFilter("all");
+    setShowFavoriteEndpointsOnly(false);
     setSelectedMethod("all");
     setSelectedTag("all");
+  }
+
+  function handleToggleEndpointFavorite(endpoint: EndpointSummary) {
+    const nextFavorites = toggleEndpointFavorite(
+      favoriteEndpointKeys,
+      endpoint.method,
+      endpoint.path,
+    );
+
+    setFavoriteEndpointKeys(nextFavorites);
+    setFavoriteSaveError(!saveEndpointFavorites(nextFavorites));
   }
 
   function handleSelectAuditEndpoint(method: string, path: string) {
@@ -719,6 +761,7 @@ export function SwaggerWorkspace({
     setEndpointFilter(path);
     setEndpointResponseFilter("all");
     setEndpointTraitFilter("all");
+    setShowFavoriteEndpointsOnly(false);
     setSelectedMethod(method);
     setSelectedTag("all");
     window.history.replaceState(null, "", `#${endpointAnchor}`);
@@ -1714,6 +1757,23 @@ export function SwaggerWorkspace({
                   }
                 }}
               />
+              <button
+                aria-pressed={showFavoriteEndpointsOnly}
+                className={`inline-flex h-11 items-center gap-2 rounded-lg border px-3 text-sm font-extrabold transition ${
+                  showFavoriteEndpointsOnly
+                    ? "border-amber-300 bg-amber-50 text-amber-700"
+                    : "border-[color:var(--color-brand-border)] bg-white text-[color:var(--color-brand-muted)] hover:border-amber-300 hover:text-amber-700"
+                }`}
+                type="button"
+                onClick={() =>
+                  setShowFavoriteEndpointsOnly((current) => !current)
+                }
+              >
+                <span aria-hidden="true">★</span>
+                {t("workspace.favoriteEndpoints", {
+                  count: String(favoriteEndpointCount),
+                })}
+              </button>
               <select
                 aria-label={t("workspace.endpointSortLabel")}
                 className="h-11 min-w-40 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-sm font-bold text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
@@ -1871,6 +1931,11 @@ export function SwaggerWorkspace({
                 </button>
               ) : null}
             </div>
+            {favoriteSaveError ? (
+              <p className="text-sm font-semibold text-red-700" role="alert">
+                {t("workspace.favoriteSaveError")}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -1881,14 +1946,22 @@ export function SwaggerWorkspace({
             </div>
           ) : responseFilteredEndpoints.length === 0 ? (
             <div className="rounded-2xl border border-[color:var(--color-brand-border)] p-4 text-sm font-semibold text-[color:var(--color-brand-muted)]">
-              {t("workspace.noEndpointsMatch")}
+              {t(
+                showFavoriteEndpointsOnly && favoriteEndpointCount === 0
+                  ? "workspace.noFavoriteEndpoints"
+                  : "workspace.noEndpointsMatch",
+              )}
             </div>
           ) : (
             visibleEndpoints.map((endpoint) => (
               <EndpointCard
                 canSaveHistory={isAuthenticated}
-                key={`${endpoint.method}-${endpoint.path}`}
                 endpoint={endpoint}
+                isFavorite={favoriteEndpointKeySet.has(
+                  getEndpointFavoriteKey(endpoint.method, endpoint.path),
+                )}
+                key={`${endpoint.method}-${endpoint.path}`}
+                onToggleFavorite={() => handleToggleEndpointFavorite(endpoint)}
               />
             ))
           )}

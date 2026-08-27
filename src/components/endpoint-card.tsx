@@ -295,9 +295,13 @@ function SchemaDetailsBlock({
 function EndpointCardComponent({
   canSaveHistory,
   endpoint,
+  isFavorite = false,
+  onToggleFavorite,
 }: {
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const { t } = useI18n();
   const requestBodyInputId = useId();
@@ -905,12 +909,38 @@ function EndpointCardComponent({
         <span className="font-mono text-base font-bold text-[color:var(--color-brand-navy)]">
           {endpoint.path}
         </span>
+        {onToggleFavorite ? (
+          <button
+            aria-label={t(
+              isFavorite
+                ? "workspace.removeEndpointFavorite"
+                : "workspace.addEndpointFavorite",
+              { method: endpoint.method, path: endpoint.path },
+            )}
+            aria-pressed={isFavorite}
+            className={`ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border text-lg transition ${
+              isFavorite
+                ? "border-amber-300 bg-amber-50 text-amber-600"
+                : "border-[color:var(--color-brand-border)] bg-white text-[color:var(--color-brand-muted)] hover:border-amber-300 hover:text-amber-600"
+            }`}
+            title={t(
+              isFavorite
+                ? "workspace.removeEndpointFavorite"
+                : "workspace.addEndpointFavorite",
+              { method: endpoint.method, path: endpoint.path },
+            )}
+            type="button"
+            onClick={onToggleFavorite}
+          >
+            <span aria-hidden="true">{isFavorite ? "★" : "☆"}</span>
+          </button>
+        ) : null}
         <button
           aria-label={t("workspace.copyEndpointLinkAriaLabel", {
             method: endpoint.method,
             path: endpoint.path,
           })}
-          className="ml-auto h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+          className={`${onToggleFavorite ? "" : "ml-auto"} h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]`}
           type="button"
           onClick={handleCopyEndpointLink}
         >

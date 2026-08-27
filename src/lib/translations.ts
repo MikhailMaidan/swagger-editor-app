@@ -231,6 +231,7 @@ export const translations = {
     "schemas.withoutEndpoints": "No endpoints",
     "workspace.addValidSchema":
       "Add a valid OpenAPI schema to populate the viewer.",
+    "workspace.addEndpointFavorite": "Add {method} {path} to favorites",
     "workspace.allEndpoints": "All endpoints",
     "workspace.allResponses": "All response coverage",
     "workspace.allMethods": "All methods",
@@ -357,6 +358,9 @@ export const translations = {
       "Schema must include an openapi or swagger version.",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch snippet copied.",
+    "workspace.favoriteEndpoints": "Favorites ({count})",
+    "workspace.favoriteSaveError":
+      "Favorite updated for this session, but could not be saved locally.",
     "workspace.filterEndpoints":
       "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     "workspace.formatSchema": "Format schema",
@@ -374,6 +378,8 @@ export const translations = {
     "workspace.missingErrorResponseOnly": "Missing error response",
     "workspace.namedExample": "Example: {name}",
     "workspace.noEndpointsMatch": "No endpoints match the current filters.",
+    "workspace.noFavoriteEndpoints":
+      "No favorite endpoints in the current schema.",
     "workspace.nextMatch": "Next match",
     "workspace.noResponseExample":
       "No response example available for {method} {path}.",
@@ -407,6 +413,7 @@ export const translations = {
       "Reset the editor to the default schema? Unsaved changes will be lost.",
     "workspace.resetEndpointFilters": "Reset filters",
     "workspace.resetTryItOut": "Reset values",
+    "workspace.removeEndpointFavorite": "Remove {method} {path} from favorites",
     "workspace.response": "Response",
     "workspace.responseBody": "Response body",
     "workspace.responseCopied": "Response copied.",
@@ -683,6 +690,7 @@ export const translations = {
     "schemas.withoutEndpoints": "Без эндпоинтов",
     "workspace.addValidSchema":
       "Добавьте корректную схему OpenAPI, чтобы заполнить просмотрщик.",
+    "workspace.addEndpointFavorite": "Добавить {method} {path} в избранное",
     "workspace.allEndpoints": "Все эндпоинты",
     "workspace.allResponses": "Любое покрытие ответов",
     "workspace.allMethods": "Все методы",
@@ -812,6 +820,9 @@ export const translations = {
       "Схема должна содержать версию openapi или swagger.",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch-код скопирован.",
+    "workspace.favoriteEndpoints": "Избранное ({count})",
+    "workspace.favoriteSaveError":
+      "Избранное обновлено для этого сеанса, но не сохранено локально.",
     "workspace.filterEndpoints":
       "Фильтр по методу, пути, описанию, ID операции, тегу, параметру или auth",
     "workspace.formatSchema": "Форматировать схему",
@@ -830,6 +841,8 @@ export const translations = {
     "workspace.namedExample": "Пример: {name}",
     "workspace.noEndpointsMatch":
       "Нет эндпоинтов, соответствующих текущим фильтрам.",
+    "workspace.noFavoriteEndpoints":
+      "В текущей схеме нет избранных эндпоинтов.",
     "workspace.nextMatch": "Следующее совпадение",
     "workspace.noResponseExample":
       "Пример ответа недоступен для {method} {path}.",
@@ -864,6 +877,7 @@ export const translations = {
       "Сбросить редактор до схемы по умолчанию? Несохранённые изменения будут потеряны.",
     "workspace.resetEndpointFilters": "Сбросить фильтры",
     "workspace.resetTryItOut": "Сбросить значения",
+    "workspace.removeEndpointFavorite": "Удалить {method} {path} из избранного",
     "workspace.response": "Ответ",
     "workspace.responseBody": "Тело ответа",
     "workspace.responseCopied": "Ответ скопирован.",

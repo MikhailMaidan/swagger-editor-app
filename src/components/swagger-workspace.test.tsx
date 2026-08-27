@@ -9,6 +9,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import { ENDPOINT_FAVORITES_STORAGE_KEY } from "@/lib/endpoint-favorites";
 import {
   createEndpointPermalink,
   getEndpointAnchor,
@@ -733,6 +734,61 @@ paths:
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
+  });
+
+  it("persists endpoint favorites and filters the viewer to them", async () => {
+    const user = userEvent.setup();
+    const firstView = render(<SwaggerWorkspace />);
+    const addFavorite = await screen.findByRole("button", {
+      name: "Add GET /users/{id} to favorites",
+    });
+
+    expect(addFavorite).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(addFavorite);
+
+    expect(addFavorite).toHaveAttribute("aria-pressed", "true");
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(ENDPOINT_FAVORITES_STORAGE_KEY) || "[]",
+      ),
+    ).toEqual(["GET /users/{id}"]);
+    expect(screen.getByRole("button", { name: "Favorites (1)" })).toBeVisible();
+
+    firstView.unmount();
+    render(<SwaggerWorkspace />);
+
+    const removeFavorite = await screen.findByRole("button", {
+      name: "Remove GET /users/{id} from favorites",
+    });
+    const favoritesFilter = screen.getByRole("button", {
+      name: "Favorites (1)",
+    });
+
+    expect(removeFavorite).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(favoritesFilter);
+
+    expect(favoritesFilter).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("cURL POST /users/{id}"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 endpoints")).toBeVisible();
+
+    await user.click(removeFavorite);
+
+    expect(
+      screen.getByText("No favorite endpoints in the current schema."),
+    ).toBeVisible();
+    expect(
+      window.localStorage.getItem(ENDPOINT_FAVORITES_STORAGE_KEY),
+    ).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Reset filters" }));
 
     expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
