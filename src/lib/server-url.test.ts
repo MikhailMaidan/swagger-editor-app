@@ -17,7 +17,9 @@ describe("server URL validation", () => {
       "http://172.16.0.1",
       "http://192.168.1.1",
       "http://[::1]",
+      "http://[::ffff:127.0.0.1]",
       "http://[fd00::1]",
+      "http://100.64.0.1",
     ]) {
       expect(isPublicHttpServerUrl(serverUrl)).toBe(false);
     }

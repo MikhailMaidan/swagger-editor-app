@@ -97,7 +97,10 @@ import {
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
+  importSchemaFromUrl,
+  RemoteSchemaImportError,
   shouldConfirmSchemaImport,
+  type RemoteSchemaImportErrorCode,
 } from "@/lib/schema-import";
 import { isPublicHttpServerUrl } from "@/lib/server-url";
 import {
@@ -132,6 +135,18 @@ const schemaErrorKeys: Record<string, TranslationKey> = {
   "Schema paths object is required.": "workspace.errors.pathsRequired",
 };
 
+const remoteSchemaImportErrorKeys: Record<
+  RemoteSchemaImportErrorCode,
+  TranslationKey
+> = {
+  "empty-schema": "workspace.remoteImportEmpty",
+  "fetch-failed": "workspace.remoteImportFetchFailed",
+  "http-error": "workspace.remoteImportHttpError",
+  "invalid-response": "workspace.remoteImportInvalidResponse",
+  "invalid-url": "workspace.remoteImportInvalidUrl",
+  "too-large": "workspace.remoteImportTooLarge",
+};
+
 // Parsing (YAML/JSON + endpoint extraction) is real work for larger
 // documents, so it's debounced off the raw keystroke: typing itself stays
 // instant since the textarea always renders the undebounced schemaText.
@@ -163,6 +178,8 @@ export function SwaggerWorkspace({
     start: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const remoteImportAbortControllerRef = useRef<AbortController | null>(null);
+  const schemaImportSequenceRef = useRef(0);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
   const [selectedCharacterCount, setSelectedCharacterCount] = useState(0);
@@ -188,6 +205,10 @@ export function SwaggerWorkspace({
   const [schemaActionError, setSchemaActionError] = useState("");
   const [copiedSchemaText, setCopiedSchemaText] = useState<string | null>(null);
   const [importError, setImportError] = useState("");
+  const [isRemoteImportOpen, setIsRemoteImportOpen] = useState(false);
+  const [isRemoteImporting, setIsRemoteImporting] = useState(false);
+  const [remoteImportError, setRemoteImportError] = useState("");
+  const [remoteImportUrl, setRemoteImportUrl] = useState("");
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("idle");
   const [isDraggingSchemaFile, setIsDraggingSchemaFile] = useState(false);
   const [endpointFilter, setEndpointFilter] = useState("");
@@ -450,6 +471,13 @@ export function SwaggerWorkspace({
     };
   }, []);
 
+  useEffect(
+    () => () => {
+      remoteImportAbortControllerRef.current?.abort();
+    },
+    [],
+  );
+
   useEffect(() => {
     function handleEndpointSearchShortcut(event: KeyboardEvent) {
       const filterInput = endpointFilterInputRef.current;
@@ -581,6 +609,7 @@ export function SwaggerWorkspace({
   }, [isAuthenticated]);
 
   function markSchemaEdited() {
+    invalidateActiveSchemaImport();
     hasEditedSchemaRef.current = true;
     setActiveSchemaMatchIndex(-1);
 
@@ -674,8 +703,51 @@ export function SwaggerWorkspace({
     fileInputRef.current?.click();
   }
 
-  function readSchemaFile(file: File) {
+  function cancelRemoteSchemaImport() {
+    const abortController = remoteImportAbortControllerRef.current;
+
+    if (abortController) {
+      abortController.abort();
+      remoteImportAbortControllerRef.current = null;
+      setIsRemoteImporting(false);
+    }
+  }
+
+  function invalidateActiveSchemaImport() {
+    schemaImportSequenceRef.current += 1;
+    cancelRemoteSchemaImport();
+  }
+
+  function applyImportedSchema(
+    importedSchemaText: string,
+    importDetails: { byteSize: number; fileName: string },
+  ) {
+    markSchemaEdited();
+    // An imported file is a different document, so the next save must
+    // create a new record instead of overwriting whatever was last saved.
+    lastSavedSchemaRef.current = null;
+    pendingEditorSelectionRef.current = { end: 0, start: 0 };
+    setSchemaText(importedSchemaText);
+    setEditorCursor({ column: 1, line: 1 });
+    setCopiedSchemaText(null);
+    setSaveMessage(
+      t("workspace.schemaImported", {
+        file: importDetails.fileName,
+        size: String(importDetails.byteSize),
+      }),
+    );
+    setSchemaActionError("");
     setImportError("");
+    setRemoteImportError("");
+  }
+
+  function readSchemaFile(file: File) {
+    cancelRemoteSchemaImport();
+    const importSequence = ++schemaImportSequenceRef.current;
+
+    setImportError("");
+    setRemoteImportError("");
+    setIsRemoteImportOpen(false);
 
     if (
       shouldConfirmSchemaImport(file.size) &&
@@ -691,30 +763,96 @@ export function SwaggerWorkspace({
     setSchemaActionError("");
 
     reader.onload = () => {
+      if (importSequence !== schemaImportSequenceRef.current) {
+        return;
+      }
+
       if (typeof reader.result !== "string") {
         setImportError(t("workspace.errors.fileReadFailed"));
         return;
       }
 
-      markSchemaEdited();
-      // An imported file is a different document, so the next save must
-      // create a new record instead of overwriting whatever was last saved.
-      lastSavedSchemaRef.current = null;
-      pendingEditorSelectionRef.current = { end: 0, start: 0 };
-      setSchemaText(reader.result);
-      setEditorCursor({ column: 1, line: 1 });
-      setCopiedSchemaText(null);
-      setSaveMessage(
-        t("workspace.schemaImported", {
-          file: importDetails.fileName,
-          size: String(importDetails.byteSize),
-        }),
-      );
+      applyImportedSchema(reader.result, importDetails);
     };
     reader.onerror = () => {
-      setImportError(t("workspace.errors.fileReadFailed"));
+      if (importSequence === schemaImportSequenceRef.current) {
+        setImportError(t("workspace.errors.fileReadFailed"));
+      }
     };
     reader.readAsText(file);
+  }
+
+  async function handleRemoteSchemaImport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isRemoteImporting) {
+      return;
+    }
+
+    cancelRemoteSchemaImport();
+    const importSequence = ++schemaImportSequenceRef.current;
+    const abortController = new AbortController();
+
+    remoteImportAbortControllerRef.current = abortController;
+    setIsRemoteImporting(true);
+    setRemoteImportError("");
+    setImportError("");
+    setSaveMessage("");
+    setSchemaActionError("");
+
+    try {
+      const result = await importSchemaFromUrl(
+        remoteImportUrl,
+        abortController.signal,
+      );
+
+      if (
+        importSequence !== schemaImportSequenceRef.current ||
+        remoteImportAbortControllerRef.current !== abortController
+      ) {
+        return;
+      }
+
+      applyImportedSchema(result.schemaText, result);
+      setRemoteImportUrl(result.sourceUrl);
+      setIsRemoteImportOpen(false);
+    } catch (error) {
+      if (
+        abortController.signal.aborted ||
+        (typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError")
+      ) {
+        return;
+      }
+
+      const remoteError =
+        error instanceof RemoteSchemaImportError
+          ? error
+          : new RemoteSchemaImportError("fetch-failed");
+
+      setRemoteImportError(
+        t(remoteSchemaImportErrorKeys[remoteError.code], {
+          status:
+            remoteError.status === null ? "?" : String(remoteError.status),
+        }),
+      );
+    } finally {
+      if (remoteImportAbortControllerRef.current === abortController) {
+        remoteImportAbortControllerRef.current = null;
+        setIsRemoteImporting(false);
+      }
+    }
+  }
+
+  function handleRemoteImportPanelToggle() {
+    if (isRemoteImportOpen) {
+      invalidateActiveSchemaImport();
+    }
+
+    setIsRemoteImportOpen((isOpen) => !isOpen);
+    setRemoteImportError("");
   }
 
   function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
@@ -761,6 +899,7 @@ export function SwaggerWorkspace({
       return;
     }
 
+    invalidateActiveSchemaImport();
     clearSchemaDraft();
     hasEditedSchemaRef.current = false;
     setDraftStatus("idle");
@@ -774,6 +913,9 @@ export function SwaggerWorkspace({
     setSaveMessage("");
     setSchemaActionError("");
     setImportError("");
+    setIsRemoteImportOpen(false);
+    setRemoteImportError("");
+    setRemoteImportUrl("");
     setSchemaSearch("");
     setActiveSchemaMatchIndex(-1);
     setEndpointFilter("");
@@ -1323,6 +1465,19 @@ export function SwaggerWorkspace({
               {t("workspace.import")}
             </button>
             <button
+              aria-controls="remote-schema-import"
+              aria-expanded={isRemoteImportOpen}
+              className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+              type="button"
+              onClick={handleRemoteImportPanelToggle}
+            >
+              {t(
+                isRemoteImportOpen
+                  ? "workspace.remoteImportClose"
+                  : "workspace.remoteImportOpen",
+              )}
+            </button>
+            <button
               className="rounded-2xl border border-[color:var(--color-brand-purple)] px-4 py-2 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
               type="button"
               onClick={handleCopySchema}
@@ -1367,6 +1522,67 @@ export function SwaggerWorkspace({
             </button>
           </div>
         </div>
+        {isRemoteImportOpen ? (
+          <div
+            className="border-b border-[color:var(--color-brand-border)] bg-[#fbfaff] px-5 py-4"
+            id="remote-schema-import"
+          >
+            <form
+              aria-label={t("workspace.remoteImportForm")}
+              className="flex flex-wrap items-end gap-2"
+              noValidate
+              onSubmit={handleRemoteSchemaImport}
+            >
+              <label className="min-w-0 flex-1 text-xs font-bold text-[color:var(--color-brand-navy)]">
+                <span className="mb-1 block">
+                  {t("workspace.remoteImportUrl")}
+                </span>
+                <input
+                  aria-invalid={Boolean(remoteImportError)}
+                  autoFocus
+                  className="h-10 w-full min-w-0 rounded-md border border-[color:var(--color-brand-border)] bg-white px-3 font-mono text-xs text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)] disabled:cursor-wait disabled:bg-[color:var(--color-brand-soft)]"
+                  disabled={isRemoteImporting}
+                  placeholder={t("workspace.remoteImportUrlPlaceholder")}
+                  type="url"
+                  value={remoteImportUrl}
+                  onChange={(event) => {
+                    setRemoteImportUrl(event.target.value);
+                    setRemoteImportError("");
+                  }}
+                />
+              </label>
+              <button
+                aria-busy={isRemoteImporting}
+                className="h-10 rounded-md bg-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-white transition hover:bg-[color:var(--color-brand-purple-dark)] disabled:cursor-wait disabled:opacity-70"
+                disabled={isRemoteImporting}
+                type="submit"
+              >
+                {t(
+                  isRemoteImporting
+                    ? "workspace.remoteImportLoading"
+                    : "workspace.remoteImportLoad",
+                )}
+              </button>
+              {isRemoteImporting ? (
+                <button
+                  className="h-10 rounded-md border border-red-300 bg-white px-4 text-sm font-bold text-red-700 transition hover:bg-red-50"
+                  type="button"
+                  onClick={invalidateActiveSchemaImport}
+                >
+                  {t("workspace.remoteImportCancel")}
+                </button>
+              ) : null}
+            </form>
+            {remoteImportError ? (
+              <p
+                className="mt-2 text-xs font-semibold text-red-700"
+                role="alert"
+              >
+                {remoteImportError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="border-b border-[color:var(--color-brand-border)] bg-white px-5 py-3">
           <form
             className="flex flex-wrap items-center gap-2"

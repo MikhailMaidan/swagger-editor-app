@@ -72,5 +72,9 @@ describe("translations", () => {
     expect(
       translate("ru", "workspace.environmentHeaderCount", { count: "3" }),
     ).toBe("Общие заголовки: 3");
+    expect(
+      translate("en", "workspace.remoteImportHttpError", { status: "404" }),
+    ).toBe("The remote server returned HTTP 404.");
+    expect(translate("ru", "workspace.remoteImportOpen")).toBe("Импорт по URL");
   });
 });

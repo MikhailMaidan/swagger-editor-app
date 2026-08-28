@@ -527,6 +527,25 @@ export const translations = {
     "workspace.resetEndpointFilters": "Reset filters",
     "workspace.resetTryItOut": "Reset values",
     "workspace.removeEndpointFavorite": "Remove {method} {path} from favorites",
+    "workspace.remoteImportCancel": "Cancel load",
+    "workspace.remoteImportClose": "Close URL import",
+    "workspace.remoteImportEmpty": "The remote schema is empty.",
+    "workspace.remoteImportFetchFailed":
+      "Could not load the remote schema. Check the URL and try again.",
+    "workspace.remoteImportForm": "Import OpenAPI schema from URL",
+    "workspace.remoteImportHttpError":
+      "The remote server returned HTTP {status}.",
+    "workspace.remoteImportInvalidResponse":
+      "The schema import service returned an invalid response.",
+    "workspace.remoteImportInvalidUrl":
+      "Enter a public HTTP or HTTPS schema URL.",
+    "workspace.remoteImportLoad": "Load schema",
+    "workspace.remoteImportLoading": "Loading...",
+    "workspace.remoteImportOpen": "Import URL",
+    "workspace.remoteImportTooLarge":
+      "The remote schema exceeds the 5 MB import limit.",
+    "workspace.remoteImportUrl": "OpenAPI schema URL",
+    "workspace.remoteImportUrlPlaceholder": "https://example.com/openapi.yaml",
     "workspace.response": "Response",
     "workspace.responseBody": "Response body",
     "workspace.responseCopied": "Response copied.",
@@ -1107,6 +1126,24 @@ export const translations = {
     "workspace.resetEndpointFilters": "Сбросить фильтры",
     "workspace.resetTryItOut": "Сбросить значения",
     "workspace.removeEndpointFavorite": "Удалить {method} {path} из избранного",
+    "workspace.remoteImportCancel": "Отменить загрузку",
+    "workspace.remoteImportClose": "Закрыть импорт по URL",
+    "workspace.remoteImportEmpty": "Удалённая схема пуста.",
+    "workspace.remoteImportFetchFailed":
+      "Не удалось загрузить удалённую схему. Проверьте URL и повторите попытку.",
+    "workspace.remoteImportForm": "Импорт схемы OpenAPI по URL",
+    "workspace.remoteImportHttpError": "Удалённый сервер вернул HTTP {status}.",
+    "workspace.remoteImportInvalidResponse":
+      "Сервис импорта схем вернул некорректный ответ.",
+    "workspace.remoteImportInvalidUrl":
+      "Введите публичный URL схемы с HTTP или HTTPS.",
+    "workspace.remoteImportLoad": "Загрузить схему",
+    "workspace.remoteImportLoading": "Загрузка...",
+    "workspace.remoteImportOpen": "Импорт по URL",
+    "workspace.remoteImportTooLarge":
+      "Размер удалённой схемы превышает лимит импорта 5 МБ.",
+    "workspace.remoteImportUrl": "URL схемы OpenAPI",
+    "workspace.remoteImportUrlPlaceholder": "https://example.com/openapi.yaml",
     "workspace.response": "Ответ",
     "workspace.responseBody": "Тело ответа",
     "workspace.responseCopied": "Ответ скопирован.",

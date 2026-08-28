@@ -1755,6 +1755,180 @@ paths:
     ).not.toBeInTheDocument();
   });
 
+  it("imports a schema from a public URL", async () => {
+    const user = userEvent.setup();
+    const remoteSchema = `openapi: 3.0.0
+info:
+  title: Remote Catalog API
+  version: 2.0.0
+paths:
+  /catalog:
+    get:
+      responses:
+        '200':
+          description: OK`;
+    const byteSize = new TextEncoder().encode(remoteSchema).byteLength;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        byteSize,
+        fileName: "catalog.yaml",
+        schemaText: remoteSchema,
+        sourceUrl: "https://docs.example.com/catalog.yaml",
+      }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Import URL" }));
+      await user.type(
+        screen.getByLabelText("OpenAPI schema URL"),
+        "https://docs.example.com/catalog.yaml",
+      );
+      await user.click(screen.getByRole("button", { name: "Load schema" }));
+
+      expect(
+        await screen.findByRole("heading", { name: "Remote Catalog API" }),
+      ).toBeVisible();
+      expect(screen.getByText("/catalog")).toBeVisible();
+      expect(
+        screen.getByText(`Imported catalog.yaml (${byteSize} B).`),
+      ).toBeVisible();
+      expect(
+        screen.queryByLabelText("Import OpenAPI schema from URL"),
+      ).not.toBeInTheDocument();
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/schema-import",
+        expect.objectContaining({
+          body: JSON.stringify({
+            url: "https://docs.example.com/catalog.yaml",
+          }),
+          method: "POST",
+        }),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("shows remote import validation and HTTP errors without replacing the editor", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Import URL" }));
+      await user.type(
+        screen.getByLabelText("OpenAPI schema URL"),
+        "http://localhost/openapi.yaml",
+      );
+      await user.click(screen.getByRole("button", { name: "Load schema" }));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Enter a public HTTP or HTTPS schema URL.",
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+
+      await user.clear(screen.getByLabelText("OpenAPI schema URL"));
+      await user.type(
+        screen.getByLabelText("OpenAPI schema URL"),
+        "https://docs.example.com/missing.yaml",
+      );
+      fetchMock.mockResolvedValueOnce(
+        Response.json({ error: "http-error", status: 404 }, { status: 502 }),
+      );
+      await user.click(screen.getByRole("button", { name: "Load schema" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "The remote server returned HTTP 404.",
+      );
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("cancels an in-progress remote schema import", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Import URL" }));
+      await user.type(
+        screen.getByLabelText("OpenAPI schema URL"),
+        "https://docs.example.com/slow.yaml",
+      );
+      await user.click(screen.getByRole("button", { name: "Load schema" }));
+
+      expect(screen.getByRole("button", { name: "Loading..." })).toBeDisabled();
+      await user.click(screen.getByRole("button", { name: "Cancel load" }));
+
+      expect(screen.getByLabelText("OpenAPI schema URL")).toBeEnabled();
+      expect(
+        screen.queryByRole("button", { name: "Cancel load" }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("does not let a stale local file read overwrite newer editor changes", async () => {
+    let finishPendingRead = () => {};
+    const readAsTextSpy = vi
+      .spyOn(FileReader.prototype, "readAsText")
+      .mockImplementation(function (this: FileReader) {
+        finishPendingRead = () => {
+          Object.defineProperty(this, "result", {
+            configurable: true,
+            value: "openapi: 3.0.0\ninfo:\n  title: Stale import",
+          });
+          this.onload?.(
+            new ProgressEvent("load") as unknown as ProgressEvent<FileReader>,
+          );
+        };
+      });
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("Import OpenAPI schema file"), {
+        target: {
+          files: [new File(["ignored"], "slow.yaml")],
+        },
+      });
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: "openapi: 3.0.0\ninfo:\n  title: Newer edit" },
+      });
+
+      finishPendingRead();
+
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        "openapi: 3.0.0\ninfo:\n  title: Newer edit",
+      );
+    } finally {
+      readAsTextSpy.mockRestore();
+    }
+  });
+
   it("imports a schema file dropped onto the editor", async () => {
     render(<SwaggerWorkspace />);
 

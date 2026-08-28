@@ -10,6 +10,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 ## Features
 
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
+- Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
