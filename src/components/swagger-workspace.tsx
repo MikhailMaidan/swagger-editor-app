@@ -94,6 +94,13 @@ import {
   saveRequestEnvironmentSettings,
   type RequestEnvironmentSettings,
 } from "@/lib/request-environments";
+import {
+  readRequestPresets,
+  removeRequestPreset,
+  saveRequestPresets,
+  upsertRequestPreset,
+  type RequestPreset,
+} from "@/lib/request-presets";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -241,6 +248,7 @@ export function SwaggerWorkspace({
     );
   const [requestEnvironmentStorageError, setRequestEnvironmentStorageError] =
     useState(false);
+  const [requestPresets, setRequestPresets] = useState<RequestPreset[]>([]);
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -450,6 +458,7 @@ export function SwaggerWorkspace({
     const storedEndpointFavorites = readEndpointFavorites();
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
+    const storedRequestPresets = readRequestPresets();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -463,6 +472,7 @@ export function SwaggerWorkspace({
         setFavoriteEndpointKeys(storedEndpointFavorites);
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
         setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
+        setRequestPresets(storedRequestPresets);
       }
     });
 
@@ -1029,6 +1039,20 @@ export function SwaggerWorkspace({
     setRequestEnvironmentStorageError(
       !saveRequestEnvironmentSettings(settings),
     );
+  }
+
+  function handleSaveRequestPreset(preset: RequestPreset) {
+    const nextPresets = upsertRequestPreset(requestPresets, preset);
+
+    setRequestPresets(nextPresets);
+    return saveRequestPresets(nextPresets);
+  }
+
+  function handleDeleteRequestPreset(presetId: string) {
+    const nextPresets = removeRequestPreset(requestPresets, presetId);
+
+    setRequestPresets(nextPresets);
+    return saveRequestPresets(nextPresets);
   }
 
   function handleEditorSelection(event: SyntheticEvent<HTMLTextAreaElement>) {
@@ -2294,6 +2318,9 @@ export function SwaggerWorkspace({
                   getEndpointFavoriteKey(endpoint.method, endpoint.path),
                 )}
                 key={`${endpoint.method}-${endpoint.path}`}
+                requestPresets={requestPresets}
+                onDeleteRequestPreset={handleDeleteRequestPreset}
+                onSaveRequestPreset={handleSaveRequestPreset}
                 onToggleFavorite={() => handleToggleEndpointFavorite(endpoint)}
               />
             ))

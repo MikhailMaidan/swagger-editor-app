@@ -76,5 +76,13 @@ describe("translations", () => {
       translate("en", "workspace.remoteImportHttpError", { status: "404" }),
     ).toBe("The remote server returned HTTP 404.");
     expect(translate("ru", "workspace.remoteImportOpen")).toBe("Импорт по URL");
+    expect(translate("en", "workspace.requestPresetSelector")).toBe(
+      "Request preset",
+    );
+    expect(
+      translate("ru", "workspace.requestPresetDeleteConfirm", {
+        name: "Успешный сценарий",
+      }),
+    ).toBe('Удалить шаблон запроса "Успешный сценарий"?');
   });
 });

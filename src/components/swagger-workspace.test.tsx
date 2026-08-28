@@ -25,6 +25,7 @@ import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { REQUEST_ENVIRONMENTS_STORAGE_KEY } from "@/lib/request-environments";
+import { REQUEST_PRESETS_STORAGE_KEY } from "@/lib/request-presets";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
 import { MAX_SCHEMA_IMPORT_SIZE_BYTES } from "@/lib/schema-import";
@@ -1338,6 +1339,126 @@ paths:
     );
 
     expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
+  });
+
+  it("saves, applies, updates, and deletes an endpoint request preset", async () => {
+    const user = userEvent.setup();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const pathInput = screen.getAllByLabelText("Path parameter id")[0];
+      const endpointCard = pathInput.closest("article");
+
+      expect(endpointCard).not.toBeNull();
+      const card = within(endpointCard as HTMLElement);
+      const presetSelect = card.getByLabelText("Request preset");
+      const timeoutSelect = card.getByLabelText("Request timeout");
+
+      await user.type(pathInput, "42");
+      await user.type(card.getByLabelText("Query parameter search"), "Alex");
+      await user.selectOptions(timeoutSelect, "30000");
+      await user.click(card.getByRole("button", { name: "Save as preset" }));
+      await user.type(card.getByLabelText("Preset name"), "Happy path");
+      await user.click(card.getByRole("button", { name: "Save preset" }));
+
+      expect(presetSelect).not.toHaveValue("");
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(REQUEST_PRESETS_STORAGE_KEY) || "{}",
+        ),
+      ).toMatchObject({
+        presets: [
+          {
+            method: "GET",
+            name: "Happy path",
+            parameterValues: {
+              "path:id": "42",
+              "query:search": "Alex",
+            },
+            path: "/users/{id}",
+            timeoutMs: 30000,
+          },
+        ],
+        storageVersion: 1,
+      });
+      expect(
+        within(
+          screen
+            .getAllByLabelText("Path parameter id")[1]
+            .closest("article") as HTMLElement,
+        ).queryByRole("option", { name: "Happy path" }),
+      ).not.toBeInTheDocument();
+
+      await user.click(card.getByRole("button", { name: "Reset values" }));
+      expect(pathInput).toHaveValue("");
+      expect(timeoutSelect).toHaveValue("10000");
+      expect(presetSelect).toHaveValue("");
+
+      await user.selectOptions(
+        presetSelect,
+        card.getByRole("option", { name: "Happy path" }),
+      );
+      expect(pathInput).toHaveValue("42");
+      expect(card.getByLabelText("Query parameter search")).toHaveValue("Alex");
+      expect(timeoutSelect).toHaveValue("30000");
+
+      await user.type(card.getByLabelText("Query parameter search"), " Smith");
+      await user.click(card.getByRole("button", { name: "Update preset" }));
+      await user.click(card.getByRole("button", { name: "Reset values" }));
+      await user.selectOptions(
+        presetSelect,
+        card.getByRole("option", { name: "Happy path" }),
+      );
+      expect(card.getByLabelText("Query parameter search")).toHaveValue(
+        "Alex Smith",
+      );
+
+      await user.click(card.getByRole("button", { name: "Delete" }));
+      expect(confirm).toHaveBeenCalledWith(
+        'Delete the "Happy path" request preset?',
+      );
+      expect(presetSelect).toHaveValue("");
+      expect(
+        window.localStorage.getItem(REQUEST_PRESETS_STORAGE_KEY),
+      ).toBeNull();
+    } finally {
+      confirm.mockRestore();
+    }
+  });
+
+  it("restores request body drafts from a locally persisted preset", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const requestBody = screen.getByLabelText("Editable request body");
+    const endpointCard = requestBody.closest("article");
+
+    expect(endpointCard).not.toBeNull();
+    const card = within(endpointCard as HTMLElement);
+    const presetSelect = card.getByLabelText("Request preset");
+
+    fireEvent.change(requestBody, {
+      target: { value: '{"name":"Preset User"}' },
+    });
+    await user.click(card.getByRole("button", { name: "Save as preset" }));
+    await user.type(card.getByLabelText("Preset name"), "Custom body");
+    await user.click(card.getByRole("button", { name: "Save preset" }));
+    await user.click(card.getByRole("button", { name: "Reset values" }));
+
+    expect(requestBody).toHaveValue('{\n  "name": "Alex Smith"\n}');
+
+    await user.selectOptions(
+      presetSelect,
+      card.getByRole("option", { name: "Custom body" }),
+    );
+
+    expect(requestBody).toHaveValue('{"name":"Preset User"}');
+    expect(card.getByLabelText("cURL POST /users/{id}")).toHaveTextContent(
+      "Preset User",
+    );
   });
 
   it("uses named media type examples in the viewer and Try It Out", async () => {

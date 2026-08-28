@@ -24,6 +24,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - cURL, Fetch, and raw HTTP generation with snippet downloads
 - Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation
   with `Escape`
+- Persistent endpoint request presets for parameters, bodies, response choices,
+  and timeouts
 - Schema save with `Ctrl+S` or `Cmd+S`, and formatting with `Ctrl+Shift+F` or
   `Cmd+Shift+F`
 - Persistent editor word wrap with `Alt+Z`

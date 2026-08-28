@@ -10,6 +10,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { RequestPresetControls } from "@/components/request-preset-controls";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   createEndpointPermalink,
@@ -48,6 +49,13 @@ import {
   type RequestEnvironmentHeader,
 } from "@/lib/request-environments";
 import {
+  createRequestPreset,
+  getRequestPresetsForEndpoint,
+  updateRequestPreset,
+  type RequestPreset,
+  type RequestPresetDraft,
+} from "@/lib/request-presets";
+import {
   downloadRequestPreviewFile,
   type RequestPreviewFormat,
 } from "@/lib/request-preview-download";
@@ -69,6 +77,7 @@ const methodColorClasses: Record<string, string> = {
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const REQUEST_TIMEOUT_OPTIONS_MS = [5_000, 10_000, 30_000] as const;
 const EMPTY_ENVIRONMENT_HEADERS: RequestEnvironmentHeader[] = [];
+const EMPTY_REQUEST_PRESETS: RequestPreset[] = [];
 
 const parameterLabelKeys: Record<
   EndpointParameter["location"],
@@ -302,13 +311,19 @@ function EndpointCardComponent({
   endpoint,
   environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
   isFavorite = false,
+  onDeleteRequestPreset,
+  onSaveRequestPreset,
   onToggleFavorite,
+  requestPresets = EMPTY_REQUEST_PRESETS,
 }: {
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
   environmentHeaders?: RequestEnvironmentHeader[];
   isFavorite?: boolean;
+  onDeleteRequestPreset?: (presetId: string) => boolean;
+  onSaveRequestPreset?: (preset: RequestPreset) => boolean;
   onToggleFavorite?: () => void;
+  requestPresets?: RequestPreset[];
 }) {
   const { t } = useI18n();
   const requestBodyInputId = useId();
@@ -354,6 +369,7 @@ function EndpointCardComponent({
   const [wasRequestCancelled, setWasRequestCancelled] = useState(false);
   const [hasAttemptedExecution, setHasAttemptedExecution] = useState(false);
   const requestAbortControllerRef = useRef<AbortController | null>(null);
+  const [selectedRequestPresetId, setSelectedRequestPresetId] = useState("");
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
@@ -398,6 +414,20 @@ function EndpointCardComponent({
     () => getEndpointAnchor(endpoint.method, endpoint.path),
     [endpoint.method, endpoint.path],
   );
+  const endpointRequestPresets = useMemo(
+    () =>
+      getRequestPresetsForEndpoint(
+        requestPresets,
+        endpoint.method,
+        endpoint.path,
+      ),
+    [endpoint.method, endpoint.path, requestPresets],
+  );
+  const activeRequestPresetId = endpointRequestPresets.some(
+    (preset) => preset.id === selectedRequestPresetId,
+  )
+    ? selectedRequestPresetId
+    : "";
 
   useEffect(() => {
     if (window.location.hash !== `#${endpointAnchor}`) {
@@ -742,6 +772,132 @@ function EndpointCardComponent({
     setRequestTimeoutMs(Number(value));
   }
 
+  function createCurrentRequestPresetDraft(name: string): RequestPresetDraft {
+    const requestBodies = { ...requestBodyDraftsRef.current };
+
+    if (activeRequestContentType) {
+      requestBodies[activeRequestContentType] = requestBodyValue;
+    }
+
+    return {
+      method: endpoint.method,
+      name,
+      parameterValues: { ...parameterValues },
+      path: endpoint.path,
+      requestBodies,
+      requestContentType: activeRequestContentType,
+      responseStatus: activeResponseStatus,
+      timeoutMs: requestTimeoutMs,
+    };
+  }
+
+  function clearTryItOutResult() {
+    setHasAttemptedExecution(false);
+    setWasRequestCancelled(false);
+    setMockResult(null);
+    setCopiedCurl("");
+    setCopiedFetch("");
+    setCopiedHttp("");
+    setCopiedRequestUrl("");
+    setCopiedResponseBody("");
+    setCopiedResponseHeaders("");
+  }
+
+  function handleApplyRequestPreset(presetId: string) {
+    setSelectedRequestPresetId(presetId);
+
+    if (!presetId) {
+      return;
+    }
+
+    const preset = endpointRequestPresets.find((item) => item.id === presetId);
+
+    if (!preset) {
+      return;
+    }
+
+    const nextParameterValues = createInitialParameterValues(endpoint);
+
+    editedParameterKeysRef.current.clear();
+    endpoint.parameters.forEach((parameter) => {
+      const key = getRequestParameterKey(parameter);
+
+      if (Object.hasOwn(preset.parameterValues, key)) {
+        nextParameterValues[key] = preset.parameterValues[key];
+        editedParameterKeysRef.current.add(key);
+      }
+    });
+
+    const supportedContentTypes = new Set(
+      endpoint.requestBodies.map((requestBody) => requestBody.contentType),
+    );
+    const nextRequestBodies = Object.entries(preset.requestBodies).reduce<
+      Record<string, string>
+    >((result, [contentType, value]) => {
+      if (supportedContentTypes.has(contentType)) {
+        result[contentType] = value;
+      }
+
+      return result;
+    }, {});
+    const nextContentType = supportedContentTypes.has(preset.requestContentType)
+      ? preset.requestContentType
+      : endpoint.requestBodies[0]?.contentType || "";
+    const nextRequestBody = Object.hasOwn(nextRequestBodies, nextContentType)
+      ? nextRequestBodies[nextContentType]
+      : getRequestBody(endpoint, nextContentType)?.schema.example || "";
+    const nextResponseStatus = endpoint.responses.some(
+      (response) => response.status === preset.responseStatus,
+    )
+      ? preset.responseStatus
+      : selectDefaultResponse(endpoint.responses)?.status || "";
+
+    requestBodyDraftsRef.current = nextRequestBodies;
+    editedRequestContentTypesRef.current = new Set(
+      Object.keys(nextRequestBodies),
+    );
+    previousRequestContentTypeRef.current = nextContentType;
+    previousResponseStatusRef.current = nextResponseStatus;
+    setParameterValues(nextParameterValues);
+    setSelectedRequestContentType(nextContentType);
+    setRequestBodyValue(nextRequestBody);
+    setSelectedResponseStatus(nextResponseStatus);
+    setRequestTimeoutMs(preset.timeoutMs);
+    clearTryItOutResult();
+  }
+
+  function handleCreateRequestPreset(name: string) {
+    if (!onSaveRequestPreset) {
+      return false;
+    }
+
+    const preset = createRequestPreset(createCurrentRequestPresetDraft(name));
+
+    setSelectedRequestPresetId(preset.id);
+    return onSaveRequestPreset(preset);
+  }
+
+  function handleUpdateRequestPreset(presetId: string) {
+    const preset = endpointRequestPresets.find((item) => item.id === presetId);
+
+    if (!preset || !onSaveRequestPreset) {
+      return false;
+    }
+
+    return onSaveRequestPreset(
+      updateRequestPreset(preset, createCurrentRequestPresetDraft(preset.name)),
+    );
+  }
+
+  function handleDeleteRequestPreset(presetId: string) {
+    if (!onDeleteRequestPreset) {
+      return false;
+    }
+
+    setSelectedRequestPresetId("");
+    return onDeleteRequestPreset(presetId);
+  }
+
   function handleResetTryItOut() {
     const defaultRequestBody = endpoint.requestBodies[0];
     const defaultResponseStatus =
@@ -758,15 +914,8 @@ function EndpointCardComponent({
     setRequestBodyValue(defaultRequestBody?.schema.example || "");
     setSelectedResponseStatus(defaultResponseStatus);
     setRequestTimeoutMs(DEFAULT_REQUEST_TIMEOUT_MS);
-    setHasAttemptedExecution(false);
-    setWasRequestCancelled(false);
-    setMockResult(null);
-    setCopiedCurl("");
-    setCopiedFetch("");
-    setCopiedHttp("");
-    setCopiedRequestUrl("");
-    setCopiedResponseBody("");
-    setCopiedResponseHeaders("");
+    setSelectedRequestPresetId("");
+    clearTryItOutResult();
   }
 
   function handleCancelTryItOut() {
@@ -1134,6 +1283,17 @@ function EndpointCardComponent({
             ) : null}
           </div>
         </div>
+        {onSaveRequestPreset && onDeleteRequestPreset ? (
+          <RequestPresetControls
+            disabled={isExecuting}
+            presets={endpointRequestPresets}
+            selectedPresetId={activeRequestPresetId}
+            onApply={handleApplyRequestPreset}
+            onCreate={handleCreateRequestPreset}
+            onDelete={handleDeleteRequestPreset}
+            onUpdate={handleUpdateRequestPreset}
+          />
+        ) : null}
         {endpoint.parameters.length > 0 ? (
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {endpoint.parameters.map((parameter, parameterIndex) => {
