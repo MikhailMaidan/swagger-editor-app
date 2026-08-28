@@ -18,6 +18,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Saved-schema and collection export download feedback
 - Request-history collection and individual export feedback with blocked-download recovery
 - Generated endpoint documentation and Try It Out requests through the server
+- Persistent request environments with reusable base URLs and shared headers
+  across previews and Try It Out execution
 - cURL, Fetch, and raw HTTP generation with snippet downloads
 - Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation
   with `Escape`

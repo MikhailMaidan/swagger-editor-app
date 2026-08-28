@@ -51,4 +51,18 @@ describe("request parameter helpers", () => {
       "header:X-Trace-Id",
     ]);
   });
+
+  it("allows a shared environment header to satisfy a required header", () => {
+    expect(
+      getMissingRequiredParameterKeys(parameters, { "path:id": "42" }, [
+        { name: "x-trace-id", value: "environment-trace" },
+      ]),
+    ).toEqual([]);
+
+    expect(
+      getMissingRequiredParameterKeys(parameters, { "path:id": "42" }, [
+        { name: "X-Trace-Id", value: "  " },
+      ]),
+    ).toEqual(["header:X-Trace-Id"]);
+  });
 });

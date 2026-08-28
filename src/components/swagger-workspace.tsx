@@ -10,6 +10,7 @@ import type {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
+import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -85,6 +86,14 @@ import {
   saveSchemaComparisonBaseline,
 } from "@/lib/schema-comparison-baseline";
 import type { SchemaComparisonBaseline } from "@/lib/schema-comparison-baseline";
+import {
+  createEmptyRequestEnvironmentSettings,
+  getActiveRequestEnvironment,
+  getEnabledRequestEnvironmentHeaders,
+  readRequestEnvironmentSettings,
+  saveRequestEnvironmentSettings,
+  type RequestEnvironmentSettings,
+} from "@/lib/request-environments";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -205,6 +214,12 @@ export function SwaggerWorkspace({
   const [serverOverrideInput, setServerOverrideInput] = useState("");
   const [serverUrlOverride, setServerUrlOverride] = useState("");
   const [serverOverrideError, setServerOverrideError] = useState(false);
+  const [requestEnvironmentSettings, setRequestEnvironmentSettings] =
+    useState<RequestEnvironmentSettings>(() =>
+      createEmptyRequestEnvironmentSettings(),
+    );
+  const [requestEnvironmentStorageError, setRequestEnvironmentStorageError] =
+    useState(false);
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
     SCHEMA_PARSE_DEBOUNCE_MS,
@@ -257,7 +272,17 @@ export function SwaggerWorkspace({
       : parseResult.ok
         ? parseResult.value.serverUrl
         : "";
-  const activeServerUrl = serverUrlOverride || declaredServerUrl;
+  const activeRequestEnvironment = getActiveRequestEnvironment(
+    requestEnvironmentSettings,
+  );
+  const requestEnvironmentHeaders = useMemo(
+    () => getEnabledRequestEnvironmentHeaders(activeRequestEnvironment),
+    [activeRequestEnvironment],
+  );
+  const activeServerUrl =
+    serverUrlOverride ||
+    activeRequestEnvironment?.serverUrl ||
+    declaredServerUrl;
   const endpoints = useMemo(
     () =>
       parsedEndpoints.map((endpoint) =>
@@ -403,6 +428,7 @@ export function SwaggerWorkspace({
     const storedEndpointSortPreference = readEndpointSortPreference();
     const storedEndpointFavorites = readEndpointFavorites();
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
+    const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
     let cancelled = false;
 
     queueMicrotask(() => {
@@ -415,6 +441,7 @@ export function SwaggerWorkspace({
         setEndpointSort(storedEndpointSortPreference);
         setFavoriteEndpointKeys(storedEndpointFavorites);
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
+        setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
       }
     });
 
@@ -851,6 +878,15 @@ export function SwaggerWorkspace({
   function handleDeclaredServerChange(serverUrl: string) {
     setSelectedServerUrl(serverUrl);
     handleClearServerOverride();
+  }
+
+  function handleRequestEnvironmentSettingsChange(
+    settings: RequestEnvironmentSettings,
+  ) {
+    setRequestEnvironmentSettings(settings);
+    setRequestEnvironmentStorageError(
+      !saveRequestEnvironmentSettings(settings),
+    );
   }
 
   function handleEditorSelection(event: SyntheticEvent<HTMLTextAreaElement>) {
@@ -1736,6 +1772,15 @@ export function SwaggerWorkspace({
         </div>
 
         {parseResult.ok ? (
+          <RequestEnvironmentManager
+            hasCustomServerOverride={Boolean(serverUrlOverride)}
+            settings={requestEnvironmentSettings}
+            storageError={requestEnvironmentStorageError}
+            onSettingsChange={handleRequestEnvironmentSettingsChange}
+          />
+        ) : null}
+
+        {parseResult.ok ? (
           <div
             className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-5"
             aria-label={t("workspace.endpointStats")}
@@ -2028,6 +2073,7 @@ export function SwaggerWorkspace({
               <EndpointCard
                 canSaveHistory={isAuthenticated}
                 endpoint={endpoint}
+                environmentHeaders={requestEnvironmentHeaders}
                 isFavorite={favoriteEndpointKeySet.has(
                   getEndpointFavoriteKey(endpoint.method, endpoint.path),
                 )}

@@ -24,6 +24,7 @@ import {
 import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
+import { REQUEST_ENVIRONMENTS_STORAGE_KEY } from "@/lib/request-environments";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
 import { MAX_SCHEMA_IMPORT_SIZE_BYTES } from "@/lib/schema-import";
@@ -682,6 +683,130 @@ paths:
     expect(getPreview()).toHaveTextContent(
       "https://jsonplaceholder.typicode.com/users/",
     );
+  });
+
+  it("applies a persisted request environment to previews and Try It Out", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          body: "{}",
+          durationMs: 18,
+          errorDetails: null,
+          headers: { "content-type": "application/json" },
+          requestSize: 24,
+          responseSize: 2,
+          status: "200",
+          url: "https://staging.example.com/v2/users/42",
+        }),
+        { headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "New environment" }));
+      await user.type(screen.getByLabelText("Profile name"), "Staging");
+      await user.type(
+        screen.getByLabelText("Base URL (optional)"),
+        "https://staging.example.com/v2",
+      );
+      await user.type(screen.getByLabelText("Header 1 name"), "Authorization");
+      await user.type(
+        screen.getByLabelText("Header 1 value"),
+        "Bearer staging-token",
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Save environment" }),
+      );
+
+      const curlPreview = screen.getByLabelText("cURL GET /users/{id}");
+
+      expect(curlPreview).toHaveTextContent(
+        "https://staging.example.com/v2/users/",
+      );
+      expect(curlPreview).toHaveTextContent(
+        "Authorization: Bearer staging-token",
+      );
+      expect(
+        window.localStorage.getItem(REQUEST_ENVIRONMENTS_STORAGE_KEY),
+      ).toContain("Staging");
+
+      await user.type(screen.getAllByLabelText("Path parameter id")[0], "42");
+      await user.click(
+        screen.getAllByRole("button", { name: "Try It Out" })[0],
+      );
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const payload = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+
+      expect(payload.serverUrl).toBe("https://staging.example.com/v2");
+      expect(payload.requestParameters).toEqual(
+        expect.arrayContaining([
+          {
+            location: "header",
+            name: "Authorization",
+            value: "Bearer staging-token",
+          },
+          { location: "path", name: "id", value: "42" },
+        ]),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("lets endpoint header values override matching environment defaults", async () => {
+    window.localStorage.setItem(
+      REQUEST_ENVIRONMENTS_STORAGE_KEY,
+      JSON.stringify({
+        settings: {
+          activeEnvironmentId: "development",
+          environments: [
+            {
+              headers: [
+                {
+                  enabled: true,
+                  id: "trace-header",
+                  name: "x-trace-id",
+                  value: "environment-trace",
+                },
+              ],
+              id: "development",
+              name: "Development",
+              serverUrl: "",
+            },
+          ],
+        },
+        storageVersion: 1,
+      }),
+    );
+
+    render(<SwaggerWorkspace />);
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Active request environment")).toHaveValue(
+        "development",
+      ),
+    );
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toHaveTextContent(
+      "x-trace-id: environment-trace",
+    );
+
+    await userEvent
+      .setup()
+      .type(
+        screen.getByLabelText("Header parameter X-Trace-Id"),
+        "endpoint-trace",
+      );
+
+    const curlPreview = screen.getByLabelText("cURL GET /users/{id}");
+
+    expect(curlPreview).toHaveTextContent("X-Trace-Id: endpoint-trace");
+    expect(curlPreview).not.toHaveTextContent("environment-trace");
   });
 
   it("filters the endpoint list by method, path, summary, and method tab", () => {

@@ -66,5 +66,11 @@ describe("translations", () => {
         status: "404",
       }),
     ).toBe("Удален ответ 404.");
+    expect(translate("en", "workspace.environmentTitle")).toBe(
+      "Request environments",
+    );
+    expect(
+      translate("ru", "workspace.environmentHeaderCount", { count: "3" }),
+    ).toBe("Общие заголовки: 3");
   });
 });

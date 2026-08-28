@@ -44,6 +44,10 @@ import {
   getRequestParameterKey,
 } from "@/lib/request-parameters";
 import {
+  mergeRequestEnvironmentHeaders,
+  type RequestEnvironmentHeader,
+} from "@/lib/request-environments";
+import {
   downloadRequestPreviewFile,
   type RequestPreviewFormat,
 } from "@/lib/request-preview-download";
@@ -64,6 +68,7 @@ const methodColorClasses: Record<string, string> = {
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const REQUEST_TIMEOUT_OPTIONS_MS = [5_000, 10_000, 30_000] as const;
+const EMPTY_ENVIRONMENT_HEADERS: RequestEnvironmentHeader[] = [];
 
 const parameterLabelKeys: Record<
   EndpointParameter["location"],
@@ -295,11 +300,13 @@ function SchemaDetailsBlock({
 function EndpointCardComponent({
   canSaveHistory,
   endpoint,
+  environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
   isFavorite = false,
   onToggleFavorite,
 }: {
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
+  environmentHeaders?: RequestEnvironmentHeader[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
 }) {
@@ -351,7 +358,11 @@ function EndpointCardComponent({
     createInitialParameterValues(endpoint),
   );
   const missingRequiredParameterKeys = new Set(
-    getMissingRequiredParameterKeys(endpoint.parameters, parameterValues),
+    getMissingRequiredParameterKeys(
+      endpoint.parameters,
+      parameterValues,
+      environmentHeaders,
+    ),
   );
   const hasMissingRequiredParameters = missingRequiredParameterKeys.size > 0;
   const hasMissingRequiredPathParameters = endpoint.parameters.some(
@@ -474,9 +485,17 @@ function EndpointCardComponent({
       return changed ? nextValues : currentValues;
     });
   }, [endpoint.parameters]);
-  const requestParameters = useMemo(
+  const endpointRequestParameters = useMemo(
     () => createRequestParameters(endpoint, parameterValues),
     [endpoint, parameterValues],
+  );
+  const requestParameters = useMemo(
+    () =>
+      mergeRequestEnvironmentHeaders(
+        endpointRequestParameters,
+        environmentHeaders,
+      ),
+    [endpointRequestParameters, environmentHeaders],
   );
   const currentRequestUrl = useMemo(
     () => buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
