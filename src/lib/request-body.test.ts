@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createRequestBodyContractReport,
   formatJsonBody,
   hasInvalidJsonBody,
   isJsonMediaType,
@@ -32,5 +33,75 @@ describe("request body helpers", () => {
     );
     expect(formatJsonBody("application/json", '{"active":')).toBeNull();
     expect(formatJsonBody("application/xml", "<active />")).toBeNull();
+  });
+
+  it("reports matching JSON body types and accepts integers as numbers", () => {
+    expect(
+      createRequestBodyContractReport("application/json", "42", {
+        properties: [],
+        type: "number",
+      }),
+    ).toEqual({
+      code: "body-matched",
+      params: { type: "number" },
+      result: "pass",
+    });
+  });
+
+  it("reports type mismatches and missing required properties", () => {
+    expect(
+      createRequestBodyContractReport("application/json", "[]", {
+        properties: ["name"],
+        requiredProperties: ["name"],
+        type: "object",
+      }),
+    ).toEqual({
+      code: "body-type-mismatch",
+      params: { actual: "array", expected: "object" },
+      result: "fail",
+    });
+
+    expect(
+      createRequestBodyContractReport(
+        "application/problem+json",
+        '{"name":"Ada"}',
+        {
+          properties: ["name", "email", "role"],
+          requiredProperties: ["name", "email", "role"],
+          type: "object",
+        },
+      ),
+    ).toEqual({
+      code: "body-missing-required",
+      params: { properties: "email, role" },
+      result: "fail",
+    });
+  });
+
+  it("skips bodies that cannot be checked meaningfully", () => {
+    expect(
+      createRequestBodyContractReport("application/json", "", {
+        properties: [],
+        type: "object",
+      }),
+    ).toBeNull();
+    expect(
+      createRequestBodyContractReport("application/json", "{", {
+        properties: [],
+        type: "object",
+      }),
+    ).toBeNull();
+    expect(
+      createRequestBodyContractReport("application/xml", "<user />", {
+        properties: ["name"],
+        type: "object",
+      }),
+    ).toBeNull();
+    expect(
+      createRequestBodyContractReport("application/json", "{}", {
+        properties: [],
+        type: "unknown",
+      }),
+    ).toBeNull();
   });
 });

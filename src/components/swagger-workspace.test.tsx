@@ -1911,6 +1911,85 @@ paths:
     }
   });
 
+  it("shows advisory request body contract feedback without blocking execution", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        body: '{"id":7}',
+        durationMs: 18,
+        errorDetails: null,
+        headers: { "content-type": "application/json" },
+        requestSize: 24,
+        responseSize: 8,
+        status: "201",
+        url: "https://api.example.com/users",
+      }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Request Contract API
+  version: 1.0.0
+paths:
+  /users:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+            example:
+              name: Ada
+      responses:
+        '201':
+          description: Created`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Request Contract API" }),
+      ).toBeVisible();
+
+      let contract = screen.getByLabelText("Request body contract");
+      const bodyInput = screen.getByLabelText("Editable request body");
+      const executeButton = screen.getByRole("button", { name: "Try It Out" });
+
+      expect(contract).toHaveTextContent("Issues found");
+      expect(contract).toHaveTextContent("Missing required properties: email.");
+      expect(executeButton).toBeEnabled();
+
+      await user.click(executeButton);
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+      fireEvent.change(bodyInput, { target: { value: "[]" } });
+      contract = screen.getByLabelText("Request body contract");
+      expect(contract).toHaveTextContent("Expected object, received array.");
+      expect(executeButton).toBeEnabled();
+
+      fireEvent.change(bodyInput, {
+        target: { value: '{"name":"Ada","email":"ada@example.com"}' },
+      });
+      contract = screen.getByLabelText("Request body contract");
+      expect(contract).toHaveTextContent("Passed");
+      expect(contract).toHaveTextContent("Top-level object shape matches.");
+      expect(executeButton).toBeEnabled();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("previews selected response statuses and prefers successful responses", async () => {
     const user = userEvent.setup();
 

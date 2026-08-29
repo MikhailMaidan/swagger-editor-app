@@ -38,9 +38,11 @@ import {
   saveServerRequestHistoryRecord,
 } from "@/lib/request-history";
 import {
+  createRequestBodyContractReport,
   formatJsonBody,
   hasInvalidJsonBody,
   isJsonMediaType,
+  type RequestBodyContractCode,
 } from "@/lib/request-body";
 import {
   getMissingRequiredParameterKeys,
@@ -114,6 +116,15 @@ const parameterValidationMessageKeys: Record<
   "min-length": "workspace.parameterMinLength",
   number: "workspace.parameterNumber",
   pattern: "workspace.parameterPattern",
+};
+
+const requestBodyContractMessageKeys: Record<
+  RequestBodyContractCode,
+  TranslationKey
+> = {
+  "body-matched": "workspace.contractBodyMatched",
+  "body-missing-required": "workspace.contractBodyMissingRequired",
+  "body-type-mismatch": "workspace.contractBodyTypeMismatch",
 };
 
 type MockRequestValue = {
@@ -453,6 +464,15 @@ function EndpointCardComponent({
   const isJsonRequestBodyInvalid = hasInvalidJsonBody(
     activeRequestContentType,
     requestBodyValue,
+  );
+  const requestBodyContractReport = useMemo(
+    () =>
+      createRequestBodyContractReport(
+        activeRequestContentType,
+        requestBodyValue,
+        activeRequestBody?.schema ?? null,
+      ),
+    [activeRequestBody?.schema, activeRequestContentType, requestBodyValue],
   );
   const isRequestBodyInvalid =
     isRequiredRequestBodyMissing || isJsonRequestBodyInvalid;
@@ -1591,6 +1611,39 @@ function EndpointCardComponent({
                 >
                   {t("workspace.requestBodyInvalidJson")}
                 </span>
+              ) : null}
+              {requestBodyContractReport ? (
+                <section
+                  aria-label={t("workspace.requestBodyContractTitle")}
+                  className="border-y border-[color:var(--color-brand-border)] py-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-xs font-extrabold text-[color:var(--color-brand-navy)]">
+                      {t("workspace.requestBodyContractTitle")}
+                    </h4>
+                    <span
+                      className={`rounded-md px-2 py-1 text-xs font-extrabold ${
+                        requestBodyContractReport.result === "pass"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {t(
+                        requestBodyContractReport.result === "pass"
+                          ? "workspace.contractPassed"
+                          : "workspace.contractFailed",
+                      )}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
+                    {t(
+                      requestBodyContractMessageKeys[
+                        requestBodyContractReport.code
+                      ],
+                      requestBodyContractReport.params,
+                    )}
+                  </p>
+                </section>
               ) : null}
             </div>
           </div>

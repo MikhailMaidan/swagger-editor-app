@@ -21,6 +21,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Generated endpoint documentation and Try It Out requests through the server
 - Schema-aware parameter controls with enum choices and preflight validation
   for numeric ranges, string lengths, and patterns
+- Live advisory request-body contract checks for documented top-level types and
+  required JSON properties
 - Automatic response contract checks for documented statuses, media types,
   top-level body shapes, and required properties
 - Persistent request environments with reusable base URLs and shared headers
