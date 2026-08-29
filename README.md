@@ -21,6 +21,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Generated endpoint documentation and Try It Out requests through the server
 - Persistent request environments with reusable base URLs and shared headers
   across previews and Try It Out execution
+- Schema-driven, session-only authentication for API keys, Bearer and Basic
+  auth, OAuth 2, and OpenID Connect access tokens, with secret-safe history
 - cURL, Fetch, and raw HTTP generation with snippet downloads
 - Scoped request execution with `Ctrl+Enter` or `Cmd+Enter` and cancellation
   with `Escape`

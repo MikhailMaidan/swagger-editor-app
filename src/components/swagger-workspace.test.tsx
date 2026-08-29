@@ -810,6 +810,134 @@ paths:
     expect(curlPreview).not.toHaveTextContent("environment-trace");
   });
 
+  it("applies schema authentication only to secured operations without persisting secrets", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          body: '{"ok":true}',
+          durationMs: 21,
+          errorDetails: null,
+          headers: { "content-type": "application/json" },
+          requestSize: 80,
+          responseSize: 11,
+          status: "200",
+          url: "https://api.example.com/private?api_key=query-secret",
+        }),
+        { headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Secured API
+  version: 1.0.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    queryKey:
+      type: apiKey
+      in: query
+      name: api_key
+security:
+  - bearerAuth: []
+    queryKey: []
+paths:
+  /private:
+    get:
+      summary: Private endpoint
+      responses:
+        '200':
+          description: OK
+  /public:
+    get:
+      summary: Public endpoint
+      security: []
+      responses:
+        '200':
+          description: OK`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Authentication" }),
+      ).toBeVisible();
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: "Enable bearerAuth authentication",
+        }),
+      );
+      await user.type(
+        screen.getByLabelText("Credential for bearerAuth"),
+        "bearer-secret",
+      );
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: "Enable queryKey authentication",
+        }),
+      );
+      await user.type(
+        screen.getByLabelText("Credential for queryKey"),
+        "query-secret",
+      );
+
+      const privatePreview = screen.getByLabelText("cURL GET /private");
+      const publicPreview = screen.getByLabelText("cURL GET /public");
+      const privateCard = privatePreview.closest("article") as HTMLElement;
+
+      expect(privatePreview).toHaveTextContent(
+        "Authorization: Bearer bearer-secret",
+      );
+      expect(privatePreview).toHaveTextContent("api_key=query-secret");
+      expect(publicPreview).not.toHaveTextContent("bearer-secret");
+      expect(publicPreview).not.toHaveTextContent("query-secret");
+      expect(within(privateCard).getByText("Auth configured")).toBeVisible();
+
+      await user.click(
+        within(privateCard).getByRole("button", { name: "Try It Out" }),
+      );
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const payload = JSON.parse(
+        String((fetchMock.mock.calls[0][1] as RequestInit).body),
+      );
+
+      expect(payload.requestParameters).toEqual(
+        expect.arrayContaining([
+          {
+            location: "header",
+            name: "Authorization",
+            value: "Bearer bearer-secret",
+          },
+          { location: "query", name: "api_key", value: "query-secret" },
+        ]),
+      );
+      expect(payload.requestValues).toEqual([
+        expect.objectContaining({ value: "[configured]" }),
+        expect.objectContaining({ value: "[configured]" }),
+      ]);
+      const redactedResponseUrl = await within(privateCard).findByText(
+        /api_key=%5Bconfigured%5D/,
+      );
+      expect(redactedResponseUrl).not.toHaveTextContent("query-secret");
+      expect(
+        Array.from({ length: window.localStorage.length }, (_, index) =>
+          window.localStorage.getItem(window.localStorage.key(index) || ""),
+        ).join("\n"),
+      ).not.toContain("bearer-secret");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("filters the endpoint list by method, path, summary, and method tab", () => {
     render(<SwaggerWorkspace />);
 

@@ -65,4 +65,30 @@ describe("request parameter helpers", () => {
       ]),
     ).toEqual(["header:X-Trace-Id"]);
   });
+
+  it("allows auth defaults to satisfy required query and cookie parameters", () => {
+    const authBackedParameters: EndpointParameter[] = [
+      {
+        description: "",
+        example: "",
+        location: "query",
+        name: "api_key",
+        required: true,
+      },
+      {
+        description: "",
+        example: "",
+        location: "cookie",
+        name: "session_key",
+        required: true,
+      },
+    ];
+
+    expect(
+      getMissingRequiredParameterKeys(authBackedParameters, {}, [
+        { location: "query", name: "api_key", value: "query-secret" },
+        { location: "cookie", name: "session_key", value: "cookie-secret" },
+      ]),
+    ).toEqual([]);
+  });
 });

@@ -10,6 +10,7 @@ import type {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
+import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
@@ -101,6 +102,7 @@ import {
   upsertRequestPreset,
   type RequestPreset,
 } from "@/lib/request-presets";
+import type { RequestAuthValues } from "@/lib/request-auth";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -248,6 +250,10 @@ export function SwaggerWorkspace({
     );
   const [requestEnvironmentStorageError, setRequestEnvironmentStorageError] =
     useState(false);
+  const [requestAuthValues, setRequestAuthValues] = useState<RequestAuthValues>(
+    {},
+  );
+  const requestAuthScopeRef = useRef("");
   const [requestPresets, setRequestPresets] = useState<RequestPreset[]>([]);
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
@@ -294,7 +300,13 @@ export function SwaggerWorkspace({
   const parsedEndpoints = parseResult.ok
     ? parseResult.value.endpoints
     : EMPTY_ENDPOINTS;
+  const securitySchemes = parseResult.ok
+    ? parseResult.value.securitySchemes
+    : [];
   const serverUrls = parseResult.ok ? parseResult.value.serverUrls : [];
+  const requestAuthScope = parseResult.ok
+    ? `${parseResult.value.title}\u0000${serverUrls.join("\u0000")}`
+    : "";
   const declaredServerUrl =
     selectedServerUrl && serverUrls.includes(selectedServerUrl)
       ? selectedServerUrl
@@ -321,6 +333,22 @@ export function SwaggerWorkspace({
       ),
     [activeServerUrl, parsedEndpoints],
   );
+
+  useEffect(() => {
+    if (!requestAuthScope) {
+      return;
+    }
+
+    if (!requestAuthScopeRef.current) {
+      requestAuthScopeRef.current = requestAuthScope;
+      return;
+    }
+
+    if (requestAuthScopeRef.current !== requestAuthScope) {
+      requestAuthScopeRef.current = requestAuthScope;
+      setRequestAuthValues({});
+    }
+  }, [requestAuthScope]);
   const endpointStats = useMemo(
     () => createEndpointStats(endpoints),
     [endpoints],
@@ -2021,6 +2049,14 @@ export function SwaggerWorkspace({
         ) : null}
 
         {parseResult.ok ? (
+          <RequestAuthManager
+            schemes={securitySchemes}
+            values={requestAuthValues}
+            onChange={setRequestAuthValues}
+          />
+        ) : null}
+
+        {parseResult.ok ? (
           <div
             className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-5"
             aria-label={t("workspace.endpointStats")}
@@ -2311,6 +2347,7 @@ export function SwaggerWorkspace({
           ) : (
             visibleEndpoints.map((endpoint) => (
               <EndpointCard
+                authValues={requestAuthValues}
                 canSaveHistory={isAuthenticated}
                 endpoint={endpoint}
                 environmentHeaders={requestEnvironmentHeaders}
@@ -2319,6 +2356,7 @@ export function SwaggerWorkspace({
                 )}
                 key={`${endpoint.method}-${endpoint.path}`}
                 requestPresets={requestPresets}
+                securitySchemes={securitySchemes}
                 onDeleteRequestPreset={handleDeleteRequestPreset}
                 onSaveRequestPreset={handleSaveRequestPreset}
                 onToggleFavorite={() => handleToggleEndpointFavorite(endpoint)}

@@ -25,6 +25,7 @@ import {
   EndpointSummary,
   ResponseSummary,
   SchemaDetails as SchemaDetailsSummary,
+  SecuritySchemeSummary,
   selectDefaultResponse,
 } from "@/lib/openapi";
 import {
@@ -44,10 +45,15 @@ import {
   getMissingRequiredParameterKeys,
   getRequestParameterKey,
 } from "@/lib/request-parameters";
+import type { RequestEnvironmentHeader } from "@/lib/request-environments";
 import {
-  mergeRequestEnvironmentHeaders,
-  type RequestEnvironmentHeader,
-} from "@/lib/request-environments";
+  REDACTED_AUTH_VALUE,
+  createAuthRequestParameters,
+  isAuthRequestParameter,
+  mergeRequestAuthentication,
+  redactAuthQueryFromUrl,
+  type RequestAuthValues,
+} from "@/lib/request-auth";
 import {
   createRequestPreset,
   getRequestPresetsForEndpoint,
@@ -78,6 +84,8 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const REQUEST_TIMEOUT_OPTIONS_MS = [5_000, 10_000, 30_000] as const;
 const EMPTY_ENVIRONMENT_HEADERS: RequestEnvironmentHeader[] = [];
 const EMPTY_REQUEST_PRESETS: RequestPreset[] = [];
+const EMPTY_REQUEST_AUTH_VALUES: RequestAuthValues = {};
+const EMPTY_SECURITY_SCHEMES: SecuritySchemeSummary[] = [];
 
 const parameterLabelKeys: Record<
   EndpointParameter["location"],
@@ -307,6 +315,7 @@ function SchemaDetailsBlock({
 }
 
 function EndpointCardComponent({
+  authValues = EMPTY_REQUEST_AUTH_VALUES,
   canSaveHistory,
   endpoint,
   environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
@@ -315,7 +324,9 @@ function EndpointCardComponent({
   onSaveRequestPreset,
   onToggleFavorite,
   requestPresets = EMPTY_REQUEST_PRESETS,
+  securitySchemes = EMPTY_SECURITY_SCHEMES,
 }: {
+  authValues?: RequestAuthValues;
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
   environmentHeaders?: RequestEnvironmentHeader[];
@@ -324,6 +335,7 @@ function EndpointCardComponent({
   onSaveRequestPreset?: (preset: RequestPreset) => boolean;
   onToggleFavorite?: () => void;
   requestPresets?: RequestPreset[];
+  securitySchemes?: SecuritySchemeSummary[];
 }) {
   const { t } = useI18n();
   const requestBodyInputId = useId();
@@ -373,12 +385,23 @@ function EndpointCardComponent({
   const [parameterValues, setParameterValues] = useState(() =>
     createInitialParameterValues(endpoint),
   );
+  const authRequestParameters = useMemo(
+    () =>
+      createAuthRequestParameters(
+        securitySchemes,
+        authValues,
+        endpoint.securityRequirements,
+        endpoint.securityRequirementGroups,
+      ),
+    [authValues, endpoint, securitySchemes],
+  );
   const missingRequiredParameterKeys = new Set(
-    getMissingRequiredParameterKeys(
-      endpoint.parameters,
-      parameterValues,
-      environmentHeaders,
-    ),
+    getMissingRequiredParameterKeys(endpoint.parameters, parameterValues, [
+      ...environmentHeaders,
+      ...authRequestParameters.filter(
+        (parameter) => parameter.location === "header",
+      ),
+    ]),
   );
   const hasMissingRequiredParameters = missingRequiredParameterKeys.size > 0;
   const hasMissingRequiredPathParameters = endpoint.parameters.some(
@@ -521,11 +544,12 @@ function EndpointCardComponent({
   );
   const requestParameters = useMemo(
     () =>
-      mergeRequestEnvironmentHeaders(
+      mergeRequestAuthentication(
         endpointRequestParameters,
         environmentHeaders,
+        authRequestParameters,
       ),
-    [endpointRequestParameters, environmentHeaders],
+    [authRequestParameters, endpointRequestParameters, environmentHeaders],
   );
   const currentRequestUrl = useMemo(
     () => buildRequestUrl(endpoint.serverUrl, endpoint.path, requestParameters),
@@ -977,7 +1001,9 @@ function EndpointCardComponent({
     );
     const requestValues = requestParameters.map((parameter) => ({
       label: `${t(parameterLabelKeys[parameter.location])}: ${parameter.name}`,
-      value: parameter.value,
+      value: isAuthRequestParameter(parameter, authRequestParameters)
+        ? REDACTED_AUTH_VALUE
+        : parameter.value,
     }));
     const fallbackResult = {
       body: response.body,
@@ -1026,6 +1052,10 @@ function EndpointCardComponent({
     }
 
     requestAbortControllerRef.current = null;
+    const redactedExecutionUrl = redactAuthQueryFromUrl(
+      executionResult.url,
+      authRequestParameters,
+    );
 
     let savedToHistory = false;
 
@@ -1042,7 +1072,7 @@ function EndpointCardComponent({
         // mislabel a failed request as a fake 200 success in history.
         status: Number(executionResult.status),
         summary: endpoint.summary,
-        url: executionResult.url,
+        url: redactedExecutionUrl,
       });
 
       if (historyRecord) {
@@ -1056,6 +1086,7 @@ function EndpointCardComponent({
       requestBody: requestBodyValue,
       requestValues,
       savedToHistory,
+      url: redactedExecutionUrl,
     });
     setIsExecuting(false);
   }
@@ -1156,6 +1187,11 @@ function EndpointCardComponent({
               {t("workspace.authRequired", {
                 schemes: endpoint.securityRequirements.join(", "),
               })}
+            </span>
+          ) : null}
+          {authRequestParameters.length > 0 ? (
+            <span className="rounded-xl bg-emerald-100 px-3 py-1 text-xs font-extrabold uppercase text-emerald-700">
+              {t("workspace.requestAuthApplied")}
             </span>
           ) : null}
         </div>

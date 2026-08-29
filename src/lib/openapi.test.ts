@@ -7,6 +7,7 @@ import {
   createHttpPreview,
   detectSchemaFormat,
   extractEndpoints,
+  extractSecuritySchemes,
   formatOpenApiSchema,
   parseOpenApiSchema,
   selectDefaultResponse,
@@ -58,6 +59,72 @@ describe("openapi helpers", () => {
     }
 
     expect(result.value.serverUrl).toBe("http://legacy.example.com");
+  });
+
+  it("normalizes OpenAPI security schemes including local references", () => {
+    const schema = {
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            bearerFormat: "JWT",
+            description: "Short-lived access token",
+            scheme: "bearer",
+            type: "http",
+          },
+          queryKey: { $ref: "#/x-security/queryKey" },
+          signIn: { flows: {}, type: "oauth2" },
+        },
+      },
+      "x-security": {
+        queryKey: { in: "query", name: "api_key", type: "apiKey" },
+      },
+    };
+
+    expect(extractSecuritySchemes(schema)).toEqual([
+      {
+        bearerFormat: "JWT",
+        description: "Short-lived access token",
+        location: "",
+        name: "bearerAuth",
+        parameterName: "",
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        bearerFormat: "",
+        description: "",
+        location: "query",
+        name: "queryKey",
+        parameterName: "api_key",
+        scheme: "",
+        type: "apiKey",
+      },
+      expect.objectContaining({ name: "signIn", type: "oauth2" }),
+    ]);
+  });
+
+  it("normalizes Swagger 2 basic and API key security definitions", () => {
+    expect(
+      extractSecuritySchemes({
+        securityDefinitions: {
+          basicAuth: { type: "basic" },
+          headerKey: { in: "header", name: "X-API-Key", type: "apiKey" },
+        },
+        swagger: "2.0",
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        name: "basicAuth",
+        scheme: "basic",
+        type: "http",
+      }),
+      expect.objectContaining({
+        location: "header",
+        name: "headerKey",
+        parameterName: "X-API-Key",
+        type: "apiKey",
+      }),
+    ]);
   });
 
   it("resolves OpenAPI server variables from their default values", () => {
@@ -386,6 +453,7 @@ describe("openapi helpers", () => {
         expect.objectContaining({
           path: "/reports",
           secured: true,
+          securityRequirementGroups: [["oauth2"]],
           securityRequirements: ["oauth2"],
         }),
       ]),

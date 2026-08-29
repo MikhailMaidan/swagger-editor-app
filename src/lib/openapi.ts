@@ -16,6 +16,16 @@ export type CurlParameter = Pick<EndpointParameter, "location" | "name"> & {
   value: string;
 };
 
+export type SecuritySchemeSummary = {
+  bearerFormat: string;
+  description: string;
+  location: "header" | "query" | "cookie" | "";
+  name: string;
+  parameterName: string;
+  scheme: string;
+  type: "apiKey" | "http" | "oauth2" | "openIdConnect" | "unsupported";
+};
+
 export type SchemaDetails = {
   exampleName: string;
   type: string;
@@ -43,6 +53,7 @@ export type EndpointSummary = {
   operationId: string;
   path: string;
   secured: boolean;
+  securityRequirementGroups?: string[][];
   securityRequirements: string[];
   serverUrl: string;
   summary: string;
@@ -72,6 +83,7 @@ export type ParsedOpenApiSchema = {
   serverUrls: string[];
   schema: Record<string, unknown>;
   endpoints: EndpointSummary[];
+  securitySchemes: SecuritySchemeSummary[];
 };
 
 export type OpenApiParseResult =
@@ -197,16 +209,27 @@ function readStringArray(value: unknown) {
     : [];
 }
 
-function readSecurityRequirementNames(value: unknown) {
+function readSecurityRequirementGroups(value: unknown) {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const names = value.flatMap((requirement) =>
-    isRecord(requirement) ? Object.keys(requirement) : [],
-  );
+  return value.filter(isRecord).map((requirement) => Object.keys(requirement));
+}
+
+function readSecurityRequirementNames(value: unknown) {
+  const names = readSecurityRequirementGroups(value).flat();
 
   return Array.from(new Set(names));
+}
+
+function readOperationSecurityRequirementGroups(
+  schema: Record<string, unknown>,
+  operation: Record<string, unknown>,
+) {
+  return readSecurityRequirementGroups(
+    "security" in operation ? operation.security : schema.security,
+  );
 }
 
 function readOperationSecurityRequirements(
@@ -218,6 +241,94 @@ function readOperationSecurityRequirements(
   }
 
   return readSecurityRequirementNames(schema.security);
+}
+
+function resolveLocalReference(
+  schema: Record<string, unknown>,
+  value: Record<string, unknown>,
+) {
+  const reference = readString(value.$ref);
+
+  if (!reference.startsWith("#/")) {
+    return value;
+  }
+
+  const segments = reference
+    .slice(2)
+    .split("/")
+    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"));
+  let current: unknown = schema;
+
+  for (const segment of segments) {
+    if (!isRecord(current) || !(segment in current)) {
+      return value;
+    }
+
+    current = current[segment];
+  }
+
+  return isRecord(current) ? current : value;
+}
+
+function isSecurityParameterLocation(
+  value: unknown,
+): value is SecuritySchemeSummary["location"] {
+  return value === "header" || value === "query" || value === "cookie";
+}
+
+function normalizeSecurityScheme(
+  schema: Record<string, unknown>,
+  name: string,
+  value: unknown,
+): SecuritySchemeSummary {
+  const rawScheme = isRecord(value) ? resolveLocalReference(schema, value) : {};
+  const rawType = readString(rawScheme.type);
+  const location = isSecurityParameterLocation(rawScheme.in)
+    ? rawScheme.in
+    : "";
+  const common = {
+    bearerFormat: readString(rawScheme.bearerFormat),
+    description: readString(rawScheme.description),
+    location,
+    name,
+    parameterName: readString(rawScheme.name),
+    scheme: readString(rawScheme.scheme).toLowerCase(),
+  };
+
+  if (rawType === "apiKey") {
+    return { ...common, type: "apiKey" };
+  }
+
+  if (rawType === "http") {
+    return { ...common, type: "http" };
+  }
+
+  if (rawType === "basic") {
+    return { ...common, scheme: "basic", type: "http" };
+  }
+
+  if (rawType === "oauth2") {
+    return { ...common, type: "oauth2" };
+  }
+
+  if (rawType === "openIdConnect") {
+    return { ...common, type: "openIdConnect" };
+  }
+
+  return { ...common, type: "unsupported" };
+}
+
+export function extractSecuritySchemes(schema: Record<string, unknown>) {
+  const components = isRecord(schema.components) ? schema.components : {};
+  const definitions = isRecord(components.securitySchemes)
+    ? components.securitySchemes
+    : isRecord(schema.securityDefinitions)
+      ? schema.securityDefinitions
+      : {};
+
+  return Object.entries(definitions).map(([name, value]) =>
+    normalizeSecurityScheme(schema, name, value),
+  );
 }
 
 export const DEFAULT_SERVER_URL = "https://api.example.com";
@@ -640,6 +751,8 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           schema,
           operation,
         );
+        const securityRequirementGroups =
+          readOperationSecurityRequirementGroups(schema, operation);
 
         endpoints.push({
           deprecated: operation.deprecated === true,
@@ -654,6 +767,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           requestBodies,
           responses,
           secured: securityRequirements.length > 0,
+          securityRequirementGroups,
           securityRequirements,
           serverUrl,
           summary: readString(operation.summary, "Untitled endpoint"),
@@ -786,6 +900,7 @@ export function parseOpenApiSchema(schemaText: string): OpenApiParseResult {
         endpoints: extractEndpoints(schema),
         format,
         schema,
+        securitySchemes: extractSecuritySchemes(schema),
         serverUrl,
         serverUrls,
         title: readString(info.title, "Untitled API"),

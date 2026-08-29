@@ -7,12 +7,24 @@ export function getRequestParameterKey(parameter: EndpointParameter) {
 export function getMissingRequiredParameterKeys(
   parameters: EndpointParameter[],
   values: Record<string, string>,
-  fallbackHeaders: Array<{ name: string; value: string }> = [],
+  fallbackParameters: Array<{
+    location?: EndpointParameter["location"];
+    name: string;
+    value: string;
+  }> = [],
 ) {
-  const fallbackHeaderNames = new Set(
-    fallbackHeaders
-      .filter((header) => header.value.trim())
-      .map((header) => header.name.trim().toLowerCase()),
+  const fallbackParameterKeys = new Set(
+    fallbackParameters
+      .filter((parameter) => parameter.value.trim())
+      .map((parameter) => {
+        const location = parameter.location ?? "header";
+        const name =
+          location === "header"
+            ? parameter.name.trim().toLowerCase()
+            : parameter.name.trim();
+
+        return `${location}:${name}`;
+      }),
   );
 
   return parameters
@@ -20,9 +32,12 @@ export function getMissingRequiredParameterKeys(
       (parameter) =>
         parameter.required &&
         !(values[getRequestParameterKey(parameter)] || "").trim() &&
-        !(
-          parameter.location === "header" &&
-          fallbackHeaderNames.has(parameter.name.toLowerCase())
+        !fallbackParameterKeys.has(
+          `${parameter.location}:${
+            parameter.location === "header"
+              ? parameter.name.toLowerCase()
+              : parameter.name
+          }`,
         ),
     )
     .map(getRequestParameterKey);
