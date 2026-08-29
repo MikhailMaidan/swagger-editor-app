@@ -1884,7 +1884,10 @@ function EndpointCardComponent({
             </div>
           ) : null}
           {responseContractReport ? (
-            <ResponseContractReport report={responseContractReport} />
+            <ResponseContractReport
+              endpoint={{ method: endpoint.method, path: endpoint.path }}
+              report={responseContractReport}
+            />
           ) : null}
           {Object.keys(mockResult.headers).length > 0 ? (
             <div className="mt-3 rounded-2xl bg-white p-3 text-sm">

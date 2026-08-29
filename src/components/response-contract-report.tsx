@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { writeTextToClipboard, type ClipboardWriter } from "@/lib/clipboard";
 import type {
+  ResponseContractEndpoint,
   ResponseContractCheckCode,
   ResponseContractCheckResult,
   ResponseContractReport as ContractReport,
 } from "@/lib/response-contract";
+import { serializeResponseContractReport } from "@/lib/response-contract";
 import type { TranslationKey } from "@/lib/translations";
 
 const checkMessageKeys: Record<ResponseContractCheckCode, TranslationKey> = {
@@ -57,34 +61,94 @@ const resultClasses: Record<ResponseContractCheckResult, string> = {
   skipped: "bg-slate-100 text-slate-600",
 };
 
-export function ResponseContractReport({ report }: { report: ContractReport }) {
+type CopyAction = {
+  content: string;
+  result: "copying" | "error" | "success";
+};
+
+export function ResponseContractReport({
+  clipboard,
+  endpoint,
+  report,
+}: {
+  clipboard?: ClipboardWriter;
+  endpoint: ResponseContractEndpoint;
+  report: ContractReport;
+}) {
   const { t } = useI18n();
+  const [copyAction, setCopyAction] = useState<CopyAction | null>(null);
+  const reportJson = serializeResponseContractReport(report, endpoint);
+  const currentCopyResult =
+    copyAction?.content === reportJson ? copyAction.result : null;
+
+  async function handleCopyReport() {
+    if (currentCopyResult === "copying") {
+      return;
+    }
+
+    setCopyAction({ content: reportJson, result: "copying" });
+    const copied = await writeTextToClipboard(reportJson, clipboard);
+
+    setCopyAction({
+      content: reportJson,
+      result: copied ? "success" : "error",
+    });
+  }
 
   return (
     <section
       aria-label={t("workspace.contractTitle")}
       className="mt-3 border-y border-[color:var(--color-brand-border)] py-3"
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <h4 className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-          {t("workspace.contractTitle")}
-        </h4>
-        <span
-          className={`rounded-md px-2 py-1 text-xs font-extrabold ${resultClasses[report.result]}`}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h4 className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+            {t("workspace.contractTitle")}
+          </h4>
+          <span
+            className={`rounded-md px-2 py-1 text-xs font-extrabold ${resultClasses[report.result]}`}
+          >
+            {t(reportResultLabelKeys[report.result])}
+          </span>
+          <p className="text-xs font-semibold text-[color:var(--color-brand-muted)]">
+            {report.failedCount > 0
+              ? t("workspace.contractSummaryFailed", {
+                  checked: String(report.checkedCount),
+                  failed: String(report.failedCount),
+                })
+              : t("workspace.contractSummaryPassed", {
+                  checked: String(report.checkedCount),
+                })}
+          </p>
+        </div>
+        <button
+          className="h-8 rounded-md border border-[color:var(--color-brand-border)] px-3 text-xs font-extrabold text-[color:var(--color-brand-navy)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={currentCopyResult === "copying"}
+          type="button"
+          onClick={handleCopyReport}
         >
-          {t(reportResultLabelKeys[report.result])}
-        </span>
-        <p className="text-xs font-semibold text-[color:var(--color-brand-muted)]">
-          {report.failedCount > 0
-            ? t("workspace.contractSummaryFailed", {
-                checked: String(report.checkedCount),
-                failed: String(report.failedCount),
-              })
-            : t("workspace.contractSummaryPassed", {
-                checked: String(report.checkedCount),
-              })}
-        </p>
+          {t(
+            currentCopyResult === "copying"
+              ? "workspace.contractCopying"
+              : "workspace.contractCopy",
+          )}
+        </button>
       </div>
+
+      {currentCopyResult === "success" || currentCopyResult === "error" ? (
+        <p
+          className={`mt-2 text-xs font-semibold ${
+            currentCopyResult === "error" ? "text-red-700" : "text-emerald-700"
+          }`}
+          role={currentCopyResult === "error" ? "alert" : "status"}
+        >
+          {t(
+            currentCopyResult === "error"
+              ? "workspace.contractCopyError"
+              : "workspace.contractCopySuccess",
+          )}
+        </p>
+      ) : null}
 
       <ul className="mt-3 grid gap-2 lg:grid-cols-3">
         {report.checks.map((check) => (

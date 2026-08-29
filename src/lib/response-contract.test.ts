@@ -3,6 +3,7 @@ import type { ResponseSummary } from "./openapi";
 import {
   createResponseContractReport,
   findDocumentedResponse,
+  serializeResponseContractReport,
 } from "./response-contract";
 
 function createResponse(
@@ -143,5 +144,25 @@ describe("response contract checks", () => {
       code: "body-not-expected",
       result: "skipped",
     });
+  });
+
+  it("serializes a deterministic JSON report with endpoint context", () => {
+    const report = createResponseContractReport([createResponse()], {
+      body: '{"id":7}',
+      headers: { "content-type": "application/json" },
+      method: "GET",
+      status: "200",
+    });
+    const serialized = serializeResponseContractReport(report, {
+      method: " get ",
+      path: "/users/{id}",
+    });
+
+    expect(JSON.parse(serialized)).toEqual({
+      endpoint: { method: "GET", path: "/users/{id}" },
+      report,
+      version: 1,
+    });
+    expect(serialized.endsWith("\n")).toBe(true);
   });
 });

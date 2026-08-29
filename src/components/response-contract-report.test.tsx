@@ -1,10 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import type { ResponseContractReport as ContractReport } from "@/lib/response-contract";
 import { ResponseContractReport } from "./response-contract-report";
 
 describe("ResponseContractReport", () => {
-  it("renders passed, failed, and skipped checks with useful details", () => {
+  it("renders useful details and copies a contextual JSON report", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
     const report: ContractReport = {
       checkedCount: 2,
       checks: [
@@ -32,7 +35,13 @@ describe("ResponseContractReport", () => {
       result: "fail",
     };
 
-    render(<ResponseContractReport report={report} />);
+    render(
+      <ResponseContractReport
+        clipboard={{ writeText }}
+        endpoint={{ method: "GET", path: "/users/{id}" }}
+        report={report}
+      />,
+    );
 
     expect(screen.getByLabelText("Response contract")).toBeVisible();
     expect(screen.getByText("Issues found")).toBeVisible();
@@ -46,5 +55,24 @@ describe("ResponseContractReport", () => {
     expect(
       screen.getByText("No body shape is documented for this response."),
     ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Copy report JSON" }));
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(writeText.mock.calls[0][0])).toEqual({
+      endpoint: { method: "GET", path: "/users/{id}" },
+      report,
+      version: 1,
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Response contract report copied.",
+    );
+
+    writeText.mockRejectedValueOnce(new Error("Clipboard unavailable"));
+    await user.click(screen.getByRole("button", { name: "Copy report JSON" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Could not copy the response contract report.",
+    );
   });
 });

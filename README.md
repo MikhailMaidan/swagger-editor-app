@@ -24,7 +24,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Live advisory request-body contract checks for documented top-level types and
   required JSON properties
 - Automatic response contract checks for documented statuses, media types,
-  top-level body shapes, and required properties
+  top-level body shapes, and required properties, with copyable JSON reports
 - Persistent request environments with reusable base URLs and shared headers
   across previews and Try It Out execution
 - Schema-driven, session-only authentication for API keys, Bearer and Basic

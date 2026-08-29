@@ -4045,6 +4045,11 @@ paths:
         "Missing required properties: name.",
       );
       expect(contractReport).toHaveTextContent("1 of 3 checked rules failed.");
+      expect(
+        within(contractReport).getByRole("button", {
+          name: "Copy report JSON",
+        }),
+      ).toBeEnabled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       fetchMock.mockRestore();

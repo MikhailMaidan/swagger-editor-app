@@ -33,6 +33,11 @@ export type ResponseContractReport = {
   result: ResponseContractCheckResult;
 };
 
+export type ResponseContractEndpoint = {
+  method: string;
+  path: string;
+};
+
 type ResponseContractInput = {
   body: string;
   headers: Record<string, string>;
@@ -316,4 +321,22 @@ export function createResponseContractReport(
     passedCount,
     result: failedCount > 0 ? "fail" : checkedCount > 0 ? "pass" : "skipped",
   };
+}
+
+export function serializeResponseContractReport(
+  report: ResponseContractReport,
+  endpoint: ResponseContractEndpoint,
+) {
+  return `${JSON.stringify(
+    {
+      endpoint: {
+        method: endpoint.method.trim().toUpperCase(),
+        path: endpoint.path,
+      },
+      report,
+      version: 1,
+    },
+    null,
+    2,
+  )}\n`;
 }

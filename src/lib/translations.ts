@@ -393,6 +393,11 @@ export const translations = {
       "No Content-Type header was returned; expected {expected}.",
     "workspace.contractContentTypeNotDocumented":
       "No response media type is documented.",
+    "workspace.contractCopy": "Copy report JSON",
+    "workspace.contractCopyError":
+      "Could not copy the response contract report.",
+    "workspace.contractCopying": "Copying...",
+    "workspace.contractCopySuccess": "Response contract report copied.",
     "workspace.contractFailed": "Issues found",
     "workspace.contractPassed": "Passed",
     "workspace.contractSkipped": "Not checked",
@@ -1084,6 +1089,11 @@ export const translations = {
       "Заголовок Content-Type отсутствует; ожидался {expected}.",
     "workspace.contractContentTypeNotDocumented":
       "Тип содержимого ответа не описан.",
+    "workspace.contractCopy": "Копировать JSON отчёта",
+    "workspace.contractCopyError":
+      "Не удалось скопировать отчёт о контракте ответа.",
+    "workspace.contractCopying": "Копирование...",
+    "workspace.contractCopySuccess": "Отчёт о контракте ответа скопирован.",
     "workspace.contractFailed": "Найдены проблемы",
     "workspace.contractPassed": "Пройдено",
     "workspace.contractSkipped": "Не проверено",
