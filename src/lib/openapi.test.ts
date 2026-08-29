@@ -204,6 +204,83 @@ describe("openapi helpers", () => {
         description: "Overridden: item id must be numeric",
         location: "path",
         name: "id",
+        pattern: "^[0-9]+$",
+        type: "string",
+      }),
+    ]);
+  });
+
+  it("resolves reusable parameters and extracts their input constraints", () => {
+    const endpoints = extractEndpoints({
+      components: {
+        parameters: {
+          StatusFilter: {
+            description: "Filter by status",
+            in: "query",
+            name: "status",
+            schema: {
+              enum: ["active", "paused"],
+              minLength: 3,
+              pattern: "^[a-z]+$",
+              type: "string",
+            },
+          },
+        },
+      },
+      paths: {
+        "/items": {
+          get: {
+            parameters: [{ $ref: "#/components/parameters/StatusFilter" }],
+            responses: { "200": { description: "OK" } },
+          },
+        },
+      },
+    });
+
+    expect(endpoints[0].parameters).toEqual([
+      expect.objectContaining({
+        description: "Filter by status",
+        enumValues: ["active", "paused"],
+        location: "query",
+        minLength: 3,
+        name: "status",
+        pattern: "^[a-z]+$",
+        type: "string",
+      }),
+    ]);
+  });
+
+  it("extracts Swagger 2 parameter constraints without a schema wrapper", () => {
+    const endpoints = extractEndpoints({
+      paths: {
+        "/items": {
+          get: {
+            parameters: [
+              {
+                default: 20,
+                enum: [10, 20, 50],
+                in: "query",
+                maximum: 100,
+                minimum: 1,
+                name: "limit",
+                type: "integer",
+              },
+            ],
+            responses: { "200": { description: "OK" } },
+          },
+        },
+      },
+      swagger: "2.0",
+    });
+
+    expect(endpoints[0].parameters).toEqual([
+      expect.objectContaining({
+        enumValues: ["10", "20", "50"],
+        example: "20",
+        maximum: 100,
+        minimum: 1,
+        name: "limit",
+        type: "integer",
       }),
     ]);
   });

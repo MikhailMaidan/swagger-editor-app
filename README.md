@@ -19,6 +19,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Saved-schema and collection export download feedback
 - Request-history collection and individual export feedback with blocked-download recovery
 - Generated endpoint documentation and Try It Out requests through the server
+- Schema-aware parameter controls with enum choices and preflight validation
+  for numeric ranges, string lengths, and patterns
 - Automatic response contract checks for documented statuses, media types,
   top-level body shapes, and required properties
 - Persistent request environments with reusable base URLs and shared headers

@@ -1481,6 +1481,118 @@ paths:
     expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
   });
 
+  it("renders schema-aware parameter controls and blocks invalid requests", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        body: '{"ok":true}',
+        durationMs: 12,
+        errorDetails: null,
+        headers: { "content-type": "application/json" },
+        requestSize: 20,
+        responseSize: 11,
+        status: "200",
+        url: "https://api.example.com/items?status=active&limit=5&code=ABC",
+      }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Constraint API
+  version: 1.0.0
+paths:
+  /items:
+    get:
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+        - name: code
+          in: query
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 5
+            pattern: ^[A-Z]+$
+      responses:
+        '200':
+          description: OK`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Constraint API" }),
+      ).toBeVisible();
+
+      const statusSelect = screen.getByLabelText("Query parameter status");
+      const limitInput = screen.getByLabelText("Query parameter limit");
+      const codeInput = screen.getByLabelText("Query parameter code");
+      const executeButton = screen.getByRole("button", { name: "Try It Out" });
+
+      expect(statusSelect.tagName).toBe("SELECT");
+      expect(
+        within(statusSelect).getByRole("option", { name: "active" }),
+      ).toBeVisible();
+      expect(
+        within(statusSelect).getByRole("option", { name: "paused" }),
+      ).toBeVisible();
+      expect(limitInput).toHaveAttribute("type", "text");
+      expect(limitInput).toHaveAttribute("inputmode", "numeric");
+      expect(limitInput).toHaveAttribute("min", "1");
+      expect(limitInput).toHaveAttribute("max", "10");
+      expect(limitInput).toHaveAttribute("step", "1");
+      expect(codeInput).toHaveAttribute("minlength", "3");
+      expect(codeInput).toHaveAttribute("maxlength", "5");
+
+      await user.selectOptions(statusSelect, "active");
+      await user.type(limitInput, "11");
+      await user.type(codeInput, "abc1");
+      await user.click(executeButton);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(screen.getByText("limit must be at most 10.")).toBeVisible();
+      expect(screen.getByText("code must match ^[A-Z]+$.")).toBeVisible();
+      expect(limitInput).toHaveAttribute("aria-invalid", "true");
+      expect(codeInput).toHaveAttribute("aria-invalid", "true");
+      expect(executeButton).toBeDisabled();
+
+      await user.clear(limitInput);
+      await user.type(limitInput, "5");
+      await user.clear(codeInput);
+      await user.type(codeInput, "ABC");
+
+      expect(executeButton).toBeEnabled();
+      await user.click(executeButton);
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+      const requestPayload = JSON.parse(
+        fetchMock.mock.calls[0][1]?.body as string,
+      );
+      expect(requestPayload.requestParameters).toEqual(
+        expect.arrayContaining([
+          { location: "query", name: "status", value: "active" },
+          { location: "query", name: "limit", value: "5" },
+          { location: "query", name: "code", value: "ABC" },
+        ]),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("saves, applies, updates, and deletes an endpoint request preset", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);

@@ -10,6 +10,13 @@ export type EndpointParameter = {
   location: "path" | "query" | "header" | "cookie";
   example: string;
   required: boolean;
+  enumValues?: string[];
+  maximum?: number;
+  maxLength?: number;
+  minimum?: number;
+  minLength?: number;
+  pattern?: string;
+  type?: string;
 };
 
 export type CurlParameter = Pick<EndpointParameter, "location" | "name"> & {
@@ -469,28 +476,81 @@ function readSchemaDetails(
   };
 }
 
-function normalizeParameters(value: unknown): EndpointParameter[] {
+function readFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+function readNonNegativeInteger(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function formatParameterOption(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    value === null
+  ) {
+    return String(value);
+  }
+
+  return formatExample(value);
+}
+
+function normalizeParameters(
+  value: unknown,
+  rootSchema: Record<string, unknown>,
+): EndpointParameter[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  return value.reduce<EndpointParameter[]>((parameters, parameter) => {
-    if (!isRecord(parameter) || !isParameterLocation(parameter.in)) {
+  return value.reduce<EndpointParameter[]>((parameters, rawParameter) => {
+    if (!isRecord(rawParameter)) {
       return parameters;
     }
 
-    const schema = isRecord(parameter.schema) ? parameter.schema : {};
+    const parameter = resolveLocalReference(rootSchema, rawParameter);
+
+    if (!isParameterLocation(parameter.in)) {
+      return parameters;
+    }
+
+    const rawParameterSchema = isRecord(parameter.schema)
+      ? parameter.schema
+      : parameter;
+    const parameterSchema = resolveLocalReference(
+      rootSchema,
+      rawParameterSchema,
+    );
+    const enumValues = Array.isArray(parameterSchema.enum)
+      ? Array.from(new Set(parameterSchema.enum.map(formatParameterOption)))
+      : [];
 
     parameters.push({
       description: readString(parameter.description),
+      enumValues: enumValues.length > 0 ? enumValues : undefined,
       example: readFirstFormattedExample(
         parameter.example,
-        schema.example,
-        schema.default,
+        parameterSchema.example,
+        parameterSchema.default,
       ),
       location: parameter.in,
+      maximum: readFiniteNumber(parameterSchema.maximum),
+      maxLength: readNonNegativeInteger(parameterSchema.maxLength),
+      minimum: readFiniteNumber(parameterSchema.minimum),
+      minLength: readNonNegativeInteger(parameterSchema.minLength),
       name: readString(parameter.name, "Unnamed parameter"),
+      pattern: readString(parameterSchema.pattern),
       required: parameter.required === true || parameter.in === "path",
+      type: readString(parameterSchema.type),
     });
 
     return parameters;
@@ -797,7 +857,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
       return [];
     }
 
-    const sharedParameters = normalizeParameters(pathConfig.parameters);
+    const sharedParameters = normalizeParameters(pathConfig.parameters, schema);
 
     return Object.entries(pathConfig).reduce<EndpointSummary[]>(
       (endpoints, [method, operation]) => {
@@ -831,7 +891,7 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           operationId: readString(operation.operationId),
           parameters: mergeParameters(
             sharedParameters,
-            normalizeParameters(operation.parameters),
+            normalizeParameters(operation.parameters, schema),
           ),
           path,
           requestBodies,

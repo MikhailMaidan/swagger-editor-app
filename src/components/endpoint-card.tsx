@@ -44,7 +44,9 @@ import {
 } from "@/lib/request-body";
 import {
   getMissingRequiredParameterKeys,
+  getRequestParameterValidationIssues,
   getRequestParameterKey,
+  type RequestParameterValidationCode,
 } from "@/lib/request-parameters";
 import type { RequestEnvironmentHeader } from "@/lib/request-environments";
 import {
@@ -97,6 +99,21 @@ const parameterLabelKeys: Record<
   header: "workspace.header",
   path: "workspace.path",
   query: "workspace.query",
+};
+
+const parameterValidationMessageKeys: Record<
+  RequestParameterValidationCode,
+  TranslationKey
+> = {
+  boolean: "workspace.parameterBoolean",
+  enum: "workspace.parameterEnum",
+  integer: "workspace.parameterInteger",
+  maximum: "workspace.parameterMaximum",
+  "max-length": "workspace.parameterMaxLength",
+  minimum: "workspace.parameterMinimum",
+  "min-length": "workspace.parameterMinLength",
+  number: "workspace.parameterNumber",
+  pattern: "workspace.parameterPattern",
 };
 
 type MockRequestValue = {
@@ -404,6 +421,15 @@ function EndpointCardComponent({
     ]),
   );
   const hasMissingRequiredParameters = missingRequiredParameterKeys.size > 0;
+  const parameterValidationIssues = getRequestParameterValidationIssues(
+    endpoint.parameters,
+    parameterValues,
+    [...environmentHeaders, ...authRequestParameters],
+  );
+  const parameterValidationIssuesByKey = new Map(
+    parameterValidationIssues.map((issue) => [issue.key, issue]),
+  );
+  const hasInvalidRequestParameters = parameterValidationIssues.length > 0;
   const hasMissingRequiredPathParameters = endpoint.parameters.some(
     (parameter) =>
       parameter.location === "path" &&
@@ -989,7 +1015,7 @@ function EndpointCardComponent({
       return;
     }
 
-    if (hasMissingRequiredParameters) {
+    if (hasMissingRequiredParameters || hasInvalidRequestParameters) {
       setHasAttemptedExecution(true);
       return;
     }
@@ -1350,7 +1376,28 @@ function EndpointCardComponent({
               const isRequiredParameterMissing =
                 hasAttemptedExecution &&
                 missingRequiredParameterKeys.has(parameterKey);
+              const validationIssue = hasAttemptedExecution
+                ? parameterValidationIssuesByKey.get(parameterKey)
+                : undefined;
+              const isParameterInvalid =
+                isRequiredParameterMissing || Boolean(validationIssue);
               const parameterErrorId = `${requestBodyInputId}-parameter-${parameterIndex}-error`;
+              const parameterValue = parameterValues[parameterKey] ?? "";
+              const parameterOptions =
+                parameter.enumValues && parameter.enumValues.length > 0
+                  ? parameter.enumValues
+                  : parameter.type === "boolean"
+                    ? ["true", "false"]
+                    : null;
+              const parameterInputLabel = t("workspace.parameterInputLabel", {
+                location: locationLabel,
+                name: parameter.name,
+              });
+              const parameterPlaceholder = parameter.example
+                ? t("workspace.parameterExamplePlaceholder", {
+                    value: parameter.example,
+                  })
+                : t("workspace.parameterValuePlaceholder");
 
               return (
                 <label
@@ -1365,44 +1412,94 @@ function EndpointCardComponent({
                       </span>
                     ) : null}
                   </span>
-                  <input
-                    aria-describedby={
-                      isRequiredParameterMissing ? parameterErrorId : undefined
-                    }
-                    aria-invalid={isRequiredParameterMissing || undefined}
-                    aria-label={t("workspace.parameterInputLabel", {
-                      location: locationLabel,
-                      name: parameter.name,
-                    })}
-                    className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                    placeholder={
-                      parameter.example
-                        ? t("workspace.parameterExamplePlaceholder", {
-                            value: parameter.example,
-                          })
-                        : t("workspace.parameterValuePlaceholder")
-                    }
-                    required={parameter.required}
-                    type="text"
-                    value={parameterValues[parameterKey] ?? ""}
-                    onChange={(event) =>
-                      handleParameterValueChange(parameter, event.target.value)
-                    }
-                  />
+                  {parameterOptions ? (
+                    <select
+                      aria-describedby={
+                        isParameterInvalid ? parameterErrorId : undefined
+                      }
+                      aria-invalid={isParameterInvalid || undefined}
+                      aria-label={parameterInputLabel}
+                      className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                      required={parameter.required}
+                      value={parameterValue}
+                      onChange={(event) =>
+                        handleParameterValueChange(
+                          parameter,
+                          event.target.value,
+                        )
+                      }
+                    >
+                      <option value="">{parameterPlaceholder}</option>
+                      {parameterValue &&
+                      !parameterOptions.includes(parameterValue) ? (
+                        <option disabled value={parameterValue}>
+                          {parameterValue}
+                        </option>
+                      ) : null}
+                      {parameterOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      aria-describedby={
+                        isParameterInvalid ? parameterErrorId : undefined
+                      }
+                      aria-invalid={isParameterInvalid || undefined}
+                      aria-label={parameterInputLabel}
+                      className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                      inputMode={
+                        parameter.type === "integer"
+                          ? "numeric"
+                          : parameter.type === "number"
+                            ? "decimal"
+                            : undefined
+                      }
+                      max={parameter.maximum}
+                      maxLength={parameter.maxLength}
+                      min={parameter.minimum}
+                      minLength={parameter.minLength}
+                      placeholder={parameterPlaceholder}
+                      required={parameter.required}
+                      step={parameter.type === "integer" ? 1 : "any"}
+                      type="text"
+                      value={parameterValue}
+                      onChange={(event) =>
+                        handleParameterValueChange(
+                          parameter,
+                          event.target.value,
+                        )
+                      }
+                    />
+                  )}
                   {parameter.description ? (
                     <span className="text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
                       {parameter.description}
                     </span>
                   ) : null}
-                  {isRequiredParameterMissing ? (
+                  {isParameterInvalid ? (
                     <span
                       className="text-xs font-semibold text-red-700"
                       id={parameterErrorId}
                       role="alert"
                     >
-                      {t("workspace.parameterRequired", {
-                        name: parameter.name,
-                      })}
+                      {isRequiredParameterMissing
+                        ? t("workspace.parameterRequired", {
+                            name: parameter.name,
+                          })
+                        : validationIssue
+                          ? t(
+                              parameterValidationMessageKeys[
+                                validationIssue.code
+                              ],
+                              {
+                                ...validationIssue.params,
+                                name: parameter.name,
+                              },
+                            )
+                          : null}
                     </span>
                   ) : null}
                 </label>
@@ -1597,7 +1694,8 @@ function EndpointCardComponent({
               disabled={
                 isExecuting ||
                 isRequestBodyInvalid ||
-                (hasAttemptedExecution && hasMissingRequiredParameters)
+                (hasAttemptedExecution &&
+                  (hasMissingRequiredParameters || hasInvalidRequestParameters))
               }
               type="button"
               onClick={handleTryItOut}

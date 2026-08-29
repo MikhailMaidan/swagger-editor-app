@@ -567,7 +567,18 @@ export const translations = {
     "workspace.operationId": "Operation ID: {id}",
     "workspace.parameters": "parameters",
     "workspace.parameterExamplePlaceholder": "Example: {value}",
+    "workspace.parameterBoolean": "{name} must be true or false.",
+    "workspace.parameterEnum": "{name} must be one of: {values}.",
     "workspace.parameterInputLabel": "{location} parameter {name}",
+    "workspace.parameterInteger": "{name} must be a whole number.",
+    "workspace.parameterMaximum": "{name} must be at most {maximum}.",
+    "workspace.parameterMaxLength":
+      "{name} must contain at most {maximum} characters.",
+    "workspace.parameterMinimum": "{name} must be at least {minimum}.",
+    "workspace.parameterMinLength":
+      "{name} must contain at least {minimum} characters.",
+    "workspace.parameterNumber": "{name} must be a number.",
+    "workspace.parameterPattern": "{name} must match {pattern}.",
     "workspace.parameterRequired": "{name} is required.",
     "workspace.parameterValuePlaceholder": "Enter value",
     "workspace.path": "Path",
@@ -1219,7 +1230,23 @@ export const translations = {
     "workspace.operationId": "ID операции: {id}",
     "workspace.parameters": "параметры",
     "workspace.parameterExamplePlaceholder": "Пример: {value}",
+    "workspace.parameterBoolean":
+      "Параметр {name} должен быть равен true или false.",
+    "workspace.parameterEnum":
+      "Параметр {name} должен иметь одно из значений: {values}.",
     "workspace.parameterInputLabel": "{location} параметр {name}",
+    "workspace.parameterInteger": "Параметр {name} должен быть целым числом.",
+    "workspace.parameterMaximum":
+      "Параметр {name} должен быть не больше {maximum}.",
+    "workspace.parameterMaxLength":
+      "Параметр {name} должен содержать не более {maximum} символов.",
+    "workspace.parameterMinimum":
+      "Параметр {name} должен быть не меньше {minimum}.",
+    "workspace.parameterMinLength":
+      "Параметр {name} должен содержать не менее {minimum} символов.",
+    "workspace.parameterNumber": "Параметр {name} должен быть числом.",
+    "workspace.parameterPattern":
+      "Параметр {name} должен соответствовать шаблону {pattern}.",
     "workspace.parameterRequired": "Параметр {name} обязателен.",
     "workspace.parameterValuePlaceholder": "Введите значение",
     "workspace.path": "Path",
