@@ -854,6 +854,12 @@ paths:
   /private:
     get:
       summary: Private endpoint
+      parameters:
+        - in: query
+          name: api_key
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -870,6 +876,15 @@ paths:
       expect(
         await screen.findByRole("heading", { name: "Authentication" }),
       ).toBeVisible();
+      const privatePreview = screen.getByLabelText("cURL GET /private");
+      const privateCard = privatePreview.closest("article") as HTMLElement;
+      const privateExecuteButton = within(privateCard).getByRole("button", {
+        name: "Try It Out",
+      });
+
+      await user.click(privateExecuteButton);
+      expect(privateExecuteButton).toBeDisabled();
+      expect(fetchMock).not.toHaveBeenCalled();
       await user.click(
         screen.getByRole("checkbox", {
           name: "Enable bearerAuth authentication",
@@ -889,9 +904,7 @@ paths:
         "query-secret",
       );
 
-      const privatePreview = screen.getByLabelText("cURL GET /private");
       const publicPreview = screen.getByLabelText("cURL GET /public");
-      const privateCard = privatePreview.closest("article") as HTMLElement;
 
       expect(privatePreview).toHaveTextContent(
         "Authorization: Bearer bearer-secret",
@@ -900,10 +913,9 @@ paths:
       expect(publicPreview).not.toHaveTextContent("bearer-secret");
       expect(publicPreview).not.toHaveTextContent("query-secret");
       expect(within(privateCard).getByText("Auth configured")).toBeVisible();
+      expect(privateExecuteButton).not.toBeDisabled();
 
-      await user.click(
-        within(privateCard).getByRole("button", { name: "Try It Out" }),
-      );
+      await user.click(privateExecuteButton);
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
       const payload = JSON.parse(
@@ -3558,6 +3570,9 @@ paths:
     expect(screen.getByRole("status")).toHaveTextContent("200");
     expect(screen.getByRole("status")).toHaveTextContent("Alex Smith");
     expect(screen.getByRole("status")).toHaveTextContent("Saved to history");
+    expect(screen.getByLabelText("Response contract")).toHaveTextContent(
+      "All 3 checked rules passed.",
+    );
     expect(window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY)).toContain(
       "Get user by id",
     );
@@ -3778,6 +3793,68 @@ paths:
         }),
       );
       expect(timeoutSelect).toHaveValue("10000");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("reports response contract drift after Try It Out", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        body: '{"id":7}',
+        durationMs: 24,
+        errorDetails: null,
+        headers: { "content-type": "application/json; charset=utf-8" },
+        requestSize: 20,
+        responseSize: 8,
+        status: "200",
+        url: "https://api.example.com/users/7",
+      }),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Contract API
+  version: 1.0.0
+paths:
+  /users/7:
+    get:
+      summary: Get user
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, name]
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Contract API" }),
+      ).toBeVisible();
+      await user.click(screen.getByRole("button", { name: "Try It Out" }));
+
+      const contractReport = await screen.findByLabelText("Response contract");
+
+      expect(contractReport).toHaveTextContent("Issues found");
+      expect(contractReport).toHaveTextContent(
+        "Missing required properties: name.",
+      );
+      expect(contractReport).toHaveTextContent("1 of 3 checked rules failed.");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       fetchMock.mockRestore();
     }

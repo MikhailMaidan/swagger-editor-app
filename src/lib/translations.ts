@@ -369,6 +369,42 @@ export const translations = {
     "workspace.copyResponseHeaders": "Copy response headers",
     "workspace.copySchema": "Copy schema",
     "workspace.cookie": "Cookie",
+    "workspace.contractBody": "Body shape",
+    "workspace.contractBodyEmpty":
+      "Expected a {expected} response body, but it was empty.",
+    "workspace.contractBodyInvalidJson":
+      "The response body could not be parsed as {expected}.",
+    "workspace.contractBodyMatched": "Top-level {type} shape matches.",
+    "workspace.contractBodyMissingRequired":
+      "Missing required properties: {properties}.",
+    "workspace.contractBodyNotDocumented":
+      "No body shape is documented for this response.",
+    "workspace.contractBodyNotExpected":
+      "No response body is expected for this method or status.",
+    "workspace.contractBodyTypeMismatch":
+      "Expected {expected}, received {actual}.",
+    "workspace.contractCheckFailed": "Failed",
+    "workspace.contractContentType": "Media type",
+    "workspace.contractContentTypeMatched":
+      "Received {actual}, documented as {documented}.",
+    "workspace.contractContentTypeMismatch":
+      "Received {actual}; expected {expected}.",
+    "workspace.contractContentTypeMissing":
+      "No Content-Type header was returned; expected {expected}.",
+    "workspace.contractContentTypeNotDocumented":
+      "No response media type is documented.",
+    "workspace.contractFailed": "Issues found",
+    "workspace.contractPassed": "Passed",
+    "workspace.contractSkipped": "Not checked",
+    "workspace.contractStatus": "Status",
+    "workspace.contractStatusMatched":
+      "Received {actual}, matched documented response {documented}.",
+    "workspace.contractStatusUndocumented":
+      "Status {actual} is not documented.",
+    "workspace.contractSummaryFailed":
+      "{failed} of {checked} checked rules failed.",
+    "workspace.contractSummaryPassed": "All {checked} checked rules passed.",
+    "workspace.contractTitle": "Response contract",
     "workspace.curl": "cURL",
     "workspace.curlCopied": "cURL copied.",
     "workspace.customServerUrl": "Custom server URL",
@@ -1011,6 +1047,43 @@ export const translations = {
     "workspace.copyResponseHeaders": "Скопировать заголовки ответа",
     "workspace.copySchema": "Скопировать схему",
     "workspace.cookie": "Cookie",
+    "workspace.contractBody": "Структура тела",
+    "workspace.contractBodyEmpty":
+      "Ожидалось тело ответа типа {expected}, но оно пустое.",
+    "workspace.contractBodyInvalidJson":
+      "Не удалось разобрать тело ответа как {expected}.",
+    "workspace.contractBodyMatched":
+      "Структура верхнего уровня типа {type} совпадает.",
+    "workspace.contractBodyMissingRequired":
+      "Отсутствуют обязательные свойства: {properties}.",
+    "workspace.contractBodyNotDocumented":
+      "Структура тела для этого ответа не описана.",
+    "workspace.contractBodyNotExpected":
+      "Для этого метода или статуса тело ответа не ожидается.",
+    "workspace.contractBodyTypeMismatch":
+      "Ожидался тип {expected}, получен {actual}.",
+    "workspace.contractCheckFailed": "Не пройдено",
+    "workspace.contractContentType": "Тип содержимого",
+    "workspace.contractContentTypeMatched":
+      "Получен {actual}, в документации указан {documented}.",
+    "workspace.contractContentTypeMismatch":
+      "Получен {actual}; ожидался {expected}.",
+    "workspace.contractContentTypeMissing":
+      "Заголовок Content-Type отсутствует; ожидался {expected}.",
+    "workspace.contractContentTypeNotDocumented":
+      "Тип содержимого ответа не описан.",
+    "workspace.contractFailed": "Найдены проблемы",
+    "workspace.contractPassed": "Пройдено",
+    "workspace.contractSkipped": "Не проверено",
+    "workspace.contractStatus": "Статус",
+    "workspace.contractStatusMatched":
+      "Получен {actual}, совпадает с описанным ответом {documented}.",
+    "workspace.contractStatusUndocumented": "Статус {actual} не описан.",
+    "workspace.contractSummaryFailed":
+      "Не пройдено проверок: {failed} из {checked}.",
+    "workspace.contractSummaryPassed":
+      "Все проверенные правила пройдены: {checked}.",
+    "workspace.contractTitle": "Контракт ответа",
     "workspace.curl": "cURL",
     "workspace.curlCopied": "cURL скопирован.",
     "workspace.customServerUrl": "Свой URL сервера",

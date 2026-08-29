@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { RequestPresetControls } from "@/components/request-preset-controls";
+import { ResponseContractReport } from "@/components/response-contract-report";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   createEndpointPermalink,
@@ -67,6 +68,7 @@ import {
 } from "@/lib/request-preview-download";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
+import { createResponseContractReport } from "@/lib/response-contract";
 import { formatResponseHeaders } from "@/lib/response-headers";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
@@ -398,9 +400,7 @@ function EndpointCardComponent({
   const missingRequiredParameterKeys = new Set(
     getMissingRequiredParameterKeys(endpoint.parameters, parameterValues, [
       ...environmentHeaders,
-      ...authRequestParameters.filter(
-        (parameter) => parameter.location === "header",
-      ),
+      ...authRequestParameters,
     ]),
   );
   const hasMissingRequiredParameters = missingRequiredParameterKeys.size > 0;
@@ -618,6 +618,18 @@ function EndpointCardComponent({
   const formattedResponseHeaders = useMemo(
     () => (mockResult ? formatResponseHeaders(mockResult.headers) : ""),
     [mockResult],
+  );
+  const responseContractReport = useMemo(
+    () =>
+      mockResult
+        ? createResponseContractReport(endpoint.responses, {
+            body: mockResult.body,
+            headers: mockResult.headers,
+            method: endpoint.method,
+            status: mockResult.status,
+          })
+        : null,
+    [endpoint.method, endpoint.responses, mockResult],
   );
   const isResponseCopied =
     Boolean(formattedResponseBody) &&
@@ -1719,6 +1731,9 @@ function EndpointCardComponent({
               <p className="font-extrabold">{t("history.errorDetails")}</p>
               <p className="mt-1 font-medium">{mockResult.errorDetails}</p>
             </div>
+          ) : null}
+          {responseContractReport ? (
+            <ResponseContractReport report={responseContractReport} />
           ) : null}
           {Object.keys(mockResult.headers).length > 0 ? (
             <div className="mt-3 rounded-2xl bg-white p-3 text-sm">

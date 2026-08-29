@@ -30,6 +30,7 @@ export type SchemaDetails = {
   exampleName: string;
   type: string;
   properties: string[];
+  requiredProperties?: string[];
   example: string;
 };
 
@@ -45,6 +46,7 @@ export type ResponseSummary = {
   description: string;
   contentTypes: string[];
   schema: SchemaDetails | null;
+  schemasByContentType?: Record<string, SchemaDetails>;
 };
 
 export type EndpointSummary = {
@@ -448,8 +450,12 @@ function readMediaTypeExample(value: Record<string, unknown>) {
 function readSchemaDetails(
   value: unknown,
   mediaTypeExample: MediaTypeExample | null = null,
+  rootSchema?: Record<string, unknown>,
 ): SchemaDetails {
-  const schema = isRecord(value) ? value : {};
+  const rawSchema = isRecord(value) ? value : {};
+  const schema = rootSchema
+    ? resolveLocalReference(rootSchema, rawSchema)
+    : rawSchema;
   const properties = isRecord(schema.properties)
     ? Object.keys(schema.properties)
     : [];
@@ -458,6 +464,7 @@ function readSchemaDetails(
     example: mediaTypeExample?.value || formatExample(schema.example),
     exampleName: mediaTypeExample?.name || "",
     properties,
+    requiredProperties: readStringArray(schema.required),
     type: readString(schema.type, properties.length > 0 ? "object" : "unknown"),
   };
 }
@@ -503,7 +510,10 @@ function mergeParameters(
   return Array.from(parametersByKey.values());
 }
 
-function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
+function normalizeRequestBodies(
+  value: unknown,
+  rootSchema: Record<string, unknown>,
+): RequestBodySummary[] {
   if (!isRecord(value)) {
     return [];
   }
@@ -523,6 +533,7 @@ function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
         schema: readSchemaDetails(
           contentConfig.schema,
           readMediaTypeExample(contentConfig),
+          rootSchema,
         ),
       });
 
@@ -532,34 +543,83 @@ function normalizeRequestBodies(value: unknown): RequestBodySummary[] {
   );
 }
 
-function normalizeResponses(value: unknown): ResponseSummary[] {
+function readLegacyResponseExample(
+  responseConfig: Record<string, unknown>,
+  contentType: string,
+) {
+  if (!contentType || !isRecord(responseConfig.examples)) {
+    return null;
+  }
+
+  const example = formatExample(responseConfig.examples[contentType]);
+
+  return example
+    ? ({ name: "", value: example } satisfies MediaTypeExample)
+    : null;
+}
+
+function normalizeResponses(
+  value: unknown,
+  legacyContentTypes: string[],
+  rootSchema: Record<string, unknown>,
+): ResponseSummary[] {
   if (!isRecord(value)) {
     return [];
   }
 
   return Object.entries(value).reduce<ResponseSummary[]>(
-    (responses, [status, responseConfig]) => {
-      if (!isRecord(responseConfig)) {
+    (responses, [status, rawResponseConfig]) => {
+      if (!isRecord(rawResponseConfig)) {
         return responses;
       }
+
+      const responseConfig = resolveLocalReference(
+        rootSchema,
+        rawResponseConfig,
+      );
 
       const content = isRecord(responseConfig.content)
         ? responseConfig.content
         : {};
-      const contentTypes = Object.keys(content);
+      const openApiContentTypes = Object.keys(content);
+      const contentTypes =
+        openApiContentTypes.length > 0
+          ? openApiContentTypes
+          : legacyContentTypes;
+      const schemasByContentType = contentTypes.reduce<
+        Record<string, SchemaDetails>
+      >((schemas, contentType) => {
+        const contentConfig = content[contentType];
+
+        if (isRecord(contentConfig)) {
+          schemas[contentType] = readSchemaDetails(
+            contentConfig.schema,
+            readMediaTypeExample(contentConfig),
+            rootSchema,
+          );
+        } else if ("schema" in responseConfig) {
+          schemas[contentType] = readSchemaDetails(
+            responseConfig.schema,
+            readLegacyResponseExample(responseConfig, contentType),
+            rootSchema,
+          );
+        }
+
+        return schemas;
+      }, {});
       const firstContentType = contentTypes[0];
-      const firstContent = firstContentType ? content[firstContentType] : null;
-      const firstContentConfig = isRecord(firstContent) ? firstContent : null;
+      const fallbackSchema =
+        "schema" in responseConfig
+          ? readSchemaDetails(responseConfig.schema, null, rootSchema)
+          : null;
 
       responses.push({
         contentTypes,
         description: readString(responseConfig.description, "No description"),
-        schema: firstContentConfig
-          ? readSchemaDetails(
-              firstContentConfig.schema,
-              readMediaTypeExample(firstContentConfig),
-            )
-          : null,
+        schema:
+          (firstContentType && schemasByContentType[firstContentType]) ||
+          fallbackSchema,
+        schemasByContentType,
         status,
       });
 
@@ -745,8 +805,18 @@ export function extractEndpoints(schema: Record<string, unknown>) {
           return endpoints;
         }
 
-        const requestBodies = normalizeRequestBodies(operation.requestBody);
-        const responses = normalizeResponses(operation.responses);
+        const requestBodies = normalizeRequestBodies(
+          operation.requestBody,
+          schema,
+        );
+        const operationProduces = readStringArray(operation.produces);
+        const responses = normalizeResponses(
+          operation.responses,
+          operationProduces.length > 0
+            ? operationProduces
+            : readStringArray(schema.produces),
+          schema,
+        );
         const securityRequirements = readOperationSecurityRequirements(
           schema,
           operation,

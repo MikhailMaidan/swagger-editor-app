@@ -334,6 +334,91 @@ describe("openapi helpers", () => {
       example: '{\n  "id": 7,\n  "name": "Ada"\n}',
       exampleName: "createdUser",
     });
+    expect(
+      endpoints[0].responses[0].schemasByContentType?.["application/json"],
+    ).toMatchObject({
+      exampleName: "createdUser",
+      type: "object",
+    });
+  });
+
+  it("resolves referenced response schemas and required properties", () => {
+    const endpoints = extractEndpoints({
+      components: {
+        responses: {
+          UserResponse: {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/User" },
+              },
+            },
+            description: "User",
+          },
+        },
+        schemas: {
+          User: {
+            properties: { id: { type: "integer" }, name: { type: "string" } },
+            required: ["id"],
+            type: "object",
+          },
+        },
+      },
+      paths: {
+        "/users/7": {
+          get: {
+            responses: {
+              "200": { $ref: "#/components/responses/UserResponse" },
+            },
+          },
+        },
+      },
+    });
+
+    expect(endpoints[0].responses[0]).toMatchObject({
+      contentTypes: ["application/json"],
+      schema: {
+        properties: ["id", "name"],
+        requiredProperties: ["id"],
+        type: "object",
+      },
+    });
+  });
+
+  it("uses Swagger 2 produces, schemas, and response examples", () => {
+    const endpoints = extractEndpoints({
+      definitions: {
+        User: {
+          properties: { id: { type: "integer" } },
+          required: ["id"],
+          type: "object",
+        },
+      },
+      paths: {
+        "/users/7": {
+          get: {
+            responses: {
+              "200": {
+                description: "User",
+                examples: { "application/json": { id: 7 } },
+                schema: { $ref: "#/definitions/User" },
+              },
+            },
+          },
+        },
+      },
+      produces: ["application/json"],
+      swagger: "2.0",
+    });
+
+    expect(endpoints[0].responses[0]).toMatchObject({
+      contentTypes: ["application/json"],
+      schema: {
+        example: '{\n  "id": 7\n}',
+        properties: ["id"],
+        requiredProperties: ["id"],
+        type: "object",
+      },
+    });
   });
 
   it("parses the default YAML schema and extracts endpoints", () => {
