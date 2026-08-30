@@ -10,6 +10,7 @@ import type {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
+import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { RequestExecutionModeControl } from "@/components/request-execution-mode-control";
@@ -2170,6 +2171,19 @@ export function SwaggerWorkspace({
             onSetBaseline={handleSetSchemaComparisonBaseline}
             report={schemaChangeReport}
             storageError={schemaComparisonStorageError}
+          />
+        ) : null}
+
+        {parseResult.ok ? (
+          <MockContractSuitePanel
+            allEndpoints={endpoints}
+            key={debouncedSchemaText}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+            visibleEndpoints={visibleEndpoints}
           />
         ) : null}
 

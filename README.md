@@ -28,6 +28,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
   required JSON properties
 - Automatic response contract checks for documented statuses, media types,
   top-level body shapes, and required properties, with copyable JSON reports
+- Offline Mock contract suite runner across all documented response variants,
+  with visible-endpoint scope, pass/partial/fail filtering, and JSON exports
 - Persistent request environments with reusable base URLs and shared headers
   across previews and Try It Out execution
 - Schema-driven, session-only authentication for API keys, Bearer and Basic

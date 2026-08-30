@@ -4154,6 +4154,96 @@ paths:
     }
   });
 
+  it("runs offline mock contract suites for visible or all endpoints", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json({ body: "unexpected network result" }));
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Contract Suite API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+              example: []
+  /jobs:
+    delete:
+      responses:
+        '204':
+          description: Deleted
+  /missing:
+    get:
+      responses: {}`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Contract Suite API" }),
+      ).toBeVisible();
+      const suitePanel = screen
+        .getByRole("heading", { name: "Mock contract suite" })
+        .closest("section") as HTMLElement;
+      const endpointFilter = screen.getByLabelText(
+        "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
+      );
+
+      await user.type(endpointFilter, "/users");
+      expect(screen.getByText("Showing 1 of 3 endpoints")).toBeVisible();
+      expect(
+        screen.getByRole("option", { name: "Visible endpoints (1)" }),
+      ).toBeVisible();
+
+      await user.click(screen.getByRole("button", { name: "Run mock suite" }));
+
+      let suiteResults = screen.getByLabelText("Mock contract suite results");
+      expect(suiteResults).toHaveTextContent("Cases1");
+      expect(suiteResults).toHaveTextContent("Passed1");
+
+      await user.selectOptions(screen.getByLabelText("Suite scope"), "all");
+      await user.click(screen.getByRole("button", { name: "Run mock suite" }));
+
+      suiteResults = screen.getByLabelText("Mock contract suite results");
+      expect(suiteResults).toHaveTextContent("Cases3");
+      expect(suiteResults).toHaveTextContent("Passed1");
+      expect(suiteResults).toHaveTextContent("Partial1");
+      expect(suiteResults).toHaveTextContent("Failed1");
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        "/api/try-it-out",
+        expect.anything(),
+      );
+      expect(
+        window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY),
+      ).toBeNull();
+
+      await user.click(screen.getByRole("button", { name: "Failed (1)" }));
+      await user.click(
+        within(suitePanel).getByRole("button", { name: "View endpoint" }),
+      );
+
+      expect(endpointFilter).toHaveValue("/missing");
+      expect(screen.getByLabelText("cURL GET /missing")).toBeVisible();
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("GET", "/missing")}`,
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("persists mock mode and generates documented responses without network or history", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
