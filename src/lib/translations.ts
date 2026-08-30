@@ -522,6 +522,11 @@ export const translations = {
     "workspace.endpointSortLabel": "Sort endpoints",
     "workspace.endpointTraitFilterLabel": "Filter endpoints by characteristic",
     "workspace.errorPosition": "Error at line {line}, column {column}",
+    "workspace.executionMode": "Execution mode",
+    "workspace.executionModeLive": "Live",
+    "workspace.executionModeMock": "Mock",
+    "workspace.executionModeStorageError":
+      "Mode changed for this session but could not be saved.",
     "workspace.executing": "Executing...",
     "workspace.goToLine": "Go to line",
     "workspace.goToLineAction": "Go",
@@ -547,6 +552,7 @@ export const translations = {
     "workspace.filterEndpoints":
       "Filter endpoints by method, path, summary, operation ID, tag, parameter, or auth",
     "workspace.formatSchema": "Format schema",
+    "workspace.generateMockResponse": "Generate Mock",
     "workspace.goToError": "Go to error",
     "workspace.guestRun": "Guest run",
     "workspace.header": "Header",
@@ -558,6 +564,7 @@ export const translations = {
       "Enter a public HTTP or HTTPS server URL.",
     "workspace.methodFilterLabel": "Filter endpoints by HTTP method",
     "workspace.methods": "Methods",
+    "workspace.mockResponse": "Mock response",
     "workspace.missingErrorResponseOnly": "Missing error response",
     "workspace.namedExample": "Example: {name}",
     "workspace.noEndpointsMatch": "No endpoints match the current filters.",
@@ -1190,6 +1197,11 @@ export const translations = {
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
     "workspace.endpointTraitFilterLabel": "Фильтр эндпоинтов по характеристике",
     "workspace.errorPosition": "Ошибка в строке {line}, столбец {column}",
+    "workspace.executionMode": "Режим выполнения",
+    "workspace.executionModeLive": "Реальный",
+    "workspace.executionModeMock": "Mock",
+    "workspace.executionModeStorageError":
+      "Режим изменён для текущего сеанса, но сохранить его не удалось.",
     "workspace.executing": "Выполняется...",
     "workspace.goToLine": "К строке",
     "workspace.goToLineAction": "Перейти",
@@ -1215,6 +1227,7 @@ export const translations = {
     "workspace.filterEndpoints":
       "Фильтр по методу, пути, описанию, ID операции, тегу, параметру или auth",
     "workspace.formatSchema": "Форматировать схему",
+    "workspace.generateMockResponse": "Создать Mock",
     "workspace.goToError": "Перейти к ошибке",
     "workspace.guestRun": "Гостевой запуск",
     "workspace.header": "Заголовок",
@@ -1226,6 +1239,7 @@ export const translations = {
       "Введите публичный URL сервера с HTTP или HTTPS.",
     "workspace.methodFilterLabel": "Фильтр эндпоинтов по HTTP-методу",
     "workspace.methods": "Методы",
+    "workspace.mockResponse": "Mock-ответ",
     "workspace.missingErrorResponseOnly": "Не описан ответ об ошибке",
     "workspace.namedExample": "Пример: {name}",
     "workspace.noEndpointsMatch":

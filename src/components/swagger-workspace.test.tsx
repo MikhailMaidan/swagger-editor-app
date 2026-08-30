@@ -25,6 +25,7 @@ import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { REQUEST_ENVIRONMENTS_STORAGE_KEY } from "@/lib/request-environments";
+import { REQUEST_EXECUTION_MODE_STORAGE_KEY } from "@/lib/request-execution-mode";
 import { REQUEST_PRESETS_STORAGE_KEY } from "@/lib/request-presets";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
@@ -4051,6 +4052,132 @@ paths:
         }),
       ).toBeEnabled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("persists mock mode and generates documented responses without network or history", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        body: "unexpected live response",
+        durationMs: 99,
+        errorDetails: null,
+        headers: { "content-type": "text/plain" },
+        requestSize: 1,
+        responseSize: 1,
+        status: "500",
+        url: "https://unexpected.example.com",
+      }),
+    );
+
+    try {
+      const view = render(<SwaggerWorkspace initialIsAuthenticated />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Offline Reports API
+  version: 1.0.0
+paths:
+  /reports/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '2XX':
+          description: Report
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required: [id, state]
+                properties:
+                  id:
+                    type: integer
+                  state:
+                    type: string
+                example:
+                  id: 7
+                  state: ready`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Offline Reports API" }),
+      ).toBeVisible();
+
+      await user.click(screen.getByRole("button", { name: "Mock" }));
+      expect(screen.getByRole("button", { name: "Mock" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(
+        window.localStorage.getItem(REQUEST_EXECUTION_MODE_STORAGE_KEY),
+      ).toBe("mock");
+
+      const endpointCard = screen
+        .getByLabelText("cURL GET /reports/{id}")
+        .closest("article") as HTMLElement;
+
+      await user.type(
+        within(endpointCard).getByLabelText("Path parameter id"),
+        "7",
+      );
+      await user.click(
+        within(endpointCard).getByRole("button", { name: "Generate Mock" }),
+      );
+
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        "/api/try-it-out",
+        expect.anything(),
+      );
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "Mock response",
+      );
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent("200");
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "0 ms",
+      );
+      expect(endpointCard).toHaveTextContent(
+        "content-type: application/problem+json",
+      );
+      expect(
+        within(endpointCard).getByLabelText("Response body"),
+      ).toHaveTextContent('"state": "ready"');
+      expect(
+        within(endpointCard).getByLabelText("Response contract"),
+      ).toHaveTextContent("All 3 checked rules passed.");
+      expect(
+        window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY),
+      ).toBeNull();
+
+      view.unmount();
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Mock" })).toHaveAttribute(
+          "aria-pressed",
+          "true",
+        ),
+      );
+      expect(
+        screen.getAllByRole("button", { name: "Generate Mock" }).length,
+      ).toBeGreaterThan(0);
+
+      await user.click(screen.getByRole("button", { name: "Live" }));
+      expect(
+        window.localStorage.getItem(REQUEST_EXECUTION_MODE_STORAGE_KEY),
+      ).toBeNull();
+      expect(
+        screen.getAllByRole("button", { name: "Try It Out" }).length,
+      ).toBeGreaterThan(0);
     } finally {
       fetchMock.mockRestore();
     }

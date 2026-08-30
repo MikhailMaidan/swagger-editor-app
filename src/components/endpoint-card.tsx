@@ -24,7 +24,6 @@ import {
   CurlParameter,
   EndpointParameter,
   EndpointSummary,
-  ResponseSummary,
   SchemaDetails as SchemaDetailsSummary,
   SecuritySchemeSummary,
   selectDefaultResponse,
@@ -51,6 +50,7 @@ import {
   type RequestParameterValidationCode,
 } from "@/lib/request-parameters";
 import type { RequestEnvironmentHeader } from "@/lib/request-environments";
+import type { RequestExecutionMode } from "@/lib/request-execution-mode";
 import {
   REDACTED_AUTH_VALUE,
   createAuthRequestParameters,
@@ -70,6 +70,7 @@ import {
   downloadRequestPreviewFile,
   type RequestPreviewFormat,
 } from "@/lib/request-preview-download";
+import { createSchemaMockResponse } from "@/lib/request-mock";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
 import { createResponseContractReport } from "@/lib/response-contract";
@@ -285,16 +286,6 @@ function groupParameters(parameters: EndpointParameter[]) {
   );
 }
 
-function getMockResponse(
-  response: ResponseSummary | undefined,
-  fallbackBody: string,
-) {
-  return {
-    body: response?.schema?.example || fallbackBody,
-    status: response?.status || "200",
-  };
-}
-
 function SchemaDetailsBlock({
   schema,
 }: {
@@ -349,6 +340,7 @@ function EndpointCardComponent({
   canSaveHistory,
   endpoint,
   environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
+  executionMode,
   isFavorite = false,
   onDeleteRequestPreset,
   onSaveRequestPreset,
@@ -360,6 +352,7 @@ function EndpointCardComponent({
   canSaveHistory: boolean;
   endpoint: EndpointSummary;
   environmentHeaders?: RequestEnvironmentHeader[];
+  executionMode: RequestExecutionMode;
   isFavorite?: boolean;
   onDeleteRequestPreset?: (presetId: string) => boolean;
   onSaveRequestPreset?: (preset: RequestPreset) => boolean;
@@ -391,6 +384,7 @@ function EndpointCardComponent({
     requestValues: MockRequestValue[];
     responseSize: number;
     savedToHistory: boolean;
+    source: RequestExecutionMode;
     status: string;
     url: string;
   } | null>(null);
@@ -1040,8 +1034,6 @@ function EndpointCardComponent({
       return;
     }
 
-    const abortController = new AbortController();
-    requestAbortControllerRef.current = abortController;
     setIsExecuting(true);
     setWasRequestCancelled(false);
     setCopiedCurl("");
@@ -1050,7 +1042,7 @@ function EndpointCardComponent({
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
-    const response = getMockResponse(
+    const response = createSchemaMockResponse(
       activeResponse,
       t("workspace.noResponseExample", {
         method: endpoint.method,
@@ -1066,11 +1058,13 @@ function EndpointCardComponent({
     const fallbackResult = {
       body: response.body,
       durationMs:
-        30 + endpoint.parameters.length * 5 + endpoint.requestBodies.length * 8,
+        executionMode === "mock"
+          ? 0
+          : 30 +
+            endpoint.parameters.length * 5 +
+            endpoint.requestBodies.length * 8,
       errorDetails: null,
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: response.headers,
       requestSize: getByteSize(
         JSON.stringify({
           body: requestBodyValue,
@@ -1085,31 +1079,38 @@ function EndpointCardComponent({
         requestParameters,
       ),
     };
-    const executionResult = await executeTryItOut(
-      {
-        contentType: activeRequestContentType || undefined,
-        method: endpoint.method,
-        path: endpoint.path,
-        requestBody: requestBodyValue,
-        requestParameters,
-        requestValues,
-        responseBody: response.body,
-        serverUrl: endpoint.serverUrl,
-        status: response.status,
-        timeoutMs: requestTimeoutMs,
-      },
-      fallbackResult,
-      abortController.signal,
-    );
+    let executionResult: TryItOutExecutionResult | null = fallbackResult;
 
-    if (
-      !executionResult ||
-      requestAbortControllerRef.current !== abortController
-    ) {
-      return;
+    if (executionMode === "live") {
+      const abortController = new AbortController();
+      requestAbortControllerRef.current = abortController;
+      executionResult = await executeTryItOut(
+        {
+          contentType: activeRequestContentType || undefined,
+          method: endpoint.method,
+          path: endpoint.path,
+          requestBody: requestBodyValue,
+          requestParameters,
+          requestValues,
+          responseBody: response.body,
+          serverUrl: endpoint.serverUrl,
+          status: response.status,
+          timeoutMs: requestTimeoutMs,
+        },
+        fallbackResult,
+        abortController.signal,
+      );
+
+      if (
+        !executionResult ||
+        requestAbortControllerRef.current !== abortController
+      ) {
+        return;
+      }
+
+      requestAbortControllerRef.current = null;
     }
 
-    requestAbortControllerRef.current = null;
     const redactedExecutionUrl = redactAuthQueryFromUrl(
       executionResult.url,
       authRequestParameters,
@@ -1117,7 +1118,7 @@ function EndpointCardComponent({
 
     let savedToHistory = false;
 
-    if (canSaveHistory) {
+    if (executionMode === "live" && canSaveHistory) {
       const historyRecord = saveRequestHistoryRecord({
         durationMs: executionResult.durationMs,
         errorDetails: executionResult.errorDetails,
@@ -1144,6 +1145,7 @@ function EndpointCardComponent({
       requestBody: requestBodyValue,
       requestValues,
       savedToHistory,
+      source: executionMode,
       url: redactedExecutionUrl,
     });
     setIsExecuting(false);
@@ -1753,7 +1755,11 @@ function EndpointCardComponent({
               type="button"
               onClick={handleTryItOut}
             >
-              {isExecuting ? t("workspace.executing") : t("workspace.tryItOut")}
+              {isExecuting
+                ? t("workspace.executing")
+                : executionMode === "mock"
+                  ? t("workspace.generateMockResponse")
+                  : t("workspace.tryItOut")}
             </button>
             {isExecuting ? (
               <button
@@ -1827,9 +1833,11 @@ function EndpointCardComponent({
               })}
             </span>
             <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {mockResult.savedToHistory
-                ? t("workspace.savedToHistory")
-                : t("workspace.guestRun")}
+              {mockResult.source === "mock"
+                ? t("workspace.mockResponse")
+                : mockResult.savedToHistory
+                  ? t("workspace.savedToHistory")
+                  : t("workspace.guestRun")}
             </span>
             {isResponseCopied ? (
               <span className="font-bold text-emerald-700">

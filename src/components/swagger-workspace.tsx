@@ -12,6 +12,7 @@ import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
+import { RequestExecutionModeControl } from "@/components/request-execution-mode-control";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -103,6 +104,12 @@ import {
   type RequestPreset,
 } from "@/lib/request-presets";
 import type { RequestAuthValues } from "@/lib/request-auth";
+import {
+  DEFAULT_REQUEST_EXECUTION_MODE,
+  readRequestExecutionMode,
+  saveRequestExecutionMode,
+  type RequestExecutionMode,
+} from "@/lib/request-execution-mode";
 import { downloadSchemaFile } from "@/lib/schema-download";
 import {
   getSchemaImportDetails,
@@ -250,6 +257,12 @@ export function SwaggerWorkspace({
     );
   const [requestEnvironmentStorageError, setRequestEnvironmentStorageError] =
     useState(false);
+  const [requestExecutionMode, setRequestExecutionMode] =
+    useState<RequestExecutionMode>(DEFAULT_REQUEST_EXECUTION_MODE);
+  const [
+    requestExecutionModeStorageError,
+    setRequestExecutionModeStorageError,
+  ] = useState(false);
   const [requestAuthValues, setRequestAuthValues] = useState<RequestAuthValues>(
     {},
   );
@@ -486,6 +499,7 @@ export function SwaggerWorkspace({
     const storedEndpointFavorites = readEndpointFavorites();
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
+    const storedRequestExecutionMode = readRequestExecutionMode();
     const storedRequestPresets = readRequestPresets();
     let cancelled = false;
 
@@ -500,6 +514,7 @@ export function SwaggerWorkspace({
         setFavoriteEndpointKeys(storedEndpointFavorites);
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
         setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
+        setRequestExecutionMode(storedRequestExecutionMode);
         setRequestPresets(storedRequestPresets);
       }
     });
@@ -1067,6 +1082,11 @@ export function SwaggerWorkspace({
     setRequestEnvironmentStorageError(
       !saveRequestEnvironmentSettings(settings),
     );
+  }
+
+  function handleRequestExecutionModeChange(mode: RequestExecutionMode) {
+    setRequestExecutionMode(mode);
+    setRequestExecutionModeStorageError(!saveRequestExecutionMode(mode));
   }
 
   function handleSaveRequestPreset(preset: RequestPreset) {
@@ -2057,6 +2077,14 @@ export function SwaggerWorkspace({
         ) : null}
 
         {parseResult.ok ? (
+          <RequestExecutionModeControl
+            mode={requestExecutionMode}
+            storageError={requestExecutionModeStorageError}
+            onChange={handleRequestExecutionModeChange}
+          />
+        ) : null}
+
+        {parseResult.ok ? (
           <div
             className="mt-5 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-5"
             aria-label={t("workspace.endpointStats")}
@@ -2351,6 +2379,7 @@ export function SwaggerWorkspace({
                 canSaveHistory={isAuthenticated}
                 endpoint={endpoint}
                 environmentHeaders={requestEnvironmentHeaders}
+                executionMode={requestExecutionMode}
                 isFavorite={favoriteEndpointKeySet.has(
                   getEndpointFavoriteKey(endpoint.method, endpoint.path),
                 )}
