@@ -4301,6 +4301,16 @@ paths:
       responses:
         '200':
           description: Health details
+          headers:
+            X-RateLimit-Remaining:
+              schema:
+                default: 99
+                type: integer
+            X-Request-Id:
+              description: Correlates this request
+              schema:
+                example: request-42
+                type: string
           content:
             application/json:
               schema:
@@ -4348,6 +4358,12 @@ paths:
       expect(
         within(endpointCard).getByLabelText("Response contract"),
       ).toHaveTextContent("All 3 checked rules passed.");
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "X-RateLimit-Remaining: 99",
+      );
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "X-Request-Id: request-42",
+      );
       expect(fetchMock).not.toHaveBeenCalledWith(
         "/api/try-it-out",
         expect.anything(),

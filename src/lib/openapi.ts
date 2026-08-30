@@ -50,10 +50,17 @@ export type RequestBodySummary = {
   schema: SchemaDetails;
 };
 
+export type ResponseHeaderSummary = {
+  description: string;
+  name: string;
+  value: string;
+};
+
 export type ResponseSummary = {
   status: string;
   description: string;
   contentTypes: string[];
+  headers?: ResponseHeaderSummary[];
   schema: SchemaDetails | null;
   schemasByContentType?: Record<string, SchemaDetails>;
 };
@@ -653,6 +660,74 @@ function readLegacyResponseExample(
   } satisfies MediaTypeExample;
 }
 
+const HTTP_HEADER_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
+function formatResponseHeaderValue(value: unknown) {
+  return formatParameterOption(value)
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+}
+
+function readResponseHeaderValue(
+  header: Record<string, unknown>,
+  schema: Record<string, unknown>,
+) {
+  const enumValue = Array.isArray(schema.enum) ? schema.enum[0] : undefined;
+
+  for (const value of [
+    header.example,
+    schema.example,
+    schema.default,
+    enumValue,
+  ]) {
+    if (value !== undefined) {
+      return formatResponseHeaderValue(value);
+    }
+  }
+
+  switch (readString(schema.type).toLowerCase()) {
+    case "boolean":
+      return "false";
+    case "integer":
+    case "number":
+      return "0";
+    default:
+      return "string";
+  }
+}
+
+function normalizeResponseHeaders(
+  value: unknown,
+  rootSchema: Record<string, unknown>,
+): ResponseHeaderSummary[] {
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  return Object.entries(value).reduce<ResponseHeaderSummary[]>(
+    (headers, [rawName, rawHeader]) => {
+      const name = rawName.trim();
+
+      if (!HTTP_HEADER_NAME_PATTERN.test(name) || !isRecord(rawHeader)) {
+        return headers;
+      }
+
+      const header = resolveLocalReference(rootSchema, rawHeader);
+      const rawHeaderSchema = isRecord(header.schema) ? header.schema : header;
+      const headerSchema = resolveLocalReference(rootSchema, rawHeaderSchema);
+
+      headers.push({
+        description: readString(header.description),
+        name,
+        value: readResponseHeaderValue(header, headerSchema),
+      });
+
+      return headers;
+    },
+    [],
+  );
+}
+
 function normalizeResponses(
   value: unknown,
   legacyContentTypes: string[],
@@ -711,6 +786,7 @@ function normalizeResponses(
       responses.push({
         contentTypes,
         description: readString(responseConfig.description, "No description"),
+        headers: normalizeResponseHeaders(responseConfig.headers, rootSchema),
         schema:
           (firstContentType && schemasByContentType[firstContentType]) ||
           fallbackSchema,

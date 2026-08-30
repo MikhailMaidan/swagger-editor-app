@@ -87,6 +87,38 @@ function getRepresentativeStatus(status: string) {
   return normalizedStatus;
 }
 
+function createMockResponseHeaders(
+  response: ResponseSummary | undefined,
+  contentType: string,
+) {
+  const headers = (response?.headers ?? []).reduce<Record<string, string>>(
+    (result, header) => {
+      const existingName = Object.keys(result).find(
+        (name) => name.toLowerCase() === header.name.toLowerCase(),
+      );
+
+      if (existingName) {
+        delete result[existingName];
+      }
+
+      result[header.name] = header.value;
+      return result;
+    },
+    Object.create(null) as Record<string, string>,
+  );
+
+  if (contentType) {
+    Object.keys(headers).forEach((name) => {
+      if (name.toLowerCase() === "content-type") {
+        delete headers[name];
+      }
+    });
+    headers["content-type"] = contentType;
+  }
+
+  return { ...headers };
+}
+
 export function createSchemaMockResponse(
   response: ResponseSummary | undefined,
   fallbackBody: string,
@@ -105,7 +137,7 @@ export function createSchemaMockResponse(
       ? (schema?.example ?? "")
       : (generatedBody ?? fallbackBody),
     generated: generatedBody !== null,
-    headers: contentType ? { "content-type": contentType } : {},
+    headers: createMockResponseHeaders(response, contentType),
     status: getRepresentativeStatus(response?.status ?? ""),
   };
 }

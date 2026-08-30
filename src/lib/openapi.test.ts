@@ -422,6 +422,12 @@ describe("openapi helpers", () => {
   it("resolves referenced response schemas and required properties", () => {
     const endpoints = extractEndpoints({
       components: {
+        headers: {
+          RequestId: {
+            description: "Correlates the request",
+            schema: { example: "request-42", type: "string" },
+          },
+        },
         responses: {
           UserResponse: {
             content: {
@@ -430,6 +436,18 @@ describe("openapi helpers", () => {
               },
             },
             description: "User",
+            headers: {
+              "Bad\nName": { schema: { type: "string" } },
+              "Retry-After": { schema: { type: "integer" } },
+              "X-RateLimit-Remaining": {
+                schema: { default: 99, type: "integer" },
+              },
+              "X-Request-Id": { $ref: "#/components/headers/RequestId" },
+              "X-Safe-Value": {
+                example: "request-42\r\nInjected: yes",
+                schema: { type: "string" },
+              },
+            },
           },
         },
         schemas: {
@@ -453,6 +471,16 @@ describe("openapi helpers", () => {
 
     expect(endpoints[0].responses[0]).toMatchObject({
       contentTypes: ["application/json"],
+      headers: [
+        { name: "Retry-After", value: "0" },
+        { name: "X-RateLimit-Remaining", value: "99" },
+        {
+          description: "Correlates the request",
+          name: "X-Request-Id",
+          value: "request-42",
+        },
+        { name: "X-Safe-Value", value: "request-42 Injected: yes" },
+      ],
       schema: {
         hasExplicitExample: false,
         properties: ["id", "name"],
@@ -508,6 +536,12 @@ describe("openapi helpers", () => {
               "200": {
                 description: "User",
                 examples: { "application/json": { id: 7 } },
+                headers: {
+                  "X-Legacy-Request-Id": {
+                    default: "legacy-42",
+                    type: "string",
+                  },
+                },
                 schema: { $ref: "#/definitions/User" },
               },
             },
@@ -520,6 +554,7 @@ describe("openapi helpers", () => {
 
     expect(endpoints[0].responses[0]).toMatchObject({
       contentTypes: ["application/json"],
+      headers: [{ name: "X-Legacy-Request-Id", value: "legacy-42" }],
       schema: {
         example: '{\n  "id": 7\n}',
         properties: ["id"],

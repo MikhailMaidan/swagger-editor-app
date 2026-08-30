@@ -1377,6 +1377,20 @@ function EndpointCardComponent({
                       ? response.contentTypes.join(", ")
                       : t("workspace.none")}
                   </p>
+                  {response.headers && response.headers.length > 0 ? (
+                    <div className="mt-2">
+                      <p className="font-bold text-[color:var(--color-brand-muted)]">
+                        {t("workspace.responseHeaders")}
+                      </p>
+                      <ul className="mt-1 space-y-1 font-mono text-xs text-[color:var(--color-brand-muted)]">
+                        {response.headers.map((header) => (
+                          <li key={header.name}>
+                            {header.name}: {header.value}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                   <SchemaDetailsBlock schema={response.schema} />
                 </div>
               ))}

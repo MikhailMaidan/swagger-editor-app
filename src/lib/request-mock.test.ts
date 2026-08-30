@@ -32,6 +32,43 @@ describe("schema mock responses", () => {
     });
   });
 
+  it("includes documented response headers and owns the content type", () => {
+    const response = createResponse({
+      headers: [
+        { description: "", name: "X-Request-Id", value: "request-42" },
+        {
+          description: "",
+          name: "X-RateLimit-Remaining",
+          value: "99",
+        },
+        { description: "", name: "Content-Type", value: "text/plain" },
+      ],
+    });
+
+    expect(createSchemaMockResponse(response, "fallback").headers).toEqual({
+      "X-RateLimit-Remaining": "99",
+      "X-Request-Id": "request-42",
+      "content-type": "application/json",
+    });
+  });
+
+  it("keeps header-only content types and handles special property names", () => {
+    const response = createResponse({
+      contentTypes: [],
+      headers: [
+        { description: "", name: "Content-Type", value: "text/csv" },
+        { description: "", name: "__proto__", value: "safe" },
+      ],
+      schema: null,
+    });
+    const headers = createSchemaMockResponse(response, "fallback").headers;
+
+    expect(headers["Content-Type"]).toBe("text/csv");
+    expect(headers["__proto__"]).toBe("safe");
+    expect(Object.keys(headers)).toContain("__proto__");
+    expect(Object.getPrototypeOf(headers)).toBe(Object.prototype);
+  });
+
   it("normalizes status ranges and default responses", () => {
     expect(
       createSchemaMockResponse(createResponse({ status: "2XX" }), "fallback")

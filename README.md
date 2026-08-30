@@ -21,7 +21,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Generated endpoint documentation and Try It Out requests through the server
 - Persisted Live/Mock execution modes with explicit or type-correct generated
   schema examples, selectable response media types, and history-safe mock runs
-  with configurable, cancellable response latency
+  with documented response headers and configurable, cancellable latency
 - Schema-aware parameter controls with enum choices and preflight validation
   for numeric ranges, string lengths, and patterns
 - Live advisory request-body contract checks for documented top-level types and
