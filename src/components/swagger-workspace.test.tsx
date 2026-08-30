@@ -4186,6 +4186,86 @@ paths:
     }
   });
 
+  it("generates a schema-conformant mock response when no example is documented", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json({ body: "unexpected live response" }));
+
+    try {
+      render(<SwaggerWorkspace initialIsAuthenticated />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Generated Mock API
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      responses:
+        '200':
+          description: Health details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, active]
+                properties:
+                  id:
+                    type: integer
+                  active:
+                    type: boolean
+                  name:
+                    type: string
+                  tags:
+                    type: array
+                  profile:
+                    type: object`,
+        },
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Generated Mock API" }),
+      ).toBeVisible();
+      await user.click(screen.getByRole("button", { name: "Mock" }));
+
+      const endpointCard = screen
+        .getByLabelText("cURL GET /health")
+        .closest("article") as HTMLElement;
+
+      await user.click(
+        within(endpointCard).getByRole("button", { name: "Generate Mock" }),
+      );
+
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "Generated mock response",
+      );
+      expect(
+        within(endpointCard).getByLabelText("Response body"),
+      ).toHaveTextContent('"id": 0');
+      expect(
+        within(endpointCard).getByLabelText("Response body"),
+      ).toHaveTextContent('"active": false');
+      expect(
+        within(endpointCard).getByLabelText("Response body"),
+      ).toHaveTextContent('"tags": []');
+      expect(
+        within(endpointCard).getByLabelText("Response contract"),
+      ).toHaveTextContent("All 3 checked rules passed.");
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        "/api/try-it-out",
+        expect.anything(),
+      );
+      expect(
+        window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY),
+      ).toBeNull();
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("simulates cancellable mock response latency without network traffic", async () => {
     const user = userEvent.setup();
     const fetchMock = vi

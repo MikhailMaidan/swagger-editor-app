@@ -19,8 +19,9 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Saved-schema and collection export download feedback
 - Request-history collection and individual export feedback with blocked-download recovery
 - Generated endpoint documentation and Try It Out requests through the server
-- Persisted Live/Mock execution modes with offline schema example generation
-  and history-safe mock runs with configurable, cancellable response latency
+- Persisted Live/Mock execution modes with explicit or type-correct generated
+  schema examples and history-safe mock runs with configurable, cancellable
+  response latency
 - Schema-aware parameter controls with enum choices and preflight validation
   for numeric ranges, string lengths, and patterns
 - Live advisory request-body contract checks for documented top-level types and

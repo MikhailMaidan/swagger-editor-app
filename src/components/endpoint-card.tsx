@@ -386,6 +386,7 @@ function EndpointCardComponent({
     body: string;
     durationMs: number;
     errorDetails: string | null;
+    generatedResponse: boolean;
     headers: Record<string, string>;
     requestBody: string;
     requestSize: number;
@@ -1165,6 +1166,7 @@ function EndpointCardComponent({
       ...executionResult,
       requestBody: requestBodyValue,
       requestValues,
+      generatedResponse: executionMode === "mock" && response.generated,
       savedToHistory,
       source: executionMode,
       url: redactedExecutionUrl,
@@ -1855,7 +1857,11 @@ function EndpointCardComponent({
             </span>
             <span className="font-bold text-[color:var(--color-brand-muted)]">
               {mockResult.source === "mock"
-                ? t("workspace.mockResponse")
+                ? t(
+                    mockResult.generatedResponse
+                      ? "workspace.generatedMockResponse"
+                      : "workspace.mockResponse",
+                  )
                 : mockResult.savedToHistory
                   ? t("workspace.savedToHistory")
                   : t("workspace.guestRun")}

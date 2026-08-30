@@ -454,10 +454,41 @@ describe("openapi helpers", () => {
     expect(endpoints[0].responses[0]).toMatchObject({
       contentTypes: ["application/json"],
       schema: {
+        hasExplicitExample: false,
         properties: ["id", "name"],
+        propertyTypes: { id: "integer", name: "string" },
         requiredProperties: ["id"],
         type: "object",
       },
+    });
+  });
+
+  it("preserves explicit empty response examples", () => {
+    const endpoints = extractEndpoints({
+      openapi: "3.0.0",
+      paths: {
+        "/empty": {
+          get: {
+            responses: {
+              "200": {
+                content: {
+                  "text/plain": {
+                    example: "",
+                    schema: { type: "string" },
+                  },
+                },
+                description: "Empty response",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(endpoints[0].responses[0].schema).toMatchObject({
+      example: "",
+      hasExplicitExample: true,
+      type: "string",
     });
   });
 

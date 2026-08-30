@@ -37,8 +37,10 @@ export type SchemaDetails = {
   exampleName: string;
   type: string;
   properties: string[];
+  propertyTypes?: Record<string, string>;
   requiredProperties?: string[];
   example: string;
+  hasExplicitExample?: boolean;
 };
 
 export type RequestBodySummary = {
@@ -428,10 +430,11 @@ type MediaTypeExample = {
 };
 
 function readMediaTypeExample(value: Record<string, unknown>) {
-  const directExample = formatExample(value.example);
-
-  if (directExample) {
-    return { name: "", value: directExample } satisfies MediaTypeExample;
+  if ("example" in value && value.example !== undefined) {
+    return {
+      name: "",
+      value: formatExample(value.example),
+    } satisfies MediaTypeExample;
   }
 
   if (!isRecord(value.examples)) {
@@ -439,15 +442,19 @@ function readMediaTypeExample(value: Record<string, unknown>) {
   }
 
   for (const [name, exampleConfig] of Object.entries(value.examples)) {
-    const rawExample = isRecord(exampleConfig)
-      ? "value" in exampleConfig
-        ? exampleConfig.value
-        : undefined
-      : exampleConfig;
-    const example = formatExample(rawExample);
+    if (isRecord(exampleConfig) && !("value" in exampleConfig)) {
+      continue;
+    }
 
-    if (example) {
-      return { name, value: example } satisfies MediaTypeExample;
+    const rawExample = isRecord(exampleConfig)
+      ? exampleConfig.value
+      : exampleConfig;
+
+    if (rawExample !== undefined) {
+      return {
+        name,
+        value: formatExample(rawExample),
+      } satisfies MediaTypeExample;
     }
   }
 
@@ -463,14 +470,39 @@ function readSchemaDetails(
   const schema = rootSchema
     ? resolveLocalReference(rootSchema, rawSchema)
     : rawSchema;
-  const properties = isRecord(schema.properties)
-    ? Object.keys(schema.properties)
-    : [];
+  const schemaProperties = isRecord(schema.properties) ? schema.properties : {};
+  const properties = Object.keys(schemaProperties);
+  const propertyTypes = Object.fromEntries(
+    Object.entries(schemaProperties).map(([name, propertySchema]) => {
+      const rawPropertySchema = isRecord(propertySchema) ? propertySchema : {};
+      const resolvedPropertySchema = rootSchema
+        ? resolveLocalReference(rootSchema, rawPropertySchema)
+        : rawPropertySchema;
+      const nestedProperties = isRecord(resolvedPropertySchema.properties)
+        ? Object.keys(resolvedPropertySchema.properties)
+        : [];
+
+      return [
+        name,
+        readString(
+          resolvedPropertySchema.type,
+          nestedProperties.length > 0 ? "object" : "unknown",
+        ),
+      ];
+    }),
+  );
+  const hasExplicitExample =
+    Boolean(mediaTypeExample) ||
+    ("example" in schema && schema.example !== undefined);
 
   return {
-    example: mediaTypeExample?.value || formatExample(schema.example),
-    exampleName: mediaTypeExample?.name || "",
+    example: mediaTypeExample
+      ? mediaTypeExample.value
+      : formatExample(schema.example),
+    exampleName: mediaTypeExample?.name ?? "",
+    hasExplicitExample,
     properties,
+    propertyTypes,
     requiredProperties: readStringArray(schema.required),
     type: readString(schema.type, properties.length > 0 ? "object" : "unknown"),
   };
@@ -611,11 +643,14 @@ function readLegacyResponseExample(
     return null;
   }
 
-  const example = formatExample(responseConfig.examples[contentType]);
+  if (!(contentType in responseConfig.examples)) {
+    return null;
+  }
 
-  return example
-    ? ({ name: "", value: example } satisfies MediaTypeExample)
-    : null;
+  return {
+    name: "",
+    value: formatExample(responseConfig.examples[contentType]),
+  } satisfies MediaTypeExample;
 }
 
 function normalizeResponses(
