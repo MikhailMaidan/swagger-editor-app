@@ -3684,12 +3684,24 @@ paths: {}`;
 
     expect(screen.getByText("Saving draft...")).toBeVisible();
 
+    const pendingEvent = new Event("beforeunload", {
+      cancelable: true,
+    }) as BeforeUnloadEvent;
+
+    expect(window.dispatchEvent(pendingEvent)).toBe(false);
+
     await waitFor(() =>
       expect(window.localStorage.getItem(SCHEMA_DRAFT_STORAGE_KEY)).toBe(
         editedDraft,
       ),
     );
     expect(screen.getByText("Draft saved locally.")).toBeVisible();
+
+    const savedEvent = new Event("beforeunload", {
+      cancelable: true,
+    }) as BeforeUnloadEvent;
+
+    expect(window.dispatchEvent(savedEvent)).toBe(true);
   });
 
   it("reports a failed guest draft save without disrupting editing", async () => {
@@ -3712,6 +3724,12 @@ paths: {}`;
         await screen.findByText("Draft could not be saved."),
       ).toBeVisible();
       expect(editor).toHaveValue(editedSchema);
+
+      const failedEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
+
+      expect(window.dispatchEvent(failedEvent)).toBe(false);
     } finally {
       setItemSpy.mockRestore();
     }
@@ -3789,6 +3807,69 @@ paths: {}`;
           method: "POST",
         }),
       );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("warns before leaving authenticated edits until they are saved", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Save schema" }),
+        ).not.toBeDisabled();
+      });
+
+      const cleanEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
+
+      expect(window.dispatchEvent(cleanEvent)).toBe(true);
+      expect(cleanEvent.defaultPrevented).toBe(false);
+
+      const editedSchema = DEFAULT_OPENAPI_SCHEMA.replace(
+        "RSSwag Demo API",
+        "Unsaved API",
+      );
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: editedSchema },
+      });
+
+      expect(screen.getByText("Unsaved schema changes.")).toBeVisible();
+
+      const dirtyEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
+
+      expect(window.dispatchEvent(dirtyEvent)).toBe(false);
+      expect(dirtyEvent.defaultPrevented).toBe(true);
+
+      await user.click(screen.getByRole("button", { name: "Save schema" }));
+
+      expect(
+        screen.queryByText("Unsaved schema changes."),
+      ).not.toBeInTheDocument();
+
+      const savedEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
+
+      expect(window.dispatchEvent(savedEvent)).toBe(true);
+      expect(savedEvent.defaultPrevented).toBe(false);
     } finally {
       fetchMock.mockRestore();
     }
@@ -4066,6 +4147,59 @@ paths:
       ).toBe("openapi: 3.0.0");
       expect(screen.queryByText("Server Saved API")).not.toBeInTheDocument();
     } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("does not overwrite an authenticated reset when initial server loading finishes late", async () => {
+    let resolveFetch: (response: Response) => void = () => {};
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockReturnValue(fetchPromise);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(fetchMock).toHaveBeenCalledWith("/api/schemas");
+
+      fireEvent.click(screen.getByRole("button", { name: "Reset editor" }));
+
+      await act(async () => {
+        resolveFetch(
+          Response.json({
+            schemas: [
+              {
+                createdAt: "2026-01-01T00:00:00.000Z",
+                format: "yaml",
+                id: "server-1",
+                schemaText:
+                  "openapi: 3.0.0\ninfo:\n  title: Server Saved API\n  version: 1.0.0\npaths: {}",
+                title: "Server Saved API",
+                updatedAt: "2026-01-01T00:00:00.000Z",
+                version: "1.0.0",
+              },
+            ],
+          }),
+        );
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        DEFAULT_OPENAPI_SCHEMA,
+      );
+      expect(screen.queryByText("Server Saved API")).not.toBeInTheDocument();
+      expect(confirm).toHaveBeenCalledTimes(1);
+    } finally {
+      confirm.mockRestore();
       fetchMock.mockRestore();
     }
   });

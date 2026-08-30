@@ -41,6 +41,8 @@ Next.js, React, TypeScript, and Tailwind CSS.
   and timeouts
 - Schema save with `Ctrl+S` or `Cmd+S`, and formatting with `Ctrl+Shift+F` or
   `Cmd+Shift+F`
+- Unsaved-change indicators and leave protection for authenticated edits and
+  guest drafts that are still pending or failed
 - Persistent editor word wrap with `Alt+Z`
 - Line navigation with `Ctrl+G` or `Cmd+G`
 - In-editor schema search with selected-text prefilling via `Ctrl+F` or `Cmd+F`, plus wrapped `Enter`/`F3` navigation (`Shift` reverses direction)

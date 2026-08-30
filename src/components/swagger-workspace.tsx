@@ -221,6 +221,9 @@ export function SwaggerWorkspace({
   const remoteImportAbortControllerRef = useRef<AbortController | null>(null);
   const schemaImportSequenceRef = useRef(0);
   const [schemaText, setSchemaText] = useState(DEFAULT_OPENAPI_SCHEMA);
+  const [persistedSchemaText, setPersistedSchemaText] = useState(
+    DEFAULT_OPENAPI_SCHEMA,
+  );
   const [editorCursor, setEditorCursor] = useState({ column: 1, line: 1 });
   const [selectedCharacterCount, setSelectedCharacterCount] = useState(0);
   const [isWordWrapEnabled, setIsWordWrapEnabled] = useState(false);
@@ -522,6 +525,12 @@ export function SwaggerWorkspace({
     endpointResponseFilter !== "all";
   const isSchemaCopied =
     copiedSchemaText !== null && copiedSchemaText === schemaText;
+  const hasUnsavedAuthenticatedChanges =
+    isAuthenticated && schemaText !== persistedSchemaText;
+  const shouldWarnBeforeUnload =
+    hasUnsavedAuthenticatedChanges ||
+    (!isAuthenticated &&
+      (draftStatus === "pending" || draftStatus === "failed"));
 
   useLayoutEffect(() => {
     const editor = editorRef.current;
@@ -635,6 +644,23 @@ export function SwaggerWorkspace({
   }, []);
 
   useEffect(() => {
+    if (!shouldWarnBeforeUnload) {
+      return;
+    }
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [shouldWarnBeforeUnload]);
+
+  useEffect(() => {
     if (isAuthenticated || hasEditedSchemaRef.current) {
       return;
     }
@@ -693,6 +719,7 @@ export function SwaggerWorkspace({
       lastSavedSchemaRef.current = stagedSchema;
       queueMicrotask(() => {
         if (!cancelled) {
+          setPersistedSchemaText(stagedSchema.schemaText);
           setSchemaText(stagedSchema.schemaText);
           setEditorCursor({ column: 1, line: 1 });
         }
@@ -709,6 +736,7 @@ export function SwaggerWorkspace({
       lastSavedSchemaRef.current = null;
       queueMicrotask(() => {
         if (!cancelled) {
+          setPersistedSchemaText(savedSchema);
           setSchemaText(savedSchema);
           setEditorCursor({ column: 1, line: 1 });
         }
@@ -731,6 +759,7 @@ export function SwaggerWorkspace({
 
       if (latestSchema) {
         lastSavedSchemaRef.current = latestSchema;
+        setPersistedSchemaText(latestSchema.schemaText);
         setSchemaText(latestSchema.schemaText);
         setEditorCursor({ column: 1, line: 1 });
       }
@@ -1034,7 +1063,7 @@ export function SwaggerWorkspace({
 
     invalidateActiveSchemaImport();
     clearSchemaDraft();
-    hasEditedSchemaRef.current = false;
+    hasEditedSchemaRef.current = isAuthenticated;
     setDraftStatus("idle");
     lastSavedSchemaRef.current = null;
     setSchemaText(DEFAULT_OPENAPI_SCHEMA);
@@ -1591,6 +1620,7 @@ export function SwaggerWorkspace({
 
     if (savedSchema) {
       lastSavedSchemaRef.current = savedSchema;
+      setPersistedSchemaText(schemaText);
       clearSchemaDraft();
       setDraftStatus("idle");
       void saveServerSchemaRecord(savedSchema);
@@ -2062,6 +2092,14 @@ export function SwaggerWorkspace({
               </span>
             ) : null}
           </div>
+        ) : null}
+        {hasUnsavedAuthenticatedChanges ? (
+          <p
+            aria-live="polite"
+            className="border-t border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800"
+          >
+            {t("workspace.unsavedSchemaChanges")}
+          </p>
         ) : null}
         {isSchemaCopied || saveMessage ? (
           <p
