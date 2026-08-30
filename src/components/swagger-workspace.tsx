@@ -66,6 +66,12 @@ import {
   saveEndpointFavorites,
   toggleEndpointFavorite,
 } from "@/lib/endpoint-favorites";
+import {
+  readCollapsedEndpointKeys,
+  saveCollapsedEndpointKeys,
+  setEndpointKeysCollapsed,
+  toggleCollapsedEndpointKey,
+} from "@/lib/endpoint-collapse";
 import { getEndpointAnchor } from "@/lib/endpoint-link";
 import {
   DEFAULT_OPENAPI_SCHEMA,
@@ -241,9 +247,14 @@ export function SwaggerWorkspace({
   const [favoriteEndpointKeys, setFavoriteEndpointKeys] = useState<string[]>(
     [],
   );
+  const [collapsedEndpointKeys, setCollapsedEndpointKeys] = useState<string[]>(
+    [],
+  );
   const [showFavoriteEndpointsOnly, setShowFavoriteEndpointsOnly] =
     useState(false);
   const [favoriteSaveError, setFavoriteSaveError] = useState(false);
+  const [endpointCollapseSaveError, setEndpointCollapseSaveError] =
+    useState(false);
   const [schemaComparisonBaseline, setSchemaComparisonBaseline] =
     useState<SchemaComparisonBaseline | null>(null);
   const [schemaComparisonStorageError, setSchemaComparisonStorageError] =
@@ -453,6 +464,13 @@ export function SwaggerWorkspace({
     responseFilteredEndpoints,
     endpointSort,
   );
+  const collapsedEndpointKeySet = new Set(collapsedEndpointKeys);
+  const visibleEndpointKeys = visibleEndpoints.map((endpoint) =>
+    getEndpointFavoriteKey(endpoint.method, endpoint.path),
+  );
+  const allVisibleEndpointsCollapsed =
+    visibleEndpointKeys.length > 0 &&
+    visibleEndpointKeys.every((key) => collapsedEndpointKeySet.has(key));
   const hasActiveEndpointFilters =
     Boolean(endpointFilter) ||
     selectedMethod !== "all" ||
@@ -504,6 +522,7 @@ export function SwaggerWorkspace({
       readEditorSearchWholeWordPreference();
     const storedEndpointSortPreference = readEndpointSortPreference();
     const storedEndpointFavorites = readEndpointFavorites();
+    const storedCollapsedEndpointKeys = readCollapsedEndpointKeys();
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
     const storedRequestExecutionMode = readRequestExecutionMode();
@@ -520,6 +539,7 @@ export function SwaggerWorkspace({
         setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
         setEndpointSort(storedEndpointSortPreference);
         setFavoriteEndpointKeys(storedEndpointFavorites);
+        setCollapsedEndpointKeys(storedCollapsedEndpointKeys);
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
         setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
         setRequestExecutionMode(storedRequestExecutionMode);
@@ -991,6 +1011,7 @@ export function SwaggerWorkspace({
     setServerUrlOverride("");
     setServerOverrideError(false);
     setFavoriteSaveError(false);
+    setEndpointCollapseSaveError(false);
     setSchemaComparisonCaptureError(false);
   }
 
@@ -1012,6 +1033,31 @@ export function SwaggerWorkspace({
 
     setFavoriteEndpointKeys(nextFavorites);
     setFavoriteSaveError(!saveEndpointFavorites(nextFavorites));
+  }
+
+  function handleCollapsedEndpointKeysChange(nextKeys: string[]) {
+    setCollapsedEndpointKeys(nextKeys);
+    setEndpointCollapseSaveError(!saveCollapsedEndpointKeys(nextKeys));
+  }
+
+  function handleToggleEndpointCollapsed(endpoint: EndpointSummary) {
+    handleCollapsedEndpointKeysChange(
+      toggleCollapsedEndpointKey(
+        collapsedEndpointKeys,
+        endpoint.method,
+        endpoint.path,
+      ),
+    );
+  }
+
+  function handleToggleVisibleEndpointDetails() {
+    handleCollapsedEndpointKeysChange(
+      setEndpointKeysCollapsed(
+        collapsedEndpointKeys,
+        visibleEndpointKeys,
+        !allVisibleEndpointsCollapsed,
+      ),
+    );
   }
 
   function handleSetSchemaComparisonBaseline() {
@@ -1043,6 +1089,13 @@ export function SwaggerWorkspace({
 
   function handleSelectAuditEndpoint(method: string, path: string) {
     const endpointAnchor = getEndpointAnchor(method, path);
+    const endpointKey = getEndpointFavoriteKey(method, path);
+
+    if (collapsedEndpointKeySet.has(endpointKey)) {
+      handleCollapsedEndpointKeysChange(
+        setEndpointKeysCollapsed(collapsedEndpointKeys, [endpointKey], false),
+      );
+    }
 
     setEndpointFilter(path);
     setEndpointResponseFilter("all");
@@ -2370,6 +2423,19 @@ export function SwaggerWorkspace({
                   visible: String(responseFilteredEndpoints.length),
                 })}
               </p>
+              {visibleEndpoints.length > 0 ? (
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                  type="button"
+                  onClick={handleToggleVisibleEndpointDetails}
+                >
+                  {t(
+                    allVisibleEndpointsCollapsed
+                      ? "workspace.expandVisibleEndpointDetails"
+                      : "workspace.collapseVisibleEndpointDetails",
+                  )}
+                </button>
+              ) : null}
               {hasActiveEndpointFilters ? (
                 <button
                   className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
@@ -2383,6 +2449,11 @@ export function SwaggerWorkspace({
             {favoriteSaveError ? (
               <p className="text-sm font-semibold text-red-700" role="alert">
                 {t("workspace.favoriteSaveError")}
+              </p>
+            ) : null}
+            {endpointCollapseSaveError ? (
+              <p className="text-sm font-semibold text-red-700" role="alert">
+                {t("workspace.endpointCollapseSaveError")}
               </p>
             ) : null}
           </div>
@@ -2410,6 +2481,9 @@ export function SwaggerWorkspace({
                 environmentHeaders={requestEnvironmentHeaders}
                 executionMode={requestExecutionMode}
                 mockResponseDelayMs={mockResponseDelayMs}
+                isCollapsed={collapsedEndpointKeySet.has(
+                  getEndpointFavoriteKey(endpoint.method, endpoint.path),
+                )}
                 isFavorite={favoriteEndpointKeySet.has(
                   getEndpointFavoriteKey(endpoint.method, endpoint.path),
                 )}
@@ -2418,6 +2492,9 @@ export function SwaggerWorkspace({
                 securitySchemes={securitySchemes}
                 onDeleteRequestPreset={handleDeleteRequestPreset}
                 onSaveRequestPreset={handleSaveRequestPreset}
+                onToggleCollapsed={() =>
+                  handleToggleEndpointCollapsed(endpoint)
+                }
                 onToggleFavorite={() => handleToggleEndpointFavorite(endpoint)}
               />
             ))

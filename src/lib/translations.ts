@@ -357,6 +357,10 @@ export const translations = {
     "workspace.clearResponse": "Clear response",
     "workspace.clearServerOverride": "Clear custom server",
     "workspace.clientErrorResponseOnly": "Documents 4xx",
+    "workspace.collapseEndpointDetails": "Hide details",
+    "workspace.collapseEndpointDetailsAriaLabel":
+      "Hide details for {method} {path}",
+    "workspace.collapseVisibleEndpointDetails": "Collapse visible",
     "workspace.content": "Content:",
     "workspace.convertTo": "Convert to {format}",
     "workspace.copyCurl": "Copy cURL",
@@ -516,6 +520,8 @@ export const translations = {
     "workspace.wordWrap": "Word wrap",
     "workspace.endpointStats": "Endpoint statistics",
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
+    "workspace.endpointCollapseSaveError":
+      "Endpoint details changed for this session, but could not be saved locally.",
     "workspace.endpointLinkCopied": "Link copied.",
     "workspace.endpointResponseFilterLabel":
       "Filter endpoints by documented responses",
@@ -544,6 +550,10 @@ export const translations = {
     "workspace.errors.schemaObject": "Schema must be an object.",
     "workspace.errors.versionRequired":
       "Schema must include an openapi or swagger version.",
+    "workspace.expandEndpointDetails": "Show details",
+    "workspace.expandEndpointDetailsAriaLabel":
+      "Show details for {method} {path}",
+    "workspace.expandVisibleEndpointDetails": "Expand visible",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch snippet copied.",
     "workspace.favoriteEndpoints": "Favorites ({count})",
@@ -1094,6 +1104,10 @@ export const translations = {
     "workspace.clearResponse": "Очистить ответ",
     "workspace.clearServerOverride": "Очистить свой сервер",
     "workspace.clientErrorResponseOnly": "Описан ответ 4xx",
+    "workspace.collapseEndpointDetails": "Скрыть детали",
+    "workspace.collapseEndpointDetailsAriaLabel":
+      "Скрыть детали эндпоинта {method} {path}",
+    "workspace.collapseVisibleEndpointDetails": "Свернуть видимые",
     "workspace.content": "Контент:",
     "workspace.convertTo": "Конвертировать в {format}",
     "workspace.copyCurl": "Скопировать cURL",
@@ -1227,6 +1241,8 @@ export const translations = {
     "workspace.endpointStats": "Статистика эндпоинтов",
     "workspace.endpointFilterSummary":
       "Показано эндпоинтов: {visible} из {total}",
+    "workspace.endpointCollapseSaveError":
+      "Детали эндпоинтов изменены для этого сеанса, но не сохранены локально.",
     "workspace.endpointLinkCopied": "Ссылка скопирована.",
     "workspace.endpointResponseFilterLabel":
       "Фильтр эндпоинтов по документированным ответам",
@@ -1255,6 +1271,10 @@ export const translations = {
     "workspace.errors.schemaObject": "Схема должна быть объектом.",
     "workspace.errors.versionRequired":
       "Схема должна содержать версию openapi или swagger.",
+    "workspace.expandEndpointDetails": "Показать детали",
+    "workspace.expandEndpointDetailsAriaLabel":
+      "Показать детали эндпоинта {method} {path}",
+    "workspace.expandVisibleEndpointDetails": "Развернуть видимые",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch-код скопирован.",
     "workspace.favoriteEndpoints": "Избранное ({count})",

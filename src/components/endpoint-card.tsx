@@ -349,9 +349,11 @@ function EndpointCardComponent({
   environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
   executionMode,
   mockResponseDelayMs,
+  isCollapsed = false,
   isFavorite = false,
   onDeleteRequestPreset,
   onSaveRequestPreset,
+  onToggleCollapsed,
   onToggleFavorite,
   requestPresets = EMPTY_REQUEST_PRESETS,
   securitySchemes = EMPTY_SECURITY_SCHEMES,
@@ -362,9 +364,11 @@ function EndpointCardComponent({
   environmentHeaders?: RequestEnvironmentHeader[];
   executionMode: RequestExecutionMode;
   mockResponseDelayMs: MockResponseDelayMs;
+  isCollapsed?: boolean;
   isFavorite?: boolean;
   onDeleteRequestPreset?: (presetId: string) => boolean;
   onSaveRequestPreset?: (preset: RequestPreset) => boolean;
+  onToggleCollapsed?: () => void;
   onToggleFavorite?: () => void;
   requestPresets?: RequestPreset[];
   securitySchemes?: SecuritySchemeSummary[];
@@ -494,6 +498,7 @@ function EndpointCardComponent({
     () => getEndpointAnchor(endpoint.method, endpoint.path),
     [endpoint.method, endpoint.path],
   );
+  const endpointDetailsId = `${endpointAnchor}-details`;
   const endpointRequestPresets = useMemo(
     () =>
       getRequestPresetsForEndpoint(
@@ -1254,6 +1259,27 @@ function EndpointCardComponent({
         >
           {t("workspace.copyEndpointLink")}
         </button>
+        {onToggleCollapsed ? (
+          <button
+            aria-controls={endpointDetailsId}
+            aria-expanded={!isCollapsed}
+            aria-label={t(
+              isCollapsed
+                ? "workspace.expandEndpointDetailsAriaLabel"
+                : "workspace.collapseEndpointDetailsAriaLabel",
+              { method: endpoint.method, path: endpoint.path },
+            )}
+            className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+            type="button"
+            onClick={onToggleCollapsed}
+          >
+            {t(
+              isCollapsed
+                ? "workspace.expandEndpointDetails"
+                : "workspace.collapseEndpointDetails",
+            )}
+          </button>
+        ) : null}
         {copiedEndpointLink ? (
           <span className="text-xs font-bold text-emerald-700" role="status">
             {t("workspace.endpointLinkCopied")}
@@ -1263,772 +1289,789 @@ function EndpointCardComponent({
       <p className="mt-3 text-sm font-bold text-[color:var(--color-brand-navy)]">
         {endpoint.summary}
       </p>
-      {endpoint.description ? (
-        <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
-          {endpoint.description}
-        </p>
-      ) : null}
-      {endpoint.tags.length > 0 ||
-      endpoint.deprecated ||
-      endpoint.operationId ||
-      endpoint.secured ? (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {endpoint.operationId ? (
-            <span className="rounded-xl bg-slate-100 px-3 py-1 font-mono text-xs font-bold text-slate-700">
-              {t("workspace.operationId", { id: endpoint.operationId })}
-            </span>
-          ) : null}
-          {endpoint.tags.map((tag) => (
-            <span
-              className="rounded-xl bg-[color:var(--color-brand-soft)] px-3 py-1 text-xs font-extrabold uppercase text-[color:var(--color-brand-purple)]"
-              key={tag}
-            >
-              {tag}
-            </span>
-          ))}
-          {endpoint.deprecated ? (
-            <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-extrabold uppercase text-amber-700">
-              {t("workspace.deprecatedEndpoint")}
-            </span>
-          ) : null}
-          {endpoint.secured ? (
-            <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-extrabold uppercase text-sky-700">
-              {t("workspace.authRequired", {
-                schemes: endpoint.securityRequirements.join(", "),
-              })}
-            </span>
-          ) : null}
-          {authRequestParameters.length > 0 ? (
-            <span className="rounded-xl bg-emerald-100 px-3 py-1 text-xs font-extrabold uppercase text-emerald-700">
-              {t("workspace.requestAuthApplied")}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-        {Object.entries(groupedParameters).map(([location, parameters]) => (
-          <div key={location}>
-            <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-              {t(parameterLabelKeys[location as EndpointParameter["location"]])}{" "}
-              {t("workspace.parameters")}
-            </p>
-            <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-              {parameters.length > 0
-                ? parameters
-                    .map((parameter) =>
-                      parameter.required
-                        ? `${parameter.name} (${t("workspace.required")})`
-                        : parameter.name,
-                    )
-                    .join(", ")
-                : t("workspace.none")}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-              {t("workspace.requestBody")}
-            </p>
-            {endpoint.requestBodies[0]?.required ? (
-              <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
-                {t("workspace.required")}
+      <div hidden={isCollapsed} id={endpointDetailsId}>
+        {endpoint.description ? (
+          <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--color-brand-muted)]">
+            {endpoint.description}
+          </p>
+        ) : null}
+        {endpoint.tags.length > 0 ||
+        endpoint.deprecated ||
+        endpoint.operationId ||
+        endpoint.secured ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {endpoint.operationId ? (
+              <span className="rounded-xl bg-slate-100 px-3 py-1 font-mono text-xs font-bold text-slate-700">
+                {t("workspace.operationId", { id: endpoint.operationId })}
+              </span>
+            ) : null}
+            {endpoint.tags.map((tag) => (
+              <span
+                className="rounded-xl bg-[color:var(--color-brand-soft)] px-3 py-1 text-xs font-extrabold uppercase text-[color:var(--color-brand-purple)]"
+                key={tag}
+              >
+                {tag}
+              </span>
+            ))}
+            {endpoint.deprecated ? (
+              <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-extrabold uppercase text-amber-700">
+                {t("workspace.deprecatedEndpoint")}
+              </span>
+            ) : null}
+            {endpoint.secured ? (
+              <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-extrabold uppercase text-sky-700">
+                {t("workspace.authRequired", {
+                  schemes: endpoint.securityRequirements.join(", "),
+                })}
+              </span>
+            ) : null}
+            {authRequestParameters.length > 0 ? (
+              <span className="rounded-xl bg-emerald-100 px-3 py-1 text-xs font-extrabold uppercase text-emerald-700">
+                {t("workspace.requestAuthApplied")}
               </span>
             ) : null}
           </div>
-          {endpoint.requestBodies[0]?.description ? (
-            <p className="mt-1 font-medium leading-5 text-[color:var(--color-brand-muted)]">
-              {endpoint.requestBodies[0].description}
-            </p>
-          ) : null}
-          {endpoint.requestBodies.length > 0 ? (
-            <div className="mt-2 space-y-3">
-              {endpoint.requestBodies.map((requestBody) => (
-                <div key={requestBody.contentType}>
-                  <p className="font-bold text-[color:var(--color-brand-purple)]">
-                    {requestBody.contentType}
-                  </p>
-                  <SchemaDetailsBlock schema={requestBody.schema} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <SchemaDetailsBlock schema={null} />
-          )}
-        </div>
-        <div>
-          <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-            {t("workspace.responses")}
-          </p>
-          {endpoint.responses.length > 0 ? (
-            <div className="mt-2 space-y-3">
-              {endpoint.responses.map((response) => (
-                <div key={response.status}>
-                  <p className="font-bold text-[color:var(--color-brand-purple)]">
-                    {response.status} - {response.description}
-                  </p>
-                  <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
-                    {t("workspace.content")}{" "}
-                    {response.contentTypes.length > 0
-                      ? response.contentTypes.join(", ")
-                      : t("workspace.none")}
-                  </p>
-                  {response.headers && response.headers.length > 0 ? (
-                    <div className="mt-2">
-                      <p className="font-bold text-[color:var(--color-brand-muted)]">
-                        {t("workspace.responseHeaders")}
-                      </p>
-                      <ul className="mt-1 space-y-1 font-mono text-xs text-[color:var(--color-brand-muted)]">
-                        {response.headers.map((header) => (
-                          <li key={header.name}>
-                            {header.name}: {header.value}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  <SchemaDetailsBlock schema={response.schema} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <SchemaDetailsBlock schema={null} />
-          )}
-        </div>
-      </div>
+        ) : null}
 
-      <div className="mt-4 rounded-2xl bg-[#fbfaff] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-            {t("workspace.tryItOut")}
-          </p>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <label className="flex items-center gap-2 text-xs font-bold text-[color:var(--color-brand-muted)]">
-              {t("workspace.requestTimeout")}
-              <select
-                aria-label={t("workspace.requestTimeout")}
-                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-navy)] outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isExecuting}
-                value={requestTimeoutMs}
-                onChange={(event) =>
-                  handleRequestTimeoutChange(event.target.value)
-                }
-              >
-                {REQUEST_TIMEOUT_OPTIONS_MS.map((timeoutMs) => (
-                  <option key={timeoutMs} value={timeoutMs}>
-                    {t("workspace.timeoutSeconds", {
-                      seconds: String(timeoutMs / 1000),
-                    })}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {endpoint.parameters.length > 0 ||
-            endpoint.requestBodies.length > 0 ||
-            endpoint.responses.length > 1 ||
-            requestTimeoutMs !== DEFAULT_REQUEST_TIMEOUT_MS ? (
-              <button
-                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isExecuting}
-                type="button"
-                onClick={handleResetTryItOut}
-              >
-                {t("workspace.resetTryItOut")}
-              </button>
+        <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+          {Object.entries(groupedParameters).map(([location, parameters]) => (
+            <div key={location}>
+              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                {t(
+                  parameterLabelKeys[location as EndpointParameter["location"]],
+                )}{" "}
+                {t("workspace.parameters")}
+              </p>
+              <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                {parameters.length > 0
+                  ? parameters
+                      .map((parameter) =>
+                        parameter.required
+                          ? `${parameter.name} (${t("workspace.required")})`
+                          : parameter.name,
+                      )
+                      .join(", ")
+                  : t("workspace.none")}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                {t("workspace.requestBody")}
+              </p>
+              {endpoint.requestBodies[0]?.required ? (
+                <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                  {t("workspace.required")}
+                </span>
+              ) : null}
+            </div>
+            {endpoint.requestBodies[0]?.description ? (
+              <p className="mt-1 font-medium leading-5 text-[color:var(--color-brand-muted)]">
+                {endpoint.requestBodies[0].description}
+              </p>
             ) : null}
+            {endpoint.requestBodies.length > 0 ? (
+              <div className="mt-2 space-y-3">
+                {endpoint.requestBodies.map((requestBody) => (
+                  <div key={requestBody.contentType}>
+                    <p className="font-bold text-[color:var(--color-brand-purple)]">
+                      {requestBody.contentType}
+                    </p>
+                    <SchemaDetailsBlock schema={requestBody.schema} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <SchemaDetailsBlock schema={null} />
+            )}
+          </div>
+          <div>
+            <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+              {t("workspace.responses")}
+            </p>
+            {endpoint.responses.length > 0 ? (
+              <div className="mt-2 space-y-3">
+                {endpoint.responses.map((response) => (
+                  <div key={response.status}>
+                    <p className="font-bold text-[color:var(--color-brand-purple)]">
+                      {response.status} - {response.description}
+                    </p>
+                    <p className="mt-1 font-medium text-[color:var(--color-brand-muted)]">
+                      {t("workspace.content")}{" "}
+                      {response.contentTypes.length > 0
+                        ? response.contentTypes.join(", ")
+                        : t("workspace.none")}
+                    </p>
+                    {response.headers && response.headers.length > 0 ? (
+                      <div className="mt-2">
+                        <p className="font-bold text-[color:var(--color-brand-muted)]">
+                          {t("workspace.responseHeaders")}
+                        </p>
+                        <ul className="mt-1 space-y-1 font-mono text-xs text-[color:var(--color-brand-muted)]">
+                          {response.headers.map((header) => (
+                            <li key={header.name}>
+                              {header.name}: {header.value}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <SchemaDetailsBlock schema={response.schema} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <SchemaDetailsBlock schema={null} />
+            )}
           </div>
         </div>
-        {onSaveRequestPreset && onDeleteRequestPreset ? (
-          <RequestPresetControls
-            disabled={isExecuting}
-            presets={endpointRequestPresets}
-            selectedPresetId={activeRequestPresetId}
-            onApply={handleApplyRequestPreset}
-            onCreate={handleCreateRequestPreset}
-            onDelete={handleDeleteRequestPreset}
-            onUpdate={handleUpdateRequestPreset}
-          />
-        ) : null}
-        {endpoint.parameters.length > 0 ? (
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {endpoint.parameters.map((parameter, parameterIndex) => {
-              const locationLabel = t(parameterLabelKeys[parameter.location]);
-              const parameterKey = getRequestParameterKey(parameter);
-              const isRequiredParameterMissing =
-                hasAttemptedExecution &&
-                missingRequiredParameterKeys.has(parameterKey);
-              const validationIssue = hasAttemptedExecution
-                ? parameterValidationIssuesByKey.get(parameterKey)
-                : undefined;
-              const isParameterInvalid =
-                isRequiredParameterMissing || Boolean(validationIssue);
-              const parameterErrorId = `${requestBodyInputId}-parameter-${parameterIndex}-error`;
-              const parameterValue = parameterValues[parameterKey] ?? "";
-              const parameterOptions =
-                parameter.enumValues && parameter.enumValues.length > 0
-                  ? parameter.enumValues
-                  : parameter.type === "boolean"
-                    ? ["true", "false"]
-                    : null;
-              const parameterInputLabel = t("workspace.parameterInputLabel", {
-                location: locationLabel,
-                name: parameter.name,
-              });
-              const parameterPlaceholder = parameter.example
-                ? t("workspace.parameterExamplePlaceholder", {
-                    value: parameter.example,
-                  })
-                : t("workspace.parameterValuePlaceholder");
 
-              return (
-                <label
-                  className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
-                  key={parameterKey}
-                >
-                  <span>
-                    {locationLabel}: {parameter.name}
-                    {parameter.required ? (
-                      <span className="ml-2 rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
-                        {t("workspace.required")}
-                      </span>
-                    ) : null}
-                  </span>
-                  {parameterOptions ? (
-                    <select
-                      aria-describedby={
-                        isParameterInvalid ? parameterErrorId : undefined
-                      }
-                      aria-invalid={isParameterInvalid || undefined}
-                      aria-label={parameterInputLabel}
-                      className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                      required={parameter.required}
-                      value={parameterValue}
-                      onChange={(event) =>
-                        handleParameterValueChange(
-                          parameter,
-                          event.target.value,
-                        )
-                      }
-                    >
-                      <option value="">{parameterPlaceholder}</option>
-                      {parameterValue &&
-                      !parameterOptions.includes(parameterValue) ? (
-                        <option disabled value={parameterValue}>
-                          {parameterValue}
-                        </option>
-                      ) : null}
-                      {parameterOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      aria-describedby={
-                        isParameterInvalid ? parameterErrorId : undefined
-                      }
-                      aria-invalid={isParameterInvalid || undefined}
-                      aria-label={parameterInputLabel}
-                      className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                      inputMode={
-                        parameter.type === "integer"
-                          ? "numeric"
-                          : parameter.type === "number"
-                            ? "decimal"
-                            : undefined
-                      }
-                      max={parameter.maximum}
-                      maxLength={parameter.maxLength}
-                      min={parameter.minimum}
-                      minLength={parameter.minLength}
-                      placeholder={parameterPlaceholder}
-                      required={parameter.required}
-                      step={parameter.type === "integer" ? 1 : "any"}
-                      type="text"
-                      value={parameterValue}
-                      onChange={(event) =>
-                        handleParameterValueChange(
-                          parameter,
-                          event.target.value,
-                        )
-                      }
-                    />
-                  )}
-                  {parameter.description ? (
-                    <span className="text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
-                      {parameter.description}
-                    </span>
-                  ) : null}
-                  {isParameterInvalid ? (
-                    <span
-                      className="text-xs font-semibold text-red-700"
-                      id={parameterErrorId}
-                      role="alert"
-                    >
-                      {isRequiredParameterMissing
-                        ? t("workspace.parameterRequired", {
-                            name: parameter.name,
-                          })
-                        : validationIssue
-                          ? t(
-                              parameterValidationMessageKeys[
-                                validationIssue.code
-                              ],
-                              {
-                                ...validationIssue.params,
-                                name: parameter.name,
-                              },
-                            )
-                          : null}
-                    </span>
-                  ) : null}
-                </label>
-              );
-            })}
-          </div>
-        ) : null}
-
-        {endpoint.requestBodies.length > 0 ? (
-          <div className="mt-3 space-y-3">
-            {endpoint.requestBodies.length > 1 ? (
-              <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-                {t("workspace.requestContentType")}
+        <div className="mt-4 rounded-2xl bg-[#fbfaff] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+              {t("workspace.tryItOut")}
+            </p>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <label className="flex items-center gap-2 text-xs font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.requestTimeout")}
                 <select
-                  aria-label={t("workspace.requestContentType")}
-                  className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 font-mono text-xs font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                  value={activeRequestContentType}
+                  aria-label={t("workspace.requestTimeout")}
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-navy)] outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isExecuting}
+                  value={requestTimeoutMs}
                   onChange={(event) =>
-                    handleRequestContentTypeChange(event.target.value)
+                    handleRequestTimeoutChange(event.target.value)
                   }
                 >
-                  {endpoint.requestBodies.map((requestBody) => (
-                    <option
-                      key={requestBody.contentType}
-                      value={requestBody.contentType}
-                    >
-                      {requestBody.contentType}
+                  {REQUEST_TIMEOUT_OPTIONS_MS.map((timeoutMs) => (
+                    <option key={timeoutMs} value={timeoutMs}>
+                      {t("workspace.timeoutSeconds", {
+                        seconds: String(timeoutMs / 1000),
+                      })}
                     </option>
                   ))}
                 </select>
               </label>
-            ) : null}
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <label
-                  className="flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
-                  htmlFor={requestBodyInputId}
-                >
-                  {t("workspace.requestBody")}
-                  {isRequestBodyRequired ? (
-                    <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
-                      {t("workspace.required")}
-                    </span>
-                  ) : null}
-                </label>
-                {isJsonRequestBody ? (
-                  <button
-                    className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={
-                      !requestBodyValue.trim() || isJsonRequestBodyInvalid
-                    }
-                    type="button"
-                    onClick={handleFormatRequestBody}
-                  >
-                    {t("workspace.formatRequestBody")}
-                  </button>
-                ) : null}
-              </div>
-              <textarea
-                aria-describedby={
-                  isRequestBodyInvalid
-                    ? `${requestBodyInputId}-error`
-                    : undefined
-                }
-                aria-invalid={isRequestBodyInvalid || undefined}
-                aria-label={t("workspace.requestBodyInputLabel")}
-                className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
-                id={requestBodyInputId}
-                required={isRequestBodyRequired}
-                value={requestBodyValue}
-                onChange={(event) =>
-                  handleRequestBodyChange(event.target.value)
-                }
-              />
-              {isRequiredRequestBodyMissing ? (
-                <span
-                  className="text-xs font-semibold text-red-700"
-                  id={`${requestBodyInputId}-error`}
-                  role="alert"
-                >
-                  {t("workspace.requestBodyRequired")}
-                </span>
-              ) : null}
-              {isJsonRequestBodyInvalid ? (
-                <span
-                  className="text-xs font-semibold text-red-700"
-                  id={`${requestBodyInputId}-error`}
-                  role="alert"
-                >
-                  {t("workspace.requestBodyInvalidJson")}
-                </span>
-              ) : null}
-              {requestBodyContractReport ? (
-                <section
-                  aria-label={t("workspace.requestBodyContractTitle")}
-                  className="border-y border-[color:var(--color-brand-border)] py-3"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-xs font-extrabold text-[color:var(--color-brand-navy)]">
-                      {t("workspace.requestBodyContractTitle")}
-                    </h4>
-                    <span
-                      className={`rounded-md px-2 py-1 text-xs font-extrabold ${
-                        requestBodyContractReport.result === "pass"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {t(
-                        requestBodyContractReport.result === "pass"
-                          ? "workspace.contractPassed"
-                          : "workspace.contractFailed",
-                      )}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
-                    {t(
-                      requestBodyContractMessageKeys[
-                        requestBodyContractReport.code
-                      ],
-                      requestBodyContractReport.params,
-                    )}
-                  </p>
-                </section>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-
-        {endpoint.responses.length > 1 ? (
-          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-            {t("workspace.responseStatus")}
-            <select
-              aria-label={t("workspace.responseStatus")}
-              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isExecuting}
-              value={activeResponseStatus}
-              onChange={(event) =>
-                handleResponseStatusChange(event.target.value)
-              }
-            >
-              {endpoint.responses.map((response) => (
-                <option key={response.status} value={response.status}>
-                  {response.status} - {response.description}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-
-        {activeResponse && activeResponse.contentTypes.length > 1 ? (
-          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
-            {t("workspace.responseContentType")}
-            <select
-              aria-label={t("workspace.responseContentType")}
-              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isExecuting}
-              value={activeResponseContentType}
-              onChange={(event) =>
-                handleResponseContentTypeChange(event.target.value)
-              }
-            >
-              {activeResponse.contentTypes.map((contentType) => (
-                <option key={contentType} value={contentType}>
-                  {contentType}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-      </div>
-
-      <div className="mt-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
-              {requestCodeLabel}
-            </p>
-            <div
-              aria-label={t("workspace.requestCodeFormat")}
-              className="inline-flex h-9 items-center rounded-xl border border-[color:var(--color-brand-border)] bg-white p-1"
-              role="group"
-            >
-              {(["curl", "fetch", "http"] as const).map((format) => (
+              {endpoint.parameters.length > 0 ||
+              endpoint.requestBodies.length > 0 ||
+              endpoint.responses.length > 1 ||
+              requestTimeoutMs !== DEFAULT_REQUEST_TIMEOUT_MS ? (
                 <button
-                  aria-pressed={requestCodeFormat === format}
-                  className={`h-7 rounded-lg px-3 text-xs font-extrabold transition ${
-                    requestCodeFormat === format
-                      ? "bg-[color:var(--color-brand-purple)] text-white"
-                      : "text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-brand-soft)]"
-                  }`}
-                  key={format}
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isExecuting}
                   type="button"
-                  onClick={() => setRequestCodeFormat(format)}
+                  onClick={handleResetTryItOut}
                 >
-                  {format === "curl"
-                    ? t("workspace.curl")
-                    : format === "fetch"
-                      ? t("workspace.fetch")
-                      : t("workspace.http")}
+                  {t("workspace.resetTryItOut")}
                 </button>
-              ))}
+              ) : null}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
-              disabled={hasMissingRequiredPathParameters}
-              type="button"
-              onClick={handleCopyRequestUrl}
-            >
-              {t("workspace.copyRequestUrl")}
-            </button>
-            <button
-              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
-              type="button"
-              onClick={
-                requestCodeFormat === "curl"
-                  ? handleCopyCurl
-                  : requestCodeFormat === "fetch"
-                    ? handleCopyFetch
-                    : handleCopyHttp
-              }
-            >
-              {requestCodeFormat === "curl"
-                ? t("workspace.copyCurl")
-                : requestCodeFormat === "fetch"
-                  ? t("workspace.copyFetch")
-                  : t("workspace.copyHttp")}
-            </button>
-            <button
-              aria-label={t("workspace.downloadRequestCodeAriaLabel", {
-                format: requestCodeLabel,
-                method: endpoint.method,
-                path: endpoint.path,
-              })}
-              className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
-              type="button"
-              onClick={handleDownloadRequestCode}
-            >
-              {t("workspace.downloadRequestCode")}
-            </button>
-            <button
-              aria-busy={isExecuting}
-              aria-keyshortcuts="Control+Enter Meta+Enter"
-              className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={
-                isExecuting ||
-                isRequestBodyInvalid ||
-                (hasAttemptedExecution &&
-                  (hasMissingRequiredParameters || hasInvalidRequestParameters))
-              }
-              type="button"
-              onClick={handleTryItOut}
-            >
-              {isExecuting
-                ? t("workspace.executing")
-                : executionMode === "mock"
-                  ? t("workspace.generateMockResponse")
-                  : t("workspace.tryItOut")}
-            </button>
-            {isExecuting ? (
-              <button
-                aria-keyshortcuts="Escape"
-                className="h-10 rounded-2xl border border-red-300 bg-white px-4 text-sm font-extrabold text-red-700 transition hover:bg-red-50"
-                type="button"
-                onClick={handleCancelTryItOut}
-              >
-                {t("workspace.cancelRequest")}
-              </button>
-            ) : null}
-          </div>
-        </div>
-        <pre
-          aria-label={`${requestCodeLabel} ${endpoint.method} ${endpoint.path}`}
-          className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
-        >
-          {currentRequestCode}
-        </pre>
-        {requestCodeFormat === "curl" && isCurlCopied ? (
-          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
-            {t("workspace.curlCopied")}
-          </p>
-        ) : requestCodeFormat === "fetch" && isFetchCopied ? (
-          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
-            {t("workspace.fetchCopied")}
-          </p>
-        ) : requestCodeFormat === "http" && isHttpCopied ? (
-          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
-            {t("workspace.httpCopied")}
-          </p>
-        ) : isRequestUrlCopied ? (
-          <p className="mt-2 text-sm font-bold text-emerald-700" role="status">
-            {t("workspace.requestUrlCopied")}
-          </p>
-        ) : wasRequestCancelled ? (
-          <p
-            aria-live="polite"
-            className="mt-2 text-sm font-bold text-[color:var(--color-brand-muted)]"
-          >
-            {t("workspace.requestCancelled")}
-          </p>
-        ) : null}
-      </div>
-
-      {mockResult ? (
-        <div
-          className="mt-4 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-4"
-          role="status"
-        >
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="font-extrabold text-[color:var(--color-brand-navy)]">
-              {t("workspace.response")}
-            </span>
-            <span
-              className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(mockResult.status)}`}
-            >
-              {mockResult.status}
-            </span>
-            <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {mockResult.durationMs} ms
-            </span>
-            <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {t("workspace.requestSize", {
-                size: String(mockResult.requestSize),
-              })}
-            </span>
-            <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {t("workspace.responseSize", {
-                size: String(mockResult.responseSize),
-              })}
-            </span>
-            <span className="font-bold text-[color:var(--color-brand-muted)]">
-              {mockResult.source === "mock"
-                ? t(
-                    mockResult.generatedResponse
-                      ? "workspace.generatedMockResponse"
-                      : "workspace.mockResponse",
-                  )
-                : mockResult.savedToHistory
-                  ? t("workspace.savedToHistory")
-                  : t("workspace.guestRun")}
-            </span>
-            {isResponseCopied ? (
-              <span className="font-bold text-emerald-700">
-                {t("workspace.responseCopied")}
-              </span>
-            ) : areResponseHeadersCopied ? (
-              <span className="font-bold text-emerald-700">
-                {t("workspace.responseHeadersCopied")}
-              </span>
-            ) : null}
-            <div className="ml-auto flex flex-wrap items-center gap-2">
-              <button
-                className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
-                type="button"
-                onClick={handleClearResponse}
-              >
-                {t("workspace.clearResponse")}
-              </button>
-              <button
-                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!mockResult.body}
-                type="button"
-                onClick={handleDownloadResponse}
-              >
-                {t("workspace.downloadResponse")}
-              </button>
-              <button
-                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!formattedResponseHeaders}
-                type="button"
-                onClick={handleCopyResponseHeaders}
-              >
-                {t("workspace.copyResponseHeaders")}
-              </button>
-              <button
-                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!formattedResponseBody}
-                type="button"
-                onClick={handleCopyResponse}
-              >
-                {t("workspace.copyResponse")}
-              </button>
-            </div>
-          </div>
-          <p className="mt-3 break-all font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
-            {mockResult.url}
-          </p>
-          {mockResult.errorDetails ? (
-            <div className="mt-3 rounded-2xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
-              <p className="font-extrabold">{t("history.errorDetails")}</p>
-              <p className="mt-1 font-medium">{mockResult.errorDetails}</p>
-            </div>
-          ) : null}
-          {responseContractReport ? (
-            <ResponseContractReport
-              endpoint={{ method: endpoint.method, path: endpoint.path }}
-              report={responseContractReport}
+          {onSaveRequestPreset && onDeleteRequestPreset ? (
+            <RequestPresetControls
+              disabled={isExecuting}
+              presets={endpointRequestPresets}
+              selectedPresetId={activeRequestPresetId}
+              onApply={handleApplyRequestPreset}
+              onCreate={handleCreateRequestPreset}
+              onDelete={handleDeleteRequestPreset}
+              onUpdate={handleUpdateRequestPreset}
             />
           ) : null}
-          {Object.keys(mockResult.headers).length > 0 ? (
-            <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
-              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-                {t("workspace.responseHeaders")}
-              </p>
-              <ul className="mt-2 space-y-1 font-mono text-xs leading-5 text-[color:var(--color-brand-muted)]">
-                {Object.entries(mockResult.headers).map(([header, value]) => (
-                  <li key={header}>
-                    {header}: {value}
-                  </li>
-                ))}
-              </ul>
+          {endpoint.parameters.length > 0 ? (
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {endpoint.parameters.map((parameter, parameterIndex) => {
+                const locationLabel = t(parameterLabelKeys[parameter.location]);
+                const parameterKey = getRequestParameterKey(parameter);
+                const isRequiredParameterMissing =
+                  hasAttemptedExecution &&
+                  missingRequiredParameterKeys.has(parameterKey);
+                const validationIssue = hasAttemptedExecution
+                  ? parameterValidationIssuesByKey.get(parameterKey)
+                  : undefined;
+                const isParameterInvalid =
+                  isRequiredParameterMissing || Boolean(validationIssue);
+                const parameterErrorId = `${requestBodyInputId}-parameter-${parameterIndex}-error`;
+                const parameterValue = parameterValues[parameterKey] ?? "";
+                const parameterOptions =
+                  parameter.enumValues && parameter.enumValues.length > 0
+                    ? parameter.enumValues
+                    : parameter.type === "boolean"
+                      ? ["true", "false"]
+                      : null;
+                const parameterInputLabel = t("workspace.parameterInputLabel", {
+                  location: locationLabel,
+                  name: parameter.name,
+                });
+                const parameterPlaceholder = parameter.example
+                  ? t("workspace.parameterExamplePlaceholder", {
+                      value: parameter.example,
+                    })
+                  : t("workspace.parameterValuePlaceholder");
+
+                return (
+                  <label
+                    className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
+                    key={parameterKey}
+                  >
+                    <span>
+                      {locationLabel}: {parameter.name}
+                      {parameter.required ? (
+                        <span className="ml-2 rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                          {t("workspace.required")}
+                        </span>
+                      ) : null}
+                    </span>
+                    {parameterOptions ? (
+                      <select
+                        aria-describedby={
+                          isParameterInvalid ? parameterErrorId : undefined
+                        }
+                        aria-invalid={isParameterInvalid || undefined}
+                        aria-label={parameterInputLabel}
+                        className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                        required={parameter.required}
+                        value={parameterValue}
+                        onChange={(event) =>
+                          handleParameterValueChange(
+                            parameter,
+                            event.target.value,
+                          )
+                        }
+                      >
+                        <option value="">{parameterPlaceholder}</option>
+                        {parameterValue &&
+                        !parameterOptions.includes(parameterValue) ? (
+                          <option disabled value={parameterValue}>
+                            {parameterValue}
+                          </option>
+                        ) : null}
+                        {parameterOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        aria-describedby={
+                          isParameterInvalid ? parameterErrorId : undefined
+                        }
+                        aria-invalid={isParameterInvalid || undefined}
+                        aria-label={parameterInputLabel}
+                        className="h-11 rounded-2xl border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                        inputMode={
+                          parameter.type === "integer"
+                            ? "numeric"
+                            : parameter.type === "number"
+                              ? "decimal"
+                              : undefined
+                        }
+                        max={parameter.maximum}
+                        maxLength={parameter.maxLength}
+                        min={parameter.minimum}
+                        minLength={parameter.minLength}
+                        placeholder={parameterPlaceholder}
+                        required={parameter.required}
+                        step={parameter.type === "integer" ? 1 : "any"}
+                        type="text"
+                        value={parameterValue}
+                        onChange={(event) =>
+                          handleParameterValueChange(
+                            parameter,
+                            event.target.value,
+                          )
+                        }
+                      />
+                    )}
+                    {parameter.description ? (
+                      <span className="text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
+                        {parameter.description}
+                      </span>
+                    ) : null}
+                    {isParameterInvalid ? (
+                      <span
+                        className="text-xs font-semibold text-red-700"
+                        id={parameterErrorId}
+                        role="alert"
+                      >
+                        {isRequiredParameterMissing
+                          ? t("workspace.parameterRequired", {
+                              name: parameter.name,
+                            })
+                          : validationIssue
+                            ? t(
+                                parameterValidationMessageKeys[
+                                  validationIssue.code
+                                ],
+                                {
+                                  ...validationIssue.params,
+                                  name: parameter.name,
+                                },
+                              )
+                            : null}
+                      </span>
+                    ) : null}
+                  </label>
+                );
+              })}
             </div>
           ) : null}
-          {mockResult.requestValues.length > 0 || mockResult.requestBody ? (
-            <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
-              <p className="font-extrabold text-[color:var(--color-brand-navy)]">
-                {t("workspace.requestPreview")}
+
+          {endpoint.requestBodies.length > 0 ? (
+            <div className="mt-3 space-y-3">
+              {endpoint.requestBodies.length > 1 ? (
+                <label className="flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+                  {t("workspace.requestContentType")}
+                  <select
+                    aria-label={t("workspace.requestContentType")}
+                    className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 font-mono text-xs font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                    value={activeRequestContentType}
+                    onChange={(event) =>
+                      handleRequestContentTypeChange(event.target.value)
+                    }
+                  >
+                    {endpoint.requestBodies.map((requestBody) => (
+                      <option
+                        key={requestBody.contentType}
+                        value={requestBody.contentType}
+                      >
+                        {requestBody.contentType}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label
+                    className="flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]"
+                    htmlFor={requestBodyInputId}
+                  >
+                    {t("workspace.requestBody")}
+                    {isRequestBodyRequired ? (
+                      <span className="rounded-lg bg-red-100 px-2 py-0.5 text-xs font-extrabold uppercase text-red-700">
+                        {t("workspace.required")}
+                      </span>
+                    ) : null}
+                  </label>
+                  {isJsonRequestBody ? (
+                    <button
+                      className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={
+                        !requestBodyValue.trim() || isJsonRequestBodyInvalid
+                      }
+                      type="button"
+                      onClick={handleFormatRequestBody}
+                    >
+                      {t("workspace.formatRequestBody")}
+                    </button>
+                  ) : null}
+                </div>
+                <textarea
+                  aria-describedby={
+                    isRequestBodyInvalid
+                      ? `${requestBodyInputId}-error`
+                      : undefined
+                  }
+                  aria-invalid={isRequestBodyInvalid || undefined}
+                  aria-label={t("workspace.requestBodyInputLabel")}
+                  className="min-h-28 rounded-2xl border border-[color:var(--color-brand-border)] bg-white p-4 font-mono text-xs font-medium leading-5 outline-none transition focus:border-[color:var(--color-brand-purple)]"
+                  id={requestBodyInputId}
+                  required={isRequestBodyRequired}
+                  value={requestBodyValue}
+                  onChange={(event) =>
+                    handleRequestBodyChange(event.target.value)
+                  }
+                />
+                {isRequiredRequestBodyMissing ? (
+                  <span
+                    className="text-xs font-semibold text-red-700"
+                    id={`${requestBodyInputId}-error`}
+                    role="alert"
+                  >
+                    {t("workspace.requestBodyRequired")}
+                  </span>
+                ) : null}
+                {isJsonRequestBodyInvalid ? (
+                  <span
+                    className="text-xs font-semibold text-red-700"
+                    id={`${requestBodyInputId}-error`}
+                    role="alert"
+                  >
+                    {t("workspace.requestBodyInvalidJson")}
+                  </span>
+                ) : null}
+                {requestBodyContractReport ? (
+                  <section
+                    aria-label={t("workspace.requestBodyContractTitle")}
+                    className="border-y border-[color:var(--color-brand-border)] py-3"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-xs font-extrabold text-[color:var(--color-brand-navy)]">
+                        {t("workspace.requestBodyContractTitle")}
+                      </h4>
+                      <span
+                        className={`rounded-md px-2 py-1 text-xs font-extrabold ${
+                          requestBodyContractReport.result === "pass"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {t(
+                          requestBodyContractReport.result === "pass"
+                            ? "workspace.contractPassed"
+                            : "workspace.contractFailed",
+                        )}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-medium leading-5 text-[color:var(--color-brand-muted)]">
+                      {t(
+                        requestBodyContractMessageKeys[
+                          requestBodyContractReport.code
+                        ],
+                        requestBodyContractReport.params,
+                      )}
+                    </p>
+                  </section>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {endpoint.responses.length > 1 ? (
+            <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+              {t("workspace.responseStatus")}
+              <select
+                aria-label={t("workspace.responseStatus")}
+                className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isExecuting}
+                value={activeResponseStatus}
+                onChange={(event) =>
+                  handleResponseStatusChange(event.target.value)
+                }
+              >
+                {endpoint.responses.map((response) => (
+                  <option key={response.status} value={response.status}>
+                    {response.status} - {response.description}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {activeResponse && activeResponse.contentTypes.length > 1 ? (
+            <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+              {t("workspace.responseContentType")}
+              <select
+                aria-label={t("workspace.responseContentType")}
+                className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isExecuting}
+                value={activeResponseContentType}
+                onChange={(event) =>
+                  handleResponseContentTypeChange(event.target.value)
+                }
+              >
+                {activeResponse.contentTypes.map((contentType) => (
+                  <option key={contentType} value={contentType}>
+                    {contentType}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </div>
+
+        <div className="mt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm font-extrabold text-[color:var(--color-brand-navy)]">
+                {requestCodeLabel}
               </p>
-              {mockResult.requestValues.length > 0 ? (
-                <ul className="mt-2 space-y-1 font-medium text-[color:var(--color-brand-muted)]">
-                  {mockResult.requestValues.map((requestValue) => (
-                    <li key={requestValue.label}>
-                      {requestValue.label}: {requestValue.value}
+              <div
+                aria-label={t("workspace.requestCodeFormat")}
+                className="inline-flex h-9 items-center rounded-xl border border-[color:var(--color-brand-border)] bg-white p-1"
+                role="group"
+              >
+                {(["curl", "fetch", "http"] as const).map((format) => (
+                  <button
+                    aria-pressed={requestCodeFormat === format}
+                    className={`h-7 rounded-lg px-3 text-xs font-extrabold transition ${
+                      requestCodeFormat === format
+                        ? "bg-[color:var(--color-brand-purple)] text-white"
+                        : "text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-brand-soft)]"
+                    }`}
+                    key={format}
+                    type="button"
+                    onClick={() => setRequestCodeFormat(format)}
+                  >
+                    {format === "curl"
+                      ? t("workspace.curl")
+                      : format === "fetch"
+                        ? t("workspace.fetch")
+                        : t("workspace.http")}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:border-[color:var(--color-brand-border)] disabled:text-[color:var(--color-brand-muted)]"
+                disabled={hasMissingRequiredPathParameters}
+                type="button"
+                onClick={handleCopyRequestUrl}
+              >
+                {t("workspace.copyRequestUrl")}
+              </button>
+              <button
+                className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={
+                  requestCodeFormat === "curl"
+                    ? handleCopyCurl
+                    : requestCodeFormat === "fetch"
+                      ? handleCopyFetch
+                      : handleCopyHttp
+                }
+              >
+                {requestCodeFormat === "curl"
+                  ? t("workspace.copyCurl")
+                  : requestCodeFormat === "fetch"
+                    ? t("workspace.copyFetch")
+                    : t("workspace.copyHttp")}
+              </button>
+              <button
+                aria-label={t("workspace.downloadRequestCodeAriaLabel", {
+                  format: requestCodeLabel,
+                  method: endpoint.method,
+                  path: endpoint.path,
+                })}
+                className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={handleDownloadRequestCode}
+              >
+                {t("workspace.downloadRequestCode")}
+              </button>
+              <button
+                aria-busy={isExecuting}
+                aria-keyshortcuts="Control+Enter Meta+Enter"
+                className="h-10 rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-4 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(90,45,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={
+                  isExecuting ||
+                  isRequestBodyInvalid ||
+                  (hasAttemptedExecution &&
+                    (hasMissingRequiredParameters ||
+                      hasInvalidRequestParameters))
+                }
+                type="button"
+                onClick={handleTryItOut}
+              >
+                {isExecuting
+                  ? t("workspace.executing")
+                  : executionMode === "mock"
+                    ? t("workspace.generateMockResponse")
+                    : t("workspace.tryItOut")}
+              </button>
+              {isExecuting ? (
+                <button
+                  aria-keyshortcuts="Escape"
+                  className="h-10 rounded-2xl border border-red-300 bg-white px-4 text-sm font-extrabold text-red-700 transition hover:bg-red-50"
+                  type="button"
+                  onClick={handleCancelTryItOut}
+                >
+                  {t("workspace.cancelRequest")}
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <pre
+            aria-label={`${requestCodeLabel} ${endpoint.method} ${endpoint.path}`}
+            className="mt-2 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
+          >
+            {currentRequestCode}
+          </pre>
+          {requestCodeFormat === "curl" && isCurlCopied ? (
+            <p
+              className="mt-2 text-sm font-bold text-emerald-700"
+              role="status"
+            >
+              {t("workspace.curlCopied")}
+            </p>
+          ) : requestCodeFormat === "fetch" && isFetchCopied ? (
+            <p
+              className="mt-2 text-sm font-bold text-emerald-700"
+              role="status"
+            >
+              {t("workspace.fetchCopied")}
+            </p>
+          ) : requestCodeFormat === "http" && isHttpCopied ? (
+            <p
+              className="mt-2 text-sm font-bold text-emerald-700"
+              role="status"
+            >
+              {t("workspace.httpCopied")}
+            </p>
+          ) : isRequestUrlCopied ? (
+            <p
+              className="mt-2 text-sm font-bold text-emerald-700"
+              role="status"
+            >
+              {t("workspace.requestUrlCopied")}
+            </p>
+          ) : wasRequestCancelled ? (
+            <p
+              aria-live="polite"
+              className="mt-2 text-sm font-bold text-[color:var(--color-brand-muted)]"
+            >
+              {t("workspace.requestCancelled")}
+            </p>
+          ) : null}
+        </div>
+
+        {mockResult ? (
+          <div
+            className="mt-4 rounded-2xl border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-4"
+            role="status"
+          >
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="font-extrabold text-[color:var(--color-brand-navy)]">
+                {t("workspace.response")}
+              </span>
+              <span
+                className={`rounded-xl px-3 py-1 font-extrabold ${getStatusColorClasses(mockResult.status)}`}
+              >
+                {mockResult.status}
+              </span>
+              <span className="font-bold text-[color:var(--color-brand-muted)]">
+                {mockResult.durationMs} ms
+              </span>
+              <span className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.requestSize", {
+                  size: String(mockResult.requestSize),
+                })}
+              </span>
+              <span className="font-bold text-[color:var(--color-brand-muted)]">
+                {t("workspace.responseSize", {
+                  size: String(mockResult.responseSize),
+                })}
+              </span>
+              <span className="font-bold text-[color:var(--color-brand-muted)]">
+                {mockResult.source === "mock"
+                  ? t(
+                      mockResult.generatedResponse
+                        ? "workspace.generatedMockResponse"
+                        : "workspace.mockResponse",
+                    )
+                  : mockResult.savedToHistory
+                    ? t("workspace.savedToHistory")
+                    : t("workspace.guestRun")}
+              </span>
+              {isResponseCopied ? (
+                <span className="font-bold text-emerald-700">
+                  {t("workspace.responseCopied")}
+                </span>
+              ) : areResponseHeadersCopied ? (
+                <span className="font-bold text-emerald-700">
+                  {t("workspace.responseHeadersCopied")}
+                </span>
+              ) : null}
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
+                  type="button"
+                  onClick={handleClearResponse}
+                >
+                  {t("workspace.clearResponse")}
+                </button>
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!mockResult.body}
+                  type="button"
+                  onClick={handleDownloadResponse}
+                >
+                  {t("workspace.downloadResponse")}
+                </button>
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!formattedResponseHeaders}
+                  type="button"
+                  onClick={handleCopyResponseHeaders}
+                >
+                  {t("workspace.copyResponseHeaders")}
+                </button>
+                <button
+                  className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!formattedResponseBody}
+                  type="button"
+                  onClick={handleCopyResponse}
+                >
+                  {t("workspace.copyResponse")}
+                </button>
+              </div>
+            </div>
+            <p className="mt-3 break-all font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
+              {mockResult.url}
+            </p>
+            {mockResult.errorDetails ? (
+              <div className="mt-3 rounded-2xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                <p className="font-extrabold">{t("history.errorDetails")}</p>
+                <p className="mt-1 font-medium">{mockResult.errorDetails}</p>
+              </div>
+            ) : null}
+            {responseContractReport ? (
+              <ResponseContractReport
+                endpoint={{ method: endpoint.method, path: endpoint.path }}
+                report={responseContractReport}
+              />
+            ) : null}
+            {Object.keys(mockResult.headers).length > 0 ? (
+              <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
+                <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                  {t("workspace.responseHeaders")}
+                </p>
+                <ul className="mt-2 space-y-1 font-mono text-xs leading-5 text-[color:var(--color-brand-muted)]">
+                  {Object.entries(mockResult.headers).map(([header, value]) => (
+                    <li key={header}>
+                      {header}: {value}
                     </li>
                   ))}
                 </ul>
-              ) : null}
-              {mockResult.requestBody ? (
-                <pre className="mt-3 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
-                  {mockResult.requestBody}
-                </pre>
-              ) : null}
-            </div>
-          ) : null}
-          <pre
-            aria-label={t("workspace.responseBody")}
-            className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
-          >
-            {formattedResponseBody}
-          </pre>
-        </div>
-      ) : null}
+              </div>
+            ) : null}
+            {mockResult.requestValues.length > 0 || mockResult.requestBody ? (
+              <div className="mt-3 rounded-2xl bg-white p-3 text-sm">
+                <p className="font-extrabold text-[color:var(--color-brand-navy)]">
+                  {t("workspace.requestPreview")}
+                </p>
+                {mockResult.requestValues.length > 0 ? (
+                  <ul className="mt-2 space-y-1 font-medium text-[color:var(--color-brand-muted)]">
+                    {mockResult.requestValues.map((requestValue) => (
+                      <li key={requestValue.label}>
+                        {requestValue.label}: {requestValue.value}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {mockResult.requestBody ? (
+                  <pre className="mt-3 overflow-x-auto rounded-2xl bg-[#fbfaff] p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]">
+                    {mockResult.requestBody}
+                  </pre>
+                ) : null}
+              </div>
+            ) : null}
+            <pre
+              aria-label={t("workspace.responseBody")}
+              className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 font-mono text-xs leading-5 text-[color:var(--color-brand-navy)]"
+            >
+              {formattedResponseBody}
+            </pre>
+          </div>
+        ) : null}
+      </div>
     </article>
   );
 }

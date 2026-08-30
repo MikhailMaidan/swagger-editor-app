@@ -9,6 +9,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
+import { ENDPOINT_COLLAPSE_STORAGE_KEY } from "@/lib/endpoint-collapse";
 import { ENDPOINT_FAVORITES_STORAGE_KEY } from "@/lib/endpoint-favorites";
 import {
   createEndpointPermalink,
@@ -1063,6 +1064,74 @@ paths:
 
     expect(screen.getByLabelText("cURL GET /users/{id}")).toBeInTheDocument();
     expect(screen.getByLabelText("cURL POST /users/{id}")).toBeInTheDocument();
+  });
+
+  it("persists collapsible endpoint details without losing request values", async () => {
+    const user = userEvent.setup();
+    const firstView = render(<SwaggerWorkspace />);
+    const pathInput = await screen.findAllByLabelText("Path parameter id");
+    const collapseGet = screen.getByRole("button", {
+      name: "Hide details for GET /users/{id}",
+    });
+
+    await user.type(pathInput[0], "42");
+    await user.click(collapseGet);
+
+    expect(collapseGet).toHaveAttribute("aria-expanded", "false");
+    expect(pathInput[0]).not.toBeVisible();
+    expect(pathInput[0]).toHaveValue("42");
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(ENDPOINT_COLLAPSE_STORAGE_KEY) || "[]",
+      ),
+    ).toEqual(["GET /users/{id}"]);
+
+    const expandGet = screen.getByRole("button", {
+      name: "Show details for GET /users/{id}",
+    });
+
+    await user.click(expandGet);
+
+    expect(pathInput[0]).toBeVisible();
+    expect(pathInput[0]).toHaveValue("42");
+    expect(
+      window.localStorage.getItem(ENDPOINT_COLLAPSE_STORAGE_KEY),
+    ).toBeNull();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Hide details for GET /users/{id}",
+      }),
+    );
+    firstView.unmount();
+    render(<SwaggerWorkspace />);
+
+    const restoredExpandGet = await screen.findByRole("button", {
+      name: "Show details for GET /users/{id}",
+    });
+
+    expect(restoredExpandGet).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByLabelText("cURL GET /users/{id}")).not.toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Collapse visible" }));
+
+    expect(
+      screen.getByRole("button", { name: "Expand visible" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).not.toBeVisible();
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(ENDPOINT_COLLAPSE_STORAGE_KEY) || "[]",
+      ),
+    ).toEqual(["GET /users/{id}", "POST /users/{id}"]);
+
+    await user.click(screen.getByRole("button", { name: "Expand visible" }));
+
+    expect(screen.getByLabelText("cURL GET /users/{id}")).toBeVisible();
+    expect(screen.getByLabelText("cURL POST /users/{id}")).toBeVisible();
+    expect(
+      window.localStorage.getItem(ENDPOINT_COLLAPSE_STORAGE_KEY),
+    ).toBeNull();
   });
 
   it("focuses endpoint search with slash and clears it with Escape", () => {
@@ -4716,9 +4785,17 @@ paths:
       configurable: true,
       value: scrollIntoView,
     });
+    window.localStorage.setItem(
+      ENDPOINT_COLLAPSE_STORAGE_KEY,
+      JSON.stringify(["GET /users/{id}"]),
+    );
 
     try {
       render(<SwaggerWorkspace />);
+
+      await screen.findByRole("button", {
+        name: "Show details for GET /users/{id}",
+      });
 
       const auditPanel = screen
         .getByRole("heading", { name: "API quality audit" })
@@ -4750,6 +4827,14 @@ paths:
       expect(window.location.hash).toBe(
         `#${getEndpointAnchor("GET", "/users/{id}")}`,
       );
+      expect(
+        screen.getByRole("button", {
+          name: "Hide details for GET /users/{id}",
+        }),
+      ).toHaveAttribute("aria-expanded", "true");
+      expect(
+        window.localStorage.getItem(ENDPOINT_COLLAPSE_STORAGE_KEY),
+      ).toBeNull();
     } finally {
       window.history.replaceState(null, "", previousUrl);
 
