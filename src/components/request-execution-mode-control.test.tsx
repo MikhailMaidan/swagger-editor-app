@@ -7,11 +7,14 @@ describe("RequestExecutionModeControl", () => {
   it("shows the selected mode and reports changes", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
+    const onMockDelayChange = vi.fn();
     const { rerender } = render(
       <RequestExecutionModeControl
         mode="live"
+        mockDelayMs={0}
         storageError={false}
         onChange={onChange}
+        onMockDelayChange={onMockDelayChange}
       />,
     );
 
@@ -23,6 +26,7 @@ describe("RequestExecutionModeControl", () => {
       "aria-pressed",
       "false",
     );
+    expect(screen.queryByLabelText("Mock latency")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Mock" }));
     expect(onChange).toHaveBeenCalledWith("mock");
@@ -30,8 +34,10 @@ describe("RequestExecutionModeControl", () => {
     rerender(
       <RequestExecutionModeControl
         mode="mock"
+        mockDelayMs={2_000}
         storageError
         onChange={onChange}
+        onMockDelayChange={onMockDelayChange}
       />,
     );
 
@@ -42,5 +48,9 @@ describe("RequestExecutionModeControl", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Mode changed for this session but could not be saved.",
     );
+    expect(screen.getByLabelText("Mock latency")).toHaveValue("2000");
+
+    await user.selectOptions(screen.getByLabelText("Mock latency"), "500");
+    expect(onMockDelayChange).toHaveBeenCalledWith(500);
   });
 });

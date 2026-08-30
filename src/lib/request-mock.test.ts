@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ResponseSummary } from "./openapi";
-import { createSchemaMockResponse } from "./request-mock";
+import {
+  createSchemaMockResponse,
+  waitForMockResponseDelay,
+} from "./request-mock";
 
 function createResponse(
   overrides: Partial<ResponseSummary> = {},
@@ -53,5 +56,34 @@ describe("schema mock responses", () => {
         "No content",
       ),
     ).toEqual({ body: "No content", headers: {}, status: "204" });
+  });
+
+  it("completes simulated latency and stops immediately when aborted", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const completedController = new AbortController();
+      const completed = waitForMockResponseDelay(
+        500,
+        completedController.signal,
+      );
+
+      await vi.advanceTimersByTimeAsync(500);
+      await expect(completed).resolves.toBe(true);
+
+      const cancelledController = new AbortController();
+      const cancelled = waitForMockResponseDelay(
+        5_000,
+        cancelledController.signal,
+      );
+
+      cancelledController.abort();
+      await expect(cancelled).resolves.toBe(false);
+      await expect(
+        waitForMockResponseDelay(0, new AbortController().signal),
+      ).resolves.toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

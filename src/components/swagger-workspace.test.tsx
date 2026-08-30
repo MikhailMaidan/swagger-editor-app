@@ -25,7 +25,10 @@ import { ENDPOINT_SORT_STORAGE_KEY } from "@/lib/endpoint-sort";
 import { DEFAULT_OPENAPI_SCHEMA } from "@/lib/openapi";
 import { REQUEST_HISTORY_STORAGE_KEY } from "@/lib/request-history";
 import { REQUEST_ENVIRONMENTS_STORAGE_KEY } from "@/lib/request-environments";
-import { REQUEST_EXECUTION_MODE_STORAGE_KEY } from "@/lib/request-execution-mode";
+import {
+  MOCK_RESPONSE_DELAY_STORAGE_KEY,
+  REQUEST_EXECUTION_MODE_STORAGE_KEY,
+} from "@/lib/request-execution-mode";
 import { REQUEST_PRESETS_STORAGE_KEY } from "@/lib/request-presets";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
@@ -4178,6 +4181,63 @@ paths:
       expect(
         screen.getAllByRole("button", { name: "Try It Out" }).length,
       ).toBeGreaterThan(0);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("simulates cancellable mock response latency without network traffic", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json({ body: "unexpected live response" }));
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(screen.getByRole("button", { name: "Mock" }));
+      await user.selectOptions(screen.getByLabelText("Mock latency"), "500");
+
+      expect(window.localStorage.getItem(MOCK_RESPONSE_DELAY_STORAGE_KEY)).toBe(
+        "500",
+      );
+
+      const endpointCard = screen
+        .getByLabelText("cURL GET /users/{id}")
+        .closest("article") as HTMLElement;
+      const pathInput =
+        within(endpointCard).getByLabelText("Path parameter id");
+
+      await user.type(pathInput, "42");
+      await user.click(
+        within(endpointCard).getByRole("button", { name: "Generate Mock" }),
+      );
+
+      expect(
+        within(endpointCard).getByRole("button", { name: "Executing..." }),
+      ).toBeDisabled();
+      expect(
+        within(endpointCard).getByRole("button", { name: "Cancel request" }),
+      ).toBeVisible();
+
+      fireEvent.keyDown(pathInput, { key: "Escape" });
+
+      expect(endpointCard).toHaveTextContent("Request cancelled.");
+      expect(
+        within(endpointCard).queryByLabelText("Response body"),
+      ).not.toBeInTheDocument();
+
+      await user.click(
+        within(endpointCard).getByRole("button", { name: "Generate Mock" }),
+      );
+
+      expect(
+        await within(endpointCard).findByLabelText("Response body"),
+      ).toBeVisible();
+      expect(within(endpointCard).getByRole("status")).toHaveTextContent(
+        "500 ms",
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
     } finally {
       fetchMock.mockRestore();
     }

@@ -105,9 +105,13 @@ import {
 } from "@/lib/request-presets";
 import type { RequestAuthValues } from "@/lib/request-auth";
 import {
+  DEFAULT_MOCK_RESPONSE_DELAY_MS,
   DEFAULT_REQUEST_EXECUTION_MODE,
+  readMockResponseDelay,
   readRequestExecutionMode,
+  saveMockResponseDelay,
   saveRequestExecutionMode,
+  type MockResponseDelayMs,
   type RequestExecutionMode,
 } from "@/lib/request-execution-mode";
 import { downloadSchemaFile } from "@/lib/schema-download";
@@ -259,6 +263,8 @@ export function SwaggerWorkspace({
     useState(false);
   const [requestExecutionMode, setRequestExecutionMode] =
     useState<RequestExecutionMode>(DEFAULT_REQUEST_EXECUTION_MODE);
+  const [mockResponseDelayMs, setMockResponseDelayMs] =
+    useState<MockResponseDelayMs>(DEFAULT_MOCK_RESPONSE_DELAY_MS);
   const [
     requestExecutionModeStorageError,
     setRequestExecutionModeStorageError,
@@ -500,6 +506,7 @@ export function SwaggerWorkspace({
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
     const storedRequestExecutionMode = readRequestExecutionMode();
+    const storedMockResponseDelay = readMockResponseDelay();
     const storedRequestPresets = readRequestPresets();
     let cancelled = false;
 
@@ -515,6 +522,7 @@ export function SwaggerWorkspace({
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
         setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
         setRequestExecutionMode(storedRequestExecutionMode);
+        setMockResponseDelayMs(storedMockResponseDelay);
         setRequestPresets(storedRequestPresets);
       }
     });
@@ -1087,6 +1095,11 @@ export function SwaggerWorkspace({
   function handleRequestExecutionModeChange(mode: RequestExecutionMode) {
     setRequestExecutionMode(mode);
     setRequestExecutionModeStorageError(!saveRequestExecutionMode(mode));
+  }
+
+  function handleMockResponseDelayChange(delayMs: MockResponseDelayMs) {
+    setMockResponseDelayMs(delayMs);
+    setRequestExecutionModeStorageError(!saveMockResponseDelay(delayMs));
   }
 
   function handleSaveRequestPreset(preset: RequestPreset) {
@@ -2079,8 +2092,10 @@ export function SwaggerWorkspace({
         {parseResult.ok ? (
           <RequestExecutionModeControl
             mode={requestExecutionMode}
+            mockDelayMs={mockResponseDelayMs}
             storageError={requestExecutionModeStorageError}
             onChange={handleRequestExecutionModeChange}
+            onMockDelayChange={handleMockResponseDelayChange}
           />
         ) : null}
 
@@ -2380,6 +2395,7 @@ export function SwaggerWorkspace({
                 endpoint={endpoint}
                 environmentHeaders={requestEnvironmentHeaders}
                 executionMode={requestExecutionMode}
+                mockResponseDelayMs={mockResponseDelayMs}
                 isFavorite={favoriteEndpointKeySet.has(
                   getEndpointFavoriteKey(endpoint.method, endpoint.path),
                 )}

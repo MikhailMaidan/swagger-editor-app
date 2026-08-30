@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  DEFAULT_MOCK_RESPONSE_DELAY_MS,
   DEFAULT_REQUEST_EXECUTION_MODE,
+  MOCK_RESPONSE_DELAY_STORAGE_KEY,
   REQUEST_EXECUTION_MODE_STORAGE_KEY,
+  readMockResponseDelay,
   readRequestExecutionMode,
+  saveMockResponseDelay,
   saveRequestExecutionMode,
 } from "./request-execution-mode";
 
@@ -44,5 +48,22 @@ describe("request execution mode preferences", () => {
       getItemSpy.mockRestore();
       setItemSpy.mockRestore();
     }
+  });
+
+  it("persists only supported mock delays and removes the instant default", () => {
+    expect(readMockResponseDelay()).toBe(DEFAULT_MOCK_RESPONSE_DELAY_MS);
+    expect(saveMockResponseDelay(2_000)).toBe(true);
+    expect(readMockResponseDelay()).toBe(2_000);
+    expect(window.localStorage.getItem(MOCK_RESPONSE_DELAY_STORAGE_KEY)).toBe(
+      "2000",
+    );
+
+    expect(saveMockResponseDelay(0)).toBe(true);
+    expect(
+      window.localStorage.getItem(MOCK_RESPONSE_DELAY_STORAGE_KEY),
+    ).toBeNull();
+
+    window.localStorage.setItem(MOCK_RESPONSE_DELAY_STORAGE_KEY, "750");
+    expect(readMockResponseDelay()).toBe(0);
   });
 });

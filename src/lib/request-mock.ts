@@ -33,3 +33,29 @@ export function createSchemaMockResponse(
     status: getRepresentativeStatus(response?.status ?? ""),
   };
 }
+
+export function waitForMockResponseDelay(
+  delayMs: number,
+  signal: AbortSignal,
+): Promise<boolean> {
+  if (signal.aborted) {
+    return Promise.resolve(false);
+  }
+
+  if (delayMs <= 0) {
+    return Promise.resolve(true);
+  }
+
+  return new Promise((resolve) => {
+    const handleAbort = () => finish(false);
+    const timeoutId = window.setTimeout(() => finish(true), delayMs);
+
+    function finish(completed: boolean) {
+      window.clearTimeout(timeoutId);
+      signal.removeEventListener("abort", handleAbort);
+      resolve(completed);
+    }
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
+}

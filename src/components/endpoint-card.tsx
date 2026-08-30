@@ -50,7 +50,10 @@ import {
   type RequestParameterValidationCode,
 } from "@/lib/request-parameters";
 import type { RequestEnvironmentHeader } from "@/lib/request-environments";
-import type { RequestExecutionMode } from "@/lib/request-execution-mode";
+import type {
+  MockResponseDelayMs,
+  RequestExecutionMode,
+} from "@/lib/request-execution-mode";
 import {
   REDACTED_AUTH_VALUE,
   createAuthRequestParameters,
@@ -70,7 +73,10 @@ import {
   downloadRequestPreviewFile,
   type RequestPreviewFormat,
 } from "@/lib/request-preview-download";
-import { createSchemaMockResponse } from "@/lib/request-mock";
+import {
+  createSchemaMockResponse,
+  waitForMockResponseDelay,
+} from "@/lib/request-mock";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
 import { createResponseContractReport } from "@/lib/response-contract";
@@ -341,6 +347,7 @@ function EndpointCardComponent({
   endpoint,
   environmentHeaders = EMPTY_ENVIRONMENT_HEADERS,
   executionMode,
+  mockResponseDelayMs,
   isFavorite = false,
   onDeleteRequestPreset,
   onSaveRequestPreset,
@@ -353,6 +360,7 @@ function EndpointCardComponent({
   endpoint: EndpointSummary;
   environmentHeaders?: RequestEnvironmentHeader[];
   executionMode: RequestExecutionMode;
+  mockResponseDelayMs: MockResponseDelayMs;
   isFavorite?: boolean;
   onDeleteRequestPreset?: (presetId: string) => boolean;
   onSaveRequestPreset?: (preset: RequestPreset) => boolean;
@@ -1059,7 +1067,7 @@ function EndpointCardComponent({
       body: response.body,
       durationMs:
         executionMode === "mock"
-          ? 0
+          ? mockResponseDelayMs
           : 30 +
             endpoint.parameters.length * 5 +
             endpoint.requestBodies.length * 8,
@@ -1081,7 +1089,20 @@ function EndpointCardComponent({
     };
     let executionResult: TryItOutExecutionResult | null = fallbackResult;
 
-    if (executionMode === "live") {
+    if (executionMode === "mock" && mockResponseDelayMs > 0) {
+      const abortController = new AbortController();
+      requestAbortControllerRef.current = abortController;
+      const completed = await waitForMockResponseDelay(
+        mockResponseDelayMs,
+        abortController.signal,
+      );
+
+      if (!completed || requestAbortControllerRef.current !== abortController) {
+        return;
+      }
+
+      requestAbortControllerRef.current = null;
+    } else if (executionMode === "live") {
       const abortController = new AbortController();
       requestAbortControllerRef.current = abortController;
       executionResult = await executeTryItOut(
