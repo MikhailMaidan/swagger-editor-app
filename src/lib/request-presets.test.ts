@@ -21,6 +21,7 @@ const draft: RequestPresetDraft = {
   path: "/users/{id}",
   requestBodies: { "application/json": '{"name":"Alex"}' },
   requestContentType: "application/json",
+  responseContentType: "application/json",
   responseStatus: "200",
   timeoutMs: 30_000,
 };
@@ -128,6 +129,19 @@ describe("request presets", () => {
       JSON.stringify({ presets: [], storageVersion: 0 }),
     );
     expect(readRequestPresets()).toEqual([]);
+  });
+
+  it("loads presets saved before response content types were supported", () => {
+    const legacyPreset: Record<string, unknown> = {
+      ...createRequestPreset(draft, new Date("2026-08-28T08:00:00.000Z")),
+    };
+    delete legacyPreset.responseContentType;
+    window.localStorage.setItem(
+      REQUEST_PRESETS_STORAGE_KEY,
+      JSON.stringify({ presets: [legacyPreset], storageVersion: 1 }),
+    );
+
+    expect(readRequestPresets()[0].responseContentType).toBe("");
   });
 
   it("returns failure instead of throwing when storage is unavailable", () => {

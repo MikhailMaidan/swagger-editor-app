@@ -23,6 +23,7 @@ export type RequestPreset = {
   path: string;
   requestBodies: Record<string, string>;
   requestContentType: string;
+  responseContentType: string;
   responseStatus: string;
   timeoutMs: number;
   updatedAt: string;
@@ -113,6 +114,10 @@ function sanitizeRequestPreset(value: unknown): RequestPreset | null {
     ),
     requestContentType: readText(
       value.requestContentType,
+      MAX_CONTENT_TYPE_LENGTH,
+    ).trim(),
+    responseContentType: readText(
+      value.responseContentType,
       MAX_CONTENT_TYPE_LENGTH,
     ).trim(),
     responseStatus: readText(

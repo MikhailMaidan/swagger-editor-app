@@ -81,6 +81,7 @@ import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
 import { createResponseContractReport } from "@/lib/response-contract";
 import { formatResponseHeaders } from "@/lib/response-headers";
+import { selectResponseRepresentation } from "@/lib/response-representation";
 import { getStatusColorClasses } from "@/lib/status-color";
 import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
@@ -374,14 +375,21 @@ function EndpointCardComponent({
     () => groupParameters(endpoint.parameters),
     [endpoint.parameters],
   );
+  const defaultResponse = selectDefaultResponse(endpoint.responses);
   const [selectedResponseStatus, setSelectedResponseStatus] = useState(
-    () => selectDefaultResponse(endpoint.responses)?.status || "",
+    () => defaultResponse?.status || "",
   );
+  const [selectedResponseContentType, setSelectedResponseContentType] =
+    useState(() => defaultResponse?.contentTypes[0] || "");
   const activeResponse =
     endpoint.responses.find(
       (response) => response.status === selectedResponseStatus,
-    ) || selectDefaultResponse(endpoint.responses);
+    ) || defaultResponse;
   const activeResponseStatus = activeResponse?.status || "";
+  const {
+    contentType: activeResponseContentType,
+    response: activeResponseRepresentation,
+  } = selectResponseRepresentation(activeResponse, selectedResponseContentType);
   const [mockResult, setMockResult] = useState<{
     body: string;
     durationMs: number;
@@ -847,10 +855,18 @@ function EndpointCardComponent({
   }
 
   function handleResponseStatusChange(status: string) {
+    const response =
+      endpoint.responses.find((item) => item.status === status) ||
+      selectDefaultResponse(endpoint.responses);
+
     setSelectedResponseStatus(status);
-    setMockResult(null);
-    setCopiedResponseBody("");
-    setCopiedResponseHeaders("");
+    setSelectedResponseContentType(response?.contentTypes[0] || "");
+    handleClearResponse();
+  }
+
+  function handleResponseContentTypeChange(contentType: string) {
+    setSelectedResponseContentType(contentType);
+    handleClearResponse();
   }
 
   function handleRequestTimeoutChange(value: string) {
@@ -871,6 +887,7 @@ function EndpointCardComponent({
       path: endpoint.path,
       requestBodies,
       requestContentType: activeRequestContentType,
+      responseContentType: activeResponseContentType,
       responseStatus: activeResponseStatus,
       timeoutMs: requestTimeoutMs,
     };
@@ -931,11 +948,16 @@ function EndpointCardComponent({
     const nextRequestBody = Object.hasOwn(nextRequestBodies, nextContentType)
       ? nextRequestBodies[nextContentType]
       : getRequestBody(endpoint, nextContentType)?.schema.example || "";
-    const nextResponseStatus = endpoint.responses.some(
-      (response) => response.status === preset.responseStatus,
+    const nextResponse =
+      endpoint.responses.find(
+        (response) => response.status === preset.responseStatus,
+      ) || selectDefaultResponse(endpoint.responses);
+    const nextResponseStatus = nextResponse?.status || "";
+    const nextResponseContentType = nextResponse?.contentTypes.includes(
+      preset.responseContentType,
     )
-      ? preset.responseStatus
-      : selectDefaultResponse(endpoint.responses)?.status || "";
+      ? preset.responseContentType
+      : nextResponse?.contentTypes[0] || "";
 
     requestBodyDraftsRef.current = nextRequestBodies;
     editedRequestContentTypesRef.current = new Set(
@@ -947,6 +969,7 @@ function EndpointCardComponent({
     setSelectedRequestContentType(nextContentType);
     setRequestBodyValue(nextRequestBody);
     setSelectedResponseStatus(nextResponseStatus);
+    setSelectedResponseContentType(nextResponseContentType);
     setRequestTimeoutMs(preset.timeoutMs);
     clearTryItOutResult();
   }
@@ -987,6 +1010,8 @@ function EndpointCardComponent({
     const defaultRequestBody = endpoint.requestBodies[0];
     const defaultResponseStatus =
       selectDefaultResponse(endpoint.responses)?.status || "";
+    const defaultResponseContentType =
+      selectDefaultResponse(endpoint.responses)?.contentTypes[0] || "";
 
     editedParameterKeysRef.current.clear();
     editedRequestContentTypesRef.current.clear();
@@ -998,6 +1023,7 @@ function EndpointCardComponent({
     setSelectedRequestContentType(defaultRequestBody?.contentType || "");
     setRequestBodyValue(defaultRequestBody?.schema.example || "");
     setSelectedResponseStatus(defaultResponseStatus);
+    setSelectedResponseContentType(defaultResponseContentType);
     setRequestTimeoutMs(DEFAULT_REQUEST_TIMEOUT_MS);
     setSelectedRequestPresetId("");
     clearTryItOutResult();
@@ -1052,7 +1078,7 @@ function EndpointCardComponent({
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
     const response = createSchemaMockResponse(
-      activeResponse,
+      activeResponseRepresentation,
       t("workspace.noResponseExample", {
         method: endpoint.method,
         path: endpoint.path,
@@ -1679,7 +1705,8 @@ function EndpointCardComponent({
             {t("workspace.responseStatus")}
             <select
               aria-label={t("workspace.responseStatus")}
-              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
+              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExecuting}
               value={activeResponseStatus}
               onChange={(event) =>
                 handleResponseStatusChange(event.target.value)
@@ -1688,6 +1715,27 @@ function EndpointCardComponent({
               {endpoint.responses.map((response) => (
                 <option key={response.status} value={response.status}>
                   {response.status} - {response.description}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        {activeResponse && activeResponse.contentTypes.length > 1 ? (
+          <label className="mt-3 flex flex-col gap-2 text-sm font-bold text-[color:var(--color-brand-navy)]">
+            {t("workspace.responseContentType")}
+            <select
+              aria-label={t("workspace.responseContentType")}
+              className="h-11 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-4 text-sm font-medium outline-none transition focus:border-[color:var(--color-brand-purple)] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExecuting}
+              value={activeResponseContentType}
+              onChange={(event) =>
+                handleResponseContentTypeChange(event.target.value)
+              }
+            >
+              {activeResponse.contentTypes.map((contentType) => (
+                <option key={contentType} value={contentType}>
+                  {contentType}
                 </option>
               ))}
             </select>

@@ -13,6 +13,7 @@ const preset: RequestPreset = {
   path: "/users/{id}",
   requestBodies: {},
   requestContentType: "",
+  responseContentType: "application/json",
   responseStatus: "200",
   timeoutMs: 10_000,
   updatedAt: "2026-08-28T08:00:00.000Z",

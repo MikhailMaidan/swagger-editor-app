@@ -2052,6 +2052,100 @@ paths:
     expect(screen.queryByLabelText("Response body")).not.toBeInTheDocument();
   });
 
+  it("switches mock response media types and restores them from presets", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json({ body: "unexpected live response" }));
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: {
+          value: `openapi: 3.0.0
+info:
+  title: Response Formats API
+  version: 1.0.0
+paths:
+  /users/7:
+    get:
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: integer
+              example:
+                id: 7
+            application/xml:
+              schema:
+                type: string
+              example: '<user id="7" />'`,
+        },
+      });
+
+      const contentTypeSelect = await screen.findByLabelText(
+        "Mock response content type",
+      );
+      const endpointCard = screen
+        .getByLabelText("cURL GET /users/7")
+        .closest("article") as HTMLElement;
+      const card = within(endpointCard);
+
+      await user.click(screen.getByRole("button", { name: "Mock" }));
+      expect(contentTypeSelect).toHaveValue("application/json");
+
+      await user.click(card.getByRole("button", { name: "Generate Mock" }));
+      expect(await card.findByLabelText("Response body")).toHaveTextContent(
+        '"id": 7',
+      );
+
+      await user.selectOptions(contentTypeSelect, "application/xml");
+      expect(card.queryByLabelText("Response body")).not.toBeInTheDocument();
+      await user.click(card.getByRole("button", { name: "Save as preset" }));
+      await user.type(card.getByLabelText("Preset name"), "XML response");
+      await user.click(card.getByRole("button", { name: "Save preset" }));
+
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(REQUEST_PRESETS_STORAGE_KEY) || "{}",
+        ),
+      ).toMatchObject({
+        presets: [{ responseContentType: "application/xml" }],
+      });
+
+      await user.selectOptions(contentTypeSelect, "application/json");
+      await user.selectOptions(
+        card.getByLabelText("Request preset"),
+        card.getByRole("option", { name: "XML response" }),
+      );
+      expect(contentTypeSelect).toHaveValue("application/xml");
+
+      await user.click(card.getByRole("button", { name: "Generate Mock" }));
+      expect(await card.findByLabelText("Response body")).toHaveTextContent(
+        '<user id="7" />',
+      );
+      expect(card.getByRole("status")).toHaveTextContent(
+        "content-type: application/xml",
+      );
+      expect(card.getByLabelText("Response contract")).toHaveTextContent(
+        "All 3 checked rules passed.",
+      );
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        "/api/try-it-out",
+        expect.anything(),
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("shows validation errors and disables conversion for invalid schemas", async () => {
     render(<SwaggerWorkspace />);
 
