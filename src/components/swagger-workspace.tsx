@@ -53,6 +53,10 @@ import {
 import { filterEndpointsByResponse } from "@/lib/endpoint-response-filter";
 import type { EndpointResponseFilter } from "@/lib/endpoint-response-filter";
 import {
+  createEndpointFilterViewLink,
+  readEndpointFilterView,
+} from "@/lib/endpoint-filter-link";
+import {
   readEndpointSortPreference,
   saveEndpointSortPreference,
   sortEndpoints,
@@ -190,6 +194,10 @@ type SwaggerWorkspaceProps = {
 };
 
 type DraftStatus = "failed" | "idle" | "pending" | "saved";
+type EndpointViewLinkCopyFeedback = {
+  signature: string;
+  status: "error" | "success";
+};
 
 export function SwaggerWorkspace({
   initialIsAuthenticated = false,
@@ -244,6 +252,8 @@ export function SwaggerWorkspace({
     useState<EndpointTraitFilter>("all");
   const [endpointResponseFilter, setEndpointResponseFilter] =
     useState<EndpointResponseFilter>("all");
+  const [endpointViewLinkCopyFeedback, setEndpointViewLinkCopyFeedback] =
+    useState<EndpointViewLinkCopyFeedback | null>(null);
   const [favoriteEndpointKeys, setFavoriteEndpointKeys] = useState<string[]>(
     [],
   );
@@ -406,6 +416,20 @@ export function SwaggerWorkspace({
     selectedTag === "all" || endpointStats.tags.includes(selectedTag)
       ? selectedTag
       : "all";
+  const endpointFilterView = {
+    favoritesOnly: showFavoriteEndpointsOnly,
+    method: activeMethod,
+    response: endpointResponseFilter,
+    search: endpointFilter,
+    sort: endpointSort,
+    tag: activeTag,
+    trait: endpointTraitFilter,
+  };
+  const endpointFilterViewSignature = JSON.stringify(endpointFilterView);
+  const endpointViewLinkCopyStatus =
+    endpointViewLinkCopyFeedback?.signature === endpointFilterViewSignature
+      ? endpointViewLinkCopyFeedback.status
+      : "idle";
   const normalizedFilter = endpointFilter.trim().toLowerCase();
   const filteredEndpoints = normalizedFilter
     ? endpoints.filter(
@@ -523,6 +547,7 @@ export function SwaggerWorkspace({
     const storedEndpointSortPreference = readEndpointSortPreference();
     const storedEndpointFavorites = readEndpointFavorites();
     const storedCollapsedEndpointKeys = readCollapsedEndpointKeys();
+    const sharedEndpointView = readEndpointFilterView(window.location.href);
     const storedSchemaComparisonBaseline = readSchemaComparisonBaseline();
     const storedRequestEnvironmentSettings = readRequestEnvironmentSettings();
     const storedRequestExecutionMode = readRequestExecutionMode();
@@ -537,9 +562,17 @@ export function SwaggerWorkspace({
         setEditorIndentSize(storedIndentSizePreference);
         setIsSchemaSearchCaseSensitive(storedSearchMatchCasePreference);
         setIsSchemaSearchWholeWord(storedSearchWholeWordPreference);
-        setEndpointSort(storedEndpointSortPreference);
+        setEndpointFilter(sharedEndpointView.search ?? "");
+        setEndpointSort(
+          sharedEndpointView.sort ?? storedEndpointSortPreference,
+        );
+        setEndpointTraitFilter(sharedEndpointView.trait ?? "all");
+        setEndpointResponseFilter(sharedEndpointView.response ?? "all");
         setFavoriteEndpointKeys(storedEndpointFavorites);
         setCollapsedEndpointKeys(storedCollapsedEndpointKeys);
+        setShowFavoriteEndpointsOnly(sharedEndpointView.favoritesOnly ?? false);
+        setSelectedMethod(sharedEndpointView.method ?? "all");
+        setSelectedTag(sharedEndpointView.tag ?? "all");
         setSchemaComparisonBaseline(storedSchemaComparisonBaseline);
         setRequestEnvironmentSettings(storedRequestEnvironmentSettings);
         setRequestExecutionMode(storedRequestExecutionMode);
@@ -1022,6 +1055,17 @@ export function SwaggerWorkspace({
     setShowFavoriteEndpointsOnly(false);
     setSelectedMethod("all");
     setSelectedTag("all");
+  }
+
+  async function handleCopyEndpointFilterViewLink() {
+    const copied = await writeTextToClipboard(
+      createEndpointFilterViewLink(window.location.href, endpointFilterView),
+    );
+
+    setEndpointViewLinkCopyFeedback({
+      signature: endpointFilterViewSignature,
+      status: copied ? "success" : "error",
+    });
   }
 
   function handleToggleEndpointFavorite(endpoint: EndpointSummary) {
@@ -2436,6 +2480,14 @@ export function SwaggerWorkspace({
                   )}
                 </button>
               ) : null}
+              <button
+                aria-label={t("workspace.copyEndpointViewLinkAriaLabel")}
+                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
+                type="button"
+                onClick={handleCopyEndpointFilterViewLink}
+              >
+                {t("workspace.copyEndpointViewLink")}
+              </button>
               {hasActiveEndpointFilters ? (
                 <button
                   className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
@@ -2446,6 +2498,24 @@ export function SwaggerWorkspace({
                 </button>
               ) : null}
             </div>
+            {endpointViewLinkCopyStatus !== "idle" ? (
+              <p
+                className={`text-sm font-semibold ${
+                  endpointViewLinkCopyStatus === "error"
+                    ? "text-red-700"
+                    : "text-emerald-700"
+                }`}
+                role={
+                  endpointViewLinkCopyStatus === "error" ? "alert" : "status"
+                }
+              >
+                {t(
+                  endpointViewLinkCopyStatus === "error"
+                    ? "workspace.endpointViewLinkCopyError"
+                    : "workspace.endpointViewLinkCopied",
+                )}
+              </p>
+            ) : null}
             {favoriteSaveError ? (
               <p className="text-sm font-semibold text-red-700" role="alert">
                 {t("workspace.favoriteSaveError")}

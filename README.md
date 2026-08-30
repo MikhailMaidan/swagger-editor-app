@@ -45,6 +45,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Line navigation with `Ctrl+G` or `Cmd+G`
 - In-editor schema search with selected-text prefilling via `Ctrl+F` or `Cmd+F`, plus wrapped `Enter`/`F3` navigation (`Shift` reverses direction)
 - Endpoint search focus with `/` outside editable controls
+- Shareable endpoint-view links that restore search, filters, favorites, and sorting
 - Persistent collapsible endpoint details with visible-endpoint bulk controls
 - Persistent endpoint favorites with favorites-only filtering
 - Persistent endpoint sorting by schema order, path, or HTTP method

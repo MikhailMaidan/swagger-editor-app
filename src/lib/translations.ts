@@ -366,6 +366,9 @@ export const translations = {
     "workspace.copyCurl": "Copy cURL",
     "workspace.copyEndpointLink": "Copy link",
     "workspace.copyEndpointLinkAriaLabel": "Copy link to {method} {path}",
+    "workspace.copyEndpointViewLink": "Copy filter link",
+    "workspace.copyEndpointViewLinkAriaLabel":
+      "Copy current endpoint filters as a link",
     "workspace.copyFetch": "Copy fetch",
     "workspace.copyHttp": "Copy HTTP",
     "workspace.copyRequestUrl": "Copy request URL",
@@ -527,6 +530,8 @@ export const translations = {
       "Filter endpoints by documented responses",
     "workspace.endpointSortLabel": "Sort endpoints",
     "workspace.endpointTraitFilterLabel": "Filter endpoints by characteristic",
+    "workspace.endpointViewLinkCopied": "Filter link copied.",
+    "workspace.endpointViewLinkCopyError": "Could not copy filter link.",
     "workspace.errorPosition": "Error at line {line}, column {column}",
     "workspace.executionMode": "Execution mode",
     "workspace.executionModeLive": "Live",
@@ -1114,6 +1119,9 @@ export const translations = {
     "workspace.copyEndpointLink": "Скопировать ссылку",
     "workspace.copyEndpointLinkAriaLabel":
       "Скопировать ссылку на {method} {path}",
+    "workspace.copyEndpointViewLink": "Скопировать ссылку на фильтры",
+    "workspace.copyEndpointViewLinkAriaLabel":
+      "Скопировать текущие фильтры эндпоинтов как ссылку",
     "workspace.copyFetch": "Скопировать fetch",
     "workspace.copyHttp": "Скопировать HTTP",
     "workspace.copyRequestUrl": "Скопировать URL запроса",
@@ -1248,6 +1256,9 @@ export const translations = {
       "Фильтр эндпоинтов по документированным ответам",
     "workspace.endpointSortLabel": "Сортировать эндпоинты",
     "workspace.endpointTraitFilterLabel": "Фильтр эндпоинтов по характеристике",
+    "workspace.endpointViewLinkCopied": "Ссылка на фильтры скопирована.",
+    "workspace.endpointViewLinkCopyError":
+      "Не удалось скопировать ссылку на фильтры.",
     "workspace.errorPosition": "Ошибка в строке {line}, столбец {column}",
     "workspace.executionMode": "Режим выполнения",
     "workspace.executionModeLive": "Реальный",

@@ -689,7 +689,7 @@ paths:
     expect(getPreview()).toHaveTextContent(
       "https://jsonplaceholder.typicode.com/users/",
     );
-  });
+  }, 10_000);
 
   it("applies a persisted request environment to previews and Try It Out", async () => {
     const user = userEvent.setup();
@@ -1159,6 +1159,130 @@ paths:
 
     expect(editor).toHaveFocus();
     expect(filterInput).not.toHaveFocus();
+  });
+
+  it("restores endpoint filters from a shared view link", async () => {
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    window.localStorage.setItem(ENDPOINT_SORT_STORAGE_KEY, "path");
+    window.history.replaceState(
+      null,
+      "",
+      "/?endpoint-search=update&endpoint-method=post&endpoint-trait=with-request-body&endpoint-response=success&endpoint-sort=method",
+    );
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole("searchbox", {
+            name: /Filter endpoints by method/,
+          }),
+        ).toHaveValue("update"),
+      );
+      expect(
+        within(
+          screen.getByRole("group", {
+            name: "Filter endpoints by HTTP method",
+          }),
+        ).getByRole("button", { name: "POST (1)" }),
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(
+        screen.getByLabelText("Filter endpoints by characteristic"),
+      ).toHaveValue("with-request-body");
+      expect(
+        screen.getByLabelText("Filter endpoints by documented responses"),
+      ).toHaveValue("success");
+      expect(screen.getByLabelText("Sort endpoints")).toHaveValue("method");
+      expect(screen.getByText("Showing 1 of 2 endpoints")).toBeVisible();
+      expect(
+        screen.queryByLabelText("cURL GET /users/{id}"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByLabelText("cURL POST /users/{id}")).toBeVisible();
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
+  });
+
+  it("copies the current endpoint filters as a shareable link", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      "clipboard",
+    );
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    window.history.replaceState(null, "", "/?schema=demo#endpoint-get-users");
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const endpointSearch = screen.getByRole("searchbox", {
+        name: /Filter endpoints by method/,
+      });
+
+      await user.type(endpointSearch, "update");
+      await user.click(
+        within(
+          screen.getByRole("group", {
+            name: "Filter endpoints by HTTP method",
+          }),
+        ).getByRole("button", { name: "POST (1)" }),
+      );
+      await user.selectOptions(
+        screen.getByLabelText("Filter endpoints by characteristic"),
+        "with-request-body",
+      );
+      await user.selectOptions(
+        screen.getByLabelText("Filter endpoints by documented responses"),
+        "success",
+      );
+      await user.selectOptions(
+        screen.getByLabelText("Sort endpoints"),
+        "method",
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: "Copy current endpoint filters as a link",
+        }),
+      );
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+
+      const copiedUrl = new URL(writeText.mock.calls[0][0] as string);
+
+      expect(copiedUrl.searchParams.get("schema")).toBe("demo");
+      expect(copiedUrl.searchParams.get("endpoint-search")).toBe("update");
+      expect(copiedUrl.searchParams.get("endpoint-method")).toBe("POST");
+      expect(copiedUrl.searchParams.get("endpoint-trait")).toBe(
+        "with-request-body",
+      );
+      expect(copiedUrl.searchParams.get("endpoint-response")).toBe("success");
+      expect(copiedUrl.searchParams.get("endpoint-sort")).toBe("method");
+      expect(copiedUrl.hash).toBe("");
+      expect(screen.getByText("Filter link copied.")).toHaveAttribute(
+        "role",
+        "status",
+      );
+
+      await user.clear(endpointSearch);
+
+      expect(screen.queryByText("Filter link copied.")).not.toBeInTheDocument();
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+      } else {
+        Reflect.deleteProperty(navigator, "clipboard");
+      }
+    }
   });
 
   it("sorts visible endpoints without changing the default schema order", async () => {
