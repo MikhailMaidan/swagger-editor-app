@@ -56,6 +56,7 @@ import {
   createEndpointFilterViewLink,
   readEndpointFilterView,
 } from "@/lib/endpoint-filter-link";
+import { downloadEndpointInventoryFile } from "@/lib/endpoint-inventory-export";
 import {
   readEndpointSortPreference,
   saveEndpointSortPreference,
@@ -198,6 +199,10 @@ type EndpointViewLinkCopyFeedback = {
   signature: string;
   status: "error" | "success";
 };
+type EndpointInventoryExportFeedback = {
+  signature: string;
+  status: "error" | "success";
+};
 
 export function SwaggerWorkspace({
   initialIsAuthenticated = false,
@@ -254,6 +259,8 @@ export function SwaggerWorkspace({
     useState<EndpointResponseFilter>("all");
   const [endpointViewLinkCopyFeedback, setEndpointViewLinkCopyFeedback] =
     useState<EndpointViewLinkCopyFeedback | null>(null);
+  const [endpointInventoryExportFeedback, setEndpointInventoryExportFeedback] =
+    useState<EndpointInventoryExportFeedback | null>(null);
   const [favoriteEndpointKeys, setFavoriteEndpointKeys] = useState<string[]>(
     [],
   );
@@ -492,6 +499,17 @@ export function SwaggerWorkspace({
   const visibleEndpointKeys = visibleEndpoints.map((endpoint) =>
     getEndpointFavoriteKey(endpoint.method, endpoint.path),
   );
+  const endpointInventorySignature = JSON.stringify([
+    parseResult.ok
+      ? [parseResult.value.title, parseResult.value.version]
+      : null,
+    endpointFilterViewSignature,
+    visibleEndpointKeys,
+  ]);
+  const endpointInventoryExportStatus =
+    endpointInventoryExportFeedback?.signature === endpointInventorySignature
+      ? endpointInventoryExportFeedback.status
+      : "idle";
   const allVisibleEndpointsCollapsed =
     visibleEndpointKeys.length > 0 &&
     visibleEndpointKeys.every((key) => collapsedEndpointKeySet.has(key));
@@ -1065,6 +1083,22 @@ export function SwaggerWorkspace({
     setEndpointViewLinkCopyFeedback({
       signature: endpointFilterViewSignature,
       status: copied ? "success" : "error",
+    });
+  }
+
+  function handleExportEndpointInventory() {
+    if (!parseResult.ok || visibleEndpoints.length === 0) {
+      return;
+    }
+
+    const downloaded = downloadEndpointInventoryFile(visibleEndpoints, {
+      title: parseResult.value.title,
+      version: parseResult.value.version,
+    });
+
+    setEndpointInventoryExportFeedback({
+      signature: endpointInventorySignature,
+      status: downloaded ? "success" : "error",
     });
   }
 
@@ -2488,6 +2522,15 @@ export function SwaggerWorkspace({
               >
                 {t("workspace.copyEndpointViewLink")}
               </button>
+              <button
+                aria-label={t("workspace.exportEndpointInventoryAriaLabel")}
+                className="h-9 rounded-lg border border-[color:var(--color-brand-purple)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={visibleEndpoints.length === 0}
+                type="button"
+                onClick={handleExportEndpointInventory}
+              >
+                {t("workspace.exportEndpointInventory")}
+              </button>
               {hasActiveEndpointFilters ? (
                 <button
                   className="h-9 rounded-lg border border-[color:var(--color-brand-border)] bg-white px-3 text-xs font-bold text-[color:var(--color-brand-muted)] transition hover:border-[color:var(--color-brand-purple)] hover:text-[color:var(--color-brand-purple)]"
@@ -2513,6 +2556,24 @@ export function SwaggerWorkspace({
                   endpointViewLinkCopyStatus === "error"
                     ? "workspace.endpointViewLinkCopyError"
                     : "workspace.endpointViewLinkCopied",
+                )}
+              </p>
+            ) : null}
+            {endpointInventoryExportStatus !== "idle" ? (
+              <p
+                className={`text-sm font-semibold ${
+                  endpointInventoryExportStatus === "error"
+                    ? "text-red-700"
+                    : "text-emerald-700"
+                }`}
+                role={
+                  endpointInventoryExportStatus === "error" ? "alert" : "status"
+                }
+              >
+                {t(
+                  endpointInventoryExportStatus === "error"
+                    ? "workspace.endpointInventoryExportError"
+                    : "workspace.endpointInventoryExportSuccess",
                 )}
               </p>
             ) : null}

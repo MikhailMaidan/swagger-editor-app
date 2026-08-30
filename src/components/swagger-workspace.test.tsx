@@ -1285,6 +1285,80 @@ paths:
     }
   });
 
+  it("exports only the currently visible endpoints as CSV", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn((object: Blob | MediaSource) => {
+      void object;
+      return "blob:endpoint-inventory";
+    });
+    const revokeObjectURL = vi.fn();
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalCreateElement = document.createElement.bind(document);
+    const anchors: HTMLAnchorElement[] = [];
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        const element = originalCreateElement(tagName);
+
+        if (tagName === "a") {
+          element.click = vi.fn();
+          anchors.push(element as HTMLAnchorElement);
+        }
+
+        return element;
+      });
+
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      const endpointSearch = screen.getByRole("searchbox", {
+        name: /Filter endpoints by method/,
+      });
+      const exportButton = screen.getByRole("button", {
+        name: "Export visible endpoints as CSV",
+      });
+
+      await user.type(endpointSearch, "update");
+
+      expect(screen.getByText("Showing 1 of 2 endpoints")).toBeVisible();
+      expect(exportButton).toBeEnabled();
+
+      await user.click(exportButton);
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+
+      const inventoryBlob = createObjectURL.mock.calls[0][0] as Blob;
+
+      expect(inventoryBlob.type).toBe("text/csv;charset=utf-8");
+      expect(anchors).toHaveLength(1);
+      expect(anchors[0].download).toMatch(
+        /^rsswag-rsswag-demo-api-endpoints-\d{4}-\d{2}-\d{2}\.csv$/,
+      );
+      expect(anchors[0].click).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:endpoint-inventory");
+      expect(
+        screen.getByText("Visible endpoint CSV export started."),
+      ).toHaveAttribute("role", "status");
+
+      await user.clear(endpointSearch);
+      await user.type(endpointSearch, "does-not-exist");
+
+      expect(screen.getByText("Showing 0 of 2 endpoints")).toBeVisible();
+      expect(exportButton).toBeDisabled();
+      expect(
+        screen.queryByText("Visible endpoint CSV export started."),
+      ).not.toBeInTheDocument();
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      createElement.mockRestore();
+    }
+  });
+
   it("sorts visible endpoints without changing the default schema order", async () => {
     const user = userEvent.setup();
 

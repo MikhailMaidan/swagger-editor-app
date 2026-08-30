@@ -525,6 +525,10 @@ export const translations = {
     "workspace.endpointFilterSummary": "Showing {visible} of {total} endpoints",
     "workspace.endpointCollapseSaveError":
       "Endpoint details changed for this session, but could not be saved locally.",
+    "workspace.endpointInventoryExportError":
+      "Could not export the visible endpoint inventory.",
+    "workspace.endpointInventoryExportSuccess":
+      "Visible endpoint CSV export started.",
     "workspace.endpointLinkCopied": "Link copied.",
     "workspace.endpointResponseFilterLabel":
       "Filter endpoints by documented responses",
@@ -559,6 +563,9 @@ export const translations = {
     "workspace.expandEndpointDetailsAriaLabel":
       "Show details for {method} {path}",
     "workspace.expandVisibleEndpointDetails": "Expand visible",
+    "workspace.exportEndpointInventory": "Export visible CSV",
+    "workspace.exportEndpointInventoryAriaLabel":
+      "Export visible endpoints as CSV",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch snippet copied.",
     "workspace.favoriteEndpoints": "Favorites ({count})",
@@ -1251,6 +1258,10 @@ export const translations = {
       "Показано эндпоинтов: {visible} из {total}",
     "workspace.endpointCollapseSaveError":
       "Детали эндпоинтов изменены для этого сеанса, но не сохранены локально.",
+    "workspace.endpointInventoryExportError":
+      "Не удалось экспортировать список видимых эндпоинтов.",
+    "workspace.endpointInventoryExportSuccess":
+      "Экспорт CSV с видимыми эндпоинтами начат.",
     "workspace.endpointLinkCopied": "Ссылка скопирована.",
     "workspace.endpointResponseFilterLabel":
       "Фильтр эндпоинтов по документированным ответам",
@@ -1286,6 +1297,9 @@ export const translations = {
     "workspace.expandEndpointDetailsAriaLabel":
       "Показать детали эндпоинта {method} {path}",
     "workspace.expandVisibleEndpointDetails": "Развернуть видимые",
+    "workspace.exportEndpointInventory": "Экспорт видимых CSV",
+    "workspace.exportEndpointInventoryAriaLabel":
+      "Экспортировать видимые эндпоинты в CSV",
     "workspace.fetch": "Fetch",
     "workspace.fetchCopied": "Fetch-код скопирован.",
     "workspace.favoriteEndpoints": "Избранное ({count})",
