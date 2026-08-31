@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { LANGUAGE_STORAGE_KEY } from "@/lib/translations";
 import { AppHeader } from "./app-header";
 import { AuthForm } from "./auth-form";
-import { I18nProvider } from "./i18n-provider";
+import { I18nProvider, setAppLanguage } from "./i18n-provider";
 
 describe("i18n", () => {
   it("switches the header language and stores the selection", async () => {
@@ -47,6 +47,26 @@ describe("i18n", () => {
     // start instead of always rendering English and flashing to Russian
     // after hydration.
     expect(document.cookie).toContain("rsswagger-language=ru");
+  });
+
+  it("still writes the language cookie and announces the change when localStorage is blocked", () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+    const dispatchSpy = vi.spyOn(window, "dispatchEvent");
+
+    try {
+      expect(() => setAppLanguage("ru")).not.toThrow();
+      expect(document.cookie).toContain("rsswagger-language=ru");
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "rsswagger-language-change" }),
+      );
+    } finally {
+      setItemSpy.mockRestore();
+      dispatchSpy.mockRestore();
+    }
   });
 
   it("renders auth form text and validation messages in Russian", async () => {

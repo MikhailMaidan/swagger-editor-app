@@ -51,13 +51,21 @@ export function setAppLanguage(language: Language) {
     return;
   }
 
-  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   // A server-readable cookie lets the next page load render the right
   // language from the start, the same way auth state avoids its own flash -
   // without it, the server always renders "en" and the client swaps to the
   // real language only after hydration, flashing English text on every load
-  // for a Russian-preferring visitor.
+  // for a Russian-preferring visitor. Written before the guarded localStorage
+  // call (and the change is announced unconditionally after it) so a
+  // blocked/full store doesn't stop the language switch from taking effect.
   document.cookie = `${LANGUAGE_COOKIE}=${language}; path=/; max-age=${LANGUAGE_COOKIE_MAX_AGE}; SameSite=Lax`;
+
+  try {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  } catch {
+    // The cookie remains the primary source when storage is blocked.
+  }
+
   window.dispatchEvent(new Event(LANGUAGE_CHANGE_EVENT));
 }
 

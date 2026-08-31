@@ -45,6 +45,64 @@ describe("request history storage", () => {
     expect(readRequestHistory()).toEqual([]);
   });
 
+  it("returns an empty list instead of throwing when reading history is blocked", () => {
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(readRequestHistory()).toEqual([]);
+    } finally {
+      getItemSpy.mockRestore();
+    }
+  });
+
+  it("reports browser storage failures instead of throwing while saving a record", () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage full", "QuotaExceededError");
+      });
+
+    try {
+      expect(
+        saveRequestHistoryRecord({
+          durationMs: 12,
+          method: "GET",
+          path: "/users",
+          status: 200,
+          summary: "List users",
+        }),
+      ).toBeNull();
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it("does not throw when browser storage blocks removing a record", () => {
+    saveRequestHistoryRecord({
+      durationMs: 12,
+      method: "GET",
+      path: "/users",
+      status: 200,
+      summary: "List users",
+    });
+
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(() => removeRequestHistoryRecord("any-id")).not.toThrow();
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
   it("normalizes nonnumeric statuses before saving history", () => {
     const record = saveRequestHistoryRecord({
       durationMs: 8,

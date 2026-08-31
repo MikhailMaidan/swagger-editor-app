@@ -178,13 +178,19 @@ export function readRequestHistory() {
     return [];
   }
 
-  const rawHistory = window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY);
+  try {
+    const rawHistory = window.localStorage.getItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+    );
 
-  if (!rawHistory) {
+    if (!rawHistory) {
+      return [];
+    }
+
+    return parseRequestHistory(rawHistory);
+  } catch {
     return [];
   }
-
-  return parseRequestHistory(rawHistory);
 }
 
 export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
@@ -204,10 +210,17 @@ export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
   };
   const nextHistory = mergeRequestHistory([newRecord, ...readRequestHistory()]);
 
-  window.localStorage.setItem(
-    REQUEST_HISTORY_STORAGE_KEY,
-    JSON.stringify(nextHistory),
-  );
+  try {
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify(nextHistory),
+    );
+  } catch {
+    // A blocked or full store shouldn't be treated as the request itself
+    // having failed - the caller already skips history entirely on a null
+    // return, so the executed request and its result still display fine.
+    return null;
+  }
 
   return newRecord;
 }
@@ -249,10 +262,15 @@ export function removeRequestHistoryRecord(id: string) {
     (record) => record.id !== id,
   );
 
-  window.localStorage.setItem(
-    REQUEST_HISTORY_STORAGE_KEY,
-    JSON.stringify(remainingHistory),
-  );
+  try {
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify(remainingHistory),
+    );
+  } catch {
+    // The server-side delete (if any) still succeeds independently; a
+    // blocked local store just means this device's cache goes stale.
+  }
 }
 
 export async function deleteServerHistoryRecord(id: string) {
