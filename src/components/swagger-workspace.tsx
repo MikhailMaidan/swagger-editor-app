@@ -15,6 +15,7 @@ import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { RequestExecutionModeControl } from "@/components/request-execution-mode-control";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
+import { SchemaCheckpointPanel } from "@/components/schema-checkpoint-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
@@ -100,6 +101,7 @@ import {
   saveSchemaComparisonBaseline,
 } from "@/lib/schema-comparison-baseline";
 import type { SchemaComparisonBaseline } from "@/lib/schema-comparison-baseline";
+import type { SchemaCheckpoint } from "@/lib/schema-checkpoints";
 import {
   createEmptyRequestEnvironmentSettings,
   getActiveRequestEnvironment,
@@ -880,27 +882,40 @@ export function SwaggerWorkspace({
     cancelRemoteSchemaImport();
   }
 
+  function replaceEditorSchema(nextSchemaText: string) {
+    markSchemaEdited();
+    // A replacement is a different document, so the next save must create a
+    // new record instead of overwriting whatever was last saved.
+    lastSavedSchemaRef.current = null;
+    pendingEditorSelectionRef.current = { end: 0, start: 0 };
+    editorSelectionRef.current = { end: 0, start: 0 };
+    setSchemaText(nextSchemaText);
+    setEditorCursor({ column: 1, line: 1 });
+    setSelectedCharacterCount(0);
+    setCopiedSchemaText(null);
+    setSaveMessage("");
+    setSchemaActionError("");
+    setImportError("");
+    setRemoteImportError("");
+  }
+
   function applyImportedSchema(
     importedSchemaText: string,
     importDetails: { byteSize: number; fileName: string },
   ) {
-    markSchemaEdited();
-    // An imported file is a different document, so the next save must
-    // create a new record instead of overwriting whatever was last saved.
-    lastSavedSchemaRef.current = null;
-    pendingEditorSelectionRef.current = { end: 0, start: 0 };
-    setSchemaText(importedSchemaText);
-    setEditorCursor({ column: 1, line: 1 });
-    setCopiedSchemaText(null);
+    replaceEditorSchema(importedSchemaText);
     setSaveMessage(
       t("workspace.schemaImported", {
         file: importDetails.fileName,
         size: String(importDetails.byteSize),
       }),
     );
-    setSchemaActionError("");
-    setImportError("");
-    setRemoteImportError("");
+  }
+
+  function handleRestoreSchemaCheckpoint(checkpoint: SchemaCheckpoint) {
+    if (checkpoint.schemaText !== schemaText) {
+      replaceEditorSchema(checkpoint.schemaText);
+    }
   }
 
   function readSchemaFile(file: File) {
@@ -2316,6 +2331,11 @@ export function SwaggerWorkspace({
             </div>
           </div>
         ) : null}
+
+        <SchemaCheckpointPanel
+          onRestore={handleRestoreSchemaCheckpoint}
+          schemaText={schemaText}
+        />
 
         {parseResult.ok ? (
           <SchemaAuditPanel

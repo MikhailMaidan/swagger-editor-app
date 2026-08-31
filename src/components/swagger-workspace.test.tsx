@@ -33,6 +33,10 @@ import {
 import { REQUEST_PRESETS_STORAGE_KEY } from "@/lib/request-presets";
 import { SCHEMA_DRAFT_STORAGE_KEY } from "@/lib/schema-draft";
 import { SCHEMA_COMPARISON_BASELINE_STORAGE_KEY } from "@/lib/schema-comparison-baseline";
+import {
+  createSchemaCheckpoint,
+  saveSchemaCheckpoints,
+} from "@/lib/schema-checkpoints";
 import { MAX_SCHEMA_IMPORT_SIZE_BYTES } from "@/lib/schema-import";
 import {
   SAVED_SCHEMA_STORAGE_KEY,
@@ -3871,6 +3875,75 @@ paths: {}`;
       expect(window.dispatchEvent(savedEvent)).toBe(true);
       expect(savedEvent.defaultPrevented).toBe(false);
     } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("restores a local checkpoint as an unsaved authenticated schema", async () => {
+    const user = userEvent.setup();
+    const checkpointSchema = DEFAULT_OPENAPI_SCHEMA.replace(
+      "RSSwag Demo API",
+      "Stable Catalog API",
+    );
+    const checkpointResult = createSchemaCheckpoint(
+      {
+        endpointCount: 2,
+        format: "yaml",
+        isValid: true,
+        name: "Stable release",
+        schemaText: checkpointSchema,
+        schemaTitle: "Stable Catalog API",
+        schemaVersion: "1.0.0",
+      },
+      new Date("2026-08-31T09:00:00.000Z"),
+      "checkpoint-stable",
+    );
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ schemas: [] }), {
+        status: 200,
+      }),
+    );
+
+    if (!checkpointResult.ok) {
+      throw new Error("Test checkpoint could not be created.");
+    }
+
+    window.localStorage.setItem(
+      AUTH_TOKEN_COOKIE,
+      createDemoToken("mikhail@example.com"),
+    );
+    saveSchemaCheckpoints([checkpointResult.value]);
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      await user.click(
+        await screen.findByRole("button", {
+          name: "Restore checkpoint Stable release",
+        }),
+      );
+
+      expect(confirm).toHaveBeenCalledWith(
+        'Restore "Stable release" in the editor? Current editor changes will be replaced.',
+      );
+      expect(screen.getByLabelText("OpenAPI schema editor")).toHaveValue(
+        checkpointSchema,
+      );
+      expect(screen.getByText("Unsaved schema changes.")).toBeVisible();
+      expect(screen.getByText("Line 1, column 1")).toBeVisible();
+      expect(
+        await screen.findByRole("heading", { name: "Stable Catalog API" }),
+      ).toBeVisible();
+
+      const dirtyEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
+
+      expect(window.dispatchEvent(dirtyEvent)).toBe(false);
+      expect(dirtyEvent.defaultPrevented).toBe(true);
+    } finally {
+      confirm.mockRestore();
       fetchMock.mockRestore();
     }
   });
