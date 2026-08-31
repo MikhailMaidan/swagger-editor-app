@@ -18,6 +18,7 @@ import { RequestExecutionModeControl } from "@/components/request-execution-mode
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { SchemaCheckpointPanel } from "@/components/schema-checkpoint-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
+import { SecurityPosturePanel } from "@/components/security-posture-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
@@ -87,7 +88,7 @@ import {
   parseOpenApiSchema,
   SchemaFormat,
 } from "@/lib/openapi";
-import type { EndpointSummary } from "@/lib/openapi";
+import type { EndpointSummary, SecuritySchemeSummary } from "@/lib/openapi";
 import {
   clearSchemaDraft,
   readSchemaDraft,
@@ -104,6 +105,7 @@ import {
 import type { SchemaComparisonBaseline } from "@/lib/schema-comparison-baseline";
 import type { SchemaCheckpoint } from "@/lib/schema-checkpoints";
 import { extractSchemaModels } from "@/lib/schema-models";
+import { createSecurityPostureReport } from "@/lib/security-posture";
 import {
   createEmptyRequestEnvironmentSettings,
   getActiveRequestEnvironment,
@@ -188,6 +190,7 @@ const remoteSchemaImportErrorKeys: Record<
 // instant since the textarea always renders the undebounced schemaText.
 const SCHEMA_PARSE_DEBOUNCE_MS = 200;
 const EMPTY_ENDPOINTS: EndpointSummary[] = [];
+const EMPTY_SECURITY_SCHEMES: SecuritySchemeSummary[] = [];
 const EDITOR_FONT_SIZE_CLASSES: Record<EditorFontSize, string> = {
   large: "text-base leading-8",
   medium: "text-sm leading-7",
@@ -357,7 +360,7 @@ export function SwaggerWorkspace({
     : EMPTY_ENDPOINTS;
   const securitySchemes = parseResult.ok
     ? parseResult.value.securitySchemes
-    : [];
+    : EMPTY_SECURITY_SCHEMES;
   const serverUrls = parseResult.ok ? parseResult.value.serverUrls : [];
   const requestAuthScope = parseResult.ok
     ? `${parseResult.value.title}\u0000${serverUrls.join("\u0000")}`
@@ -411,6 +414,10 @@ export function SwaggerWorkspace({
   const schemaAuditReport = useMemo(
     () => createSchemaAuditReport(parsedEndpoints),
     [parsedEndpoints],
+  );
+  const securityPostureReport = useMemo(
+    () => createSecurityPostureReport(parsedEndpoints, securitySchemes),
+    [parsedEndpoints, securitySchemes],
   );
   const schemaModels = useMemo(
     () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
@@ -2347,6 +2354,19 @@ export function SwaggerWorkspace({
           <DataModelExplorer
             models={schemaModels}
             onSelectEndpoint={handleSelectAuditEndpoint}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
+        ) : null}
+
+        {parseResult.ok &&
+        (securitySchemes.length > 0 ||
+          securityPostureReport.undefinedSchemeNames.length > 0) ? (
+          <SecurityPosturePanel
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            report={securityPostureReport}
             schema={{
               title: parseResult.value.title,
               version: parseResult.value.version,

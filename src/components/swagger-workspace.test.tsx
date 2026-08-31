@@ -5325,6 +5325,97 @@ paths:
     }
   });
 
+  it("analyzes operation access and navigates from the security posture dashboard", async () => {
+    const user = userEvent.setup();
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const securedSchema = `openapi: 3.0.0
+info:
+  title: Security Review API
+  version: 1.0.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    unusedKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+security:
+  - bearerAuth: []
+paths:
+  /private:
+    get:
+      summary: Private operation
+      responses: {}
+  /optional:
+    post:
+      summary: Optional operation
+      security:
+        - {}
+        - bearerAuth: []
+      responses: {}
+  /public:
+    get:
+      summary: Public operation
+      security: []
+      responses: {}
+  /broken:
+    delete:
+      summary: Broken operation
+      security:
+        - missingAuth: []
+      responses: {}`;
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(
+        screen.queryByRole("heading", { name: "API security posture" }),
+      ).not.toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: securedSchema },
+      });
+
+      const dashboard = (
+        await screen.findByRole("heading", { name: "API security posture" })
+      ).closest("section") as HTMLElement;
+
+      expect(within(dashboard).getByText("50% strict coverage")).toBeVisible();
+      expect(within(dashboard).getByText("1/2 used")).toBeVisible();
+      expect(
+        within(dashboard).getByText(
+          "The requirement references undefined scheme missingAuth.",
+        ),
+      ).toBeVisible();
+
+      await user.selectOptions(
+        within(dashboard).getByLabelText("Filter by security scheme"),
+        "missingAuth",
+      );
+      const brokenRow = within(dashboard)
+        .getByText("Broken operation")
+        .closest("li") as HTMLElement;
+
+      await user.click(
+        within(brokenRow).getByRole("button", { name: "View endpoint" }),
+      );
+
+      expect(
+        screen.getByRole("searchbox", {
+          name: /Filter endpoints by method/,
+        }),
+      ).toHaveValue("/broken");
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("DELETE", "/broken")}`,
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 
