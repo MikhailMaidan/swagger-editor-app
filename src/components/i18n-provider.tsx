@@ -27,9 +27,16 @@ function readLanguage(): Language {
     return "en";
   }
 
-  const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  try {
+    const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
 
-  return isLanguage(storedLanguage) ? storedLanguage : "en";
+    return isLanguage(storedLanguage) ? storedLanguage : "en";
+  } catch {
+    // This is the useSyncExternalStore snapshot for useI18n(), called on
+    // every render app-wide - an uncaught throw here wouldn't just break
+    // language detection, it would crash the whole React tree.
+    return "en";
+  }
 }
 
 function subscribeToLanguageChange(onStoreChange: () => void) {

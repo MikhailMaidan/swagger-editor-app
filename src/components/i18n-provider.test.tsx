@@ -49,6 +49,31 @@ describe("i18n", () => {
     expect(document.cookie).toContain("rsswagger-language=ru");
   });
 
+  it("falls back to English instead of crashing the app when reading the stored language throws", async () => {
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+
+    try {
+      expect(() =>
+        render(
+          <I18nProvider>
+            <AppHeader initialIsAuthenticated={false} initialUserName="User" />
+          </I18nProvider>,
+        ),
+      ).not.toThrow();
+
+      await waitFor(() => {
+        expect(document.documentElement.lang).toBe("en");
+      });
+      expect(screen.getByRole("link", { name: "About" })).toBeVisible();
+    } finally {
+      getItemSpy.mockRestore();
+    }
+  });
+
   it("still writes the language cookie and announces the change when localStorage is blocked", () => {
     const setItemSpy = vi
       .spyOn(Storage.prototype, "setItem")
