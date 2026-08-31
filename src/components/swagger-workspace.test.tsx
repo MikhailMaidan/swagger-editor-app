@@ -5255,6 +5255,76 @@ paths:
     }
   });
 
+  it("builds a data model catalog and navigates to a model usage", async () => {
+    const user = userEvent.setup();
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const schemaWithModels = `openapi: 3.0.0
+info:
+  title: Model Catalog API
+  version: 1.0.0
+components:
+  schemas:
+    User:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+    InternalNote:
+      type: string
+paths:
+  /users:
+    get:
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'`;
+
+    try {
+      render(<SwaggerWorkspace />);
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: schemaWithModels },
+      });
+
+      const explorer = (
+        await screen.findByRole("heading", { name: "Data model explorer" })
+      ).closest("section") as HTMLElement;
+
+      expect(
+        within(explorer).getByText("1/2 used by API operations"),
+      ).toBeVisible();
+      const userRow = within(explorer)
+        .getByRole("heading", { name: "User" })
+        .closest("li") as HTMLElement;
+
+      await user.click(
+        within(userRow).getByRole("button", { name: "Show details" }),
+      );
+      await user.click(
+        within(userRow).getByRole("button", {
+          name: "Response: GET /users",
+        }),
+      );
+
+      expect(
+        screen.getByRole("searchbox", {
+          name: /Filter endpoints by method/,
+        }),
+      ).toHaveValue("/users");
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("GET", "/users")}`,
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 

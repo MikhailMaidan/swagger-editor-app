@@ -57,7 +57,11 @@ export function createSchemaCollectionExport(
   };
 }
 
-function downloadFile(content: string, fileName: string, contentType: string) {
+export function downloadTextFile(
+  content: string,
+  fileName: string,
+  contentType: string,
+) {
   if (
     typeof document === "undefined" ||
     typeof URL === "undefined" ||
@@ -97,7 +101,7 @@ export function downloadSchemaFile(
 ) {
   const { contentType, fileName } = getSchemaDownloadMetadata(title, format);
 
-  return downloadFile(schemaText, fileName, contentType);
+  return downloadTextFile(schemaText, fileName, contentType);
 }
 
 export function downloadSchemaCollectionFile(
@@ -110,5 +114,5 @@ export function downloadSchemaCollectionFile(
     scope,
   );
 
-  return downloadFile(content, fileName, contentType);
+  return downloadTextFile(content, fileName, contentType);
 }

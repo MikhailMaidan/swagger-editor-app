@@ -14,6 +14,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
+- OpenAPI 3 and Swagger 2 data-model explorer with dependency analysis, operation usage, generated examples, and TypeScript exports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions

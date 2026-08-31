@@ -8,6 +8,7 @@ import type {
   SyntheticEvent,
 } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
@@ -102,6 +103,7 @@ import {
 } from "@/lib/schema-comparison-baseline";
 import type { SchemaComparisonBaseline } from "@/lib/schema-comparison-baseline";
 import type { SchemaCheckpoint } from "@/lib/schema-checkpoints";
+import { extractSchemaModels } from "@/lib/schema-models";
 import {
   createEmptyRequestEnvironmentSettings,
   getActiveRequestEnvironment,
@@ -409,6 +411,10 @@ export function SwaggerWorkspace({
   const schemaAuditReport = useMemo(
     () => createSchemaAuditReport(parsedEndpoints),
     [parsedEndpoints],
+  );
+  const schemaModels = useMemo(
+    () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
+    [parseResult],
   );
   const schemaChangeReport = useMemo(
     () =>
@@ -2336,6 +2342,17 @@ export function SwaggerWorkspace({
           onRestore={handleRestoreSchemaCheckpoint}
           schemaText={schemaText}
         />
+
+        {parseResult.ok && schemaModels.length > 0 ? (
+          <DataModelExplorer
+            models={schemaModels}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
+        ) : null}
 
         {parseResult.ok ? (
           <SchemaAuditPanel
