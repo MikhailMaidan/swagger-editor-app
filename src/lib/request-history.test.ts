@@ -16,27 +16,34 @@ import type { RequestHistoryRecord } from "./request-history";
 
 describe("request history storage", () => {
   it("saves newest request records first", () => {
-    const firstRecord = saveRequestHistoryRecord({
-      durationMs: 12,
-      method: "GET",
-      path: "/users",
-      status: 200,
-      summary: "List users",
-    });
-    const secondRecord = saveRequestHistoryRecord({
-      durationMs: 16,
-      method: "POST",
-      path: "/users",
-      status: 201,
-      summary: "Create user",
-    });
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-01T12:00:00.000Z"));
 
-    expect(firstRecord?.id).toBeTruthy();
-    expect(secondRecord?.createdAt).toBeTruthy();
-    expect(readRequestHistory()).toMatchObject([
-      { method: "POST", path: "/users", status: 201 },
-      { method: "GET", path: "/users", status: 200 },
-    ]);
+    try {
+      const firstRecord = saveRequestHistoryRecord({
+        durationMs: 12,
+        method: "GET",
+        path: "/users",
+        status: 200,
+        summary: "List users",
+      });
+      const secondRecord = saveRequestHistoryRecord({
+        durationMs: 16,
+        method: "POST",
+        path: "/users",
+        status: 201,
+        summary: "Create user",
+      });
+
+      expect(firstRecord?.id).toBeTruthy();
+      expect(secondRecord?.createdAt).toBeTruthy();
+      expect(readRequestHistory()).toMatchObject([
+        { method: "POST", path: "/users", status: 201 },
+        { method: "GET", path: "/users", status: 200 },
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns an empty list for broken storage data", () => {

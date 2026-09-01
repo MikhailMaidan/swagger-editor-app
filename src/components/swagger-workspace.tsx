@@ -8,6 +8,7 @@ import type {
   SyntheticEvent,
 } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
 import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
@@ -90,6 +91,7 @@ import {
   SchemaFormat,
 } from "@/lib/openapi";
 import type { EndpointSummary, SecuritySchemeSummary } from "@/lib/openapi";
+import { createApiWorkflowReport } from "@/lib/openapi-workflows";
 import {
   clearSchemaDraft,
   readSchemaDraft,
@@ -419,6 +421,13 @@ export function SwaggerWorkspace({
   const securityPostureReport = useMemo(
     () => createSecurityPostureReport(parsedEndpoints, securitySchemes),
     [parsedEndpoints, securitySchemes],
+  );
+  const apiWorkflowReport = useMemo(
+    () =>
+      parseResult.ok
+        ? createApiWorkflowReport(parseResult.value.schema, parsedEndpoints)
+        : null,
+    [parseResult, parsedEndpoints],
   );
   const schemaModels = useMemo(
     () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
@@ -1694,7 +1703,7 @@ export function SwaggerWorkspace({
 
   return (
     <section className="swagger-workspace mx-auto grid w-full max-w-[1600px] gap-6">
-      <div className="min-h-[560px] overflow-hidden rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
+      <div className="min-h-[560px] min-w-0 overflow-hidden rounded-[28px] border border-[color:var(--color-brand-border)] bg-white shadow-[0_18px_45px_rgba(64,45,137,0.1)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[color:var(--color-brand-border)] px-5 py-4">
           <div>
             <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
@@ -2185,7 +2194,7 @@ export function SwaggerWorkspace({
 
       <div
         id="api-viewer"
-        className="min-h-[560px] scroll-mt-40 rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]"
+        className="min-h-[560px] min-w-0 scroll-mt-40 rounded-[28px] border border-[color:var(--color-brand-border)] bg-white p-5 shadow-[0_18px_45px_rgba(64,45,137,0.1)]"
       >
         <div>
           <p className="text-sm font-extrabold uppercase text-[color:var(--color-brand-purple)]">
@@ -2355,6 +2364,19 @@ export function SwaggerWorkspace({
           <DataModelExplorer
             models={schemaModels}
             onSelectEndpoint={handleSelectAuditEndpoint}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
+        ) : null}
+
+        {parseResult.ok &&
+        apiWorkflowReport &&
+        apiWorkflowReport.totalLinkCount > 0 ? (
+          <ApiWorkflowExplorer
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            report={apiWorkflowReport}
             schema={{
               title: parseResult.value.title,
               version: parseResult.value.version,

@@ -99,10 +99,7 @@ function compareNewestFirst(
   firstRecord: RequestHistoryRecord,
   secondRecord: RequestHistoryRecord,
 ) {
-  return (
-    getHistoryTimestamp(secondRecord) - getHistoryTimestamp(firstRecord) ||
-    firstRecord.id.localeCompare(secondRecord.id)
-  );
+  return getHistoryTimestamp(secondRecord) - getHistoryTimestamp(firstRecord);
 }
 
 function compareDuration(
@@ -179,9 +176,7 @@ export function readRequestHistory() {
   }
 
   try {
-    const rawHistory = window.localStorage.getItem(
-      REQUEST_HISTORY_STORAGE_KEY,
-    );
+    const rawHistory = window.localStorage.getItem(REQUEST_HISTORY_STORAGE_KEY);
 
     if (!rawHistory) {
       return [];

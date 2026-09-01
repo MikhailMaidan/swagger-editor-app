@@ -67,6 +67,7 @@ describe("SwaggerWorkspace", () => {
       expect(editor).toHaveAttribute("spellcheck", "false");
       expect(editor.className).toContain("block");
       expect(editor.className).toContain("overflow-y-hidden");
+      expect(editor.closest(".min-h-\\[560px\\]")).toHaveClass("min-w-0");
       expect(screen.getByText("Line 1, column 1")).toBeVisible();
 
       const titleOffset =
@@ -5410,6 +5411,80 @@ paths:
       ).toHaveValue("/broken");
       expect(window.location.hash).toBe(
         `#${getEndpointAnchor("DELETE", "/broken")}`,
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
+  });
+
+  it("builds API workflows from response links and navigates between operations", async () => {
+    const user = userEvent.setup();
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const workflowSchema = `openapi: 3.0.0
+info:
+  title: Order Workflow API
+  version: 1.0.0
+components:
+  links:
+    GetOwner:
+      operationId: getUser
+      parameters:
+        userId: '$response.body#/ownerId'
+paths:
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      responses:
+        '200':
+          description: Order
+          links:
+            owner:
+              $ref: '#/components/links/GetOwner'
+            missingAudit:
+              operationId: auditOrder
+  /users/{userId}:
+    get:
+      operationId: getUser
+      responses:
+        '200':
+          description: User`;
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(
+        screen.queryByRole("heading", { name: "API workflows" }),
+      ).not.toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: workflowSchema },
+      });
+
+      const explorer = (
+        await screen.findByRole("heading", { name: "API workflows" })
+      ).closest("section") as HTMLElement;
+
+      expect(within(explorer).getByText("1/2 resolved")).toBeVisible();
+      expect(
+        within(explorer).getByText("$response.body#/ownerId"),
+      ).toBeVisible();
+      expect(
+        within(explorer).getByText(
+          "No operation declares the target operationId: auditOrder.",
+        ),
+      ).toBeVisible();
+
+      await user.click(
+        within(explorer).getByRole("button", { name: "GET /users/{userId}" }),
+      );
+
+      expect(
+        screen.getByRole("searchbox", {
+          name: /Filter endpoints by method/,
+        }),
+      ).toHaveValue("/users/{userId}");
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("GET", "/users/{userId}")}`,
       );
     } finally {
       window.history.replaceState(null, "", previousUrl);

@@ -28,12 +28,17 @@ describe("AppHeader", () => {
       "href",
       "/sign-up",
     );
+    expect(screen.getByText("Join")).toHaveClass("sm:hidden");
+    expect(screen.getByText("Sign Up")).toHaveClass("hidden", "sm:inline");
     expect(screen.getByRole("button", { name: "English" }).className).toContain(
       "cursor-pointer",
     );
     expect(
       screen.getByRole("navigation", { name: "Main navigation" }).className,
     ).toContain("text-[19px]");
+    expect(
+      screen.getByRole("navigation", { name: "Main navigation" }).className,
+    ).toContain("sm:flex");
     expect(screen.getByRole("link", { name: "Sign In" }).className).toContain(
       "h-[58px]",
     );

@@ -208,9 +208,9 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-50 min-h-[128px] px-4 pt-5 md:px-8 lg:min-h-[146px] lg:px-10">
+    <header className="sticky top-0 z-50 min-h-[128px] px-2 pt-5 sm:px-4 md:px-8 lg:min-h-[146px] lg:px-10">
       <div
-        className={`mx-auto flex max-w-[1600px] transform-gpu flex-nowrap items-center gap-5 rounded-[28px] border px-5 backdrop-blur-md transition-[transform,padding,background-color,border-color,box-shadow] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transform-none motion-reduce:transition-none lg:px-7 ${
+        className={`mx-auto flex max-w-[1600px] transform-gpu flex-nowrap items-center gap-2 rounded-[28px] border px-3 backdrop-blur-md transition-[transform,padding,background-color,border-color,box-shadow] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transform-none motion-reduce:transition-none sm:gap-5 sm:px-5 lg:px-7 ${
           isStickyCompact
             ? "-translate-y-2 border-[color:var(--color-brand-purple)] bg-white/98 py-2 shadow-[0_14px_34px_rgba(64,45,137,0.16)]"
             : "translate-y-0 border-[color:var(--color-brand-border)] bg-white/95 py-3 shadow-[0_18px_45px_rgba(64,45,137,0.12)]"
@@ -220,7 +220,7 @@ export function AppHeader({
       >
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-3"
+          className="flex shrink-0 items-center gap-2 sm:gap-3"
           aria-label="RSSwag home page"
         >
           <Image
@@ -230,18 +230,18 @@ export function AppHeader({
             height={108}
             className={`object-contain transition-[width,height,transform] duration-[var(--duration-header)] ease-[var(--ease-header)] motion-reduce:transition-none ${
               isStickyCompact
-                ? "h-[72px] w-[72px] scale-[0.98] lg:h-[88px] lg:w-[88px]"
-                : "h-[84px] w-[84px] scale-100 lg:h-[102px] lg:w-[102px]"
+                ? "h-14 w-14 scale-[0.98] sm:h-[72px] sm:w-[72px] lg:h-[88px] lg:w-[88px]"
+                : "h-14 w-14 scale-100 sm:h-[84px] sm:w-[84px] lg:h-[102px] lg:w-[102px]"
             }`}
             priority
           />
-          <span className="text-[28px] font-extrabold tracking-tight text-[color:var(--color-brand-navy)] lg:text-[40px]">
+          <span className="text-[22px] font-extrabold tracking-tight text-[color:var(--color-brand-navy)] sm:text-[28px] lg:text-[40px]">
             RSSwag
           </span>
         </Link>
 
         <nav
-          className="flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] lg:gap-7"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto text-[19px] font-bold leading-none text-[color:var(--color-brand-navy)] sm:flex lg:gap-7"
           aria-label={t("nav.mainNavigation")}
         >
           {navLinks
@@ -286,7 +286,7 @@ export function AppHeader({
             })}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden items-center rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-soft)] p-1 text-[17px] font-extrabold text-[color:var(--color-brand-muted)] shadow-inner sm:flex">
             {languageOptions.map((option) => {
               const isActive = language === option.code;
@@ -346,15 +346,19 @@ export function AppHeader({
             <>
               <Link
                 href="/sign-in"
-                className="inline-flex h-[58px] items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-6 text-[19px] font-extrabold text-[color:var(--color-brand-purple)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:bg-[color:var(--color-brand-soft)] motion-reduce:transition-none"
+                aria-label={t("auth.signIn")}
+                className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-[color:var(--color-brand-purple)] px-3 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:bg-[color:var(--color-brand-soft)] motion-reduce:transition-none sm:h-[58px] sm:px-6 sm:text-[19px]"
               >
-                {t("auth.signIn")}
+                <span className="sm:hidden">{t("auth.signInShort")}</span>
+                <span className="hidden sm:inline">{t("auth.signIn")}</span>
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex h-[58px] items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-6 text-[19px] font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:translate-y-[-1px] motion-reduce:transition-none motion-reduce:transform-none"
+                aria-label={t("auth.signUp")}
+                className="inline-flex h-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-brand-purple),var(--color-brand-purple-dark))] px-3 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(90,45,255,0.26)] transition duration-[var(--duration-header-fast)] ease-[var(--ease-header)] hover:translate-y-[-1px] motion-reduce:transition-none motion-reduce:transform-none sm:h-[58px] sm:px-6 sm:text-[19px]"
               >
-                {t("auth.signUp")}
+                <span className="sm:hidden">{t("auth.signUpShort")}</span>
+                <span className="hidden sm:inline">{t("auth.signUp")}</span>
               </Link>
             </>
           )}

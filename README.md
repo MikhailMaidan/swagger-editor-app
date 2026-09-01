@@ -15,6 +15,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
 - OpenAPI 3 and Swagger 2 data-model explorer with dependency analysis, operation usage, generated examples, and TypeScript exports
+- OpenAPI 3 workflow explorer with response-link resolution, runtime-expression handoffs, broken-target and cycle detection, endpoint navigation, Mermaid diagrams, and JSON reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
