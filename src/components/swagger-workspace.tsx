@@ -12,6 +12,7 @@ import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
+import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { RequestExecutionModeControl } from "@/components/request-execution-mode-control";
@@ -2409,6 +2410,19 @@ export function SwaggerWorkspace({
               title: parseResult.value.title,
               version: parseResult.value.version,
             }}
+            visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {parseResult.ok && endpoints.length > 0 ? (
+          <PostmanExportPanel
+            allEndpoints={endpoints}
+            schema={{
+              serverUrl: activeServerUrl,
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+            securitySchemes={securitySchemes}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}

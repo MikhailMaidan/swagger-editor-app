@@ -5416,6 +5416,46 @@ paths:
     }
   });
 
+  it("builds Postman exports from all endpoints or the current filtered view", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const panel = (
+      await screen.findByRole("heading", { name: "Postman collection" })
+    ).closest("section") as HTMLElement;
+    const requestCount = within(panel).getByText("Requests").nextElementSibling;
+    const responseCount =
+      within(panel).getByText("Saved responses").nextElementSibling;
+
+    expect(requestCount).toHaveTextContent("2");
+    expect(responseCount).toHaveTextContent("3");
+    expect(
+      within(panel).getByRole("button", { name: "Current view (2)" }),
+    ).toBeVisible();
+
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "Current view (1)" }),
+    );
+
+    expect(requestCount).toHaveTextContent("1");
+    expect(responseCount).toHaveTextContent("1");
+
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "All methods" }),
+    );
+
+    expect(requestCount).toHaveTextContent("2");
+    expect(responseCount).toHaveTextContent("3");
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 

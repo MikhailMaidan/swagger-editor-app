@@ -729,6 +729,29 @@ export const translations = {
     "workspace.parameterRequired": "{name} is required.",
     "workspace.parameterValuePlaceholder": "Enter value",
     "workspace.path": "Path",
+    "workspace.postmanCollectionExportError":
+      "Could not export the Postman collection.",
+    "workspace.postmanCollectionExportSuccess":
+      "Postman collection export started.",
+    "workspace.postmanEnvironmentExportError":
+      "Could not export the Postman environment.",
+    "workspace.postmanEnvironmentExportSuccess":
+      "Postman environment export started.",
+    "workspace.postmanExportCollection": "Export collection",
+    "workspace.postmanExportEnvironment": "Export environment",
+    "workspace.postmanGroupByTags": "Group requests by tags",
+    "workspace.postmanIncludeResponses": "Include response examples",
+    "workspace.postmanNoEndpoints":
+      "No endpoints are available in this export scope.",
+    "workspace.postmanScopeAll": "All endpoints ({count})",
+    "workspace.postmanScopeLabel": "Postman export scope",
+    "workspace.postmanScopeVisible": "Current view ({count})",
+    "workspace.postmanStatFolders": "Folders",
+    "workspace.postmanStatRequests": "Requests",
+    "workspace.postmanStatResponses": "Saved responses",
+    "workspace.postmanStatVariables": "Variables",
+    "workspace.postmanTitle": "Postman collection",
+    "workspace.postmanVersion": "Collection 2.1",
     "workspace.properties": "Properties:",
     "workspace.query": "Query",
     "workspace.requestBody": "Request body",
@@ -1615,6 +1638,29 @@ export const translations = {
     "workspace.parameterRequired": "Параметр {name} обязателен.",
     "workspace.parameterValuePlaceholder": "Введите значение",
     "workspace.path": "Path",
+    "workspace.postmanCollectionExportError":
+      "Не удалось экспортировать коллекцию Postman.",
+    "workspace.postmanCollectionExportSuccess":
+      "Экспорт коллекции Postman начался.",
+    "workspace.postmanEnvironmentExportError":
+      "Не удалось экспортировать окружение Postman.",
+    "workspace.postmanEnvironmentExportSuccess":
+      "Экспорт окружения Postman начался.",
+    "workspace.postmanExportCollection": "Экспорт коллекции",
+    "workspace.postmanExportEnvironment": "Экспорт окружения",
+    "workspace.postmanGroupByTags": "Группировать запросы по тегам",
+    "workspace.postmanIncludeResponses": "Добавить примеры ответов",
+    "workspace.postmanNoEndpoints":
+      "В выбранной области экспорта нет эндпоинтов.",
+    "workspace.postmanScopeAll": "Все эндпоинты ({count})",
+    "workspace.postmanScopeLabel": "Область экспорта Postman",
+    "workspace.postmanScopeVisible": "Текущий вид ({count})",
+    "workspace.postmanStatFolders": "Папки",
+    "workspace.postmanStatRequests": "Запросы",
+    "workspace.postmanStatResponses": "Сохранённые ответы",
+    "workspace.postmanStatVariables": "Переменные",
+    "workspace.postmanTitle": "Коллекция Postman",
+    "workspace.postmanVersion": "Collection 2.1",
     "workspace.properties": "Свойства:",
     "workspace.query": "Query",
     "workspace.requestBody": "Тело запроса",
