@@ -5326,6 +5326,82 @@ paths:
     }
   });
 
+  it("builds a reusable component registry with transitive usage and findings", async () => {
+    const user = userEvent.setup();
+    const schemaWithComponents = `openapi: 3.1.0
+info:
+  title: Component Registry API
+  version: 1.0.0
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+  schemas:
+    User:
+      description: Public user
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+    Address:
+      type: object
+    InternalNote:
+      type: string
+paths:
+  /users:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/Missing'`;
+
+    render(<SwaggerWorkspace />);
+
+    expect(
+      screen.queryByRole("heading", {
+        name: "Reusable component registry",
+      }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+      target: { value: schemaWithComponents },
+    });
+
+    const registry = (
+      await screen.findByRole("heading", {
+        name: "Reusable component registry",
+      })
+    ).closest("section") as HTMLElement;
+
+    expect(within(registry).getByText("3/4 reachable")).toBeVisible();
+    expect(within(registry).getByText("Public user")).toBeVisible();
+    expect(
+      within(registry).getByText(
+        "Local reference cannot be resolved: #/components/responses/Missing.",
+      ),
+    ).toBeVisible();
+
+    await user.click(
+      within(registry).getByRole("button", { name: "Unused (1)" }),
+    );
+    expect(
+      within(registry).getByRole("heading", { name: "InternalNote" }),
+    ).toBeVisible();
+    expect(
+      within(registry).queryByRole("heading", { name: "User" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("analyzes operation access and navigates from the security posture dashboard", async () => {
     const user = userEvent.setup();
     const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;

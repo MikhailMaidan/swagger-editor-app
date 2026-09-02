@@ -15,6 +15,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
 - OpenAPI 3 and Swagger 2 data-model explorer with dependency analysis, operation usage, generated examples, and TypeScript exports
+- Reusable-component registry for OpenAPI 3.0-3.2 and Swagger 2 with transitive reachability, local and external reference diagnostics, cycle detection, dependency search, Mermaid graphs, and JSON reports
 - OpenAPI 3 workflow explorer with response-link resolution, runtime-expression handoffs, broken-target and cycle detection, endpoint navigation, Mermaid diagrams, and JSON reports
 - Callback and webhook contract explorer with reusable-reference resolution, payload examples, receiver responses, source navigation, diagnostics, Markdown sharing, and JSON reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports

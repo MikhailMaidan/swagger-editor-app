@@ -10,6 +10,7 @@ import type {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ApiEventExplorer } from "@/components/api-event-explorer";
 import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
+import { ComponentRegistryPanel } from "@/components/component-registry-panel";
 import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
 import { useI18n } from "@/components/i18n-provider";
@@ -25,6 +26,7 @@ import { SecurityPosturePanel } from "@/components/security-posture-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
+import { createComponentRegistryReport } from "@/lib/component-registry";
 import {
   DEFAULT_EDITOR_FONT_SIZE,
   DEFAULT_EDITOR_INDENT_SIZE,
@@ -437,6 +439,13 @@ export function SwaggerWorkspace({
         ? createApiEventReport(parseResult.value.schema, parsedEndpoints)
         : null,
     [parseResult, parsedEndpoints],
+  );
+  const componentRegistryReport = useMemo(
+    () =>
+      parseResult.ok
+        ? createComponentRegistryReport(parseResult.value.schema)
+        : null,
+    [parseResult],
   );
   const schemaModels = useMemo(
     () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
@@ -2368,6 +2377,20 @@ export function SwaggerWorkspace({
           onRestore={handleRestoreSchemaCheckpoint}
           schemaText={schemaText}
         />
+
+        {parseResult.ok &&
+        componentRegistryReport &&
+        (componentRegistryReport.totalCount > 0 ||
+          componentRegistryReport.brokenReferenceCount > 0 ||
+          componentRegistryReport.externalReferenceCount > 0) ? (
+          <ComponentRegistryPanel
+            report={componentRegistryReport}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
+        ) : null}
 
         {parseResult.ok && schemaModels.length > 0 ? (
           <DataModelExplorer
