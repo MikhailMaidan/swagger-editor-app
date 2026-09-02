@@ -8,6 +8,7 @@ import type {
   SyntheticEvent,
 } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ApiEventExplorer } from "@/components/api-event-explorer";
 import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
 import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
@@ -91,6 +92,7 @@ import {
   SchemaFormat,
 } from "@/lib/openapi";
 import type { EndpointSummary, SecuritySchemeSummary } from "@/lib/openapi";
+import { createApiEventReport } from "@/lib/api-events";
 import { createApiWorkflowReport } from "@/lib/openapi-workflows";
 import {
   clearSchemaDraft,
@@ -426,6 +428,13 @@ export function SwaggerWorkspace({
     () =>
       parseResult.ok
         ? createApiWorkflowReport(parseResult.value.schema, parsedEndpoints)
+        : null,
+    [parseResult, parsedEndpoints],
+  );
+  const apiEventReport = useMemo(
+    () =>
+      parseResult.ok
+        ? createApiEventReport(parseResult.value.schema, parsedEndpoints)
         : null,
     [parseResult, parsedEndpoints],
   );
@@ -2377,6 +2386,20 @@ export function SwaggerWorkspace({
           <ApiWorkflowExplorer
             onSelectEndpoint={handleSelectAuditEndpoint}
             report={apiWorkflowReport}
+            schema={{
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+          />
+        ) : null}
+
+        {parseResult.ok &&
+        apiEventReport &&
+        (apiEventReport.totalOperationCount > 0 ||
+          apiEventReport.findings.length > 0) ? (
+          <ApiEventExplorer
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            report={apiEventReport}
             schema={{
               title: parseResult.value.title,
               version: parseResult.value.version,

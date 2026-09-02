@@ -5491,6 +5491,102 @@ paths:
     }
   });
 
+  it("builds callback and webhook contracts and navigates to the source operation", async () => {
+    const user = userEvent.setup();
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const eventSchema = `openapi: 3.1.0
+info:
+  title: Event Contracts API
+  version: 1.0.0
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum: [ready, done]
+paths:
+  /subscriptions:
+    post:
+      summary: Create subscription
+      operationId: createSubscription
+      callbacks:
+        onEvent:
+          '{$request.body#/callbackUrl}':
+            post:
+              summary: Receive subscription event
+              operationId: receiveSubscriptionEvent
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Event'
+              responses:
+                '204':
+                  description: Accepted
+      responses:
+        '201':
+          description: Created
+webhooks:
+  orderChanged:
+    post:
+      summary: Receive order change
+      operationId: receiveOrderChange
+      responses:
+        '200':
+          description: Processed`;
+
+    try {
+      render(<SwaggerWorkspace />);
+
+      expect(
+        screen.queryByRole("heading", { name: "Events & callbacks" }),
+      ).not.toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("OpenAPI schema editor"), {
+        target: { value: eventSchema },
+      });
+
+      const explorer = (
+        await screen.findByRole("heading", { name: "Events & callbacks" })
+      ).closest("section") as HTMLElement;
+
+      expect(within(explorer).getByText("2/2 documented")).toBeVisible();
+      expect(
+        within(explorer).getByRole("button", { name: "Callbacks (1)" }),
+      ).toBeVisible();
+      expect(
+        within(explorer).getByRole("button", { name: "Webhooks (1)" }),
+      ).toBeVisible();
+      expect(
+        within(explorer).getByText("{$request.body#/callbackUrl}"),
+      ).toBeVisible();
+      expect(within(explorer).getByText("Event")).toBeVisible();
+
+      await user.click(
+        within(explorer).getByRole("button", {
+          name: "POST /subscriptions",
+        }),
+      );
+
+      expect(
+        screen.getByRole("searchbox", {
+          name: /Filter endpoints by method/,
+        }),
+      ).toHaveValue("/subscriptions");
+      expect(window.location.hash).toBe(
+        `#${getEndpointAnchor("POST", "/subscriptions")}`,
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
+  });
+
   it("builds Postman exports from all endpoints or the current filtered view", async () => {
     const user = userEvent.setup();
 

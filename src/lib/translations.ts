@@ -731,6 +731,64 @@ export const translations = {
     "workspace.parameterRequired": "{name} is required.",
     "workspace.parameterValuePlaceholder": "Enter value",
     "workspace.path": "Path",
+    "workspace.eventCopy": "Copy summary",
+    "workspace.eventCopyError": "Could not copy the event contract summary.",
+    "workspace.eventCopySuccess": "Event contract summary copied.",
+    "workspace.eventDeprecated": "Deprecated",
+    "workspace.eventDocumentedSummary": "{documented}/{total} documented",
+    "workspace.eventExample": "Payload example",
+    "workspace.eventExport": "Export report",
+    "workspace.eventExportError": "Could not export the event contract report.",
+    "workspace.eventExportSuccess": "Event contract report export started.",
+    "workspace.eventFilterAll": "All operations ({count})",
+    "workspace.eventFilterCallbacks": "Callbacks ({count})",
+    "workspace.eventFilterIssues": "Needs review ({count})",
+    "workspace.eventFilterLabel": "Filter event contract operations",
+    "workspace.eventFilterWebhooks": "Webhooks ({count})",
+    "workspace.eventFindingEmptyChannel":
+      "{name} does not declare an HTTP operation.",
+    "workspace.eventFindingExternalReference":
+      "External reference for {name} cannot be resolved: {reference}.",
+    "workspace.eventFindingUnresolvedReference":
+      "Local reference for {name} could not be resolved: {reference}.",
+    "workspace.eventFindingsTitle": "Definition findings",
+    "workspace.eventIndependent": "Independent provider event",
+    "workspace.eventIssueExternalReference":
+      "An external contract reference cannot be resolved here: {reference}.",
+    "workspace.eventIssueMissingDocumentation":
+      "Add a summary or description for this event operation.",
+    "workspace.eventIssueMissingOperationId":
+      "Add an operationId for stable code generation and tooling.",
+    "workspace.eventIssueMissingResponses":
+      "Document at least one receiver response.",
+    "workspace.eventIssueUnresolvedReference":
+      "A local contract reference could not be resolved: {reference}.",
+    "workspace.eventKindCallback": "Callback",
+    "workspace.eventKindWebhook": "Webhook",
+    "workspace.eventMarkdownSummary":
+      "{operations} operations across {channels} channels ({callbacks} callbacks, {webhooks} webhooks).",
+    "workspace.eventMarkdownTitle": "{title} event contracts",
+    "workspace.eventMarkdownVersion": "Schema version: {version}",
+    "workspace.eventNoFindings": "No definition findings.",
+    "workspace.eventNoOperations": "No event operations match this filter.",
+    "workspace.eventOperationId": "Operation ID",
+    "workspace.eventOperationsTitle": "Event operations",
+    "workspace.eventOptional": "Optional",
+    "workspace.eventPayloads": "Payloads",
+    "workspace.eventRequired": "Required",
+    "workspace.eventResponses": "Receiver responses",
+    "workspace.eventSecurity": "Security",
+    "workspace.eventShowAll": "Show all {count} operations",
+    "workspace.eventShowLess": "Show fewer operations",
+    "workspace.eventSource": "Source operation",
+    "workspace.eventStatCallbacks": "Callback operations",
+    "workspace.eventStatOperations": "Event operations",
+    "workspace.eventStatPayloads": "With payload",
+    "workspace.eventStatWebhooks": "Webhook operations",
+    "workspace.eventSummary":
+      "{channels} channels, {issues} contracts need review.",
+    "workspace.eventTitle": "Events & callbacks",
+    "workspace.eventUrlExpression": "Receiver URL expression",
     "workspace.postmanCollectionExportError":
       "Could not export the Postman collection.",
     "workspace.postmanCollectionExportSuccess":
@@ -1687,6 +1745,64 @@ export const translations = {
     "workspace.parameterRequired": "Параметр {name} обязателен.",
     "workspace.parameterValuePlaceholder": "Введите значение",
     "workspace.path": "Path",
+    "workspace.eventCopy": "Копировать сводку",
+    "workspace.eventCopyError":
+      "Не удалось скопировать сводку контрактов событий.",
+    "workspace.eventCopySuccess": "Сводка контрактов событий скопирована.",
+    "workspace.eventDeprecated": "Устарела",
+    "workspace.eventDocumentedSummary": "Документировано: {documented}/{total}",
+    "workspace.eventExample": "Пример payload",
+    "workspace.eventExport": "Экспорт отчёта",
+    "workspace.eventExportError": "Не удалось экспортировать отчёт о событиях.",
+    "workspace.eventExportSuccess": "Экспорт отчёта о событиях начат.",
+    "workspace.eventFilterAll": "Все операции ({count})",
+    "workspace.eventFilterCallbacks": "Callbacks ({count})",
+    "workspace.eventFilterIssues": "Требуют проверки ({count})",
+    "workspace.eventFilterLabel": "Фильтр контрактов событий",
+    "workspace.eventFilterWebhooks": "Webhooks ({count})",
+    "workspace.eventFindingEmptyChannel": "{name} не объявляет HTTP-операцию.",
+    "workspace.eventFindingExternalReference":
+      "Внешняя ссылка для {name} не может быть разрешена: {reference}.",
+    "workspace.eventFindingUnresolvedReference":
+      "Локальная ссылка для {name} не разрешена: {reference}.",
+    "workspace.eventFindingsTitle": "Проблемы определений",
+    "workspace.eventIndependent": "Независимое событие провайдера",
+    "workspace.eventIssueExternalReference":
+      "Внешняя ссылка контракта не может быть разрешена здесь: {reference}.",
+    "workspace.eventIssueMissingDocumentation":
+      "Добавьте summary или description для операции события.",
+    "workspace.eventIssueMissingOperationId":
+      "Добавьте operationId для стабильной генерации кода и инструментов.",
+    "workspace.eventIssueMissingResponses":
+      "Опишите хотя бы один ответ получателя.",
+    "workspace.eventIssueUnresolvedReference":
+      "Локальная ссылка контракта не разрешена: {reference}.",
+    "workspace.eventKindCallback": "Callback",
+    "workspace.eventKindWebhook": "Webhook",
+    "workspace.eventMarkdownSummary":
+      "{operations} операций в {channels} каналах ({callbacks} callbacks, {webhooks} webhooks).",
+    "workspace.eventMarkdownTitle": "Контракты событий {title}",
+    "workspace.eventMarkdownVersion": "Версия схемы: {version}",
+    "workspace.eventNoFindings": "Проблем в определениях нет.",
+    "workspace.eventNoOperations": "Нет операций событий для этого фильтра.",
+    "workspace.eventOperationId": "ID операции",
+    "workspace.eventOperationsTitle": "Операции событий",
+    "workspace.eventOptional": "Необязательно",
+    "workspace.eventPayloads": "Payloads",
+    "workspace.eventRequired": "Обязательно",
+    "workspace.eventResponses": "Ответы получателя",
+    "workspace.eventSecurity": "Безопасность",
+    "workspace.eventShowAll": "Показать все операции ({count})",
+    "workspace.eventShowLess": "Показать меньше операций",
+    "workspace.eventSource": "Исходная операция",
+    "workspace.eventStatCallbacks": "Операции callback",
+    "workspace.eventStatOperations": "Операции событий",
+    "workspace.eventStatPayloads": "С payload",
+    "workspace.eventStatWebhooks": "Операции webhook",
+    "workspace.eventSummary":
+      "Каналов: {channels}; требуют проверки: {issues}.",
+    "workspace.eventTitle": "События и callbacks",
+    "workspace.eventUrlExpression": "Выражение URL получателя",
     "workspace.postmanCollectionExportError":
       "Не удалось экспортировать коллекцию Postman.",
     "workspace.postmanCollectionExportSuccess":
