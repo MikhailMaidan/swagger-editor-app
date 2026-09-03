@@ -228,7 +228,7 @@ function collectModelProperties(
   return properties;
 }
 
-function getTypeScriptName(name: string) {
+export function getSchemaTypeScriptName(name: string) {
   const normalizedName = name.replace(/[^A-Za-z0-9_$]/g, "_");
 
   if (!normalizedName) {
@@ -270,7 +270,7 @@ function addNullableType(
     : typeScriptType;
 }
 
-function getSchemaTypeScriptType(
+export function getSchemaTypeScriptType(
   rawSchema: Record<string, unknown>,
   rootSchema: Record<string, unknown>,
   depth = 0,
@@ -283,7 +283,10 @@ function getSchemaTypeScriptType(
   const referencedModelName = getReferencedModelName(reference);
 
   if (referencedModelName) {
-    return addNullableType(getTypeScriptName(referencedModelName), rawSchema);
+    return addNullableType(
+      getSchemaTypeScriptName(referencedModelName),
+      rawSchema,
+    );
   }
 
   if (reference) {
@@ -391,7 +394,7 @@ function createTypeScriptDeclaration(
   schema: Record<string, unknown>,
   rootSchema: Record<string, unknown>,
 ) {
-  const typeName = getTypeScriptName(name);
+  const typeName = getSchemaTypeScriptName(name);
   const properties = collectModelProperties(schema, rootSchema);
   const hasComposition =
     Array.isArray(schema.allOf) ||

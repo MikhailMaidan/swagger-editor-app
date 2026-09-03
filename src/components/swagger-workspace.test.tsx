@@ -5703,6 +5703,44 @@ webhooks:
     expect(responseCount).toHaveTextContent("3");
   });
 
+  it("generates a TypeScript client from all endpoints or the filtered view", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const panel = (
+      await screen.findByRole("heading", { name: "TypeScript SDK" })
+    ).closest("section") as HTMLElement;
+
+    expect(
+      within(panel).getByText("2 methods and 0 model declarations."),
+    ).toBeVisible();
+    expect(within(panel).getByText("getUsersById()")).toBeVisible();
+    expect(within(panel).getByText("postUsersById()")).toBeVisible();
+
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "Current view (1)" }),
+    );
+
+    expect(
+      within(panel).getByText("1 methods and 0 model declarations."),
+    ).toBeVisible();
+    expect(within(panel).queryByText("getUsersById()")).not.toBeInTheDocument();
+    expect(within(panel).getByText("postUsersById()")).toBeVisible();
+
+    await user.type(
+      within(panel).getByLabelText("Client factory name"),
+      "demo-client",
+    );
+    expect(within(panel).getByText("Factory: demoClient")).toBeVisible();
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 

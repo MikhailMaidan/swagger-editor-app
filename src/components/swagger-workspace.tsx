@@ -23,6 +23,7 @@ import { SchemaAuditPanel } from "@/components/schema-audit-panel";
 import { SchemaCheckpointPanel } from "@/components/schema-checkpoint-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { SecurityPosturePanel } from "@/components/security-posture-panel";
+import { TypeScriptClientPanel } from "@/components/typescript-client-panel";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
@@ -2491,6 +2492,20 @@ export function SwaggerWorkspace({
               version: parseResult.value.version,
             }}
             securitySchemes={securitySchemes}
+            visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {parseResult.ok && endpoints.length > 0 ? (
+          <TypeScriptClientPanel
+            allEndpoints={endpoints}
+            models={schemaModels}
+            rootSchema={parseResult.value.schema}
+            schema={{
+              serverUrl: activeServerUrl,
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}
