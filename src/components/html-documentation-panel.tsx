@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { createHtmlDocumentation } from "@/lib/html-documentation";
 import {
@@ -19,7 +19,7 @@ type ActionStatus =
   | "preview-error"
   | "preview-success";
 
-export function HtmlDocumentationPanel({
+export const HtmlDocumentationPanel = memo(function HtmlDocumentationPanel({
   allEndpoints,
   models,
   schema,
@@ -282,4 +282,4 @@ export function HtmlDocumentationPanel({
       ) : null}
     </section>
   );
-}
+});

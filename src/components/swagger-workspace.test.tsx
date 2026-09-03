@@ -5784,6 +5784,42 @@ webhooks:
     ).toBeVisible();
   });
 
+  it("generates a Node mock server from all endpoints or the filtered view", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const panel = (
+      await screen.findByRole("heading", { name: "Node mock server" })
+    ).closest("section") as HTMLElement;
+    const routeCount =
+      within(panel).getByText("Mock routes").nextElementSibling;
+    const variantCount =
+      within(panel).getByText("Status variants").nextElementSibling;
+
+    expect(routeCount).toHaveTextContent("2");
+    expect(variantCount).toHaveTextContent("3");
+    expect(
+      within(panel).getByText("2 routes with 3 documented response variants."),
+    ).toBeVisible();
+
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "Current view (1)" }),
+    );
+
+    expect(routeCount).toHaveTextContent("1");
+    expect(variantCount).toHaveTextContent("1");
+    expect(
+      within(panel).getByText("1 routes with 1 documented response variants."),
+    ).toBeVisible();
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 

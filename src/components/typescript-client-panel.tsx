@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import type { EndpointSummary } from "@/lib/openapi";
@@ -26,7 +26,7 @@ const methodClasses: Record<string, string> = {
   TRACE: "bg-pink-100 text-pink-800",
 };
 
-export function TypeScriptClientPanel({
+export const TypeScriptClientPanel = memo(function TypeScriptClientPanel({
   allEndpoints,
   models,
   rootSchema,
@@ -368,4 +368,4 @@ export function TypeScriptClientPanel({
       )}
     </section>
   );
-}
+});

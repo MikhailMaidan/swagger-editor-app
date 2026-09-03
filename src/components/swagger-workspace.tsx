@@ -16,6 +16,7 @@ import { EndpointCard } from "@/components/endpoint-card";
 import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
+import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
@@ -391,6 +392,17 @@ export function SwaggerWorkspace({
     serverUrlOverride ||
     activeRequestEnvironment?.serverUrl ||
     declaredServerUrl;
+  const artifactSchema = useMemo(
+    () =>
+      parseResult.ok
+        ? {
+            serverUrl: activeServerUrl,
+            title: parseResult.value.title,
+            version: parseResult.value.version,
+          }
+        : null,
+    [activeServerUrl, parseResult],
+  );
   const endpoints = useMemo(
     () =>
       parsedEndpoints.map((endpoint) =>
@@ -485,64 +497,84 @@ export function SwaggerWorkspace({
     endpointViewLinkCopyFeedback?.signature === endpointFilterViewSignature
       ? endpointViewLinkCopyFeedback.status
       : "idle";
-  const normalizedFilter = endpointFilter.trim().toLowerCase();
-  const filteredEndpoints = normalizedFilter
-    ? endpoints.filter(
-        (endpoint) =>
-          endpoint.method.toLowerCase().includes(normalizedFilter) ||
-          endpoint.path.toLowerCase().includes(normalizedFilter) ||
-          endpoint.summary.toLowerCase().includes(normalizedFilter) ||
-          endpoint.operationId.toLowerCase().includes(normalizedFilter) ||
-          endpoint.parameters.some(
-            (parameter) =>
-              parameter.name.toLowerCase().includes(normalizedFilter) ||
-              parameter.description.toLowerCase().includes(normalizedFilter),
-          ) ||
-          endpoint.tags.some((tag) =>
-            tag.toLowerCase().includes(normalizedFilter),
-          ) ||
-          endpoint.securityRequirements.some((requirement) =>
-            requirement.toLowerCase().includes(normalizedFilter),
-          ),
-      )
-    : endpoints;
-  const methodFilteredEndpoints =
-    activeMethod === "all"
-      ? filteredEndpoints
-      : filteredEndpoints.filter(
-          (endpoint) => endpoint.method === activeMethod,
-        );
-  const tagFilteredEndpoints =
-    activeTag === "all"
-      ? methodFilteredEndpoints
-      : methodFilteredEndpoints.filter((endpoint) =>
-          endpoint.tags.includes(activeTag),
-        );
-  const favoriteEndpointKeySet = new Set(favoriteEndpointKeys);
-  const favoriteEndpointCount = endpoints.filter((endpoint) =>
-    favoriteEndpointKeySet.has(
-      getEndpointFavoriteKey(endpoint.method, endpoint.path),
-    ),
-  ).length;
-  const favoriteFilteredEndpoints = showFavoriteEndpointsOnly
-    ? tagFilteredEndpoints.filter((endpoint) =>
+  const favoriteEndpointKeySet = useMemo(
+    () => new Set(favoriteEndpointKeys),
+    [favoriteEndpointKeys],
+  );
+  const favoriteEndpointCount = useMemo(
+    () =>
+      endpoints.filter((endpoint) =>
         favoriteEndpointKeySet.has(
           getEndpointFavoriteKey(endpoint.method, endpoint.path),
         ),
-      )
-    : tagFilteredEndpoints;
-  const traitFilteredEndpoints = filterEndpointsByTrait(
-    favoriteFilteredEndpoints,
-    endpointTraitFilter,
+      ).length,
+    [endpoints, favoriteEndpointKeySet],
   );
-  const responseFilteredEndpoints = filterEndpointsByResponse(
-    traitFilteredEndpoints,
+  const { responseFilteredEndpoints, visibleEndpoints } = useMemo(() => {
+    const normalizedFilter = endpointFilter.trim().toLowerCase();
+    const filteredEndpoints = normalizedFilter
+      ? endpoints.filter(
+          (endpoint) =>
+            endpoint.method.toLowerCase().includes(normalizedFilter) ||
+            endpoint.path.toLowerCase().includes(normalizedFilter) ||
+            endpoint.summary.toLowerCase().includes(normalizedFilter) ||
+            endpoint.operationId.toLowerCase().includes(normalizedFilter) ||
+            endpoint.parameters.some(
+              (parameter) =>
+                parameter.name.toLowerCase().includes(normalizedFilter) ||
+                parameter.description.toLowerCase().includes(normalizedFilter),
+            ) ||
+            endpoint.tags.some((tag) =>
+              tag.toLowerCase().includes(normalizedFilter),
+            ) ||
+            endpoint.securityRequirements.some((requirement) =>
+              requirement.toLowerCase().includes(normalizedFilter),
+            ),
+        )
+      : endpoints;
+    const methodFilteredEndpoints =
+      activeMethod === "all"
+        ? filteredEndpoints
+        : filteredEndpoints.filter(
+            (endpoint) => endpoint.method === activeMethod,
+          );
+    const tagFilteredEndpoints =
+      activeTag === "all"
+        ? methodFilteredEndpoints
+        : methodFilteredEndpoints.filter((endpoint) =>
+            endpoint.tags.includes(activeTag),
+          );
+    const favoriteFilteredEndpoints = showFavoriteEndpointsOnly
+      ? tagFilteredEndpoints.filter((endpoint) =>
+          favoriteEndpointKeySet.has(
+            getEndpointFavoriteKey(endpoint.method, endpoint.path),
+          ),
+        )
+      : tagFilteredEndpoints;
+    const traitFilteredEndpoints = filterEndpointsByTrait(
+      favoriteFilteredEndpoints,
+      endpointTraitFilter,
+    );
+    const responseFilteredEndpoints = filterEndpointsByResponse(
+      traitFilteredEndpoints,
+      endpointResponseFilter,
+    );
+
+    return {
+      responseFilteredEndpoints,
+      visibleEndpoints: sortEndpoints(responseFilteredEndpoints, endpointSort),
+    };
+  }, [
+    activeMethod,
+    activeTag,
+    endpointFilter,
     endpointResponseFilter,
-  );
-  const visibleEndpoints = sortEndpoints(
-    responseFilteredEndpoints,
     endpointSort,
-  );
+    endpointTraitFilter,
+    endpoints,
+    favoriteEndpointKeySet,
+    showFavoriteEndpointsOnly,
+  ]);
   const collapsedEndpointKeySet = new Set(collapsedEndpointKeys);
   const visibleEndpointKeys = visibleEndpoints.map((endpoint) =>
     getEndpointFavoriteKey(endpoint.method, endpoint.path),
@@ -2484,43 +2516,39 @@ export function SwaggerWorkspace({
           />
         ) : null}
 
-        {parseResult.ok && endpoints.length > 0 ? (
+        {artifactSchema && endpoints.length > 0 ? (
           <PostmanExportPanel
             allEndpoints={endpoints}
-            schema={{
-              serverUrl: activeServerUrl,
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
+            schema={artifactSchema}
             securitySchemes={securitySchemes}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}
 
-        {parseResult.ok && endpoints.length > 0 ? (
+        {artifactSchema && parseResult.ok && endpoints.length > 0 ? (
           <TypeScriptClientPanel
             allEndpoints={endpoints}
             models={schemaModels}
             rootSchema={parseResult.value.schema}
-            schema={{
-              serverUrl: activeServerUrl,
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
+            schema={artifactSchema}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}
 
-        {parseResult.ok && endpoints.length > 0 ? (
+        {artifactSchema && endpoints.length > 0 ? (
           <HtmlDocumentationPanel
             allEndpoints={endpoints}
             models={schemaModels}
-            schema={{
-              serverUrl: activeServerUrl,
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
+            schema={artifactSchema}
             securitySchemes={securitySchemes}
+            visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {artifactSchema && endpoints.length > 0 ? (
+          <NodeMockServerPanel
+            allEndpoints={endpoints}
+            schema={artifactSchema}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}
