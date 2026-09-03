@@ -5741,6 +5741,49 @@ webhooks:
     expect(within(panel).getByText("Factory: demoClient")).toBeVisible();
   });
 
+  it("builds offline documentation from all endpoints or the filtered view", async () => {
+    const user = userEvent.setup();
+
+    render(<SwaggerWorkspace />);
+
+    const panel = (
+      await screen.findByRole("heading", {
+        name: "Offline API documentation",
+      })
+    ).closest("section") as HTMLElement;
+    const endpointCount = within(panel).getByText(
+      "Documented endpoints",
+    ).nextElementSibling;
+    const methodCount =
+      within(panel).getByText("HTTP methods").nextElementSibling;
+
+    expect(endpointCount).toHaveTextContent("2");
+    expect(methodCount).toHaveTextContent("2");
+    expect(
+      within(panel).getByText(
+        "2 endpoint sections in one searchable offline file.",
+      ),
+    ).toBeVisible();
+
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "Current view (1)" }),
+    );
+
+    expect(endpointCount).toHaveTextContent("1");
+    expect(methodCount).toHaveTextContent("1");
+    expect(
+      within(panel).getByText(
+        "1 endpoint sections in one searchable offline file.",
+      ),
+    ).toBeVisible();
+  });
+
   it("captures a comparison baseline and reports removed operations", async () => {
     const user = userEvent.setup();
 

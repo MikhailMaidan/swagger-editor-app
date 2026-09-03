@@ -13,6 +13,7 @@ import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
 import { ComponentRegistryPanel } from "@/components/component-registry-panel";
 import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
+import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
@@ -2506,6 +2507,20 @@ export function SwaggerWorkspace({
               title: parseResult.value.title,
               version: parseResult.value.version,
             }}
+            visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {parseResult.ok && endpoints.length > 0 ? (
+          <HtmlDocumentationPanel
+            allEndpoints={endpoints}
+            models={schemaModels}
+            schema={{
+              serverUrl: activeServerUrl,
+              title: parseResult.value.title,
+              version: parseResult.value.version,
+            }}
+            securitySchemes={securitySchemes}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}

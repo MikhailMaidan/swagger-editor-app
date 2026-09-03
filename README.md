@@ -21,6 +21,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Dependency-free TypeScript Fetch client generation with typed models, request parameters and bodies, success responses, API errors, cancellation, configurable generation scope, and source download
+- Self-contained offline HTML documentation with endpoint search, method filtering, light and dark themes, print styles, scoped models and security schemes, browser preview, and download
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
