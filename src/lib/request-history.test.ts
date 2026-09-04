@@ -7,6 +7,7 @@ import {
   parseRequestHistory,
   readRequestHistory,
   removeRequestHistoryRecord,
+  REQUEST_HISTORY_CHANGED_EVENT,
   REQUEST_HISTORY_STORAGE_KEY,
   saveRequestHistoryRecord,
   saveServerRequestHistoryRecord,
@@ -43,6 +44,31 @@ describe("request history storage", () => {
       ]);
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it("notifies same-tab consumers when local history changes", () => {
+    const listener = vi.fn();
+    window.addEventListener(REQUEST_HISTORY_CHANGED_EVENT, listener);
+
+    try {
+      const record = saveRequestHistoryRecord({
+        durationMs: 12,
+        method: "GET",
+        path: "/users",
+        status: 200,
+        summary: "List users",
+      });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      removeRequestHistoryRecord(record?.id ?? "");
+      expect(listener).toHaveBeenCalledTimes(2);
+
+      clearRequestHistory();
+      expect(listener).toHaveBeenCalledTimes(3);
+    } finally {
+      window.removeEventListener(REQUEST_HISTORY_CHANGED_EVENT, listener);
     }
   });
 

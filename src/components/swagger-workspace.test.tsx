@@ -5784,6 +5784,56 @@ webhooks:
     ).toBeVisible();
   });
 
+  it("maps saved request history to schema coverage and the filtered view", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([
+        {
+          createdAt: "2026-09-04T10:00:00.000Z",
+          durationMs: 32,
+          id: "covered-get",
+          method: "GET",
+          path: "/users/{id}",
+          status: 200,
+          summary: "Get user by id",
+        },
+      ]),
+    );
+
+    render(<SwaggerWorkspace />);
+
+    const panel = (
+      await screen.findByRole("heading", { name: "Request coverage" })
+    ).closest("section") as HTMLElement;
+
+    expect(
+      await within(panel).findByText("50% operations tested"),
+    ).toBeVisible();
+    expect(
+      within(panel).getByText("Tested operations").nextElementSibling,
+    ).toHaveTextContent("1/2");
+    expect(
+      within(panel).getByText("Observed responses").nextElementSibling,
+    ).toHaveTextContent("1/3");
+
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    await user.selectOptions(
+      within(panel).getByLabelText("Coverage scope"),
+      "visible",
+    );
+
+    expect(within(panel).getByText("0% operations tested")).toBeVisible();
+    expect(
+      within(panel).getByText("Tested operations").nextElementSibling,
+    ).toHaveTextContent("0/1");
+  });
+
   it("generates a Node mock server from all endpoints or the filtered view", async () => {
     const user = userEvent.setup();
 

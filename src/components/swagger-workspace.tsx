@@ -19,6 +19,7 @@ import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
+import { RequestCoveragePanel } from "@/components/request-coverage-panel";
 import { RequestEnvironmentManager } from "@/components/request-environment-manager";
 import { RequestExecutionModeControl } from "@/components/request-execution-mode-control";
 import { SchemaAuditPanel } from "@/components/schema-audit-panel";
@@ -2512,6 +2513,15 @@ export function SwaggerWorkspace({
               title: parseResult.value.title,
               version: parseResult.value.version,
             }}
+            visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {artifactSchema && endpoints.length > 0 ? (
+          <RequestCoveragePanel
+            allEndpoints={endpoints}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+            schema={artifactSchema}
             visibleEndpoints={visibleEndpoints}
           />
         ) : null}

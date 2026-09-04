@@ -1,6 +1,8 @@
 import { isErrorStatus } from "./status-color";
 
 export const REQUEST_HISTORY_STORAGE_KEY = "rsswagger-request-history";
+export const REQUEST_HISTORY_CHANGED_EVENT =
+  "rsswagger-request-history-changed";
 export const SERVER_REQUEST_HISTORY_COOKIE = "rsswagger-server-history";
 export const MAX_REQUEST_HISTORY_RECORDS = 20;
 
@@ -34,6 +36,10 @@ export type RequestHistoryDraft = Omit<
 
 function createId() {
   return `${Date.now()}-${Math.round(Math.random() * 10000)}`;
+}
+
+function notifyRequestHistoryChanged() {
+  window.dispatchEvent(new Event(REQUEST_HISTORY_CHANGED_EVENT));
 }
 
 export function isRequestHistoryRecord(
@@ -217,6 +223,8 @@ export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
     return null;
   }
 
+  notifyRequestHistoryChanged();
+
   return newRecord;
 }
 
@@ -243,6 +251,7 @@ export function clearRequestHistory() {
 
   try {
     window.localStorage.removeItem(REQUEST_HISTORY_STORAGE_KEY);
+    notifyRequestHistoryChanged();
   } catch {
     // Sign-out remains usable when browser storage is blocked.
   }
@@ -262,6 +271,7 @@ export function removeRequestHistoryRecord(id: string) {
       REQUEST_HISTORY_STORAGE_KEY,
       JSON.stringify(remainingHistory),
     );
+    notifyRequestHistoryChanged();
   } catch {
     // The server-side delete (if any) still succeeds independently; a
     // blocked local store just means this device's cache goes stale.
