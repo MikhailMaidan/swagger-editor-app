@@ -3,6 +3,7 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "common.clearSearchShortcut": "Press Escape to clear search",
     "workspace.apiSliceTitle": "API slice exporter",
     "workspace.apiSliceFileDetails": "Export file: {fileName} ({size} B)",
     "workspace.apiSliceSerializationError":
@@ -1262,6 +1263,7 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "common.clearSearchShortcut": "Нажмите Escape, чтобы очистить поиск",
     "workspace.apiSliceTitle": "Экспорт части API",
     "workspace.apiSliceFileDetails": "Файл экспорта: {fileName} ({size} Б)",
     "workspace.apiSliceSerializationError":

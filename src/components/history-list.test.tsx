@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
@@ -18,6 +18,36 @@ const localRecord = {
 };
 
 describe("HistoryList", () => {
+  it("clears only the search with Escape while preserving focus and other filters", async () => {
+    const user = userEvent.setup();
+    render(
+      <HistoryList
+        initialRecords={[{ ...localRecord, errorDetails: null, url: "/users" }]}
+      />,
+    );
+    const search = screen.getByLabelText("Filter request history");
+    const method = screen.getByLabelText("Filter history by HTTP method");
+    await user.selectOptions(method, "POST");
+    await user.type(search, "missing");
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(search, { key: "Escape", [modifier]: true });
+      expect(search).toHaveValue("missing");
+    }
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(method).toHaveValue("POST");
+    expect(screen.getByText("Local request")).toBeVisible();
+    expect(fireEvent.keyDown(search, { key: "Escape" })).toBe(true);
+  });
+
   it("shows an empty state with editor and viewer links", () => {
     render(<HistoryList />);
 

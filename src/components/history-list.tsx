@@ -6,6 +6,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { getClientAuth } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import {
   clearRequestHistory,
   deleteAllServerHistory,
@@ -264,10 +265,23 @@ export function HistoryList({
         <input
           className="h-11 min-w-[240px] flex-1 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
           id="request-history-filter"
+          aria-keyshortcuts="Escape"
+          title={t("common.clearSearchShortcut")}
           placeholder={t("history.filterPlaceholder")}
           type="search"
           value={historyFilter}
           onChange={(event) => setHistoryFilter(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              historyFilter &&
+              !event.nativeEvent.isComposing &&
+              isCancelRequestShortcut(event)
+            ) {
+              event.preventDefault();
+              event.stopPropagation();
+              setHistoryFilter("");
+            }
+          }}
         />
         <div
           aria-label={t("history.outcomeFilterLabel")}

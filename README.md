@@ -69,6 +69,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Natural numeric ordering for endpoint paths and saved-schema titles, so version 2 sorts before version 10
 - Authentication-aware schema saving and request history
 - Multiword search across request-history fields and saved-schema metadata (for example, `GET users 200` or `billing json 2.4`), combined with existing filters
+- Escape clears request-history and saved-schema search text while preserving other filters and keyboard focus
 - Server-rendered history analytics in English and Russian
 
 ## Local Setup

@@ -6,6 +6,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import {
   downloadSchemaCollectionFile,
   downloadSchemaFile,
@@ -345,10 +346,23 @@ export function SchemasPageContent({
                 <input
                   className="h-11 min-w-[220px] flex-1 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-sm font-medium text-[color:var(--color-brand-navy)] outline-none focus:border-[color:var(--color-brand-purple)]"
                   id="saved-schema-filter"
+                  aria-keyshortcuts="Escape"
+                  title={t("common.clearSearchShortcut")}
                   placeholder={t("schemas.filterPlaceholder")}
                   type="search"
                   value={schemaFilter}
                   onChange={(event) => setSchemaFilter(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (
+                      schemaFilter &&
+                      !event.nativeEvent.isComposing &&
+                      isCancelRequestShortcut(event)
+                    ) {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setSchemaFilter("");
+                    }
+                  }}
                 />
                 <label className="sr-only" htmlFor="saved-schema-format">
                   {t("schemas.formatFilterLabel")}

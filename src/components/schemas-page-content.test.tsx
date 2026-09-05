@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SCHEMA_EDITOR_HANDOFF_STORAGE_KEY } from "@/lib/schema-storage";
@@ -15,6 +15,32 @@ const savedSchema = {
 };
 
 describe("SchemasPageContent", () => {
+  it("clears only the search with Escape while preserving focus and other filters", async () => {
+    const user = userEvent.setup();
+    render(<SchemasPageContent initialSchemas={[savedSchema]} />);
+    const search = screen.getByLabelText("Filter saved schemas");
+    const format = screen.getByLabelText("Filter saved schemas by format");
+    await user.selectOptions(format, "yaml");
+    await user.type(search, "missing");
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(search, { key: "Escape", [modifier]: true });
+      expect(search).toHaveValue("missing");
+    }
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(format).toHaveValue("yaml");
+    expect(screen.getByRole("heading", { name: "Saved API" })).toBeVisible();
+    expect(fireEvent.keyDown(search, { key: "Escape" })).toBe(true);
+  });
+
   it("shows an empty state with an editor link", () => {
     render(<SchemasPageContent initialSchemas={[]} />);
 
