@@ -14,6 +14,8 @@ const METHOD_ORDER = [
   "HEAD",
 ];
 
+const pathCollator = new Intl.Collator(undefined, { numeric: true });
+
 export function readEndpointSortPreference(): EndpointSort {
   if (typeof window === "undefined") {
     return "schema";
@@ -69,14 +71,14 @@ export function sortEndpoints(
   return [...endpoints].sort((firstEndpoint, secondEndpoint) => {
     if (sort === "path") {
       return (
-        firstEndpoint.path.localeCompare(secondEndpoint.path) ||
+        pathCollator.compare(firstEndpoint.path, secondEndpoint.path) ||
         compareMethods(firstEndpoint.method, secondEndpoint.method)
       );
     }
 
     return (
       compareMethods(firstEndpoint.method, secondEndpoint.method) ||
-      firstEndpoint.path.localeCompare(secondEndpoint.path)
+      pathCollator.compare(firstEndpoint.path, secondEndpoint.path)
     );
   });
 }

@@ -66,6 +66,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Persistent collapsible endpoint details with visible-endpoint bulk controls
 - Persistent endpoint favorites with favorites-only filtering
 - Persistent endpoint sorting by schema order, path, or HTTP method
+- Natural numeric ordering for endpoint paths and saved-schema titles, so version 2 sorts before version 10
 - Authentication-aware schema saving and request history
 - Multiword search across request-history fields and saved-schema metadata (for example, `GET users 200` or `billing json 2.4`), combined with existing filters
 - Server-rendered history analytics in English and Russian

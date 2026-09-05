@@ -22,10 +22,11 @@ export function sortSavedSchemaRecords(
   insightsById: ReadonlyMap<string, SavedSchemaSortInsight>,
 ) {
   const sortedSchemas = [...schemas];
+  const titleCollator = new Intl.Collator(locale, { numeric: true });
   const compareTitles = (
     firstSchema: SavedSchemaRecord,
     secondSchema: SavedSchemaRecord,
-  ) => firstSchema.title.localeCompare(secondSchema.title, locale);
+  ) => titleCollator.compare(firstSchema.title, secondSchema.title);
 
   sortedSchemas.sort((firstSchema, secondSchema) => {
     if (sort === "title") {

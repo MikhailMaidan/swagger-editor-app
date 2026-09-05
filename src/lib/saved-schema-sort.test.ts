@@ -56,6 +56,43 @@ describe("saved schema sorting", () => {
     ]);
   });
 
+  it.each(["en", "ru"])(
+    "sorts numbered titles naturally in %s without changing records",
+    (locale) => {
+      const prefix = locale === "ru" ? "Схема" : "API";
+      const schemas = [10, 2, 1].map((number) => ({
+        ...newerSchema,
+        id: String(number),
+        title: `${prefix} ${number}`,
+      }));
+      expect(
+        sortSavedSchemaRecords(schemas, "title", locale, new Map()).map(
+          ({ id }) => id,
+        ),
+      ).toEqual(["1", "2", "10"]);
+      expect(schemas.map(({ id }) => id)).toEqual(["10", "2", "1"]);
+    },
+  );
+
+  it.each(["largest", "endpoints", "newest", "oldest"] as const)(
+    "uses natural title order to break %s ties",
+    (sort) => {
+      const schemas = [10, 2].map((number) => ({
+        ...newerSchema,
+        id: String(number),
+        title: `API ${number}`,
+      }));
+      const tiedInsights = new Map(
+        schemas.map(({ id }) => [id, { byteSize: 100, endpointCount: 2 }]),
+      );
+      expect(
+        sortSavedSchemaRecords(schemas, sort, "en", tiedInsights).map(
+          ({ id }) => id,
+        ),
+      ).toEqual(["2", "10"]);
+    },
+  );
+
   it("keeps invalid timestamps last for both date directions", () => {
     const schemas = [olderSchema, unavailableSchema, newerSchema];
 

@@ -56,6 +56,48 @@ describe("endpoint sorting", () => {
     ]);
   });
 
+  it("sorts numbered paths naturally while preserving method precedence and the source order", () => {
+    const numbered = [
+      createEndpoint("POST", "/v2/users"),
+      createEndpoint("GET", "/v10/users"),
+      createEndpoint("GET", "/v2/users"),
+      createEndpoint("GET", "/v1/users"),
+    ];
+    const original = [...numbered];
+
+    expect(
+      sortEndpoints(numbered, "path").map(
+        ({ method, path }) => `${method} ${path}`,
+      ),
+    ).toEqual([
+      "GET /v1/users",
+      "GET /v2/users",
+      "POST /v2/users",
+      "GET /v10/users",
+    ]);
+    expect(
+      sortEndpoints(numbered, "method").map(
+        ({ method, path }) => `${method} ${path}`,
+      ),
+    ).toEqual([
+      "GET /v1/users",
+      "GET /v2/users",
+      "GET /v10/users",
+      "POST /v2/users",
+    ]);
+    expect(sortEndpoints(numbered, "schema")).toBe(numbered);
+    expect(numbered).toEqual(original);
+  });
+
+  it("preserves declaration order for numerically equivalent paths", () => {
+    const equivalent = [
+      createEndpoint("GET", "/v02/users"),
+      createEndpoint("GET", "/v2/users"),
+    ];
+    expect(sortEndpoints(equivalent, "path")).toEqual(equivalent);
+    expect(sortEndpoints(equivalent, "method")).toEqual(equivalent);
+  });
+
   it("persists non-default sorting and removes the default", () => {
     expect(readEndpointSortPreference()).toBe("schema");
     expect(saveEndpointSortPreference("path")).toBe(true);
