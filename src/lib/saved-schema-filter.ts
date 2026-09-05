@@ -13,7 +13,7 @@ export function filterSavedSchemas(
   search: string,
   format: SavedSchemaFormatFilter = "all",
 ) {
-  const normalizedSearch = search.trim().toLowerCase();
+  const searchTerms = search.toLowerCase().split(/\s+/).filter(Boolean);
 
   return schemas.filter((schema) => {
     const matchesFormat =
@@ -23,12 +23,13 @@ export function filterSavedSchemas(
       return false;
     }
 
-    return (
-      !normalizedSearch ||
-      schema.title.toLowerCase().includes(normalizedSearch) ||
-      schema.version.toLowerCase().includes(normalizedSearch) ||
-      schema.format.toLowerCase().includes(normalizedSearch)
-    );
+    if (searchTerms.length === 0) return true;
+
+    const searchableText = [schema.title, schema.version, schema.format]
+      .join(" ")
+      .toLowerCase();
+
+    return searchTerms.every((term) => searchableText.includes(term));
   });
 }
 

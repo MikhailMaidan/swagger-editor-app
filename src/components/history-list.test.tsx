@@ -781,6 +781,13 @@ describe("HistoryList", () => {
     expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
 
     await user.clear(filter);
+    await user.type(filter, "200 users GET");
+
+    expect(screen.getByText("List users")).toBeVisible();
+    expect(screen.queryByText("Create account")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 requests")).toBeVisible();
+
+    await user.clear(filter);
     await user.type(filter, "missing");
 
     expect(

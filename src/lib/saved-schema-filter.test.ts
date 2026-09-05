@@ -27,6 +27,19 @@ const schemas: SavedSchemaRecord[] = [
 ];
 
 describe("saved schema filters", () => {
+  it("matches every search word across title, version, and format", () => {
+    const original = JSON.stringify(schemas);
+    expect(
+      filterSavedSchemas(schemas, "  JSON\tbilling\n2.4 ").map(({ id }) => id),
+    ).toEqual(["billing"]);
+    expect(
+      filterSavedSchemas(schemas, "store 1.0", "yaml").map(({ id }) => id),
+    ).toEqual(["petstore"]);
+    expect(filterSavedSchemas(schemas, "billing yaml")).toEqual([]);
+    expect(filterSavedSchemas(schemas, "billing 2.4", "yaml")).toEqual([]);
+    expect(filterSavedSchemas(schemas, " \t\n ")).toEqual(schemas);
+    expect(JSON.stringify(schemas)).toBe(original);
+  });
   it("searches titles, versions, and formats without changing the input", () => {
     expect(filterSavedSchemas(schemas, " store ").map(({ id }) => id)).toEqual([
       "petstore",

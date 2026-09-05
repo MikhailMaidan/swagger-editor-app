@@ -76,7 +76,7 @@ export function filterRequestHistory(
   age: RequestHistoryAgeFilter = "all",
   now = Date.now(),
 ) {
-  const normalizedSearch = search.trim().toLowerCase();
+  const searchTerms = search.toLowerCase().split(/\s+/).filter(Boolean);
 
   return records.filter((record) => {
     const failed = isErrorStatus(record.status);
@@ -98,14 +98,19 @@ export function filterRequestHistory(
       }
     }
 
-    return (
-      !normalizedSearch ||
-      record.method.toLowerCase().includes(normalizedSearch) ||
-      record.path.toLowerCase().includes(normalizedSearch) ||
-      record.url.toLowerCase().includes(normalizedSearch) ||
-      record.summary.toLowerCase().includes(normalizedSearch) ||
-      String(record.status).includes(normalizedSearch) ||
-      (record.errorDetails || "").toLowerCase().includes(normalizedSearch)
-    );
+    if (searchTerms.length === 0) return true;
+
+    const searchableText = [
+      record.method,
+      record.path,
+      record.url,
+      record.summary,
+      record.status,
+      record.errorDetails || "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchTerms.every((term) => searchableText.includes(term));
   });
 }

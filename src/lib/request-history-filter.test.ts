@@ -50,6 +50,39 @@ const records: RequestHistoryRecord[] = [
 ];
 
 describe("request history filters", () => {
+  it("matches every search word across fields regardless of order or whitespace", () => {
+    expect(
+      filterRequestHistory(records, "  200\tUSERS\nget ").map(({ id }) => id),
+    ).toEqual(["successful"]);
+    expect(
+      filterRequestHistory(records, "POST timeout 504").map(({ id }) => id),
+    ).toEqual(["failed"]);
+    expect(filterRequestHistory(records, "GET reports")).toEqual([]);
+    expect(filterRequestHistory(records, " \t\n ")).toEqual(records);
+  });
+
+  it("combines multiword searches with outcome and age filters without changing records", () => {
+    const original = JSON.stringify(records);
+    const now = Date.parse("2026-07-06T12:00:00.000Z");
+    expect(
+      filterRequestHistory(records, "post 504", "failed", "24-hours", now).map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["failed"]);
+    expect(
+      filterRequestHistory(records, "post 504", "successful", "24-hours", now),
+    ).toEqual([]);
+    expect(
+      filterRequestHistory(
+        records,
+        "post 504",
+        "failed",
+        "24-hours",
+        now + 2 * 86400000,
+      ),
+    ).toEqual([]);
+    expect(JSON.stringify(records)).toBe(original);
+  });
   it("searches method, URL, summary, status, and error details", () => {
     expect(filterRequestHistory(records, "POST").map(({ id }) => id)).toEqual([
       "failed",

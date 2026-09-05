@@ -420,6 +420,15 @@ describe("SchemasPageContent", () => {
     expect(screen.getByText("Showing 1 of 2 schemas")).toBeVisible();
 
     await user.clear(filter);
+    await user.type(filter, "2.0 other JSON");
+
+    expect(screen.getByRole("heading", { name: "Other API" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Saved API" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 schemas")).toBeVisible();
+
+    await user.clear(filter);
     await user.type(filter, "missing");
 
     expect(
