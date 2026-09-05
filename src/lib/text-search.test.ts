@@ -32,6 +32,36 @@ describe("text search helpers", () => {
     );
   });
 
+  it.each([
+    ["cafe\u0301 cafe", "cafe"],
+    ["и\u0306 и", "и"],
+    ["का क", "क"],
+  ])(
+    "does not split combining marks from a whole-word match in %s",
+    (value, query) => {
+      const start = value.lastIndexOf(query);
+      expect(findTextMatches(value, query, false, true)).toEqual([
+        { start, end: start + query.length },
+      ]);
+      expect(findTextMatches(value, query)).toHaveLength(2);
+    },
+  );
+
+  it("rejects whole-word matches immediately after a combining mark", () => {
+    expect(findTextMatches("a\u0301cat cat", "cat", false, true)).toEqual([
+      { start: 6, end: 9 },
+    ]);
+  });
+
+  it("matches a complete accented word and preserves source offsets", () => {
+    const query = "cafe\u0301";
+    const value = `${query} ${query}ine (${query})`;
+    expect(findTextMatches(value, query, true, true)).toEqual([
+      { start: 0, end: 5 },
+      { start: 16, end: 21 },
+    ]);
+  });
+
   it("creates search queries from single-line selections", () => {
     expect(getSearchQueryFromSelection("Alpha beta", 0, 5)).toBe("Alpha");
     expect(getSearchQueryFromSelection("Alpha beta", 10, 6)).toBe("beta");

@@ -5,7 +5,8 @@ export type TextMatch = {
 
 export type TextSearchDirection = "next" | "previous";
 
-const WORD_CHARACTER_PATTERN = /[\p{L}\p{N}_]/u;
+// Combining accents and vowel signs belong to their surrounding word.
+const WORD_CHARACTER_PATTERN = /[\p{L}\p{M}\p{N}_]/u;
 
 function escapeRegularExpression(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
