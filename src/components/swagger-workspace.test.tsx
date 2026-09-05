@@ -5834,6 +5834,48 @@ webhooks:
     ).toHaveTextContent("0/1");
   });
 
+  it("exports an API slice that follows method filters without changing the editor", async () => {
+    const user = userEvent.setup();
+    render(<SwaggerWorkspace />);
+    const panel = await screen.findByRole("region", {
+      name: "API slice exporter",
+    });
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    const original = editor.value;
+    expect(
+      within(panel).getByText("Exported operations").nextElementSibling,
+    ).toHaveTextContent("2");
+    const methodFilters = screen.getByRole("group", {
+      name: "Filter endpoints by HTTP method",
+    });
+    await user.click(
+      within(methodFilters).getByRole("button", { name: "POST (1)" }),
+    );
+    expect(
+      within(panel).getByText("Exported operations").nextElementSibling,
+    ).toHaveTextContent("1");
+    await user.selectOptions(
+      within(panel).getByLabelText("Slice format"),
+      "json",
+    );
+    const preview = within(panel).getByLabelText(
+      "Preview OpenAPI slice",
+    ) as HTMLTextAreaElement;
+    expect(Object.keys(JSON.parse(preview.value).paths["/users/{id}"])).toEqual(
+      ["parameters", "post"],
+    );
+    expect(editor.value).toBe(original);
+    await user.selectOptions(
+      within(panel).getByLabelText("Slice scope"),
+      "all",
+    );
+    expect(
+      within(panel).getByText("Exported operations").nextElementSibling,
+    ).toHaveTextContent("2");
+  });
+
   it("generates a Node mock server from all endpoints or the filtered view", async () => {
     const user = userEvent.setup();
 

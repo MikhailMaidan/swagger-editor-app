@@ -20,6 +20,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Callback and webhook contract explorer with reusable-reference resolution, payload examples, receiver responses, source navigation, diagnostics, Markdown sharing, and JSON reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
+- OpenAPI slice export in JSON or YAML using endpoint filters and favorites, with transitive component retention, optional webhooks, contract previews, and reference diagnostics
 - Dependency-free TypeScript Fetch client generation with typed models, request parameters and bodies, success responses, API errors, cancellation, configurable generation scope, and source download
 - Self-contained offline HTML documentation with endpoint search, method filtering, light and dark themes, print styles, scoped models and security schemes, browser preview, and download
 - Dependency-free Node.js mock-server generation with scoped routes, documented response selection, generated examples, required-input validation, CORS, latency controls, health metadata, and source download
@@ -78,6 +79,26 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Exporting part of an API
+
+Use the endpoint search, tags, method filters, or favorites to choose operations,
+then open **API slice exporter** in the workspace. Its **Current view** scope
+exports those operations; **All endpoints** exports the complete operation list.
+Choose JSON or YAML, review the preview and component counts, then copy or
+download the contract. The editor document stays unchanged.
+
+The export preserves source metadata, server URLs, shared path parameters, and
+authentication requirements. Unused reusable components are removed while
+transitive and circular dependencies are retained. Webhooks can be included
+explicitly. Polymorphic schemas, schema resource IDs, and references to whole
+component containers retain all components conservatively.
+
+Missing local references and referenced path items block export and are listed
+in the review notes. External references remain external, and links to excluded
+operations are flagged for review. JSON/YAML serialization does not preserve
+source comments or formatting. The original specification version is retained,
+including Swagger 2 reusable definitions.
 
 ## Database Setup
 

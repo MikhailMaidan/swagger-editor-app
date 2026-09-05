@@ -3,6 +3,46 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "workspace.apiSliceTitle": "API slice exporter",
+    "workspace.apiSliceSerializationError":
+      "This document cannot be serialized. Replace circular YAML aliases with OpenAPI references before exporting.",
+    "workspace.apiSliceDescription":
+      "Share a focused OpenAPI contract using your endpoint filters, tags, or favorites. Keeps document metadata, shared parameters, and required components. Uses the schema's server URLs. JSON/YAML output preserves data, but not source comments or formatting.",
+    "workspace.apiSliceScope": "Slice scope",
+    "workspace.apiSliceVisible": "Current view ({count})",
+    "workspace.apiSliceAll": "All endpoints ({count})",
+    "workspace.apiSliceFormat": "Slice format",
+    "workspace.apiSlicePrune": "Remove unused components",
+    "workspace.apiSliceDeprecated": "Include deprecated operations",
+    "workspace.apiSliceWebhooks": "Include all top-level webhooks",
+    "workspace.apiSliceOperations": "Exported operations",
+    "workspace.apiSlicePaths": "Exported paths",
+    "workspace.apiSliceRetained": "Retained components",
+    "workspace.apiSliceRemoved": "Removed components",
+    "workspace.apiSliceIssues": "Review notes ({count})",
+    "workspace.apiSliceBrokenReference":
+      "A local reference or security definition is missing. Include its target or fix the source contract.",
+    "workspace.apiSliceExternalReference":
+      "This reference needs an external document. It is preserved and has not been bundled; relative references may need a new base URL.",
+    "workspace.apiSliceLinkedOperation":
+      "A response link cannot resolve to an operation in this slice. Review the target before sharing.",
+    "workspace.apiSlicePreservedComponents":
+      "All components were retained because polymorphism, schema resource IDs, or references to whole containers may have implicit dependencies.",
+    "workspace.apiSlicePathReference":
+      "This path uses a referenced path item, which may introduce unselected operations. Inline the path item in the source before exporting.",
+    "workspace.apiSliceEmpty":
+      "No operations selected. Adjust your endpoint filters or include deprecated operations.",
+    "workspace.apiSliceBlocked":
+      "Resolve missing local references and referenced path items to enable export. The preview is available for inspection.",
+    "workspace.apiSlicePreview": "Preview OpenAPI slice",
+    "workspace.apiSliceCopy": "Copy slice",
+    "workspace.apiSliceDownload": "Download slice",
+    "workspace.apiSliceCopySuccess": "OpenAPI slice copied.",
+    "workspace.apiSliceCopyError":
+      "Could not copy the slice. Try downloading it.",
+    "workspace.apiSliceDownloadSuccess": "OpenAPI slice download started.",
+    "workspace.apiSliceDownloadError":
+      "Could not download the slice. Try copying it.",
     "about.courseTextAfter": ".",
     "about.courseTextBefore":
       "RS School React module final task. Learn more at ",
@@ -1221,6 +1261,46 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "workspace.apiSliceTitle": "Экспорт части API",
+    "workspace.apiSliceSerializationError":
+      "Не удалось сериализовать документ. Замените циклические псевдонимы YAML ссылками OpenAPI перед экспортом.",
+    "workspace.apiSliceDescription":
+      "Поделитесь отдельным контрактом OpenAPI по фильтрам, тегам или избранным эндпоинтам. Сохраняются метаданные, общие параметры и нужные компоненты. Используются URL серверов из схемы. Экспорт JSON/YAML сохраняет данные, но не комментарии и исходное форматирование.",
+    "workspace.apiSliceScope": "Область экспорта",
+    "workspace.apiSliceVisible": "Текущий вид ({count})",
+    "workspace.apiSliceAll": "Все эндпоинты ({count})",
+    "workspace.apiSliceFormat": "Формат экспорта",
+    "workspace.apiSlicePrune": "Удалить неиспользуемые компоненты",
+    "workspace.apiSliceDeprecated": "Включить устаревшие операции",
+    "workspace.apiSliceWebhooks": "Включить все вебхуки верхнего уровня",
+    "workspace.apiSliceOperations": "Операций в экспорте",
+    "workspace.apiSlicePaths": "Путей в экспорте",
+    "workspace.apiSliceRetained": "Сохранено компонентов",
+    "workspace.apiSliceRemoved": "Удалено компонентов",
+    "workspace.apiSliceIssues": "Замечания ({count})",
+    "workspace.apiSliceBrokenReference":
+      "Не найдена локальная ссылка или схема безопасности. Включите её цель или исправьте исходный контракт.",
+    "workspace.apiSliceExternalReference":
+      "Для ссылки нужен внешний документ. Она сохранена без встраивания; относительным ссылкам может потребоваться новый базовый URL.",
+    "workspace.apiSliceLinkedOperation":
+      "Не удалось найти целевую операцию ссылки ответа в этой части API. Проверьте цель перед отправкой.",
+    "workspace.apiSlicePreservedComponents":
+      "Все компоненты сохранены: полиморфизм, идентификаторы ресурсов схемы или ссылки на целые контейнеры могут иметь неявные зависимости.",
+    "workspace.apiSlicePathReference":
+      "Путь ссылается на другой объект пути, который может включать невыбранные операции. Встройте объект пути в исходную схему перед экспортом.",
+    "workspace.apiSliceEmpty":
+      "Нет выбранных операций. Измените фильтры эндпоинтов или включите устаревшие операции.",
+    "workspace.apiSliceBlocked":
+      "Исправьте отсутствующие локальные ссылки и встроите объекты путей для экспорта. Предпросмотр доступен для проверки.",
+    "workspace.apiSlicePreview": "Предпросмотр части OpenAPI",
+    "workspace.apiSliceCopy": "Копировать часть API",
+    "workspace.apiSliceDownload": "Скачать часть API",
+    "workspace.apiSliceCopySuccess": "Часть OpenAPI скопирована.",
+    "workspace.apiSliceCopyError":
+      "Не удалось скопировать часть API. Попробуйте скачать её.",
+    "workspace.apiSliceDownloadSuccess": "Скачивание части OpenAPI началось.",
+    "workspace.apiSliceDownloadError":
+      "Не удалось скачать часть API. Попробуйте скопировать её.",
     "about.courseTextAfter": ".",
     "about.courseTextBefore":
       "Итоговое задание модуля React от RS School. Подробнее: ",
