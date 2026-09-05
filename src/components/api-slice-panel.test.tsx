@@ -154,6 +154,63 @@ describe("ApiSlicePanel", () => {
     ).toBeDisabled();
   });
 
+  it("shows the actual UTF-8 download size and updates the filename and size with the format", async () => {
+    const user = userEvent.setup();
+    renderPanel({ ...schema.schema, "x-note": "Привет 🌍" });
+    const preview = screen.getByLabelText(
+      "Preview OpenAPI slice",
+    ) as HTMLTextAreaElement;
+    const yamlSize = new TextEncoder().encode(preview.value).byteLength;
+    expect(yamlSize).toBeGreaterThan(preview.value.length);
+    expect(
+      screen.getByText(`Export file: slice-api-slice.yaml (${yamlSize} B)`),
+    ).toBeVisible();
+    await user.selectOptions(screen.getByLabelText("Slice format"), "json");
+    const jsonSize = new TextEncoder().encode(preview.value).byteLength;
+    expect(
+      screen.getByText(`Export file: slice-api-slice.json (${jsonSize} B)`),
+    ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Download slice" }));
+    expect(downloadTextFile).toHaveBeenCalledWith(
+      preview.value,
+      "slice-api-slice.json",
+      "application/json",
+    );
+  });
+
+  it("reports serialization failures without claiming the selection is empty and recovers after correction", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    const { rerender } = renderPanel({ ...schema.schema, "x-cycle": cyclic });
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "This document cannot be serialized.",
+    );
+    expect(
+      screen.queryByText(/No operations selected/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Preview OpenAPI slice"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Export file:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy slice" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Download slice" }),
+    ).toBeDisabled();
+    rerender(
+      <ApiSlicePanel
+        rootSchema={schema.schema}
+        allEndpoints={schema.endpoints}
+        visibleEndpoints={schema.endpoints}
+        title={schema.title}
+      />,
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Preview OpenAPI slice")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Download slice" }),
+    ).toBeEnabled();
+  });
+
   it("allows external references with a review note", () => {
     renderPanel({
       ...schema.schema,

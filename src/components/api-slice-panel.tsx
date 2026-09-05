@@ -10,6 +10,7 @@ import {
 import { writeTextToClipboard } from "@/lib/clipboard";
 import type { EndpointSummary, SchemaFormat } from "@/lib/openapi";
 import { downloadTextFile } from "@/lib/schema-download";
+import { getByteSize } from "@/lib/text-encoding";
 import type { TranslationKey } from "@/lib/translations";
 
 const issueLabels: Record<ApiSliceIssue["code"], TranslationKey> = {
@@ -59,7 +60,15 @@ export const ApiSlicePanel = memo(function ApiSlicePanel({
     () => createApiSliceExport(build, title, format),
     [build, title, format],
   );
+  const byteSize = useMemo(
+    () => getByteSize(exported.content),
+    [exported.content],
+  );
+  const serializationFailed = build.issues.some(
+    (issue) => issue.code === "serialization-error",
+  );
   const blocked =
+    serializationFailed ||
     build.operationCount === 0 ||
     build.issues.some(
       (issue) =>
@@ -200,7 +209,13 @@ export const ApiSlicePanel = memo(function ApiSlicePanel({
                 className="break-words text-amber-950"
                 key={`${issue.source}-${index}`}
               >
-                <p>{t(issueLabels[issue.code])}</p>
+                <p
+                  role={
+                    issue.code === "serialization-error" ? "alert" : undefined
+                  }
+                >
+                  {t(issueLabels[issue.code])}
+                </p>
                 <p className="mt-1 break-all font-mono text-xs">
                   {issue.source}
                   {issue.target ? ` → ${issue.target}` : ""}
@@ -210,7 +225,7 @@ export const ApiSlicePanel = memo(function ApiSlicePanel({
           </ul>
         </details>
       )}
-      {blocked && (
+      {blocked && !serializationFailed && (
         <p
           role="status"
           className="mt-3 text-sm font-semibold text-[color:var(--color-brand-muted)]"
@@ -222,18 +237,28 @@ export const ApiSlicePanel = memo(function ApiSlicePanel({
           )}
         </p>
       )}
-      <details className="mt-4">
-        <summary className="cursor-pointer text-sm font-bold text-[color:var(--color-brand-navy)]">
-          {t("workspace.apiSlicePreview")}
-        </summary>
-        <textarea
-          aria-label={t("workspace.apiSlicePreview")}
-          className="mt-2 h-72 w-full rounded-md border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3 font-mono text-xs"
-          readOnly
-          value={exported.content}
-          spellCheck={false}
-        />
-      </details>
+      {!serializationFailed && (
+        <p className="mt-4 break-all text-xs font-semibold text-[color:var(--color-brand-muted)]">
+          {t("workspace.apiSliceFileDetails", {
+            fileName: exported.fileName,
+            size: String(byteSize),
+          })}
+        </p>
+      )}
+      {!serializationFailed && (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-bold text-[color:var(--color-brand-navy)]">
+            {t("workspace.apiSlicePreview")}
+          </summary>
+          <textarea
+            aria-label={t("workspace.apiSlicePreview")}
+            className="mt-2 h-72 w-full rounded-md border border-[color:var(--color-brand-border)] bg-[#fbfaff] p-3 font-mono text-xs"
+            readOnly
+            value={exported.content}
+            spellCheck={false}
+          />
+        </details>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           className={buttonClass}

@@ -4,6 +4,7 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 export const translations = {
   en: {
     "workspace.apiSliceTitle": "API slice exporter",
+    "workspace.apiSliceFileDetails": "Export file: {fileName} ({size} B)",
     "workspace.apiSliceSerializationError":
       "This document cannot be serialized. Replace circular YAML aliases with OpenAPI references before exporting.",
     "workspace.apiSliceDescription":
@@ -1262,6 +1263,7 @@ export const translations = {
   },
   ru: {
     "workspace.apiSliceTitle": "Экспорт части API",
+    "workspace.apiSliceFileDetails": "Файл экспорта: {fileName} ({size} Б)",
     "workspace.apiSliceSerializationError":
       "Не удалось сериализовать документ. Замените циклические псевдонимы YAML ссылками OpenAPI перед экспортом.",
     "workspace.apiSliceDescription":
