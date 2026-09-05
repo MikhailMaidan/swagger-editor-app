@@ -308,6 +308,18 @@ describe("API slice export", () => {
     });
   });
 
+  it("preserves the slice suffix when long titles are shortened", () => {
+    const schema = fixture();
+    const title = "A".repeat(300);
+    schema.info.title = title;
+    const build = createApiSlice(schema, endpoints(schema));
+    for (const format of ["json", "yaml"] as const) {
+      const exported = createApiSliceExport(build, title, format);
+      expect(exported.fileName).toBe(`${"a".repeat(120)}-slice.${format}`);
+      expect(YAML.parse(exported.content).info.title).toBe(title);
+    }
+  });
+
   it("round-trips JSON and YAML exports with safe filenames and original spec versions", () => {
     const schema = fixture();
     const build = createApiSlice(schema, endpoints(schema).slice(0, 1));

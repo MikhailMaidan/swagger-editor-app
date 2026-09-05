@@ -198,9 +198,10 @@ export function createApiSliceExport(
   title: string,
   format: SchemaFormat,
 ) {
-  const metadata = getSchemaDownloadMetadata(`${title}-slice`, format);
+  const metadata = getSchemaDownloadMetadata(title, format);
   return {
     ...metadata,
+    fileName: metadata.fileName.replace(/\.(json|yaml)$/, "-slice.$1"),
     content:
       format === "json"
         ? `${JSON.stringify(build.document, null, 2)}\n`

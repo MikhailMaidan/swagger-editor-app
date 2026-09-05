@@ -20,6 +20,33 @@ describe("schema download helpers", () => {
     });
   });
 
+  it.each(["CON", "prn", "Aux", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
+    "avoids reserved device names for the title %s",
+    (title) => {
+      expect(getSchemaDownloadMetadata(title, "json").fileName).toBe(
+        `openapi-${title.toLowerCase()}.json`,
+      );
+    },
+  );
+
+  it("keeps names that only contain a reserved word unchanged", () => {
+    expect(getSchemaDownloadMetadata("CON API", "yaml").fileName).toBe(
+      "con-api.yaml",
+    );
+    expect(getSchemaDownloadMetadata("COM10", "json").fileName).toBe(
+      "com10.json",
+    );
+  });
+
+  it("bounds long filenames, trims truncated separators, and preserves the extension", () => {
+    expect(getSchemaDownloadMetadata("A".repeat(300), "json").fileName).toBe(
+      `${"a".repeat(120)}.json`,
+    );
+    expect(
+      getSchemaDownloadMetadata(`${"B".repeat(119)} / API`, "yaml").fileName,
+    ).toBe(`${"b".repeat(119)}.yaml`);
+  });
+
   it("creates a dated, versioned export of saved schema records", () => {
     const schema = {
       createdAt: "2026-08-01T08:00:00.000Z",

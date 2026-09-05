@@ -17,7 +17,14 @@ function slugifyTitle(title: string) {
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120)
+    .replace(/-+$/g, "");
+
+  // Windows device names remain reserved even with a file extension.
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/.test(slug)) {
+    return `openapi-${slug}`;
+  }
 
   return slug || "openapi-schema";
 }
