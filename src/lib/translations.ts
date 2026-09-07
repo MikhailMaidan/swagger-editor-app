@@ -3,6 +3,67 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "comparison.title": "Response comparison",
+    "comparison.description":
+      "Pin a response, then run this endpoint again to review changes. The baseline stays in memory while this endpoint remains in view.",
+    "comparison.pin": "Pin response baseline",
+    "comparison.replace": "Use current as baseline",
+    "comparison.clear": "Clear response baseline",
+    "comparison.baselineSummary": "Baseline: status {status} · {source}",
+    "comparison.mock": "Mock",
+    "comparison.live": "Live",
+    "comparison.awaiting":
+      "Baseline retained. Run this endpoint again to compare a response.",
+    "comparison.options": "Comparison settings",
+    "comparison.ignorePaths": "Ignored JSON paths (one per line)",
+    "comparison.ignoreHeaders": "Ignored response headers (comma-separated)",
+    "comparison.ignoreHelp":
+      "Use JSON Pointers such as /timestamp or /items/0/id. Matching paths and their descendants are skipped; parent additions or removals still appear. Escape / as ~1 and ~ as ~0. Arrays are compared by index.",
+    "comparison.invalidOptions":
+      "Use at most 64 JSON paths and 64 header names. Each path must start with /, use valid ~0 or ~1 escapes, and be at most 512 characters.",
+    "comparison.partial": "Partial comparison: {count} changes found",
+    "comparison.differenceCount": "{count} response changes",
+    "comparison.identical": "No response changes under the current settings.",
+    "comparison.bodyMode": "Body comparison: {mode}",
+    "comparison.jsonMode": "JSON structure",
+    "comparison.textMode": "Text",
+    "comparison.largeMode": "Skipped (over 1 MiB)",
+    "comparison.latency": "Latency: {before} → {after} ms (Δ {delta} ms)",
+    "comparison.size": "Body size: {before} → {after} B",
+    "comparison.mixedModes":
+      "This comparison includes both a Mock response and a Live response.",
+    "comparison.textHelp":
+      "Bodies are compared as text when structural JSON comparison is unavailable. Ignored JSON paths apply only to JSON comparisons.",
+    "comparison.limitHelp":
+      "Comparison limits: 1 MiB per body, 500 changes, 20,000 visited values, and 60 nesting levels. A partial comparison cannot establish that responses match.",
+    "comparison.areaFilter": "Change area",
+    "comparison.kindFilter": "Change type",
+    "comparison.allAreas": "All areas",
+    "comparison.allKinds": "All changes",
+    "comparison.body": "Body",
+    "comparison.headers": "Headers",
+    "comparison.status": "Status",
+    "comparison.added": "Added",
+    "comparison.removed": "Removed",
+    "comparison.changed": "Changed",
+    "comparison.search": "Search changed paths",
+    "comparison.table": "Response differences",
+    "comparison.path": "Path",
+    "comparison.before": "Baseline value",
+    "comparison.after": "Current value",
+    "comparison.root": "(body root)",
+    "comparison.noMatches": "No changes match these filters.",
+    "comparison.copy": "Copy comparison report",
+    "comparison.download": "Download comparison report",
+    "comparison.includeValues": "Include value previews in report",
+    "comparison.exportHelp":
+      "Exports include all detected changes, regardless of table filters. Values are omitted by default. Previews are limited to 1,000 characters; changed containers show their size. Standard authentication and cookie header values are always redacted.",
+    "comparison.copySuccess": "Response comparison copied.",
+    "comparison.copyError":
+      "Could not copy the comparison. Try downloading it.",
+    "comparison.downloadSuccess": "Response comparison download started.",
+    "comparison.downloadError":
+      "Could not download the comparison. Try copying it.",
     "common.clearSearchShortcut": "Press Escape to clear search",
     "workspace.apiSliceTitle": "API slice exporter",
     "workspace.apiSliceFileDetails": "Export file: {fileName} ({size} B)",
@@ -1263,6 +1324,68 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "comparison.title": "Сравнение ответов",
+    "comparison.description":
+      "Закрепите ответ, затем повторите запрос для просмотра изменений. Базовый ответ остаётся в памяти, пока эндпоинт находится в текущем списке.",
+    "comparison.pin": "Закрепить базовый ответ",
+    "comparison.replace": "Сделать текущий ответ базовым",
+    "comparison.clear": "Удалить базовый ответ",
+    "comparison.baselineSummary": "Базовый ответ: статус {status} · {source}",
+    "comparison.mock": "Mock",
+    "comparison.live": "Live",
+    "comparison.awaiting":
+      "Базовый ответ сохранён в памяти. Повторите запрос для сравнения.",
+    "comparison.options": "Настройки сравнения",
+    "comparison.ignorePaths": "Игнорируемые пути JSON (по одному на строку)",
+    "comparison.ignoreHeaders": "Игнорируемые заголовки ответа (через запятую)",
+    "comparison.ignoreHelp":
+      "Используйте JSON Pointer, например /timestamp или /items/0/id. Указанные пути и их потомки пропускаются; добавление или удаление родителя по-прежнему отображается. Заменяйте / на ~1, а ~ на ~0. Массивы сравниваются по индексам.",
+    "comparison.invalidOptions":
+      "Допускается не более 64 путей JSON и 64 заголовков. Путь должен начинаться с /, содержать корректные ~0 или ~1 и быть не длиннее 512 символов.",
+    "comparison.partial": "Частичное сравнение: найдено изменений — {count}",
+    "comparison.differenceCount": "Изменений ответа: {count}",
+    "comparison.identical":
+      "При текущих настройках изменений ответа не найдено.",
+    "comparison.bodyMode": "Сравнение тела: {mode}",
+    "comparison.jsonMode": "Структура JSON",
+    "comparison.textMode": "Текст",
+    "comparison.largeMode": "Пропущено (более 1 МиБ)",
+    "comparison.latency": "Время: {before} → {after} мс (Δ {delta} мс)",
+    "comparison.size": "Размер тела: {before} → {after} Б",
+    "comparison.mixedModes":
+      "Сравниваются ответы из разных режимов: Mock и Live.",
+    "comparison.textHelp":
+      "Если структурное сравнение JSON недоступно, тела сравниваются как текст. Игнорируемые пути применяются только к JSON.",
+    "comparison.limitHelp":
+      "Ограничения: 1 МиБ на тело, 500 изменений, 20 000 значений и 60 уровней вложенности. Частичное сравнение не подтверждает совпадение ответов.",
+    "comparison.areaFilter": "Область изменения",
+    "comparison.kindFilter": "Тип изменения",
+    "comparison.allAreas": "Все области",
+    "comparison.allKinds": "Все изменения",
+    "comparison.body": "Тело",
+    "comparison.headers": "Заголовки",
+    "comparison.status": "Статус",
+    "comparison.added": "Добавлено",
+    "comparison.removed": "Удалено",
+    "comparison.changed": "Изменено",
+    "comparison.search": "Поиск изменённых путей",
+    "comparison.table": "Различия ответов",
+    "comparison.path": "Путь",
+    "comparison.before": "Базовое значение",
+    "comparison.after": "Текущее значение",
+    "comparison.root": "(корень тела)",
+    "comparison.noMatches": "Нет изменений, соответствующих фильтрам.",
+    "comparison.copy": "Копировать отчёт сравнения",
+    "comparison.download": "Скачать отчёт сравнения",
+    "comparison.includeValues": "Включить предпросмотр значений в отчёт",
+    "comparison.exportHelp":
+      "Экспорт включает все найденные изменения независимо от фильтров таблицы. По умолчанию значения исключены. Предпросмотр ограничен 1000 символами; для контейнеров указан размер. Значения стандартных заголовков авторизации и cookie всегда скрыты.",
+    "comparison.copySuccess": "Сравнение ответов скопировано.",
+    "comparison.copyError":
+      "Не удалось скопировать сравнение. Попробуйте скачать его.",
+    "comparison.downloadSuccess": "Скачивание сравнения ответов началось.",
+    "comparison.downloadError":
+      "Не удалось скачать сравнение. Попробуйте скопировать его.",
     "common.clearSearchShortcut": "Нажмите Escape, чтобы очистить поиск",
     "workspace.apiSliceTitle": "Экспорт части API",
     "workspace.apiSliceFileDetails": "Файл экспорта: {fileName} ({size} Б)",

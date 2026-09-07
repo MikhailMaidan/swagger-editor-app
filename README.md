@@ -39,6 +39,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
   required JSON properties
 - Automatic response contract checks for documented statuses, media types,
   top-level body shapes, and required properties, with copyable JSON reports
+- Response comparison workbench with pinned in-memory baselines, structural JSON and header diffs, status and latency changes, ignored fields, searchable change lists, and JSON reports
 - Offline Mock contract suite runner across all documented response variants,
   with visible-endpoint scope, pass/partial/fail filtering, and JSON exports
 - Live request coverage dashboard that maps saved runs to operations and
@@ -102,6 +103,32 @@ in the review notes. External references remain external, and links to excluded
 operations are flagged for review. JSON/YAML serialization does not preserve
 source comments or formatting. The original specification version is retained,
 including Swagger 2 reusable definitions.
+
+## Comparing endpoint responses
+
+Run an endpoint with **Try It Out**, then select **Pin response baseline** in
+**Response comparison** below its response. Run it again to inspect added,
+removed, and changed JSON fields, response headers, and status. Latency and body
+size are shown separately; changes to those metrics do not count as content
+differences. Both Live and Mock responses can be compared.
+
+**Comparison settings** can exclude volatile JSON fields using one JSON Pointer
+per line, such as `/timestamp` or `/items/0/id`, and header names separated by
+commas. Date, request ID, and server timing headers are ignored by default.
+Object-key order and JSON formatting do not affect structural comparisons;
+arrays are compared by index. Non-JSON bodies are compared as text.
+
+Filter the change list by area, change type, or path. Copy and download actions
+export all detected changes, with value previews excluded by default. Enable
+**Include value previews in report** to share them; standard authentication and
+cookie header values remain redacted. Container changes show their size instead
+of embedding entire objects or arrays.
+
+Clearing a displayed response keeps the baseline for the next request. Baselines
+are not stored in request history, local storage, or the database, and are lost
+when their endpoint leaves the filtered view or the page closes. Bodies over
+1 MiB and comparisons exceeding the depth, value, or change limits are explicitly
+marked partial.
 
 ## Database Setup
 
