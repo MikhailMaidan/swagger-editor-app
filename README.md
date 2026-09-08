@@ -40,6 +40,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Automatic response contract checks for documented statuses, media types,
   top-level body shapes, and required properties, with copyable JSON reports
 - Response comparison workbench with pinned in-memory baselines, structural JSON and header diffs, status and latency changes, ignored fields, searchable change lists, and JSON reports
+- Custom response assertion workbench with status, header, JSON Pointer, and timing checks, automatic Live/Mock evaluation, result filters, reusable check-set imports/exports, and value-free JSON reports
 - Offline Mock contract suite runner across all documented response variants,
   with visible-endpoint scope, pass/partial/fail filtering, and JSON exports
 - Live request coverage dashboard that maps saved runs to operations and
@@ -129,6 +130,44 @@ are not stored in request history, local storage, or the database, and are lost
 when their endpoint leaves the filtered view or the page closes. Bodies over
 1 MiB and comparisons exceeding the depth, value, or change limits are explicitly
 marked partial.
+
+## Checking custom response expectations
+
+Open **Response assertions** inside an endpoint to add status, header, JSON, or
+timing checks before or after running a request. Checks automatically evaluate
+the currently displayed Live or Mock response and reevaluate after each run or
+rule edit. Filter results to investigate failed checks or evaluation errors.
+Schema-driven response contract checks and response comparisons remain available.
+
+For example, require status `200`, a `content-type` header containing
+`application/json`, `/items` to have JSON type `array`, and response time to be
+at most `1000` milliseconds. JSON checks support existence, absence, structural
+equality, text containment, type, length, and numeric bounds. Body equality
+expects a JSON literal (use `"ready"` for a string); header equality and text
+containment use plain text. JSON equality ignores object-key order and preserves
+array order. Length counts array items or Unicode code points in strings.
+
+Paths use JSON Pointer syntax: `/items/0/id`, with `~1` for `/` and `~0` for `~`
+inside property names. An empty path selects the entire body. Missing fields
+differ from JSON `null`; an absence check cannot pass on an unreadable body.
+Header names are case-insensitive, and header values are trimmed. Numeric
+checks do not coerce JSON strings to numbers.
+
+**Import and export checks** copies or downloads a versioned JSON check set.
+Paste a saved set and choose **Append imported checks** to add it without
+replacing existing checks. Sets contain the names and expected values you enter.
+Assertion reports include endpoint method/path, Live/Mock source, counts, and
+numbered outcomes for all checks, regardless of the active filter. They omit
+response data, check names, and expected values; keep the corresponding check
+set with its report.
+
+Checks stay in memory and survive response clearing and endpoint collapsing.
+Export them before filtering the endpoint out or closing the page. There is no
+automatic request execution or storage in history, local storage, or the database.
+Each endpoint supports 50 checks; imports are limited to 2 MiB. JSON evaluation
+is limited to 1 MiB, 20,000 values, and 64 nesting levels. Nonfinite numbers and
+integers outside JavaScript's safe range produce evaluation errors. Header,
+status, and timing checks remain usable when body checks cannot be evaluated.
 
 ## Database Setup
 

@@ -3,6 +3,90 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "assertions.title": "Response assertions",
+    "assertions.builder": "Custom response checks",
+    "assertions.description":
+      "Build checks for this endpoint. Every displayed Live or Mock response is evaluated automatically. Checks stay in memory while this endpoint remains in view.",
+    "assertions.add.status": "Add status check",
+    "assertions.add.header": "Add header check",
+    "assertions.add.body": "Add JSON check",
+    "assertions.add.duration": "Add timing check",
+    "assertions.summary":
+      "{pass} passed · {fail} failed · {error} errors · {source} response",
+    "assertions.live": "Live",
+    "assertions.mock": "Mock",
+    "assertions.awaiting":
+      "Checks ready. Run this endpoint to evaluate a response.",
+    "assertions.empty": "No checks yet. Add a check or import a saved set.",
+    "assertions.filter": "Filter assertion results",
+    "assertions.all": "All checks",
+    "assertions.pass": "Passed",
+    "assertions.fail": "Failed",
+    "assertions.error": "Error",
+    "assertions.pending": "Waiting for response",
+    "assertions.noMatches": "No checks match this filter.",
+    "assertions.check": "Check {number}",
+    "assertions.name": "Check name (optional)",
+    "assertions.target": "Check target",
+    "assertions.target.status": "Status code",
+    "assertions.target.header": "Response header",
+    "assertions.target.body": "JSON body",
+    "assertions.target.duration": "Response time (ms)",
+    "assertions.path": "JSON Pointer (empty = whole body)",
+    "assertions.header": "Header name",
+    "assertions.operator": "Condition",
+    "assertions.operator.equals": "Equals",
+    "assertions.operator.exists": "Exists",
+    "assertions.operator.absent": "Is absent",
+    "assertions.operator.contains": "Contains text",
+    "assertions.operator.type": "Has JSON type",
+    "assertions.operator.length": "Has length",
+    "assertions.operator.gte": "Greater than or equal to",
+    "assertions.operator.lte": "Less than or equal to",
+    "assertions.expected": "Expected value",
+    "assertions.expectedJson": "Expected value (JSON)",
+    "assertions.remove": "Remove check {number}",
+    "assertions.removeButton": "Remove check",
+    "assertions.pathHelp":
+      "JSON Pointers select exact fields: /items/0/id. Leave empty for the whole body; use ~1 for / and ~0 for ~ in keys. Equals uses JSON values and ignores object-key order. Contains text is case-sensitive. Length counts array items or Unicode code points in strings.",
+    "assertions.transfer": "Import and export checks",
+    "assertions.exportHelp":
+      "Check sets include your names and expected values. Import appends checks. Reports contain numbered outcomes only, without response values or expected values; keep the check set alongside its report.",
+    "assertions.copySet": "Copy check set",
+    "assertions.downloadSet": "Download check set",
+    "assertions.importLabel": "Check set JSON",
+    "assertions.import": "Append imported checks",
+    "assertions.import.invalid-set":
+      "Use a valid version 1 RSSwag response assertion set with valid checks.",
+    "assertions.import.too-large":
+      "The imported check set must be at most 2 MiB.",
+    "assertions.import.too-many":
+      "An endpoint can have at most 50 checks. Remove some checks before importing.",
+    "assertions.copyReport": "Copy assertion report",
+    "assertions.downloadReport": "Download assertion report",
+    "assertions.copySuccess": "Copied to clipboard.",
+    "assertions.copyError": "Copy failed. Try downloading instead.",
+    "assertions.downloadSuccess": "Download started.",
+    "assertions.downloadError": "Download failed. Try copying instead.",
+    "assertions.limits":
+      "Up to 50 checks per endpoint. JSON checks accept bodies up to 1 MiB, 20,000 values, and 64 nesting levels; numbers must be finite and integers safely representable. Clearing a response keeps checks. Export checks to keep them after the endpoint leaves view or the page closes.",
+    "assertions.issue.invalid-rule":
+      "This check is invalid. Review its target, condition, and field lengths.",
+    "assertions.issue.invalid-path":
+      "Use a valid JSON Pointer or HTTP header name.",
+    "assertions.issue.invalid-expected":
+      "Enter a valid expected value: JSON for body equality, a JSON type for type checks, or a finite number for numeric checks. Status codes must be 100–599; time and integer lengths must be nonnegative.",
+    "assertions.issue.unreadable-body":
+      "The response body is not valid JSON. This check could not be evaluated.",
+    "assertions.issue.body-limit":
+      "The response JSON exceeds the size, depth, or value limit. This check could not be evaluated.",
+    "assertions.issue.unsafe-number":
+      "The response JSON contains a number that cannot be represented reliably. This check could not be evaluated.",
+    "assertions.issue.missing": "The selected field is missing.",
+    "assertions.issue.wrong-type":
+      "The selected value has the wrong type for this condition.",
+    "assertions.issue.unavailable":
+      "The response status or timing value is unavailable.",
     "comparison.title": "Response comparison",
     "comparison.description":
       "Pin a response, then run this endpoint again to review changes. The baseline stays in memory while this endpoint remains in view.",
@@ -1324,6 +1408,90 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "assertions.title": "Проверки ответа",
+    "assertions.builder": "Пользовательские проверки ответа",
+    "assertions.description":
+      "Настройте проверки для этого эндпоинта. Каждый показанный реальный или мок-ответ проверяется автоматически. Проверки хранятся в памяти, пока эндпоинт остаётся в представлении.",
+    "assertions.add.status": "Добавить проверку статуса",
+    "assertions.add.header": "Добавить проверку заголовка",
+    "assertions.add.body": "Добавить проверку JSON",
+    "assertions.add.duration": "Добавить проверку времени",
+    "assertions.summary":
+      "Успешно: {pass} · Не пройдено: {fail} · Ошибок: {error} · Ответ: {source}",
+    "assertions.live": "Реальный",
+    "assertions.mock": "Мок",
+    "assertions.awaiting":
+      "Проверки готовы. Выполните запрос для проверки ответа.",
+    "assertions.empty":
+      "Проверок пока нет. Добавьте проверку или импортируйте сохранённый набор.",
+    "assertions.filter": "Фильтр результатов проверок",
+    "assertions.all": "Все проверки",
+    "assertions.pass": "Пройдено",
+    "assertions.fail": "Не пройдено",
+    "assertions.error": "Ошибка",
+    "assertions.pending": "Ожидание ответа",
+    "assertions.noMatches": "Нет проверок, соответствующих фильтру.",
+    "assertions.check": "Проверка {number}",
+    "assertions.name": "Название проверки (необязательно)",
+    "assertions.target": "Объект проверки",
+    "assertions.target.status": "Код статуса",
+    "assertions.target.header": "Заголовок ответа",
+    "assertions.target.body": "Тело JSON",
+    "assertions.target.duration": "Время ответа (мс)",
+    "assertions.path": "JSON Pointer (пусто = всё тело)",
+    "assertions.header": "Имя заголовка",
+    "assertions.operator": "Условие",
+    "assertions.operator.equals": "Равно",
+    "assertions.operator.exists": "Существует",
+    "assertions.operator.absent": "Отсутствует",
+    "assertions.operator.contains": "Содержит текст",
+    "assertions.operator.type": "Имеет тип JSON",
+    "assertions.operator.length": "Имеет длину",
+    "assertions.operator.gte": "Больше или равно",
+    "assertions.operator.lte": "Меньше или равно",
+    "assertions.expected": "Ожидаемое значение",
+    "assertions.expectedJson": "Ожидаемое значение (JSON)",
+    "assertions.remove": "Удалить проверку {number}",
+    "assertions.removeButton": "Удалить проверку",
+    "assertions.pathHelp":
+      "JSON Pointer выбирает точное поле: /items/0/id. Пустой путь означает всё тело; используйте ~1 для / и ~0 для ~ в ключах. Равенство сравнивает значения JSON без учёта порядка ключей объекта. Поиск текста учитывает регистр. Длина — число элементов массива или кодовых точек Unicode в строке.",
+    "assertions.transfer": "Импорт и экспорт проверок",
+    "assertions.exportHelp":
+      "Наборы проверок содержат названия и ожидаемые значения. Импорт добавляет проверки. Отчёты содержат только пронумерованные результаты без значений ответа и ожидаемых значений; храните набор проверок вместе с отчётом.",
+    "assertions.copySet": "Скопировать набор проверок",
+    "assertions.downloadSet": "Скачать набор проверок",
+    "assertions.importLabel": "JSON набора проверок",
+    "assertions.import": "Добавить импортированные проверки",
+    "assertions.import.invalid-set":
+      "Используйте корректный набор проверок ответа RSSwag версии 1 с допустимыми проверками.",
+    "assertions.import.too-large":
+      "Импортируемый набор проверок должен быть не больше 2 МиБ.",
+    "assertions.import.too-many":
+      "Эндпоинт может содержать не больше 50 проверок. Удалите часть проверок перед импортом.",
+    "assertions.copyReport": "Скопировать отчёт проверок",
+    "assertions.downloadReport": "Скачать отчёт проверок",
+    "assertions.copySuccess": "Скопировано в буфер обмена.",
+    "assertions.copyError": "Не удалось скопировать. Попробуйте скачать.",
+    "assertions.downloadSuccess": "Скачивание началось.",
+    "assertions.downloadError": "Не удалось скачать. Попробуйте скопировать.",
+    "assertions.limits":
+      "До 50 проверок на эндпоинт. Для JSON: до 1 МиБ, 20 000 значений и 64 уровней вложенности; числа должны быть конечными, а целые — точно представимыми. Очистка ответа сохраняет проверки. Экспортируйте их, чтобы сохранить после скрытия эндпоинта фильтром или закрытия страницы.",
+    "assertions.issue.invalid-rule":
+      "Некорректная проверка. Проверьте объект, условие и длину полей.",
+    "assertions.issue.invalid-path":
+      "Введите корректный JSON Pointer или имя HTTP-заголовка.",
+    "assertions.issue.invalid-expected":
+      "Введите допустимое ожидаемое значение: JSON для равенства тела, тип JSON для проверки типа или конечное число для числовых проверок. Код статуса — 100–599; время и целочисленная длина неотрицательны.",
+    "assertions.issue.unreadable-body":
+      "Тело ответа не является корректным JSON. Проверка не выполнена.",
+    "assertions.issue.body-limit":
+      "JSON ответа превышает предел размера, глубины или числа значений. Проверка не выполнена.",
+    "assertions.issue.unsafe-number":
+      "JSON ответа содержит число, которое нельзя надёжно представить. Проверка не выполнена.",
+    "assertions.issue.missing": "Выбранное поле отсутствует.",
+    "assertions.issue.wrong-type":
+      "Тип выбранного значения не подходит для этого условия.",
+    "assertions.issue.unavailable": "Статус или время ответа недоступны.",
     "comparison.title": "Сравнение ответов",
     "comparison.description":
       "Закрепите ответ, затем повторите запрос для просмотра изменений. Базовый ответ остаётся в памяти, пока эндпоинт находится в текущем списке.",

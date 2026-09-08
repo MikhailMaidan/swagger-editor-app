@@ -13,6 +13,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { RequestPresetControls } from "@/components/request-preset-controls";
 import { ResponseContractReport } from "@/components/response-contract-report";
 import { ResponseComparisonPanel } from "@/components/response-comparison-panel";
+import { ResponseAssertionsPanel } from "@/components/response-assertions-panel";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   createEndpointPermalink,
@@ -2072,6 +2073,10 @@ function EndpointCardComponent({
             </pre>
           </div>
         ) : null}
+        <ResponseAssertionsPanel
+          endpoint={{ method: endpoint.method, path: endpoint.path }}
+          response={mockResult}
+        />
         <ResponseComparisonPanel
           endpoint={{ method: endpoint.method, path: endpoint.path }}
           response={mockResult}
