@@ -17,6 +17,7 @@ import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
+import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
@@ -2570,6 +2571,14 @@ export function SwaggerWorkspace({
             allEndpoints={endpoints}
             schema={artifactSchema}
             visibleEndpoints={visibleEndpoints}
+          />
+        ) : null}
+
+        {artifactSchema && endpoints.length > 0 ? (
+          <SmokeTestExportPanel
+            allEndpoints={endpoints}
+            visibleEndpoints={visibleEndpoints}
+            title={artifactSchema.title}
           />
         ) : null}
 

@@ -3,6 +3,51 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "smoke.title": "CI smoke-test exporter",
+    "smoke.description":
+      "Generate a standalone Node.js 20+ runner and configuration template for GET and HEAD endpoints. Run the exported file locally or in CI to check real responses without package dependencies.",
+    "smoke.scope": "Smoke-test scope",
+    "smoke.visible": "Current endpoint view",
+    "smoke.all": "All endpoints",
+    "smoke.timeout": "Request timeout (ms)",
+    "smoke.budget": "Response-time budget (ms)",
+    "smoke.deprecated": "Include deprecated smoke tests",
+    "smoke.checkJson": "Check JSON shape and required properties",
+    "smoke.enableBudget": "Enforce a response-time budget",
+    "smoke.invalid":
+      "Use whole milliseconds: timeout 100–120,000 and response-time budget 1–120,000.",
+    "smoke.summary": "{count} smoke tests · {excluded} excluded operations",
+    "smoke.empty":
+      "No GET or HEAD endpoints match this scope and these options.",
+    "smoke.manifest": "Generated smoke-test inventory",
+    "smoke.operation": "Operation",
+    "smoke.inputs": "Required input placeholders",
+    "smoke.auth": "Documented authentication",
+    "smoke.authRequired": "Configure credentials at runtime",
+    "smoke.authNotRequired": "Not required",
+    "smoke.downloadScript": "Download smoke-test runner",
+    "smoke.downloadConfig": "Download smoke-test configuration",
+    "smoke.preview": "Preview smoke-test files",
+    "smoke.previewFile": "Smoke-test preview file",
+    "smoke.script": "Node.js runner",
+    "smoke.config": "Configuration template",
+    "smoke.copy": "Copy smoke-test preview",
+    "smoke.source": "Generated smoke-test source",
+    "smoke.copySuccess": "Smoke-test file copied.",
+    "smoke.copyError": "Copy failed. Try downloading instead.",
+    "smoke.downloadSuccess": "Smoke-test download started.",
+    "smoke.downloadError": "Download failed. Try copying instead.",
+    "smoke.instructions": "Running smoke tests in CI",
+    "smoke.step1":
+      "Download both files. Set baseUrl in the configuration to your target server, including any API path prefix, and fill required path, query, header, and cookie placeholders. Set enabled to false to skip an operation.",
+    "smoke.step2":
+      "Set RSSWAG_SMOKE_CONFIG to the configuration file path. RSSWAG_BASE_URL overrides its base URL. Supply secrets through RSSWAG_HEADERS_JSON, a JSON object of HTTP headers; these headers override configuration headers case-insensitively.",
+    "smoke.step3":
+      "Run the exported file with Node.js 20 or later. Save standard output as a JSON report. Requests run sequentially, and each must return a documented 2xx response.",
+    "smoke.exit":
+      "Exit code 0 requires at least one passed test and no failed or blocked tests. Invalid configuration, missing required inputs, and an entirely skipped suite cannot produce a successful run.",
+    "smoke.limits":
+      "Checks cover documented status, media type, optional top-level JSON type and required properties, and an optional timing budget. This is not full JSON Schema validation. Bodies are limited to 1 MiB; redirects are not followed. Reports exclude response bodies, headers, and parameter values. Configure authentication at runtime; editor environments, examples, and stored credentials are not embedded.",
     "assertions.title": "Response assertions",
     "assertions.builder": "Custom response checks",
     "assertions.description":
@@ -1408,6 +1453,51 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "smoke.title": "Экспорт smoke-тестов для CI",
+    "smoke.description":
+      "Создайте автономный скрипт Node.js 20+ и шаблон конфигурации для GET- и HEAD-эндпоинтов. Запускайте файл локально или в CI для проверки реальных ответов без сторонних зависимостей.",
+    "smoke.scope": "Область smoke-тестов",
+    "smoke.visible": "Текущее представление эндпоинтов",
+    "smoke.all": "Все эндпоинты",
+    "smoke.timeout": "Таймаут запроса (мс)",
+    "smoke.budget": "Допустимое время ответа (мс)",
+    "smoke.deprecated": "Включить устаревшие smoke-тесты",
+    "smoke.checkJson": "Проверять структуру JSON и обязательные свойства",
+    "smoke.enableBudget": "Ограничить время ответа",
+    "smoke.invalid":
+      "Введите целое число миллисекунд: таймаут 100–120 000, допустимое время ответа 1–120 000.",
+    "smoke.summary": "Smoke-тестов: {count} · Исключено операций: {excluded}",
+    "smoke.empty":
+      "В выбранной области с этими настройками нет GET- или HEAD-эндпоинтов.",
+    "smoke.manifest": "Список созданных smoke-тестов",
+    "smoke.operation": "Операция",
+    "smoke.inputs": "Обязательные параметры для заполнения",
+    "smoke.auth": "Задокументированная аутентификация",
+    "smoke.authRequired": "Настройте при запуске",
+    "smoke.authNotRequired": "Не требуется",
+    "smoke.downloadScript": "Скачать скрипт smoke-тестов",
+    "smoke.downloadConfig": "Скачать конфигурацию smoke-тестов",
+    "smoke.preview": "Предпросмотр файлов smoke-тестов",
+    "smoke.previewFile": "Файл для предпросмотра smoke-тестов",
+    "smoke.script": "Скрипт Node.js",
+    "smoke.config": "Шаблон конфигурации",
+    "smoke.copy": "Скопировать предпросмотр smoke-тестов",
+    "smoke.source": "Исходный код smoke-тестов",
+    "smoke.copySuccess": "Файл smoke-тестов скопирован.",
+    "smoke.copyError": "Не удалось скопировать. Попробуйте скачать.",
+    "smoke.downloadSuccess": "Скачивание smoke-тестов началось.",
+    "smoke.downloadError": "Не удалось скачать. Попробуйте скопировать.",
+    "smoke.instructions": "Запуск smoke-тестов в CI",
+    "smoke.step1":
+      "Скачайте оба файла. Укажите целевой сервер в baseUrl конфигурации, включая префикс пути API, и заполните обязательные параметры пути, запроса, заголовков и cookie. Для пропуска операции установите enabled в false.",
+    "smoke.step2":
+      "Укажите путь к конфигурации в RSSWAG_SMOKE_CONFIG. RSSWAG_BASE_URL переопределяет базовый URL. Передавайте секреты через RSSWAG_HEADERS_JSON — JSON-объект HTTP-заголовков; они переопределяют заголовки конфигурации без учёта регистра имён.",
+    "smoke.step3":
+      "Запустите экспортированный файл в Node.js 20 или новее. Сохраните стандартный вывод как JSON-отчёт. Запросы выполняются последовательно, каждый должен вернуть задокументированный ответ 2xx.",
+    "smoke.exit":
+      "Код завершения 0 требует хотя бы одного успешного теста и отсутствия неудачных или заблокированных тестов. Некорректная конфигурация, незаполненные обязательные параметры и полностью пропущенный набор не считаются успешным запуском.",
+    "smoke.limits":
+      "Проверяются статус, медиатип, при включении — тип JSON верхнего уровня и обязательные свойства, а также допустимое время ответа. Это не полная валидация JSON Schema. Тело ограничено 1 МиБ; редиректы не выполняются. Отчёты не содержат тела ответа, заголовков и значений параметров. Настройте аутентификацию при запуске; окружения редактора, примеры и сохранённые секреты не включаются.",
     "assertions.title": "Проверки ответа",
     "assertions.builder": "Пользовательские проверки ответа",
     "assertions.description":

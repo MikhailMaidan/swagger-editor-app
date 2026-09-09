@@ -24,6 +24,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Dependency-free TypeScript Fetch client generation with typed models, request parameters and bodies, success responses, API errors, cancellation, configurable generation scope, and source download
 - Self-contained offline HTML documentation with endpoint search, method filtering, light and dark themes, print styles, scoped models and security schemes, browser preview, and download
 - Dependency-free Node.js mock-server generation with scoped routes, documented response selection, generated examples, required-input validation, CORS, latency controls, health metadata, and source download
+- Standalone CI smoke-test export for GET/HEAD endpoints with configuration templates, runtime authentication, response contract and timing checks, JSON reports, and meaningful exit codes
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -168,6 +169,49 @@ Each endpoint supports 50 checks; imports are limited to 2 MiB. JSON evaluation
 is limited to 1 MiB, 20,000 values, and 64 nesting levels. Nonfinite numbers and
 integers outside JavaScript's safe range produce evaluation errors. Header,
 status, and timing checks remain usable when body checks cannot be evaluated.
+
+## Exporting smoke tests for CI
+
+Open **CI smoke-test exporter** to generate a dependency-free Node.js 20+ runner
+for the current endpoint view or all endpoints. Only GET and HEAD operations
+are included. Choose whether to include deprecated operations, check JSON
+shapes, or enforce a response-time budget, then download the runner and its
+configuration template. The inventory lists required input placeholders and
+documented authentication requirements. Generation does not execute requests.
+
+Set `baseUrl` in the configuration, including any API path prefix, and fill
+required parameter placeholders. Configuration entries are keyed by operation,
+for example `GET /users/{id}`, with `enabled` and a `parameters` object containing
+`path`, `query`, `header`, and `cookie` string maps. Optional parameters can also
+be added. Set `enabled` to `false` to skip an operation. Parameter values are
+URL-encoded; examples and saved editor credentials are never embedded.
+
+Set `RSSWAG_SMOKE_CONFIG` to the downloaded configuration file path. Optionally
+override its base URL with `RSSWAG_BASE_URL` and provide authentication headers
+through `RSSWAG_HEADERS_JSON`. Header overrides are case-insensitive; empty
+per-operation header placeholders inherit shared headers. For example, in
+PowerShell (substitute your downloaded filenames):
+
+```powershell
+$env:RSSWAG_SMOKE_CONFIG = './rsswag-my-api-smoke-config.json'
+$env:RSSWAG_BASE_URL = 'http://localhost:4010'
+node ./rsswag-my-api-smoke-tests.mjs > smoke-report.json
+```
+
+The runner issues requests sequentially, does not follow redirects, and requires
+documented 2xx responses. It checks documented media types and, when enabled,
+JSON validity, recognized top-level types, and required top-level properties.
+Exact statuses take precedence over status ranges and `default`. HEAD, 204, and
+205 responses omit content checks. This is a smoke test, not complete JSON Schema
+validation. The optional timing budget includes response-body reading. Requests
+have bounded timeouts and a 1 MiB response-body limit.
+
+Reports contain operation method/path, timing, status, check outcomes, and summary
+counts; they omit response bodies, header values, parameter values, and resolved
+request URLs. Exit code `0` requires at least one passed test and no failed or
+blocked tests. Missing required inputs are blocked, unknown operation keys reject
+the configuration, and an empty or entirely skipped suite exits unsuccessfully.
+Authentication failures remain failures even if an error response is documented.
 
 ## Database Setup
 
