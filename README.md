@@ -42,6 +42,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
   top-level body shapes, and required properties, with copyable JSON reports
 - Response comparison workbench with pinned in-memory baselines, structural JSON and header diffs, status and latency changes, ignored fields, searchable change lists, and JSON reports
 - Custom response assertion workbench with status, header, JSON Pointer, and timing checks, automatic Live/Mock evaluation, result filters, reusable check-set imports/exports, and value-free JSON reports
+- Response data explorer with JSON Pointer navigation, nested-value search, array tables, selectable columns, row filtering, and selected JSON or spreadsheet-safe CSV downloads
 - Offline Mock contract suite runner across all documented response variants,
   with visible-endpoint scope, pass/partial/fail filtering, and JSON exports
 - Live request coverage dashboard that maps saved runs to operations and
@@ -212,6 +213,41 @@ request URLs. Exit code `0` requires at least one passed test and no failed or
 blocked tests. Missing required inputs are blocked, unknown operation keys reject
 the configuration, and an empty or entirely skipped suite exits unsuccessfully.
 Authentication failures remain failures even if an error response is documented.
+
+## Exploring response data
+
+After a Live or Mock request, open **Response data explorer** beneath the response.
+Browse direct children, use the breadcrumb buttons to return to a parent, or enter
+a JSON Pointer such as `/items/0/id`. An empty pointer selects the root; use `~1`
+for `/` and `~0` for `~` inside keys. Copy the selected pointer for use in custom
+response assertions or comparison ignore settings.
+
+Search spans the whole response, matching paths, keys, and scalar values without
+case sensitivity. All whitespace-separated search terms must match the same
+value. A type filter narrows the results. Copy or download any selected value as
+JSON; previews longer than 8,000 characters are shortened, while exports remain
+complete. The original response display and download are unchanged.
+
+Select an array and switch **Array display** to **Table**. Arrays of objects use
+the union of their direct property names as columns. Primitive, mixed, and
+empty-object arrays use a single Value column. Choose columns, filter rows across
+the selected columns, or open an individual row for deeper exploration. Both
+navigation and tables paginate at 25 entries per page.
+
+**Download filtered CSV** exports every matching row, including other pages,
+using the selected columns and original zero-based row indices. Nested values
+are serialized as JSON. Missing fields become empty cells; JSON null is written
+as `null`. CSV preserves quoted newlines, removes null characters, and prefixes
+formula-like string cells and column names with an apostrophe. Numeric cells
+remain numeric. Downloads contain the selected response values.
+
+Exploration is local and starts when the panel opens. No response data is added
+to persistent storage or history. Closing the explorer or changing the response
+body resets its navigation and filters. JSON is limited to 1 MiB, 20,000 values,
+and 64 nesting levels. Nonfinite numbers and integers outside JavaScript's safe
+range block exploration to avoid rounded exports. Tables allow at most 5,000 rows
+and 64 columns; larger arrays can still be browsed and exported as selected JSON
+within the overall explorer limits.
 
 ## Database Setup
 

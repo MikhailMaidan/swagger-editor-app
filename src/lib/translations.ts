@@ -3,6 +3,63 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "explorer.title": "Response data explorer",
+    "explorer.navigator": "JSON data navigator",
+    "explorer.description":
+      "Navigate response fields or search the entire JSON body by path, key, and scalar value. Use an empty JSON Pointer for the root; escape / as ~1 and ~ as ~0. Data stays in memory, and a changed response body resets navigation.",
+    "explorer.pointer": "Explore JSON Pointer",
+    "explorer.go": "Go to JSON value",
+    "explorer.pointerError":
+      "Enter a valid JSON Pointer that exists in this response.",
+    "explorer.breadcrumbs": "Response JSON location",
+    "explorer.root": "Root",
+    "explorer.selected":
+      "Selected: {type} · {children} children · {total} indexed values",
+    "explorer.copyPointer": "Copy selected JSON Pointer",
+    "explorer.copyJson": "Copy selected JSON",
+    "explorer.downloadJson": "Download selected JSON",
+    "explorer.view": "Array display",
+    "explorer.browse": "Browse fields",
+    "explorer.table": "Table",
+    "explorer.columns": "Choose table columns",
+    "explorer.value": "Value",
+    "explorer.filterRows": "Filter response table rows",
+    "explorer.rowCount": "{count} matching rows of {total}",
+    "explorer.tableCaption": "Response array data",
+    "explorer.exploreRow": "Explore row {number}",
+    "explorer.missing": "(missing)",
+    "explorer.downloadCsv": "Download filtered CSV",
+    "explorer.csvHelp":
+      "CSV includes all matching rows and selected columns, with original zero-based row indices. Nested values are exported as JSON. Missing fields are empty cells; null is written as null. Formula-like strings and column names are prefixed with an apostrophe for spreadsheets. Exports contain response values.",
+    "explorer.search": "Search response paths and values",
+    "explorer.typeFilter": "Filter JSON value type",
+    "explorer.allTypes": "All JSON types",
+    "explorer.matches": "{count} matching values in the whole response",
+    "explorer.children": "{count} direct children",
+    "explorer.preview": "Preview selected JSON",
+    "explorer.previewLabel": "Selected JSON preview",
+    "explorer.truncated":
+      "Preview shortened to 8,000 characters. Copy and JSON download include the complete selected value.",
+    "explorer.previous": "Previous data page",
+    "explorer.next": "Next data page",
+    "explorer.page": "Page {page} of {total}",
+    "explorer.copySuccess": "Response data copied.",
+    "explorer.copyError": "Copy failed. Try downloading instead.",
+    "explorer.downloadSuccess": "Response data download started.",
+    "explorer.downloadError": "Download failed. Try copying instead.",
+    "explorer.invalid-json":
+      "This response is not valid JSON. The original response view remains available.",
+    "explorer.size-limit":
+      "This response exceeds the 1 MiB explorer limit. Use the original response view or download.",
+    "explorer.structure-limit":
+      "This JSON exceeds 20,000 values or 64 nesting levels. Use the original response view or download.",
+    "explorer.unsafe-number":
+      "This JSON contains a nonfinite number or an integer outside JavaScript’s safe range. Exploration is unavailable to avoid exporting rounded values; use the original response download.",
+    "explorer.not-array": "Select an array to view a table.",
+    "explorer.row-limit":
+      "This array exceeds the 5,000-row table limit. Browse its fields or export the selected JSON instead.",
+    "explorer.column-limit":
+      "This array exceeds the 64-column table limit. Browse its fields or export the selected JSON instead.",
     "smoke.title": "CI smoke-test exporter",
     "smoke.description":
       "Generate a standalone Node.js 20+ runner and configuration template for GET and HEAD endpoints. Run the exported file locally or in CI to check real responses without package dependencies.",
@@ -1453,6 +1510,63 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "explorer.title": "Исследователь данных ответа",
+    "explorer.navigator": "Навигатор JSON",
+    "explorer.description":
+      "Просматривайте поля ответа или ищите по всему JSON: пути, ключам и скалярным значениям. Пустой JSON Pointer означает корень; заменяйте / на ~1, а ~ на ~0. Данные хранятся в памяти; изменение тела ответа сбрасывает навигацию.",
+    "explorer.pointer": "Открыть JSON Pointer",
+    "explorer.go": "Перейти к значению JSON",
+    "explorer.pointerError":
+      "Введите корректный JSON Pointer, существующий в этом ответе.",
+    "explorer.breadcrumbs": "Положение в JSON ответа",
+    "explorer.root": "Корень",
+    "explorer.selected":
+      "Выбрано: {type} · Дочерних: {children} · Значений в индексе: {total}",
+    "explorer.copyPointer": "Скопировать выбранный JSON Pointer",
+    "explorer.copyJson": "Скопировать выбранный JSON",
+    "explorer.downloadJson": "Скачать выбранный JSON",
+    "explorer.view": "Отображение массива",
+    "explorer.browse": "Просмотр полей",
+    "explorer.table": "Таблица",
+    "explorer.columns": "Выбрать столбцы таблицы",
+    "explorer.value": "Значение",
+    "explorer.filterRows": "Фильтр строк таблицы ответа",
+    "explorer.rowCount": "Подходящих строк: {count} из {total}",
+    "explorer.tableCaption": "Данные массива ответа",
+    "explorer.exploreRow": "Открыть строку {number}",
+    "explorer.missing": "(отсутствует)",
+    "explorer.downloadCsv": "Скачать отфильтрованный CSV",
+    "explorer.csvHelp":
+      "CSV содержит все подходящие строки и выбранные столбцы с исходными индексами строк от нуля. Вложенные значения экспортируются как JSON. Отсутствующие поля — пустые ячейки; null записывается как null. Перед строками и именами столбцов, похожими на формулы, добавляется апостроф. Экспорт содержит значения ответа.",
+    "explorer.search": "Поиск по путям и значениям ответа",
+    "explorer.typeFilter": "Фильтр типа значения JSON",
+    "explorer.allTypes": "Все типы JSON",
+    "explorer.matches": "Подходящих значений во всём ответе: {count}",
+    "explorer.children": "Прямых дочерних значений: {count}",
+    "explorer.preview": "Предпросмотр выбранного JSON",
+    "explorer.previewLabel": "Предпросмотр значения JSON",
+    "explorer.truncated":
+      "Предпросмотр сокращён до 8 000 символов. Копирование и скачивание JSON включают полное выбранное значение.",
+    "explorer.previous": "Предыдущая страница данных",
+    "explorer.next": "Следующая страница данных",
+    "explorer.page": "Страница {page} из {total}",
+    "explorer.copySuccess": "Данные ответа скопированы.",
+    "explorer.copyError": "Не удалось скопировать. Попробуйте скачать.",
+    "explorer.downloadSuccess": "Скачивание данных ответа началось.",
+    "explorer.downloadError": "Не удалось скачать. Попробуйте скопировать.",
+    "explorer.invalid-json":
+      "Ответ не является корректным JSON. Исходное представление ответа остаётся доступным.",
+    "explorer.size-limit":
+      "Ответ превышает предел исследователя в 1 МиБ. Используйте исходное представление или скачивание ответа.",
+    "explorer.structure-limit":
+      "JSON превышает 20 000 значений или 64 уровня вложенности. Используйте исходное представление или скачивание ответа.",
+    "explorer.unsafe-number":
+      "JSON содержит бесконечное число или целое за пределами безопасного диапазона JavaScript. Исследователь недоступен, чтобы избежать экспорта округлённых значений; скачайте исходный ответ.",
+    "explorer.not-array": "Выберите массив для просмотра таблицы.",
+    "explorer.row-limit":
+      "Массив превышает предел таблицы в 5 000 строк. Просматривайте поля или экспортируйте выбранный JSON.",
+    "explorer.column-limit":
+      "Массив превышает предел таблицы в 64 столбца. Просматривайте поля или экспортируйте выбранный JSON.",
     "smoke.title": "Экспорт smoke-тестов для CI",
     "smoke.description":
       "Создайте автономный скрипт Node.js 20+ и шаблон конфигурации для GET- и HEAD-эндпоинтов. Запускайте файл локально или в CI для проверки реальных ответов без сторонних зависимостей.",

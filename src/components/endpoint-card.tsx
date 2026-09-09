@@ -13,6 +13,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { RequestPresetControls } from "@/components/request-preset-controls";
 import { ResponseContractReport } from "@/components/response-contract-report";
 import { ResponseComparisonPanel } from "@/components/response-comparison-panel";
+import { ResponseDataExplorer } from "@/components/response-data-explorer";
 import { ResponseAssertionsPanel } from "@/components/response-assertions-panel";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
@@ -2073,6 +2074,10 @@ function EndpointCardComponent({
             </pre>
           </div>
         ) : null}
+        <ResponseDataExplorer
+          endpoint={{ method: endpoint.method, path: endpoint.path }}
+          body={mockResult?.body ?? null}
+        />
         <ResponseAssertionsPanel
           endpoint={{ method: endpoint.method, path: endpoint.path }}
           response={mockResult}
