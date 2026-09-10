@@ -25,6 +25,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Self-contained offline HTML documentation with endpoint search, method filtering, light and dark themes, print styles, scoped models and security schemes, browser preview, and download
 - Dependency-free Node.js mock-server generation with scoped routes, documented response selection, generated examples, required-input validation, CORS, latency controls, health metadata, and source download
 - Standalone CI smoke-test export for GET/HEAD endpoints with configuration templates, runtime authentication, response contract and timing checks, JSON reports, and meaningful exit codes
+- Offline HAR traffic inspector with browser capture imports, endpoint matching, undocumented-status detection, operation coverage, latency summaries, search, and aggregate JSON reports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -86,6 +87,37 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Inspecting browser traffic
+
+Use **HAR traffic inspector** to import a `.har` or `.json` file, or paste HAR JSON.
+You can [export a HAR capture from Chrome DevTools](https://developer.chrome.com/docs/devtools/network/reference#save-as-har).
+Imports support up to 5 MiB and 5,000 entries. Invalid and non-HTTP entries are
+counted as skipped; a failed import preserves the previous capture.
+
+Select all endpoints or the current endpoint view, optionally choose a captured
+origin, and strip a path prefix such as `/api`. Matching uses the HTTP method and
+path, with whole-segment placeholders such as `/users/{id}`. Static routes take
+priority and equally specific matches are marked ambiguous. Trailing slashes are
+significant; embedded placeholders such as `{id}.json` are not supported. Schema
+server URLs are not automatically applied to matching.
+
+Review unmatched requests, undocumented response statuses, HTTP/network failures,
+and observed operations. Exact response codes, status ranges, and `default` are
+supported; response bodies are not validated. Status 0 and HTTP 400–599 count as
+failures. Average, nearest-rank P95, and maximum use known nonnegative HAR total
+durations. Search traffic, filter outcomes, sort by duration, and navigate from
+the operation coverage table to the corresponding endpoint.
+
+No requests are replayed or stored in history. The inspector retains only request
+methods, origins, paths, statuses, and durations in memory; it discards URL
+credentials, query values, headers, cookies, and bodies after import. Paths and
+origins may still contain identifying values and are visible locally until the
+capture is cleared or the page is closed. The capture also survives temporarily
+invalid or empty schemas while editing. Copy/download reports include only
+aggregates and schema operation paths, never captured URLs or payload values.
+Reports reflect endpoint scope, origin, and prefix settings; traffic table search,
+sorting, pagination, and result filters do not narrow the report.
 
 ## Exporting part of an API
 

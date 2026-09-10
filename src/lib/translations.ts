@@ -3,6 +3,76 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "har.title": "HAR traffic inspector",
+    "har.description":
+      "Inspect a browser network capture locally without sending requests. Headers, cookies, query values, and bodies are discarded after import; request paths and origins stay in memory until cleared or this page is closed.",
+    "har.file": "Import HAR file",
+    "har.clear": "Clear traffic capture",
+    "har.paste": "Paste HAR JSON",
+    "har.json": "HAR JSON",
+    "har.import": "Inspect pasted HAR",
+    "har.loading": "Reading traffic capture…",
+    "har.invalid-har":
+      "Enter valid HAR JSON containing a log.entries array. The previous capture is unchanged.",
+    "har.too-large":
+      "HAR imports are limited to 5 MiB. The previous capture is unchanged.",
+    "har.too-many":
+      "HAR imports are limited to 5,000 entries. The previous capture is unchanged.",
+    "har.no-requests":
+      "No usable HTTP requests were found. The previous capture is unchanged.",
+    "har.read-error":
+      "The HAR file could not be read. Try selecting it again; the previous capture is unchanged.",
+    "har.loaded":
+      "Imported {accepted} requests · Skipped {skipped} invalid or non-HTTP entries",
+    "har.scope": "Match against endpoints",
+    "har.allEndpoints": "All endpoints",
+    "har.visibleEndpoints": "Current endpoint view",
+    "har.origin": "Capture origin",
+    "har.allOrigins": "All captured origins",
+    "har.prefix": "Strip captured path prefix",
+    "har.matchHelp":
+      "Matching uses method and path, with whole-segment placeholders such as {id}. Static routes take priority; ties are ambiguous. Trailing slashes are significant. Choose an origin and strip a prefix such as /api when needed; schema server URLs are not applied automatically.",
+    "har.invalidPrefix":
+      "Use an empty prefix or a path starting with /, without whitespace, query strings, fragments, backslashes, or braces.",
+    "har.summary":
+      "{total} requests · {matched} matched · {undocumented} undocumented statuses · {failed} HTTP or network failures",
+    "har.timing":
+      "Average {average} · P95 {p95} · Maximum {max} · {count} known durations",
+    "har.coverage":
+      "Observed {observed} of {total} operations · {unmatched} unmatched requests · {ambiguous} ambiguous requests",
+    "har.operations": "Operation traffic coverage",
+    "har.endpoint": "Endpoint",
+    "har.requests": "Requests",
+    "har.failed": "HTTP or network failures",
+    "har.unknown": "Unknown",
+    "har.search": "Search captured method, path, or status",
+    "har.filter": "Traffic result filter",
+    "har.all": "All traffic",
+    "har.matched": "Matched",
+    "har.unmatched": "Unmatched",
+    "har.ambiguous": "Ambiguous",
+    "har.undocumented": "Undocumented status",
+    "har.sort": "Traffic order",
+    "har.captureOrder": "Capture order",
+    "har.slowest": "Slowest first",
+    "har.rowCount": "{count} matching requests",
+    "har.traffic": "Captured traffic",
+    "har.request": "Request",
+    "har.status": "Status",
+    "har.duration": "Duration",
+    "har.match": "Endpoint match",
+    "har.previous": "Previous traffic page",
+    "har.page": "Page {current} of {total}",
+    "har.next": "Next traffic page",
+    "har.copy": "Copy traffic report",
+    "har.download": "Download traffic report",
+    "har.exportHelp":
+      "Reports include aggregate counts, durations, and schema operation paths for the selected scope, origin, and prefix; table search and result filters do not narrow reports. Captured URLs and values are omitted. Status checks use exact, range, or default responses, without body validation. Status 0 and HTTP 400–599 count as failures; unknown durations are excluded and P95 uses nearest rank.",
+    "har.copySuccess": "Traffic report copied.",
+    "har.copyError": "Could not copy the traffic report. Try downloading it.",
+    "har.downloadSuccess": "Traffic report download started.",
+    "har.downloadError":
+      "Could not download the traffic report. Try copying it.",
     "explorer.title": "Response data explorer",
     "explorer.navigator": "JSON data navigator",
     "explorer.description":
@@ -1510,6 +1580,77 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "har.title": "Анализатор HAR-трафика",
+    "har.description":
+      "Изучайте сетевой журнал браузера локально, без отправки запросов. Заголовки, cookie, значения query-параметров и тела отбрасываются после импорта; пути запросов и источники остаются в памяти до очистки или закрытия страницы.",
+    "har.file": "Импорт HAR-файла",
+    "har.clear": "Очистить журнал трафика",
+    "har.paste": "Вставить HAR JSON",
+    "har.json": "HAR JSON",
+    "har.import": "Анализировать вставленный HAR",
+    "har.loading": "Чтение журнала трафика…",
+    "har.invalid-har":
+      "Введите корректный HAR JSON с массивом log.entries. Предыдущий журнал не изменён.",
+    "har.too-large":
+      "Размер HAR ограничен 5 МиБ. Предыдущий журнал не изменён.",
+    "har.too-many":
+      "HAR ограничен 5 000 записями. Предыдущий журнал не изменён.",
+    "har.no-requests":
+      "Подходящие HTTP-запросы не найдены. Предыдущий журнал не изменён.",
+    "har.read-error":
+      "Не удалось прочитать HAR-файл. Выберите его ещё раз; предыдущий журнал не изменён.",
+    "har.loaded":
+      "Импортировано запросов: {accepted} · Пропущено некорректных или не-HTTP записей: {skipped}",
+    "har.scope": "Сопоставить с эндпоинтами",
+    "har.allEndpoints": "Все эндпоинты",
+    "har.visibleEndpoints": "Текущее представление эндпоинтов",
+    "har.origin": "Источник трафика",
+    "har.allOrigins": "Все источники журнала",
+    "har.prefix": "Удалить префикс пути запроса",
+    "har.matchHelp":
+      "Сопоставление использует метод и путь с параметрами в отдельных сегментах, например {id}. Статические маршруты имеют приоритет; равные совпадения неоднозначны. Завершающий слеш значим. При необходимости выберите источник и удалите префикс, например /api; URL серверов схемы автоматически не применяются.",
+    "har.invalidPrefix":
+      "Оставьте префикс пустым или начните путь с /, без пробелов, query-строк, фрагментов, обратных слешей и фигурных скобок.",
+    "har.summary":
+      "Запросов: {total} · Совпадений: {matched} · Недокументированных статусов: {undocumented} · HTTP-ошибок или сетевых сбоев: {failed}",
+    "har.timing":
+      "Среднее: {average} · P95: {p95} · Максимум: {max} · Известных длительностей: {count}",
+    "har.coverage":
+      "Наблюдалось операций: {observed} из {total} · Без совпадений: {unmatched} · Неоднозначных запросов: {ambiguous}",
+    "har.operations": "Покрытие операций трафиком",
+    "har.endpoint": "Эндпоинт",
+    "har.requests": "Запросы",
+    "har.failed": "HTTP-ошибки или сетевые сбои",
+    "har.unknown": "Неизвестно",
+    "har.search": "Поиск по методу, пути или статусу запроса",
+    "har.filter": "Фильтр результатов трафика",
+    "har.all": "Весь трафик",
+    "har.matched": "Есть совпадение",
+    "har.unmatched": "Нет совпадения",
+    "har.ambiguous": "Неоднозначно",
+    "har.undocumented": "Недокументированный статус",
+    "har.sort": "Порядок трафика",
+    "har.captureOrder": "Порядок журнала",
+    "har.slowest": "Сначала медленные",
+    "har.rowCount": "Подходящих запросов: {count}",
+    "har.traffic": "Записанный трафик",
+    "har.request": "Запрос",
+    "har.status": "Статус",
+    "har.duration": "Длительность",
+    "har.match": "Совпадение с эндпоинтом",
+    "har.previous": "Предыдущая страница трафика",
+    "har.page": "Страница {current} из {total}",
+    "har.next": "Следующая страница трафика",
+    "har.copy": "Копировать отчёт о трафике",
+    "har.download": "Скачать отчёт о трафике",
+    "har.exportHelp":
+      "Отчёты содержат сводные счётчики, длительности и пути операций схемы для выбранной области, источника и префикса; поиск и фильтры таблицы не сужают отчёт. URL и значения из журнала исключены. Статусы проверяются по точным кодам, диапазонам или default, без проверки тела. Статус 0 и HTTP 400–599 считаются ошибками; неизвестные длительности исключаются, P95 вычисляется методом ближайшего ранга.",
+    "har.copySuccess": "Отчёт о трафике скопирован.",
+    "har.copyError":
+      "Не удалось скопировать отчёт о трафике. Попробуйте скачать его.",
+    "har.downloadSuccess": "Скачивание отчёта о трафике началось.",
+    "har.downloadError":
+      "Не удалось скачать отчёт о трафике. Попробуйте скопировать его.",
     "explorer.title": "Исследователь данных ответа",
     "explorer.navigator": "Навигатор JSON",
     "explorer.description":
