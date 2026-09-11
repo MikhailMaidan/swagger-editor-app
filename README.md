@@ -26,6 +26,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Dependency-free Node.js mock-server generation with scoped routes, documented response selection, generated examples, required-input validation, CORS, latency controls, health metadata, and source download
 - Standalone CI smoke-test export for GET/HEAD endpoints with configuration templates, runtime authentication, response contract and timing checks, JSON reports, and meaningful exit codes
 - Offline HAR traffic inspector with browser capture imports, endpoint matching, undocumented-status detection, operation coverage, latency summaries, search, and aggregate JSON reports
+- Manual API test-plan workbench with generated positive, negative, and boundary cases, QA results and notes, endpoint navigation, restorable JSON progress, and Markdown checklists
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -87,6 +88,42 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Planning and tracking API tests
+
+Open **API test-plan workbench** to generate a manual checklist from the current
+OpenAPI or Swagger document. It includes a happy path for each operation, missing
+required parameters and bodies, enum choices, numeric boundaries, string-length
+boundaries, manual pattern reviews, and omitted top-level required body properties.
+Start with a working request in Try It Out, apply the suggested change, review
+the complete contract, and record **Pending**, **Passed**, **Failed**, or **Blocked**
+with up to 1,000 characters of notes. The workbench never executes requests.
+
+Use endpoint scope, search, test-intent and QA-result filters to organize work.
+Each case links to its endpoint. JSON and Markdown exports include the entire
+selected endpoint scope, irrespective of table filters or pagination. JSON can be
+imported to merge matching case results in the selected endpoint scope; unknown,
+out-of-scope, or changed cases are counted
+and ignored. Invalid imports leave results intact. Imports and result resets can
+be undone. Progress stays in memory across panel closing and temporary schema
+errors; export JSON before leaving the page to preserve it.
+
+Case identities include normalized input constraints and documented response
+codes, so changes to those details produce fresh pending cases. Descriptions,
+examples, server addresses, and parameter order do not affect identity. Results
+remain manual observations: response body or security changes require a review
+and, when appropriate, a result reset. Exports include suggested values and notes,
+which can contain sensitive data; no credentials or request history are collected.
+
+The planner supports up to 1,000 cases and skips operations whose constraint
+identity exceeds 4,096 characters or whose path exceeds 1,024 characters. String
+boundary suggestions cover lengths 0–256; numeric suggestions use finite bounds
+inside the safe integer range. Each suggestion targets one rule, not every
+constraint simultaneously. Exclusive bounds, formats, nested body rules, complex
+schema composition, and exhaustive enum combinations are not generated. Pattern
+expressions are displayed for manual review and are never executed. JSON imports
+are limited to 16 MiB and 1,000 cases.
+JSON exports exceeding the import limit ask you to narrow the endpoint scope.
 
 ## Inspecting browser traffic
 

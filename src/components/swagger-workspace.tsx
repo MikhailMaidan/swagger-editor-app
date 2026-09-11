@@ -19,6 +19,7 @@ import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
+import { ApiTestPlanPanel } from "@/components/api-test-plan-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
@@ -2530,6 +2531,11 @@ export function SwaggerWorkspace({
         ) : null}
 
         <HarInspectorPanel
+          allEndpoints={endpoints}
+          visibleEndpoints={visibleEndpoints}
+          onSelectEndpoint={handleSelectAuditEndpoint}
+        />
+        <ApiTestPlanPanel
           allEndpoints={endpoints}
           visibleEndpoints={visibleEndpoints}
           onSelectEndpoint={handleSelectAuditEndpoint}
