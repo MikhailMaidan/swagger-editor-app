@@ -60,9 +60,10 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
     [],
   );
   const endpoints = scope === "all" ? allEndpoints : visibleEndpoints;
+  const needsPlan = open || loading;
   const plan = useMemo(
-    () => createApiTestPlan(open ? endpoints : []),
-    [open, endpoints],
+    () => createApiTestPlan(needsPlan ? endpoints : []),
+    [needsPlan, endpoints],
   );
   const cases = plan.cases;
   const snapshot = useRef({ cases, progress });

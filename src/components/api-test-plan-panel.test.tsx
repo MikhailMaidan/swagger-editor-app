@@ -57,6 +57,60 @@ async function setup() {
 const group = () =>
   within(screen.getByRole("group", { name: "Selected test case" }));
 describe("ApiTestPlanPanel", () => {
+  it.each([false, true])(
+    "finishes imports while collapsed and checks the latest schema (changed: %s)",
+    async (changed) => {
+      let finish = () => {};
+      const { cases } = createApiTestPlan([endpoint]);
+      vi.stubGlobal(
+        "FileReader",
+        class {
+          result = serializeTestPlan(cases.slice(0, 1), {
+            [cases[0].id]: { status: "passed", note: "Imported while hidden" },
+          });
+          onload = () => {};
+          readAsText() {
+            finish = () => this.onload();
+          }
+        },
+      );
+      const { user, rerender } = await setup();
+      await user.upload(
+        screen.getByLabelText("Restore test-plan JSON"),
+        new File([""], "plan.json"),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "API test-plan workbench" }),
+      );
+      expect(
+        screen.queryByRole("table", { name: "API test cases" }),
+      ).not.toBeInTheDocument();
+      if (changed)
+        rerender(
+          <ApiTestPlanPanel
+            {...props}
+            allEndpoints={[{ ...endpoint, parameters: [] }]}
+          />,
+        );
+      await act(async () => finish());
+      await user.click(
+        screen.getByRole("button", { name: "API test-plan workbench" }),
+      );
+      expect(group().getByLabelText("QA result")).toHaveValue(
+        changed ? "pending" : "passed",
+      );
+      expect(group().getByLabelText("QA notes")).toHaveValue(
+        changed ? "" : "Imported while hidden",
+      );
+      expect(
+        screen.getByText(
+          changed
+            ? "Restored 0 matching cases · Ignored 1 unknown or changed cases"
+            : "Restored 1 matching cases · Ignored 0 unknown or changed cases",
+        ),
+      ).toBeInTheDocument();
+    },
+  );
   beforeEach(() => {
     vi.mocked(writeTextToClipboard).mockReset().mockResolvedValue(true);
     vi.mocked(downloadTextFile).mockReset().mockReturnValue(true);
