@@ -59,12 +59,10 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
     },
     [],
   );
+  const endpoints = scope === "all" ? allEndpoints : visibleEndpoints;
   const plan = useMemo(
-    () =>
-      createApiTestPlan(
-        open ? (scope === "all" ? allEndpoints : visibleEndpoints) : [],
-      ),
-    [open, scope, allEndpoints, visibleEndpoints],
+    () => createApiTestPlan(open ? endpoints : []),
+    [open, endpoints],
   );
   const cases = plan.cases;
   const snapshot = useRef({ cases, progress });
@@ -95,10 +93,6 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
     (currentPage + 1) * PAGE_SIZE,
   );
   const current = cases.find((test) => test.id === selected) ?? pageRows[0];
-  const report = useMemo(
-    () => serializeTestPlan(cases, progress),
-    [cases, progress],
-  );
   const markdown = () =>
     testPlanMarkdown(cases, progress, {
       title: t("plan.title"),
@@ -179,12 +173,14 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
     setMessage({ key: ok ? "plan.copySuccess" : "plan.copyError", error: !ok });
   }
   function download(format: "json" | "md") {
-    if (format === "json" && getByteSize(report) > MAX_PLAN_BYTES) {
+    const content =
+      format === "json" ? serializeTestPlan(cases, progress) : markdown();
+    if (format === "json" && getByteSize(content) > MAX_PLAN_BYTES) {
       setMessage({ key: "plan.exportTooLarge", error: true });
       return;
     }
     const ok = downloadTextFile(
-      format === "json" ? report : markdown(),
+      content,
       `rsswag-api-test-plan.${format}`,
       format === "json" ? "application/json" : "text/markdown;charset=utf-8",
     );
