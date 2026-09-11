@@ -170,21 +170,24 @@ export function filterExplorerRows(
   query: string,
 ) {
   const search = query.trim().toLowerCase();
-  return table.rows
-    .map((row, index) => ({ row, index }))
-    .filter(
-      ({ row }) =>
-        !search ||
-        columns.some((column) => {
-          const value = explorerCell(row, column);
-          return (
-            value !== undefined &&
-            (typeof value === "string" ? value : JSON.stringify(value))
-              .toLowerCase()
-              .includes(search)
-          );
-        }),
-    );
+  const matches: { row: JsonValue; index: number }[] = [];
+  table.rows.forEach((row, index) => {
+    if (
+      !search ||
+      columns.some((column) => {
+        const value = explorerCell(row, column);
+        return (
+          value !== undefined &&
+          (typeof value === "string" ? value : JSON.stringify(value))
+            .toLowerCase()
+            .includes(search)
+        );
+      })
+    ) {
+      matches.push({ row, index });
+    }
+  });
+  return matches;
 }
 
 function csvCell(value: JsonValue | undefined): string {
