@@ -57,6 +57,59 @@ async function setup() {
 const group = () =>
   within(screen.getByRole("group", { name: "Selected test case" }));
 describe("ApiTestPlanPanel", () => {
+  it("ignores delayed copy feedback after QA notes change", async () => {
+    const { user } = await setup();
+    let finish!: (value: boolean) => void;
+    vi.mocked(writeTextToClipboard).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Copy test plan as Markdown" }),
+    );
+    fireEvent.change(group().getByLabelText("QA notes"), {
+      target: { value: "Updated after copying" },
+    });
+    await act(async () => finish(false));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(group().getByLabelText("QA notes")).toHaveValue(
+      "Updated after copying",
+    );
+  });
+
+  it.each(["copy", "download"])(
+    "preserves newer %s feedback when an earlier copy finishes late",
+    async (action) => {
+      const { user } = await setup();
+      let finish!: (value: boolean) => void;
+      vi.mocked(writeTextToClipboard).mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Copy test plan as Markdown" }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name:
+            action === "copy"
+              ? "Copy test plan as Markdown"
+              : "Download test plan JSON",
+        }),
+      );
+      await act(async () => finish(false));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          action === "copy"
+            ? "Test plan copied as Markdown."
+            : "Test-plan download started.",
+        ),
+      ).toBeInTheDocument();
+    },
+  );
   it.each([false, true])(
     "finishes imports while collapsed and checks the latest schema (changed: %s)",
     async (changed) => {

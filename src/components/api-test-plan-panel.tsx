@@ -38,6 +38,7 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
   const { t } = useI18n();
   const id = useId();
   const generation = useRef(0);
+  const exportGeneration = useRef(0);
   const [open, setOpen] = useState(false);
   const [scope, setScope] = useState("all");
   const [query, setQuery] = useState("");
@@ -170,10 +171,20 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
     setMessage({ key: "plan.resetDone" });
   }
   async function copy() {
+    const exportToken = ++exportGeneration.current;
+    const stateToken = generation.current;
     const ok = await writeTextToClipboard(markdown());
+    if (
+      exportToken !== exportGeneration.current ||
+      stateToken !== generation.current ||
+      snapshot.current.cases !== cases ||
+      snapshot.current.progress !== progress
+    )
+      return;
     setMessage({ key: ok ? "plan.copySuccess" : "plan.copyError", error: !ok });
   }
   function download(format: "json" | "md") {
+    exportGeneration.current++;
     const content =
       format === "json" ? serializeTestPlan(cases, progress) : markdown();
     if (format === "json" && getByteSize(content) > MAX_PLAN_BYTES) {
