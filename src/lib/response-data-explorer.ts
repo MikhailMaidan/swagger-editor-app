@@ -81,21 +81,22 @@ export function indexResponseJson(body: string): ExplorerIndex {
         : [];
     if (nodes.size + pending.length + children.length + 1 > MAX_EXPLORER_NODES)
       return { ok: false, issue: "structure-limit" };
+    const childPointers = children.map(
+      ([key]) => entry.pointer + "/" + escapeExplorerPointer(key),
+    );
     nodes.set(entry.pointer, {
       pointer: entry.pointer,
       parent: entry.parent,
       key: entry.key,
       type: jsonValueType(entry.value),
       value: entry.value,
-      children: children.map(
-        ([key]) => entry.pointer + "/" + escapeExplorerPointer(key),
-      ),
+      children: childPointers,
     });
     for (let i = children.length - 1; i >= 0; i--) {
       const [key, value] = children[i];
       pending.push({
         value,
-        pointer: entry.pointer + "/" + escapeExplorerPointer(key),
+        pointer: childPointers[i],
         parent: entry.pointer,
         key,
         depth: entry.depth + 1,
