@@ -74,20 +74,20 @@ export const HarInspectorPanel = memo(function HarInspectorPanel({
   const rows = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
     const selected =
-      analysis?.matches.filter(
-        (row) =>
-          (filter === "all" ||
-            (filter === "failed"
-              ? row.failed
-              : filter === "undocumented"
-                ? row.undocumented
-                : row.state === filter)) &&
-          terms.every((term) =>
-            `${row.request.method} ${row.request.path} ${row.request.status} ${row.endpoint ?? ""}`
-              .toLowerCase()
-              .includes(term),
-          ),
-      ) ?? [];
+      analysis?.matches.filter((row) => {
+        const matchesFilter =
+          filter === "all" ||
+          (filter === "failed"
+            ? row.failed
+            : filter === "undocumented"
+              ? row.undocumented
+              : row.state === filter);
+        if (!matchesFilter) return false;
+        if (!terms.length) return true;
+        const text =
+          `${row.request.method} ${row.request.path} ${row.request.status} ${row.endpoint ?? ""}`.toLowerCase();
+        return terms.every((term) => text.includes(term));
+      }) ?? [];
     if (sort === "slowest")
       selected.sort(
         (a, b) =>

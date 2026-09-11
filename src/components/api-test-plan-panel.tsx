@@ -74,17 +74,18 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
   const summary = planSummary(cases, progress);
   const rows = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
-    return cases.filter(
-      (test) =>
-        (status === "all" ||
-          (progress[test.id]?.status ?? "pending") === status) &&
-        (expectation === "all" || expectation === test.expectation) &&
-        terms.every((term) =>
-          `${test.method} ${test.path} ${test.location} ${test.name} ${test.value ?? ""}`
-            .toLowerCase()
-            .includes(term),
-        ),
-    );
+    return cases.filter((test) => {
+      if (
+        (status !== "all" &&
+          (progress[test.id]?.status ?? "pending") !== status) ||
+        (expectation !== "all" && expectation !== test.expectation)
+      )
+        return false;
+      if (!terms.length) return true;
+      const text =
+        `${test.method} ${test.path} ${test.location} ${test.name} ${test.value ?? ""}`.toLowerCase();
+      return terms.every((term) => text.includes(term));
+    });
   }, [cases, query, status, expectation, progress]);
   const currentPage = Math.min(
     page,
