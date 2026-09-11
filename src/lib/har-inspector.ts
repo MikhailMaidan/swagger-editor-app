@@ -254,23 +254,31 @@ export function analyzeHarCapture(
       ),
     };
   });
+  const rowsByEndpoint = new Map<string, HarMatch[]>();
+  for (const match of matches) {
+    if (match.endpoint === null) continue;
+    const rows = rowsByEndpoint.get(match.endpoint);
+    if (rows) rows.push(match);
+    else rowsByEndpoint.set(match.endpoint, [match]);
+  }
   const operations = definitions.map(({ key, endpoint }) => {
-    const rows = matches.filter((match) => match.endpoint === key);
-    const statuses = Object.fromEntries(
-      Array.from(new Set(rows.map((row) => String(row.request.status))))
-        .sort()
-        .map((status) => [
-          status,
-          rows.filter((row) => String(row.request.status) === status).length,
-        ]),
-    );
+    const rows = rowsByEndpoint.get(key) ?? [];
+    const statuses: Record<string, number> = {};
+    let failed = 0;
+    let undocumented = 0;
+    for (const row of rows) {
+      const status = String(row.request.status);
+      statuses[status] = (statuses[status] ?? 0) + 1;
+      if (row.failed) failed++;
+      if (row.undocumented) undocumented++;
+    }
     return {
       key,
       method: endpoint.method.toUpperCase(),
       path: endpoint.path,
       requests: rows.length,
-      failed: rows.filter((row) => row.failed).length,
-      undocumented: rows.filter((row) => row.undocumented).length,
+      failed,
+      undocumented,
       statuses,
       timing: timing(rows.map((row) => row.request.durationMs)),
     };

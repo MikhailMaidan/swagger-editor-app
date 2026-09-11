@@ -338,4 +338,63 @@ describe("HAR analysis", () => {
       operations: [{ path: "/users/{id}", requests: 1 }],
     });
   });
+
+  it("keeps operation counts and timings isolated across repeated statuses, ambiguous routes, and unmatched requests", () => {
+    const data = capture([
+      entry(undefined, 200, 10),
+      entry(undefined, 200, 10),
+      entry(undefined, 404, 30),
+      entry(undefined, 0, -1),
+      entry("https://example.test/projects", 201, 40),
+      entry("https://example.test/projects", 500, 60),
+      entry("https://example.test/ambiguous/42", 200, 100),
+      entry("https://example.test/missing", 418, 20),
+    ]);
+    const analysis = analyzeHarCapture(data, [
+      endpoint(),
+      endpoint("/projects", "GET", ["201"]),
+      endpoint("/unused"),
+      endpoint("/ambiguous/{id}"),
+      endpoint("/ambiguous/{name}"),
+    ]);
+    expect(analysis.summary).toMatchObject({
+      requests: 8,
+      matched: 6,
+      unmatched: 1,
+      ambiguous: 1,
+      observed: 2,
+      failed: 4,
+      undocumented: 2,
+    });
+    expect(analysis.operations.map((operation) => operation.key)).toEqual([
+      "GET /users/{id}",
+      "GET /projects",
+      "GET /unused",
+      "GET /ambiguous/{id}",
+      "GET /ambiguous/{name}",
+    ]);
+    expect(analysis.operations[0]).toMatchObject({
+      requests: 4,
+      failed: 2,
+      undocumented: 1,
+      statuses: { "0": 1, "200": 2, "404": 1 },
+      timing: { count: 3, averageMs: 16.67, p95Ms: 30, maxMs: 30 },
+    });
+    expect(analysis.operations[1]).toMatchObject({
+      requests: 2,
+      failed: 1,
+      undocumented: 1,
+      statuses: { "201": 1, "500": 1 },
+      timing: { count: 2, averageMs: 50, p95Ms: 60, maxMs: 60 },
+    });
+    for (const operation of analysis.operations.slice(2)) {
+      expect(operation).toMatchObject({
+        requests: 0,
+        failed: 0,
+        undocumented: 0,
+        statuses: {},
+        timing: { count: 0, averageMs: null, p95Ms: null, maxMs: null },
+      });
+    }
+  });
 });
