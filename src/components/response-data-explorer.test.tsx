@@ -387,6 +387,47 @@ describe("ResponseDataExplorer", () => {
     expect(screen.queryByText("Response data copied.")).not.toBeInTheDocument();
   });
 
+  it.each([
+    ["Copy selected JSON Pointer", "Response data copied."],
+    ["Download selected JSON", "Response data download started."],
+  ])(
+    "preserves newer %s feedback after a slow copy fails",
+    async (action, message) => {
+      const { user } = await setup();
+      let finish!: (value: boolean) => void;
+      vi.mocked(writeTextToClipboard).mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      await user.click(
+        await screen.findByRole("button", { name: "Copy selected JSON" }),
+      );
+      await user.click(screen.getByRole("button", { name: action }));
+      expect(screen.getByText(message)).toBeVisible();
+      await act(async () => finish(false));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.getByText(message)).toBeVisible();
+    },
+  );
+
+  it("discards pending copy feedback after navigating away and back", async () => {
+    const { user } = await setup();
+    let finish!: (value: boolean) => void;
+    vi.mocked(writeTextToClipboard).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Copy selected JSON" }),
+    );
+    await go(user, "/items");
+    await go(user, "");
+    await act(async () => finish(true));
+    expect(screen.queryByText("Response data copied.")).not.toBeInTheDocument();
+  });
+
   it("renders Russian controls", async () => {
     window.localStorage.setItem("rsswagger-language", "ru");
     const user = userEvent.setup();

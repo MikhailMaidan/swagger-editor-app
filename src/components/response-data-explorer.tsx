@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useId, useMemo, useState } from "react";
+import { memo, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
@@ -45,6 +45,7 @@ function ExplorerContent({
   const [rowQuery, setRowQuery] = useState("");
   const [rowPage, setRowPage] = useState(0);
   const [hiddenColumns, setHiddenColumns] = useState<(string | null)[]>([]);
+  const exportGeneration = useRef(0);
   const [feedback, setFeedback] = useState<{
     context: string;
     key: TranslationKey;
@@ -88,6 +89,7 @@ function ExplorerContent({
   }
 
   function navigate(next: string) {
+    exportGeneration.current += 1;
     setPointer(next);
     setInputPointer(next);
     setPointerError(false);
@@ -101,9 +103,11 @@ function ExplorerContent({
     setFeedback(null);
   }
   async function copy(kind: "json" | "pointer") {
+    const generation = ++exportGeneration.current;
     const success = await writeTextToClipboard(
       kind === "json" ? selectedJson : pointer,
     );
+    if (generation !== exportGeneration.current) return;
     setFeedback({
       context,
       key: success ? "explorer.copySuccess" : "explorer.copyError",
@@ -111,6 +115,7 @@ function ExplorerContent({
     });
   }
   function download(kind: "json" | "csv") {
+    exportGeneration.current += 1;
     const slug = `${endpoint.method}-${endpoint.path}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
