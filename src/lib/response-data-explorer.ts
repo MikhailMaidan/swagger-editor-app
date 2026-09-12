@@ -106,22 +106,22 @@ export function indexResponseJson(body: string): ExplorerIndex {
   return { ok: true, nodes };
 }
 
+export function truncateJsonPreview(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  const preview = text.slice(0, limit);
+  const lastUnit = preview.charCodeAt(preview.length - 1);
+  // Do not leave half of a surrogate pair at the truncation boundary.
+  return lastUnit >= 0xd800 && lastUnit <= 0xdbff
+    ? preview.slice(0, -1)
+    : preview;
+}
+
 export function previewJsonValue(value: JsonValue, limit = 180): string {
   const type = jsonValueType(value);
   if (type === "array") return `[${(value as JsonValue[]).length}]`;
   if (type === "object") return `{${Object.keys(value!).length}}`;
   const text = JSON.stringify(value);
-  if (text.length > limit) {
-    const preview = text.slice(0, limit);
-    const lastUnit = preview.charCodeAt(preview.length - 1);
-    // Do not leave half of a surrogate pair at the truncation boundary.
-    return (
-      (lastUnit >= 0xd800 && lastUnit <= 0xdbff
-        ? preview.slice(0, -1)
-        : preview) + "…"
-    );
-  }
-  return text;
+  return text.length > limit ? truncateJsonPreview(text, limit) + "…" : text;
 }
 
 export function searchExplorerNodes(

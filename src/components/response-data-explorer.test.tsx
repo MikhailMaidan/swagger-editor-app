@@ -292,6 +292,31 @@ describe("ResponseDataExplorer", () => {
     );
   });
 
+  it.each([7998, 7997])(
+    "keeps emoji intact at the expanded preview boundary after %s characters",
+    async (prefixLength) => {
+      const prefix = "a".repeat(prefixLength);
+      const value = prefix + "😀tail";
+      const json = JSON.stringify(value);
+      const { user } = await setup(json);
+      await user.click(await screen.findByText("Preview selected JSON"));
+      const preview = screen.getByLabelText(
+        "Selected JSON preview",
+      ).textContent;
+      expect(preview?.length).toBe(prefixLength === 7998 ? 7999 : 8000);
+      expect(preview).toBe('"' + prefix + (prefixLength === 7997 ? "😀" : ""));
+      expect(screen.getByText(/Preview shortened to 8,000/)).toBeVisible();
+      await user.click(
+        screen.getByRole("button", { name: "Copy selected JSON" }),
+      );
+      expect(writeTextToClipboard).toHaveBeenLastCalledWith(json);
+      await user.click(
+        screen.getByRole("button", { name: "Download selected JSON" }),
+      );
+      expect(vi.mocked(downloadTextFile).mock.calls[0][0]).toBe(json);
+    },
+  );
+
   it("resets navigation after response changes, closing, and clearing without persistent storage", async () => {
     const { user, rerender } = await setup();
     await go(user, "/items");

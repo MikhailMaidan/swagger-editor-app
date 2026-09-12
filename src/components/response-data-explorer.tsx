@@ -14,6 +14,7 @@ import {
   isExplorerPointer,
   previewJsonValue,
   searchExplorerNodes,
+  truncateJsonPreview,
   type ExplorerIndex,
   type JsonValueType,
 } from "@/lib/response-data-explorer";
@@ -465,7 +466,7 @@ function ExplorerContent({
               aria-label={t("explorer.previewLabel")}
               className="mt-2 max-h-64 overflow-auto rounded-lg bg-white p-3 text-xs"
             >
-              {selectedJson.slice(0, 8000)}
+              {truncateJsonPreview(selectedJson, 8000)}
             </pre>
             {selectedJson.length > 8000 ? (
               <p className="mt-2 text-xs">{t("explorer.truncated")}</p>
