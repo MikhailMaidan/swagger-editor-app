@@ -101,6 +101,13 @@ describe("response data explorer", () => {
     expect(previewJsonValue("abcdef", 4)).toBe('"abc…');
   });
 
+  it("does not split surrogate pairs when shortening response previews", () => {
+    expect(previewJsonValue("ab😀cd", 4)).toBe('"ab…');
+    expect(previewJsonValue("ab😀cd", 5)).toBe('"ab😀…');
+    expect(previewJsonValue("😀text", 2)).toBe('"…');
+    expect(previewJsonValue("😀", 4)).toBe('"😀"');
+  });
+
   it("rejects malformed JSON, oversized UTF-8 bodies, excessive depth, and excessive nodes", () => {
     expect(indexResponseJson("not json")).toEqual({
       ok: false,
