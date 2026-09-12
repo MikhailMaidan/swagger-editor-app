@@ -15,6 +15,7 @@ import {
   type PlanStatus,
 } from "@/lib/api-test-plan";
 import { writeTextToClipboard } from "@/lib/clipboard";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import type { EndpointSummary } from "@/lib/openapi";
 import { downloadTextFile } from "@/lib/schema-download";
 import { getByteSize } from "@/lib/text-encoding";
@@ -251,12 +252,27 @@ export const ApiTestPlanPanel = memo(function ApiTestPlanPanel({
               {t("plan.search")}
               <input
                 type="search"
+                aria-keyshortcuts="Escape"
+                title={t("common.clearSearchShortcut")}
                 className={input}
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
                   setPage(0);
                   setSelected("");
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    query &&
+                    !event.nativeEvent.isComposing &&
+                    isCancelRequestShortcut(event)
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setQuery("");
+                    setPage(0);
+                    setSelected("");
+                  }
                 }}
               />
             </label>

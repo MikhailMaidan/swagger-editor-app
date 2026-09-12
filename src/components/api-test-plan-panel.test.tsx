@@ -57,6 +57,46 @@ async function setup() {
 const group = () =>
   within(screen.getByRole("group", { name: "Selected test case" }));
 describe("ApiTestPlanPanel", () => {
+  it("clears test-plan search with Escape while preserving QA filters, notes, and focus", async () => {
+    const { user } = await setup();
+    await user.selectOptions(group().getByLabelText("QA result"), "passed");
+    fireEvent.change(group().getByLabelText("QA notes"), {
+      target: { value: "Keep these notes" },
+    });
+    await user.selectOptions(
+      screen.getByLabelText("Filter QA results"),
+      "passed",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Filter test intent"),
+      "accept",
+    );
+    const search = screen.getByLabelText(
+      "Search test-plan endpoints, inputs, or values",
+    );
+    await user.type(search, "missing");
+    expect(screen.getByText("No cases match this view.")).toBeInTheDocument();
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    expect(search).toHaveAttribute("title", "Press Escape to clear search");
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(search, { key: "Escape", [modifier]: true });
+      expect(search).toHaveValue("missing");
+    }
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(screen.getByLabelText("Filter QA results")).toHaveValue("passed");
+    expect(screen.getByLabelText("Filter test intent")).toHaveValue("accept");
+    expect(screen.getByText("1 matching test cases")).toBeInTheDocument();
+    expect(group().getByLabelText("QA notes")).toHaveValue("Keep these notes");
+    expect(fireEvent.keyDown(search, { key: "Escape" })).toBe(true);
+  });
   it("ignores delayed copy feedback after QA notes change", async () => {
     const { user } = await setup();
     let finish!: (value: boolean) => void;

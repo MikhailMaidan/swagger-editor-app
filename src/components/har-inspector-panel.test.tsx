@@ -56,6 +56,52 @@ const trafficRows = () =>
     .slice(1);
 
 describe("HarInspectorPanel", () => {
+  it("clears traffic search with Escape without changing filters, sorting, or focus", async () => {
+    const user = userEvent.setup();
+    render(<HarInspectorPanel {...props} />);
+    await paste(
+      user,
+      har(
+        Array.from({ length: 30 }, (_, index) =>
+          entry(`/users/${index}`, 503, index),
+        ),
+      ),
+    );
+    const search = screen.getByLabelText(
+      "Search captured method, path, or status",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Traffic result filter"),
+      "failed",
+    );
+    await user.selectOptions(screen.getByLabelText("Traffic order"), "slowest");
+    await user.type(search, "users");
+    await user.click(screen.getByRole("button", { name: "Next traffic page" }));
+    expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
+    await user.click(search);
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    expect(search).toHaveAttribute("title", "Press Escape to clear search");
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(search, { key: "Escape", [modifier]: true });
+      expect(search).toHaveValue("users");
+    }
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(screen.getByLabelText("Traffic result filter")).toHaveValue(
+      "failed",
+    );
+    expect(screen.getByLabelText("Traffic order")).toHaveValue("slowest");
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+    expect(trafficRows()[0]).toHaveTextContent("GET /users/29");
+    expect(fireEvent.keyDown(search, { key: "Escape" })).toBe(true);
+  });
   beforeEach(() => {
     vi.mocked(writeTextToClipboard).mockReset().mockResolvedValue(true);
     vi.mocked(downloadTextFile).mockReset().mockReturnValue(true);

@@ -3,6 +3,7 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import {
   analyzeHarCapture,
   MAX_HAR_BYTES,
@@ -400,11 +401,25 @@ export const HarInspectorPanel = memo(function HarInspectorPanel({
               {t("har.search")}
               <input
                 type="search"
+                aria-keyshortcuts="Escape"
+                title={t("common.clearSearchShortcut")}
                 className={inputClass}
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
                   setPage(0);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    query &&
+                    !event.nativeEvent.isComposing &&
+                    isCancelRequestShortcut(event)
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setQuery("");
+                    setPage(0);
+                  }
                 }}
               />
             </label>
