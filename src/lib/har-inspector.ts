@@ -163,10 +163,12 @@ function template(path: string) {
     )
   )
     return null;
+  const prepared = segments.map((segment) =>
+    /^\{[^{}]+\}$/.test(segment) ? null : decodedSegment(segment),
+  );
   return {
-    segments,
-    specificity: segments.filter((segment) => !/^\{[^{}]+\}$/.test(segment))
-      .length,
+    segments: prepared,
+    specificity: prepared.filter((segment) => segment !== null).length,
   };
 }
 
@@ -210,7 +212,7 @@ export function analyzeHarCapture(
     const key = request.method + " " + path;
     let candidates = cache.get(key);
     if (!candidates) {
-      const parts = path.split("/");
+      const parts = path.split("/").map(decodedSegment);
       candidates = eligible
         ? definitions.filter(
             (entry) =>
@@ -218,9 +220,9 @@ export function analyzeHarCapture(
               entry.template &&
               entry.template.segments.length === parts.length &&
               entry.template.segments.every((segment, index) =>
-                /^\{[^{}]+\}$/.test(segment)
+                segment === null
                   ? parts[index].length > 0
-                  : decodedSegment(segment) === decodedSegment(parts[index]),
+                  : segment === parts[index],
               ),
           )
         : [];
