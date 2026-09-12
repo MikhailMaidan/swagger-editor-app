@@ -22,6 +22,7 @@ function writeTextWithLegacyClipboard(value: string) {
       : null;
   const selectionStart = activeInput?.selectionStart ?? null;
   const selectionEnd = activeInput?.selectionEnd ?? null;
+  const selectionDirection = activeInput?.selectionDirection ?? undefined;
   const textarea = document.createElement("textarea");
   let copied = false;
 
@@ -43,7 +44,11 @@ function writeTextWithLegacyClipboard(value: string) {
     activeElement?.focus();
 
     if (activeInput && selectionStart !== null && selectionEnd !== null) {
-      activeInput.setSelectionRange(selectionStart, selectionEnd);
+      activeInput.setSelectionRange(
+        selectionStart,
+        selectionEnd,
+        selectionDirection,
+      );
     }
   }
 
