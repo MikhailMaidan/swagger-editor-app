@@ -130,12 +130,17 @@ export function searchExplorerNodes(
   type: JsonValueType | "all" = "all",
 ) {
   const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
-  return Array.from(index.nodes.values()).filter((node) => {
-    if (type !== "all" && node.type !== type) return false;
-    const text =
-      `${node.pointer} ${node.key} ${node.type === "array" || node.type === "object" ? "" : String(node.value)}`.toLowerCase();
-    return terms.every((term) => text.includes(term));
-  });
+  const matches: ExplorerNode[] = [];
+  for (const node of index.nodes.values()) {
+    if (type !== "all" && node.type !== type) continue;
+    if (terms.length) {
+      const text =
+        `${node.pointer} ${node.key} ${node.type === "array" || node.type === "object" ? "" : String(node.value)}`.toLowerCase();
+      if (!terms.every((term) => text.includes(term))) continue;
+    }
+    matches.push(node);
+  }
+  return matches;
 }
 
 export function createExplorerTable(value: JsonValue): ExplorerTable {
