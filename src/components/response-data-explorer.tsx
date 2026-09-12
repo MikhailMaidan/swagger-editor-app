@@ -3,6 +3,7 @@
 import { memo, useId, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import { downloadTextFile } from "@/lib/schema-download";
 import {
   createExplorerTable,
@@ -270,11 +271,25 @@ function ExplorerContent({
               {t("explorer.filterRows")}
               <input
                 type="search"
+                aria-keyshortcuts="Escape"
+                title={t("common.clearSearchShortcut")}
                 className={inputClass}
                 value={rowQuery}
                 onChange={(event) => {
                   setRowQuery(event.target.value);
                   setRowPage(0);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    rowQuery &&
+                    !event.nativeEvent.isComposing &&
+                    isCancelRequestShortcut(event)
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setRowQuery("");
+                    setRowPage(0);
+                  }
                 }}
               />
             </label>
@@ -366,11 +381,25 @@ function ExplorerContent({
               {t("explorer.search")}
               <input
                 type="search"
+                aria-keyshortcuts="Escape"
+                title={t("common.clearSearchShortcut")}
                 className={inputClass}
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
                   setPage(0);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    query &&
+                    !event.nativeEvent.isComposing &&
+                    isCancelRequestShortcut(event)
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setQuery("");
+                    setPage(0);
+                  }
                 }}
               />
             </label>

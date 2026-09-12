@@ -37,6 +37,76 @@ async function go(user: ReturnType<typeof userEvent.setup>, pointer: string) {
 }
 
 describe("ResponseDataExplorer", () => {
+  it("clears JSON search with Escape while preserving location, type, and focus", async () => {
+    const { user } = await setup();
+    await go(user, "/items");
+    await user.selectOptions(
+      screen.getByLabelText("Filter JSON value type"),
+      "string",
+    );
+    const search = screen.getByLabelText("Search response paths and values");
+    await user.type(search, "missing");
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    expect(search).toHaveAttribute("title", "Press Escape to clear search");
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(search, { key: "Escape", [modifier]: true });
+      expect(search).toHaveValue("missing");
+    }
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(screen.getByLabelText("Explore JSON Pointer")).toHaveValue("/items");
+    expect(screen.getByLabelText("Filter JSON value type")).toHaveValue(
+      "string",
+    );
+    expect(
+      screen.getByText("2 matching values in the whole response"),
+    ).toBeVisible();
+    expect(fireEvent.keyDown(search, { key: "Escape" })).toBe(true);
+  });
+
+  it("clears table search with Escape while preserving columns and resetting pagination", async () => {
+    const { user } = await setup(
+      JSON.stringify(
+        Array.from({ length: 60 }, (_, id) => ({
+          id,
+          name: `Row ${id}`,
+          extra: "keep",
+        })),
+      ),
+    );
+    await user.selectOptions(
+      await screen.findByLabelText("Array display"),
+      "table",
+    );
+    await user.click(screen.getByText("Choose table columns"));
+    await user.click(screen.getByRole("checkbox", { name: '"extra"' }));
+    const search = screen.getByLabelText("Filter response table rows");
+    await user.type(search, "row");
+    await user.click(screen.getByRole("button", { name: "Next data page" }));
+    expect(screen.getByText("Page 2 of 3")).toBeVisible();
+    await user.click(search);
+    expect(search).toHaveAttribute("aria-keyshortcuts", "Escape");
+    await user.keyboard("{Escape}");
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    expect(screen.getByText("Page 1 of 3")).toBeVisible();
+    expect(screen.getByLabelText("Array display")).toHaveValue("table");
+    expect(screen.getByRole("checkbox", { name: '"extra"' })).not.toBeChecked();
+    await user.click(
+      screen.getByRole("button", { name: "Download filtered CSV" }),
+    );
+    const exported = vi.mocked(downloadTextFile).mock.calls[0][0];
+    expect(exported).toMatch(/^\uFEFF"#","id","name"\r\n/);
+    expect(exported).toContain('"59","59","Row 59"');
+    expect(exported.split("\r\n")).toHaveLength(62);
+  });
   beforeEach(() => {
     vi.mocked(writeTextToClipboard).mockReset().mockResolvedValue(true);
     vi.mocked(downloadTextFile).mockReset().mockReturnValue(true);
