@@ -93,6 +93,47 @@ describe("schema import validation", () => {
     }
   });
 
+  it.each(["fetch", "body"])(
+    "preserves cancellation errors during the %s stage",
+    async (stage) => {
+      const controller = new AbortController();
+      const aborted = new DOMException("Import cancelled", "AbortError");
+      const response = Response.json({});
+      vi.spyOn(response, "json").mockRejectedValue(aborted);
+      const fetchMock = vi.spyOn(globalThis, "fetch");
+      if (stage === "fetch") fetchMock.mockRejectedValue(aborted);
+      else fetchMock.mockResolvedValue(response);
+
+      try {
+        await expect(
+          importSchemaFromUrl(
+            "https://docs.example.com/openapi.yaml",
+            controller.signal,
+          ),
+        ).rejects.toBe(aborted);
+        expect(fetchMock).toHaveBeenCalledWith(
+          "/api/schema-import",
+          expect.objectContaining({ signal: controller.signal }),
+        );
+      } finally {
+        fetchMock.mockRestore();
+      }
+    },
+  );
+
+  it("reports malformed JSON as an invalid response", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{"));
+    try {
+      await expect(
+        importSchemaFromUrl("https://docs.example.com/openapi.yaml"),
+      ).rejects.toMatchObject({ code: "invalid-response" });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("rejects malformed success responses and network failures", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")

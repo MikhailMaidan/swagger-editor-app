@@ -57,6 +57,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isAbortError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "AbortError"
+  );
+}
+
 function isRemoteSchemaImportErrorCode(
   value: unknown,
 ): value is RemoteSchemaImportErrorCode {
@@ -87,14 +96,7 @@ export async function importSchemaFromUrl(url: string, signal?: AbortSignal) {
       signal,
     });
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "name" in error &&
-      error.name === "AbortError"
-    ) {
-      throw error;
-    }
+    if (isAbortError(error)) throw error;
 
     throw new RemoteSchemaImportError("fetch-failed");
   }
@@ -103,7 +105,8 @@ export async function importSchemaFromUrl(url: string, signal?: AbortSignal) {
 
   try {
     payload = await response.json();
-  } catch {
+  } catch (error) {
+    if (isAbortError(error)) throw error;
     throw new RemoteSchemaImportError("invalid-response");
   }
 
