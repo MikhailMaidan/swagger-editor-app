@@ -178,9 +178,16 @@ export function createRequestCoverageReport(
       }
     });
 
-    const failedAttempts = operationRecords.filter(
-      (record) => !isSuccessfulStatus(record.status),
-    ).length;
+    let failedAttempts = 0;
+    let measuredDurationCount = 0;
+    let totalDurationMs = 0;
+    for (const record of operationRecords) {
+      if (!isSuccessfulStatus(record.status)) failedAttempts += 1;
+      if (Number.isFinite(record.durationMs) && record.durationMs >= 0) {
+        measuredDurationCount += 1;
+        totalDurationMs += record.durationMs;
+      }
+    }
     const latestRecord = operationRecords[0];
     const state: RequestCoverageState = !latestRecord
       ? "untested"
@@ -189,19 +196,13 @@ export function createRequestCoverageReport(
         : undocumentedStatuses.length > 0
           ? "undocumented"
           : "covered";
-    const durations = operationRecords
-      .map((record) => record.durationMs)
-      .filter((duration) => Number.isFinite(duration) && duration >= 0);
 
     return {
       attempts: operationRecords.length,
       averageDurationMs:
-        durations.length === 0
+        measuredDurationCount === 0
           ? 0
-          : Math.round(
-              durations.reduce((total, duration) => total + duration, 0) /
-                durations.length,
-            ),
+          : Math.round(totalDurationMs / measuredDurationCount),
       documentedResponseCount: endpoint.responses.length,
       failedAttempts,
       latestCreatedAt: latestRecord?.createdAt ?? null,
