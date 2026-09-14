@@ -1,4 +1,5 @@
 import { getByteSize } from "./text-encoding";
+import { truncateJsonPreview } from "./response-data-explorer";
 
 export type ComparisonResponse = {
   body: string;
@@ -76,7 +77,7 @@ function preview(value: unknown): string | undefined {
     return `{…} (${Object.keys(value).length})`;
   const text = JSON.stringify(value);
   return text.length > MAX_VALUE_LENGTH
-    ? `${text.slice(0, MAX_VALUE_LENGTH)}…`
+    ? `${truncateJsonPreview(text, MAX_VALUE_LENGTH)}…`
     : text;
 }
 

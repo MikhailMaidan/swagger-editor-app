@@ -71,6 +71,26 @@ describe("response comparison", () => {
     ]);
   });
 
+  it.each([998, 997])(
+    "keeps emoji intact at the preview boundary after %s characters",
+    (prefixLength) => {
+      const prefix = "a".repeat(prefixLength);
+      const report = compare(prefix + "😀old", prefix + "😀new");
+      const preview = '"' + prefix + (prefixLength === 997 ? "😀" : "") + "…";
+
+      expect(report.differences).toEqual([
+        {
+          area: "body",
+          kind: "changed",
+          path: "",
+          before: preview,
+          after: preview,
+        },
+      ]);
+      expect(report.bodyMode).toBe("json");
+    },
+  );
+
   it("compares arrays by index, including nested fields and length changes", () => {
     expect(compare([{ id: 1 }, { id: 2 }], [{ id: 3 }]).differences).toEqual([
       expect.objectContaining({
