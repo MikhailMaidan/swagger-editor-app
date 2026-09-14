@@ -3,8 +3,14 @@ import type { EndpointSummary } from "./openapi";
 export type EndpointResponseFilter =
   "all" | "client-error" | "missing-error" | "server-error" | "success";
 
+const RESPONSE_FAMILY_PATTERNS = {
+  2: /^2(?:\d{2}|xx)$/i,
+  4: /^4(?:\d{2}|xx)$/i,
+  5: /^5(?:\d{2}|xx)$/i,
+};
+
 function matchesResponseFamily(status: string, family: 2 | 4 | 5) {
-  return new RegExp(`^${family}(?:\\d{2}|xx)$`, "i").test(status.trim());
+  return RESPONSE_FAMILY_PATTERNS[family].test(status.trim());
 }
 
 function hasDocumentedErrorResponse(endpoint: EndpointSummary) {
