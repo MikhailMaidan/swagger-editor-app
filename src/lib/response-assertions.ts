@@ -1,4 +1,5 @@
 import { getByteSize } from "@/lib/text-encoding";
+import { getSelectedCharacterCount } from "@/lib/text-stats";
 
 export const MAX_RESPONSE_ASSERTIONS = 50;
 // Accommodates 50 rules at their field limits, even after JSON escaping.
@@ -295,7 +296,7 @@ export function evaluateResponseAssertions(
             return { outcome: "fail", issue: "wrong-type" };
           passed =
             (typeof actual === "string"
-              ? Array.from(actual).length
+              ? getSelectedCharacterCount(actual, 0, actual.length)
               : actual.length) === Number(rule.expected);
           break;
         default:
