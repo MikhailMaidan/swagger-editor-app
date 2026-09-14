@@ -78,6 +78,31 @@ describe("request body helpers", () => {
     });
   });
 
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "requires %s to be an own JSON property",
+    (property) => {
+      const schema = {
+        properties: [property],
+        requiredProperties: [property],
+        type: "object",
+      };
+      expect(
+        createRequestBodyContractReport("application/json", "{}", schema),
+      ).toEqual({
+        code: "body-missing-required",
+        params: { properties: property },
+        result: "fail",
+      });
+      expect(
+        createRequestBodyContractReport(
+          "application/json",
+          JSON.stringify({ [property]: null }),
+          schema,
+        ),
+      ).toMatchObject({ code: "body-matched", result: "pass" });
+    },
+  );
+
   it("skips bodies that cannot be checked meaningfully", () => {
     expect(
       createRequestBodyContractReport("application/json", "", {

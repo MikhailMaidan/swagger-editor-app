@@ -281,7 +281,7 @@ function createBodyCheck(
   if (expectedType === "object" && requiredProperties.length > 0) {
     const record = value as Record<string, unknown>;
     const missingProperties = requiredProperties.filter(
-      (property) => !(property in record),
+      (property) => !Object.prototype.hasOwnProperty.call(record, property),
     );
 
     if (missingProperties.length > 0) {

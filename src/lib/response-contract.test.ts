@@ -111,6 +111,40 @@ describe("response contract checks", () => {
     });
   });
 
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "requires %s to be an own JSON property",
+    (property) => {
+      const response = createResponse({
+        schema: {
+          example: "",
+          exampleName: "",
+          properties: [property],
+          requiredProperties: [property],
+          type: "object",
+        },
+      });
+      const input = {
+        body: "{}",
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status: "200",
+      };
+      expect(
+        createResponseContractReport([response], input).checks[2],
+      ).toMatchObject({
+        code: "body-missing-required",
+        params: { properties: property },
+        result: "fail",
+      });
+      expect(
+        createResponseContractReport([response], {
+          ...input,
+          body: JSON.stringify({ [property]: null }),
+        }).result,
+      ).toBe("pass");
+    },
+  );
+
   it("skips media and body checks when the response status is undocumented", () => {
     const report = createResponseContractReport([createResponse()], {
       body: '{"error":"offline"}',
