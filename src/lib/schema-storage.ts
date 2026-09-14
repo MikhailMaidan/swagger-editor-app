@@ -63,11 +63,20 @@ export function parseSavedSchemas(value?: string | null) {
 }
 
 export function sortSavedSchemas(schemas: SavedSchemaRecord[]) {
-  return [...schemas].sort(
-    (firstSchema, secondSchema) =>
-      new Date(secondSchema.updatedAt).getTime() -
-      new Date(firstSchema.updatedAt).getTime(),
-  );
+  return schemas
+    .map((schema) => {
+      const timestamp = Date.parse(schema.updatedAt);
+      return {
+        schema,
+        timestamp: Number.isFinite(timestamp) ? timestamp : -Infinity,
+      };
+    })
+    .sort((first, second) =>
+      first.timestamp === second.timestamp
+        ? 0
+        : second.timestamp - first.timestamp,
+    )
+    .map(({ schema }) => schema);
 }
 
 export function mergeSavedSchemas(schemas: SavedSchemaRecord[]) {

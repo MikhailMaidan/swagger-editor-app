@@ -3,6 +3,7 @@ import {
   clearSavedSchema,
   createSavedSchemaRecord,
   mergeSavedSchemas,
+  MAX_SAVED_SCHEMAS,
   parseSavedSchemas,
   readSavedSchema,
   readServerSavedSchemas,
@@ -10,6 +11,7 @@ import {
   SCHEMA_EDITOR_HANDOFF_STORAGE_KEY,
   saveSchema,
   saveServerSchemaRecord,
+  sortSavedSchemas,
   stageSavedSchemaForEditor,
   takeStagedSavedSchemaForEditor,
 } from "./schema-storage";
@@ -57,6 +59,54 @@ describe("schema storage", () => {
       title: "New API",
       version: "2.0.0",
     });
+  });
+
+  it("sorts valid dates newest first and keeps undated schemas in stable order", () => {
+    const template = createSavedSchemaRecord("openapi: 3.0.0", {
+      format: "yaml",
+      title: "API",
+      version: "1.0.0",
+    });
+    const schemas = [
+      "invalid",
+      "1960-01-01T00:00:00.000Z",
+      "",
+      "2026-07-10T10:00:00.000Z",
+      "2026-07-10T10:00:00.000Z",
+    ].map((updatedAt, index) => ({
+      ...template,
+      id: String(index),
+      updatedAt,
+    }));
+    const original = [...schemas];
+
+    expect(sortSavedSchemas(schemas)).toEqual([
+      schemas[3],
+      schemas[4],
+      schemas[1],
+      schemas[0],
+      schemas[2],
+    ]);
+    expect(schemas).toEqual(original);
+  });
+
+  it("keeps a recent schema when undated records fill the collection limit", () => {
+    const recent = createSavedSchemaRecord("openapi: 3.0.0", {
+      id: "recent",
+      format: "yaml",
+      title: "Recent API",
+      version: "1.0.0",
+    });
+    const undated = Array.from({ length: MAX_SAVED_SCHEMAS }, (_, index) => ({
+      ...recent,
+      id: `undated-${index}`,
+      updatedAt: "invalid",
+    }));
+
+    expect(mergeSavedSchemas([...undated, recent])).toEqual([
+      recent,
+      ...undated.slice(0, MAX_SAVED_SCHEMAS - 1),
+    ]);
   });
 
   it("returns a saved schema record when metadata is provided", () => {
