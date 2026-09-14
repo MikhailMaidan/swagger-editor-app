@@ -196,9 +196,16 @@ export function analyzeHarCapture(
   );
   const definitions = Array.from(unique, ([key, endpoint]) => ({
     key,
+    method: endpoint.method.toUpperCase(),
     endpoint,
     template: template(endpoint.path),
   }));
+  const definitionsByMethod = new Map<string, typeof definitions>();
+  for (const definition of definitions) {
+    const group = definitionsByMethod.get(definition.method);
+    if (group) group.push(definition);
+    else definitionsByMethod.set(definition.method, [definition]);
+  }
   const requests = capture.requests.filter(
     (request) => !options.origin || request.origin === options.origin,
   );
@@ -214,9 +221,8 @@ export function analyzeHarCapture(
     if (!candidates) {
       const parts = path.split("/").map(decodedSegment);
       candidates = eligible
-        ? definitions.filter(
+        ? (definitionsByMethod.get(request.method) ?? []).filter(
             (entry) =>
-              entry.endpoint.method.toUpperCase() === request.method &&
               entry.template &&
               entry.template.segments.length === parts.length &&
               entry.template.segments.every((segment, index) =>
@@ -263,7 +269,7 @@ export function analyzeHarCapture(
     if (rows) rows.push(match);
     else rowsByEndpoint.set(match.endpoint, [match]);
   }
-  const operations = definitions.map(({ key, endpoint }) => {
+  const operations = definitions.map(({ key, method, endpoint }) => {
     const rows = rowsByEndpoint.get(key) ?? [];
     const statuses: Record<string, number> = {};
     let failed = 0;
@@ -276,7 +282,7 @@ export function analyzeHarCapture(
     }
     return {
       key,
-      method: endpoint.method.toUpperCase(),
+      method,
       path: endpoint.path,
       requests: rows.length,
       failed,
