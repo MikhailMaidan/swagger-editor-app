@@ -57,6 +57,40 @@ describe("response data explorer", () => {
     expect(({} as Record<string, unknown>).constructor).toBe(Object);
   });
 
+  it("accepts a leading byte-order mark without changing JSON keys or values", () => {
+    const body = JSON.stringify({
+      "\uFEFFkey": "\uFEFFvalue",
+      items: [null, 7],
+    });
+    expect(index("\uFEFF" + body)).toEqual(index(body));
+    expect(index('\uFEFF"\uFEFFvalue"').nodes.get("")?.value).toBe(
+      "\uFEFFvalue",
+    );
+  });
+
+  it("keeps validation and byte limits for bodies with a byte-order mark", () => {
+    for (const body of [
+      "\uFEFF",
+      "\uFEFFnot json",
+      "\uFEFF\uFEFF{}",
+      "{\uFEFF}",
+    ]) {
+      expect(indexResponseJson(body)).toEqual({
+        ok: false,
+        issue: "invalid-json",
+      });
+    }
+    expect(indexResponseJson("\uFEFF9007199254740992")).toEqual({
+      ok: false,
+      issue: "unsafe-number",
+    });
+    const body = '"' + "a".repeat(MAX_EXPLORER_BYTES - 4) + '"';
+    expect(indexResponseJson("\uFEFF" + body)).toEqual({
+      ok: false,
+      issue: "size-limit",
+    });
+  });
+
   it.each(["", "/", "/items/0", "/a~1b/~0id", "/~01"])(
     "accepts JSON Pointer syntax %s",
     (pointer) => {

@@ -51,7 +51,7 @@ export function indexResponseJson(body: string): ExplorerIndex {
     return { ok: false, issue: "size-limit" };
   let root: JsonValue;
   try {
-    root = JSON.parse(body);
+    root = JSON.parse(body.replace(/^\uFEFF/, ""));
   } catch {
     return { ok: false, issue: "invalid-json" };
   }
