@@ -23,7 +23,10 @@ export type SavedSchemaMeta = {
 };
 
 function createId() {
-  return `${Date.now()}-${Math.round(Math.random() * 10000)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.round(Math.random() * 10000)}`
+  );
 }
 
 export function isSavedSchemaRecord(

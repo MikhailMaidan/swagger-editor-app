@@ -17,6 +17,43 @@ import {
 } from "./schema-storage";
 
 describe("schema storage", () => {
+  it("keeps distinct schemas when saves share a timestamp and random suffix", () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const first = createSavedSchemaRecord("first", {
+        title: "First",
+        format: "yaml",
+        version: "1",
+      });
+      const second = createSavedSchemaRecord("second", {
+        title: "Second",
+        format: "yaml",
+        version: "1",
+      });
+      expect(first.id).not.toBe(second.id);
+      expect(mergeSavedSchemas([first, second])).toHaveLength(2);
+    } finally {
+      clock.mockRestore();
+      random.mockRestore();
+    }
+  });
+
+  it("can create schemas when UUID generation is unavailable", () => {
+    vi.stubGlobal("crypto", {});
+    try {
+      const record = createSavedSchemaRecord("openapi: 3.0.0", {
+        title: "API",
+        format: "yaml",
+        version: "1",
+      });
+      expect(record.id).toMatch(/^\d+-\d+$/);
+      expect(record.schemaText).toBe("openapi: 3.0.0");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("saves and reads schema text from local storage", () => {
     saveSchema("openapi: 3.0.0");
 

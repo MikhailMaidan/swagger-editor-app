@@ -35,7 +35,10 @@ export type RequestHistoryDraft = Omit<
   >;
 
 function createId() {
-  return `${Date.now()}-${Math.round(Math.random() * 10000)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.round(Math.random() * 10000)}`
+  );
 }
 
 function notifyRequestHistoryChanged() {

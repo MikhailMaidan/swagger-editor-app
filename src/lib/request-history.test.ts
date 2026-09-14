@@ -16,6 +16,46 @@ import {
 import type { RequestHistoryRecord } from "./request-history";
 
 describe("request history storage", () => {
+  it("keeps distinct requests when saves share a timestamp and random suffix", () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const draft = {
+        durationMs: 12,
+        method: "GET",
+        path: "/users",
+        status: 200,
+        summary: "List users",
+      };
+      const first = saveRequestHistoryRecord(draft);
+      const second = saveRequestHistoryRecord(draft);
+      expect(first).not.toBeNull();
+      expect(second).not.toBeNull();
+      expect(first?.id).not.toBe(second?.id);
+      expect(readRequestHistory()).toHaveLength(2);
+    } finally {
+      clock.mockRestore();
+      random.mockRestore();
+    }
+  });
+
+  it("can save requests when UUID generation is unavailable", () => {
+    vi.stubGlobal("crypto", {});
+    try {
+      const record = saveRequestHistoryRecord({
+        durationMs: 12,
+        method: "GET",
+        path: "/users",
+        status: 200,
+        summary: "List users",
+      });
+      expect(record?.id).toMatch(/^\d+-\d+$/);
+      expect(readRequestHistory()).toEqual([record]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("saves newest request records first", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-01T12:00:00.000Z"));
