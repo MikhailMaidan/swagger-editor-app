@@ -228,40 +228,38 @@ export function createRequestCoverageReport(
       first.method.localeCompare(second.method),
   );
 
-  const testedOperationCount = operations.filter(
-    (operation) => operation.attempts > 0,
-  ).length;
-  const statusVariantCount = operations.reduce(
-    (total, operation) => total + operation.documentedResponseCount,
-    0,
-  );
-  const testedStatusVariantCount = operations.reduce(
-    (total, operation) => total + operation.observedDocumentedResponses.length,
-    0,
-  );
+  const stateCounts: Record<RequestCoverageState, number> = {
+    covered: 0,
+    failing: 0,
+    undocumented: 0,
+    untested: 0,
+  };
+  let testedOperationCount = 0;
+  let statusVariantCount = 0;
+  let testedStatusVariantCount = 0;
+  let failedRequestCount = 0;
+  let requestCount = 0;
+  for (const operation of operations) {
+    stateCounts[operation.state] += 1;
+    if (operation.attempts > 0) testedOperationCount += 1;
+    statusVariantCount += operation.documentedResponseCount;
+    testedStatusVariantCount += operation.observedDocumentedResponses.length;
+    failedRequestCount += operation.failedAttempts;
+    requestCount += operation.attempts;
+  }
 
   return {
-    coveredOperationCount: operations.filter(
-      (operation) => operation.state === "covered",
-    ).length,
+    coveredOperationCount: stateCounts.covered,
     endpointCoveragePercentage:
       operations.length === 0
         ? 0
         : Math.round((testedOperationCount / operations.length) * 100),
-    failedRequestCount: operations.reduce(
-      (total, operation) => total + operation.failedAttempts,
-      0,
-    ),
-    failingOperationCount: operations.filter(
-      (operation) => operation.state === "failing",
-    ).length,
+    failedRequestCount,
+    failingOperationCount: stateCounts.failing,
     ignoredRequestCount,
     operationCount: operations.length,
     operations,
-    requestCount: operations.reduce(
-      (total, operation) => total + operation.attempts,
-      0,
-    ),
+    requestCount,
     responseCoveragePercentage:
       statusVariantCount === 0
         ? 0
@@ -269,11 +267,7 @@ export function createRequestCoverageReport(
     statusVariantCount,
     testedOperationCount,
     testedStatusVariantCount,
-    undocumentedOperationCount: operations.filter(
-      (operation) => operation.state === "undocumented",
-    ).length,
-    untestedOperationCount: operations.filter(
-      (operation) => operation.state === "untested",
-    ).length,
+    undocumentedOperationCount: stateCounts.undocumented,
+    untestedOperationCount: stateCounts.untested,
   };
 }
