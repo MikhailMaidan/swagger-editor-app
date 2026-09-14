@@ -46,7 +46,10 @@ export function createSchemaCollectionExport(
   exportedAt = new Date(),
   scope: SchemaCollectionExportScope = "all",
 ): SchemaCollectionExport {
-  const exportedAtIso = exportedAt.toISOString();
+  const safeExportedAt = Number.isFinite(exportedAt.getTime())
+    ? exportedAt
+    : new Date(0);
+  const exportedAtIso = safeExportedAt.toISOString();
   const scopeSuffix = scope === "visible" ? "-visible" : "";
 
   return {

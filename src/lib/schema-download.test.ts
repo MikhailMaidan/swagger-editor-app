@@ -91,6 +91,22 @@ describe("schema download helpers", () => {
     expect(JSON.parse(result.content).schemas).toEqual([schema]);
   });
 
+  it.each(["all", "visible"] as const)(
+    "uses a stable fallback for an invalid date with scope %s",
+    (scope) => {
+      const result = createSchemaCollectionExport([], new Date(NaN), scope);
+
+      expect(result.fileName).toBe(
+        `openapi-schemas${scope === "visible" ? "-visible" : ""}-1970-01-01.json`,
+      );
+      expect(JSON.parse(result.content)).toEqual({
+        exportedAt: "1970-01-01T00:00:00.000Z",
+        schemas: [],
+        version: 1,
+      });
+    },
+  );
+
   it("returns failure instead of throwing when a browser download cannot start", () => {
     const originalCreateObjectURL = URL.createObjectURL;
     URL.createObjectURL = () => {
