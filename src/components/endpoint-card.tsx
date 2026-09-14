@@ -14,6 +14,7 @@ import { RequestPresetControls } from "@/components/request-preset-controls";
 import { ResponseContractReport } from "@/components/response-contract-report";
 import { ResponseComparisonPanel } from "@/components/response-comparison-panel";
 import { ResponseDataExplorer } from "@/components/response-data-explorer";
+import { ResponseSchemaPanel } from "@/components/response-schema-panel";
 import { ResponseAssertionsPanel } from "@/components/response-assertions-panel";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
@@ -2082,6 +2083,7 @@ function EndpointCardComponent({
           endpoint={{ method: endpoint.method, path: endpoint.path }}
           response={mockResult}
         />
+        <ResponseSchemaPanel body={mockResult?.body ?? null} />
         <ResponseComparisonPanel
           endpoint={{ method: endpoint.method, path: endpoint.path }}
           response={mockResult}

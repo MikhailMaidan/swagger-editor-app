@@ -45,6 +45,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Response comparison workbench with pinned in-memory baselines, structural JSON and header diffs, status and latency changes, ignored fields, searchable change lists, and JSON reports
 - Custom response assertion workbench with status, header, JSON Pointer, and timing checks, automatic Live/Mock evaluation, result filters, reusable check-set imports/exports, and value-free JSON reports
 - Response data explorer with JSON Pointer navigation, nested-value search, array tables, selectable columns, row filtering, and selected JSON or spreadsheet-safe CSV downloads
+- Response schema builder with multiple captured or pasted JSON examples, nested type inference, optional-field analysis, searchable field inventories, and JSON Schema / OpenAPI 3.1 component exports
 - Offline Mock contract suite runner across all documented response variants,
   with visible-endpoint scope, pass/partial/fail filtering, and JSON exports
 - Live request coverage dashboard that maps saved runs to operations and
@@ -175,6 +176,38 @@ in the review notes. External references remain external, and links to excluded
 operations are flagged for review. JSON/YAML serialization does not preserve
 source comments or formatting. The original specification version is retained,
 including Swagger 2 reusable definitions.
+
+## Building a schema from response examples
+
+Open **Response schema builder** inside an endpoint. Use **Capture current
+response** after a Live or Mock run, or paste a JSON example and select **Add
+JSON example**. Each capture is a snapshot; subsequent runs and clearing the
+displayed response do not replace the samples. Remove individual examples to
+refine the schema, or clear them to start again. Samples survive closing the
+builder, but remain only in memory and are lost when the endpoint is unmounted
+(for example, by endpoint filtering) or the page is closed.
+
+The builder merges nested object properties and all observed array items.
+Properties missing from any observed object at the same location become
+optional. Explicit nulls produce nullable type unions; integer and fractional
+observations combine as `number`. Empty arrays have unconstrained items until
+other examples provide evidence. The field inventory shows schema paths, types,
+and the number of objects containing each property; search and pagination only
+affect that inventory, not the exported schema.
+
+Review the inferred draft and choose whether consistently present fields should
+be required and whether additional object properties are allowed. Examples
+cannot establish formats, enums, bounds, or business rules. No examples or
+literal response values are embedded in exports, but field names are retained.
+Choose **JSON Schema 2020-12** for a standalone schema or **OpenAPI 3.1 component
+(YAML)** for a `components.schemas` fragment. The YAML is intended for OpenAPI
+3.1 and is not a complete API document. Copy or download the result for review;
+the builder never modifies the editor or sends requests.
+
+Limits are 10 samples, 1 MiB per sample, 2 MiB combined, 20,000 JSON values
+combined, and 64 nesting levels. Malformed JSON and unsafe numeric values are
+rejected without discarding existing examples. Previews are limited to 12,000
+characters; exports contain the full schema.
 
 ## Comparing endpoint responses
 

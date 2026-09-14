@@ -3,6 +3,66 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "inference.title": "Response schema builder",
+    "inference.heading": "Build a schema from JSON examples",
+    "inference.description":
+      "Capture a response or paste JSON examples to infer a shared schema. Samples stay in this endpoint’s memory until removed or the endpoint closes; no requests are sent and the editor stays unchanged.",
+    "inference.limits":
+      "Up to 10 samples, 1 MiB per sample, 2 MiB combined, 20,000 values, and 64 nesting levels.",
+    "inference.capture": "Capture current response",
+    "inference.paste": "JSON schema example",
+    "inference.add": "Add JSON example",
+    "inference.samples": "Captured examples: {count}/10",
+    "inference.sampleList": "Schema examples",
+    "inference.sample": "Example {number} · {bytes} bytes",
+    "inference.remove": "Remove example {number}",
+    "inference.removeLabel": "Remove",
+    "inference.clear": "Clear schema examples",
+    "inference.empty":
+      "Add an example to start. An array counts as one example; its items are analyzed together.",
+    "inference.review":
+      "Review this inferred draft before using it as a contract. Examples cannot prove which fields are required or establish formats, ranges, enums, or business rules. Exports include field names and types, but no example values. YAML exports are component fragments for OpenAPI 3.1, not complete API documents.",
+    "inference.name": "Schema component name",
+    "inference.format": "Inferred schema format",
+    "inference.json": "JSON Schema 2020-12",
+    "inference.yaml": "OpenAPI 3.1 component (YAML)",
+    "inference.invalidName":
+      "Use 1–80 letters, digits, underscores, dots, or hyphens, starting with a letter or underscore.",
+    "inference.required": "Require fields present in every observed object",
+    "inference.additional": "Allow additional object properties",
+    "inference.fields": "{count} fields · {optional} optional",
+    "inference.search": "Search inferred schema paths and types",
+    "inference.fieldTable": "Inferred fields",
+    "inference.path": "Schema path",
+    "inference.types": "Types",
+    "inference.observed": "Present / objects",
+    "inference.presence": "Requirement",
+    "inference.requiredLabel": "Required",
+    "inference.optionalLabel": "Optional",
+    "inference.noFields":
+      "No object fields match. Scalar and empty-array schemas are available in the preview.",
+    "inference.previous": "Previous schema fields",
+    "inference.next": "Next schema fields",
+    "inference.page": "Page {current} of {total}",
+    "inference.copy": "Copy inferred schema",
+    "inference.download": "Download inferred schema",
+    "inference.copied": "Inferred schema copied.",
+    "inference.copyFailed":
+      "Could not copy the inferred schema. Try downloading it.",
+    "inference.downloaded": "Inferred schema download started.",
+    "inference.downloadFailed": "Could not download the inferred schema.",
+    "inference.preview": "Inferred schema preview",
+    "inference.shortened":
+      "Preview shortened to 12,000 characters. Copy and download include the full schema.",
+    "inference.invalid-json":
+      "This example is not valid JSON. Existing examples were kept.",
+    "inference.size-limit":
+      "Example size limit exceeded: 1 MiB per example and 2 MiB combined.",
+    "inference.structure-limit":
+      "Examples exceed 20,000 values combined or 64 nesting levels.",
+    "inference.unsafe-number":
+      "This example contains a number that cannot be represented safely. Use strings for large identifiers.",
+    "inference.sample-limit": "Remove an example before adding more than 10.",
     "plan.exportTooLarge":
       "This JSON report exceeds the 16 MiB import limit. Narrow the endpoint scope before exporting so progress can be restored.",
     "plan.title": "API test-plan workbench",
@@ -1656,6 +1716,68 @@ export const translations = {
     "workspace.withoutRequestBodyOnly": "Without request body",
   },
   ru: {
+    "inference.title": "Конструктор схемы ответа",
+    "inference.heading": "Создание схемы по примерам JSON",
+    "inference.description":
+      "Добавьте текущий ответ или примеры JSON для вывода общей схемы. Примеры хранятся в памяти этого эндпоинта до удаления или закрытия эндпоинта. Запросы не отправляются, документ в редакторе не меняется.",
+    "inference.limits":
+      "До 10 примеров, 1 МиБ на пример, 2 МиБ суммарно, 20 000 значений и 64 уровней вложенности.",
+    "inference.capture": "Добавить текущий ответ",
+    "inference.paste": "Пример JSON для схемы",
+    "inference.add": "Добавить пример JSON",
+    "inference.samples": "Добавлено примеров: {count}/10",
+    "inference.sampleList": "Примеры для схемы",
+    "inference.sample": "Пример {number} · {bytes} байт",
+    "inference.remove": "Удалить пример {number}",
+    "inference.removeLabel": "Удалить",
+    "inference.clear": "Очистить примеры схемы",
+    "inference.empty":
+      "Добавьте пример для начала. Массив считается одним примером; его элементы анализируются вместе.",
+    "inference.review":
+      "Проверьте полученную схему перед использованием как контракта. Примеры не определяют обязательность полей, форматы, диапазоны, перечисления и бизнес-правила. Экспорт содержит имена и типы полей без значений примеров. YAML — фрагмент компонента для OpenAPI 3.1, а не полный документ API.",
+    "inference.name": "Имя компонента схемы",
+    "inference.format": "Формат выведенной схемы",
+    "inference.json": "JSON Schema 2020-12",
+    "inference.yaml": "Компонент OpenAPI 3.1 (YAML)",
+    "inference.invalidName":
+      "Используйте 1–80 букв латиницы, цифр, подчёркиваний, точек или дефисов. Начните с буквы или подчёркивания.",
+    "inference.required":
+      "Считать обязательными поля, присутствующие во всех объектах",
+    "inference.additional": "Разрешить дополнительные свойства объектов",
+    "inference.fields": "Полей: {count} · необязательных: {optional}",
+    "inference.search": "Поиск по путям и типам выведенной схемы",
+    "inference.fieldTable": "Выведенные поля",
+    "inference.path": "Путь в схеме",
+    "inference.types": "Типы",
+    "inference.observed": "Есть / объектов",
+    "inference.presence": "Обязательность",
+    "inference.requiredLabel": "Обязательное",
+    "inference.optionalLabel": "Необязательное",
+    "inference.noFields":
+      "Подходящих полей объектов нет. Схемы скалярных значений и пустых массивов доступны в предпросмотре.",
+    "inference.previous": "Предыдущие поля схемы",
+    "inference.next": "Следующие поля схемы",
+    "inference.page": "Страница {current} из {total}",
+    "inference.copy": "Копировать выведенную схему",
+    "inference.download": "Скачать выведенную схему",
+    "inference.copied": "Выведенная схема скопирована.",
+    "inference.copyFailed":
+      "Не удалось скопировать схему. Попробуйте скачать её.",
+    "inference.downloaded": "Скачивание выведенной схемы началось.",
+    "inference.downloadFailed": "Не удалось скачать выведенную схему.",
+    "inference.preview": "Предпросмотр выведенной схемы",
+    "inference.shortened":
+      "Предпросмотр сокращён до 12 000 символов. Копирование и скачивание включают всю схему.",
+    "inference.invalid-json":
+      "Пример не является корректным JSON. Ранее добавленные примеры сохранены.",
+    "inference.size-limit":
+      "Превышен лимит размера: 1 МиБ на пример и 2 МиБ суммарно.",
+    "inference.structure-limit":
+      "Примеры превышают 20 000 значений суммарно или 64 уровня вложенности.",
+    "inference.unsafe-number":
+      "Число в примере невозможно точно представить. Используйте строки для больших идентификаторов.",
+    "inference.sample-limit":
+      "Удалите пример перед добавлением более 10 примеров.",
     "plan.exportTooLarge":
       "Этот JSON-отчёт превышает лимит импорта 16 МиБ. Сузьте область эндпоинтов перед экспортом, чтобы прогресс можно было восстановить.",
     "plan.title": "План тестирования API",
