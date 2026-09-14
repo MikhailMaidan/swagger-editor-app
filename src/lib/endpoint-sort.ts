@@ -52,6 +52,8 @@ export function saveEndpointSortPreference(sort: EndpointSort) {
 }
 
 function compareMethods(firstMethod: string, secondMethod: string) {
+  if (firstMethod === secondMethod) return 0;
+
   const firstIndex = METHOD_ORDER.indexOf(firstMethod);
   const secondIndex = METHOD_ORDER.indexOf(secondMethod);
   const firstRank = firstIndex === -1 ? METHOD_ORDER.length : firstIndex;
