@@ -158,6 +158,42 @@ describe("request history filters", () => {
     );
   });
 
+  it.each([
+    ["24-hours", 1],
+    ["7-days", 7],
+    ["30-days", 30],
+  ] as const)("bounds the %s window at both ends", (age, days) => {
+    const now = Date.parse("2026-07-31T12:00:00.000Z");
+    const cutoff = now - days * 86400000;
+    const datedRecords = [cutoff - 1, cutoff, now, now + 1].map(
+      (timestamp) => ({
+        ...records[0],
+        createdAt: new Date(timestamp).toISOString(),
+      }),
+    );
+    const original = JSON.stringify(datedRecords);
+
+    expect(filterRequestHistory(datedRecords, "", "all", age, now)).toEqual(
+      datedRecords.slice(1, 3),
+    );
+    expect(filterRequestHistory(datedRecords, "", "all", "all", now)).toEqual(
+      datedRecords,
+    );
+    expect(JSON.stringify(datedRecords)).toBe(original);
+  });
+
+  it.each([NaN, Infinity, -Infinity])(
+    "keeps all-history access when the current timestamp is %s",
+    (now) => {
+      expect(filterRequestHistory(records, "", "all", "24-hours", now)).toEqual(
+        [],
+      );
+      expect(filterRequestHistory(records, "", "all", "all", now)).toEqual(
+        records,
+      );
+    },
+  );
+
   it("filters records by rolling age windows and keeps boundary records", () => {
     const now = Date.parse("2026-07-31T12:00:00.000Z");
     const agedRecords: RequestHistoryRecord[] = [

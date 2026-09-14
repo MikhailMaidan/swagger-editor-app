@@ -77,6 +77,7 @@ export function filterRequestHistory(
   now = Date.now(),
 ) {
   const searchTerms = search.toLowerCase().split(/\s+/).filter(Boolean);
+  if (age !== "all" && !Number.isFinite(now)) return [];
 
   return records.filter((record) => {
     const failed = isErrorStatus(record.status);
@@ -92,6 +93,7 @@ export function filterRequestHistory(
 
       if (
         !Number.isFinite(createdAt) ||
+        createdAt > now ||
         createdAt < now - AGE_FILTER_DURATION_MS[age]
       ) {
         return false;
