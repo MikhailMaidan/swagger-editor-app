@@ -344,7 +344,7 @@ export function parseResponseAssertions(
     return { ok: false, issue: "too-large" };
   }
   try {
-    const data = JSON.parse(text);
+    const data = JSON.parse(text.replace(/^\uFEFF/, ""));
     if (
       !data ||
       data.kind !== "rsswag-response-assertions" ||

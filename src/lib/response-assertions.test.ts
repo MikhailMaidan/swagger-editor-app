@@ -352,9 +352,27 @@ describe("response assertions", () => {
     });
   });
 
+  it("imports sets with a leading byte-order mark without changing rule text", () => {
+    const rules = [
+      rule({
+        name: "\uFEFFHeader check",
+        target: "header",
+        path: "x-value",
+        operator: "equals",
+        expected: "\uFEFFvalue",
+      }),
+    ];
+    expect(
+      parseResponseAssertions("\uFEFF" + serializeResponseAssertions(rules)),
+    ).toEqual({ ok: true, rules });
+  });
+
   it("rejects malformed, unsupported, oversized, and invalid imported sets", () => {
     for (const text of [
       "oops",
+      "\uFEFFoops",
+      "\uFEFF\uFEFF" + serializeResponseAssertions([]),
+      "\uFEFF" + serializeResponseAssertions([rule({ expected: "oops" })]),
       "null",
       "[]",
       '{"kind":"rsswag-response-assertions","version":2,"checks":[]}',
