@@ -1,22 +1,11 @@
-export type RequestPreviewFormat = "curl" | "fetch" | "http";
+import {
+  REQUEST_CODE_FORMATS,
+  type RequestCodeFormat,
+} from "./request-snippets";
 
-const formatMetadata: Record<
-  RequestPreviewFormat,
-  { contentType: string; extension: string }
-> = {
-  curl: {
-    contentType: "text/x-shellscript;charset=utf-8",
-    extension: "sh",
-  },
-  fetch: {
-    contentType: "text/javascript;charset=utf-8",
-    extension: "js",
-  },
-  http: {
-    contentType: "text/plain;charset=utf-8",
-    extension: "http",
-  },
-};
+// Every request code format, including the additional snippet languages,
+// downloads with its own extension and content type.
+export type RequestPreviewFormat = RequestCodeFormat;
 
 function slugifyEndpointPart(value: string, fallback: string) {
   return (
@@ -33,7 +22,7 @@ export function getRequestPreviewDownloadMetadata(
   method: string,
   path: string,
 ) {
-  const { contentType, extension } = formatMetadata[format];
+  const { contentType, extension } = REQUEST_CODE_FORMATS[format];
   const normalizedMethod = slugifyEndpointPart(method, "request");
   const normalizedPath = slugifyEndpointPart(path, "root");
 

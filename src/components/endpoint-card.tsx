@@ -16,6 +16,7 @@ import { ResponseComparisonPanel } from "@/components/response-comparison-panel"
 import { ResponseDataExplorer } from "@/components/response-data-explorer";
 import { ResponseSchemaPanel } from "@/components/response-schema-panel";
 import { ResponseAssertionsPanel } from "@/components/response-assertions-panel";
+import { SnippetLanguageMenu } from "@/components/snippet-language-menu";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
   createEndpointPermalink,
@@ -77,6 +78,11 @@ import {
   downloadRequestPreviewFile,
   type RequestPreviewFormat,
 } from "@/lib/request-preview-download";
+import {
+  createRequestCode,
+  isSnippetLanguage,
+  REQUEST_CODE_FORMATS,
+} from "@/lib/request-snippets";
 import {
   createSchemaMockResponse,
   waitForMockResponseDelay,
@@ -418,6 +424,7 @@ function EndpointCardComponent({
   const [copiedEndpointLink, setCopiedEndpointLink] = useState(false);
   const [copiedFetch, setCopiedFetch] = useState("");
   const [copiedHttp, setCopiedHttp] = useState("");
+  const [copiedSnippet, setCopiedSnippet] = useState("");
   const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
@@ -660,17 +667,45 @@ function EndpointCardComponent({
       ),
     [activeRequestContentType, endpoint, requestBodyValue, requestParameters],
   );
+  const snippetLanguage = isSnippetLanguage(requestCodeFormat)
+    ? requestCodeFormat
+    : null;
+  // Additional languages are generated only while one of them is selected.
+  const currentSnippet = useMemo(
+    () =>
+      snippetLanguage
+        ? createRequestCode(snippetLanguage, {
+            contentType: activeRequestContentType,
+            method: endpoint.method,
+            parameters: requestParameters,
+            path: endpoint.path,
+            requestBody: requestBodyValue,
+            serverUrl: endpoint.serverUrl,
+          })
+        : "",
+    [
+      activeRequestContentType,
+      endpoint,
+      requestBodyValue,
+      requestParameters,
+      snippetLanguage,
+    ],
+  );
+  const isSnippetCopied =
+    copiedSnippet === currentSnippet && copiedSnippet !== "";
   const isCurlCopied = copiedCurl === currentCurl && copiedCurl !== "";
   const isFetchCopied = copiedFetch === currentFetch && copiedFetch !== "";
   const isHttpCopied = copiedHttp === currentHttp && copiedHttp !== "";
-  const currentRequestCode =
-    requestCodeFormat === "curl"
+  const currentRequestCode = snippetLanguage
+    ? currentSnippet
+    : requestCodeFormat === "curl"
       ? currentCurl
       : requestCodeFormat === "fetch"
         ? currentFetch
         : currentHttp;
-  const requestCodeLabel =
-    requestCodeFormat === "curl"
+  const requestCodeLabel = snippetLanguage
+    ? REQUEST_CODE_FORMATS[snippetLanguage].label
+    : requestCodeFormat === "curl"
       ? t("workspace.curl")
       : requestCodeFormat === "fetch"
         ? t("workspace.fetch")
@@ -709,6 +744,7 @@ function EndpointCardComponent({
     setCopiedRequestUrl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
 
     const copied = await writeTextToClipboard(currentCurl);
 
@@ -730,6 +766,7 @@ function EndpointCardComponent({
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
     setCopiedRequestUrl("");
 
     const copied = await writeTextToClipboard(currentFetch);
@@ -741,6 +778,7 @@ function EndpointCardComponent({
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
     setCopiedRequestUrl("");
 
     const copied = await writeTextToClipboard(currentHttp);
@@ -748,10 +786,23 @@ function EndpointCardComponent({
     setCopiedHttp(copied ? currentHttp : "");
   }
 
+  async function handleCopySnippet() {
+    setCopiedCurl("");
+    setCopiedFetch("");
+    setCopiedHttp("");
+    setCopiedSnippet("");
+    setCopiedRequestUrl("");
+
+    const copied = await writeTextToClipboard(currentSnippet);
+
+    setCopiedSnippet(copied ? currentSnippet : "");
+  }
+
   async function handleCopyRequestUrl() {
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
     setCopiedRequestUrl("");
 
     if (hasMissingRequiredPathParameters) {
@@ -909,6 +960,7 @@ function EndpointCardComponent({
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
@@ -1083,6 +1135,7 @@ function EndpointCardComponent({
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
+    setCopiedSnippet("");
     setCopiedRequestUrl("");
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
@@ -1821,6 +1874,19 @@ function EndpointCardComponent({
                   </button>
                 ))}
               </div>
+              <SnippetLanguageMenu
+                activeLanguage={snippetLanguage}
+                label={t("workspace.snippetLanguageAriaLabel", {
+                  method: endpoint.method,
+                  path: endpoint.path,
+                })}
+                menuLabel={t("workspace.snippetLanguageMenuLabel", {
+                  method: endpoint.method,
+                  path: endpoint.path,
+                })}
+                placeholder={t("workspace.moreSnippetLanguages")}
+                onSelect={setRequestCodeFormat}
+              />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -1835,18 +1901,22 @@ function EndpointCardComponent({
                 className="h-10 rounded-2xl border border-[color:var(--color-brand-purple)] px-4 text-sm font-extrabold text-[color:var(--color-brand-purple)] transition hover:bg-[color:var(--color-brand-soft)]"
                 type="button"
                 onClick={
-                  requestCodeFormat === "curl"
-                    ? handleCopyCurl
-                    : requestCodeFormat === "fetch"
-                      ? handleCopyFetch
-                      : handleCopyHttp
+                  snippetLanguage
+                    ? handleCopySnippet
+                    : requestCodeFormat === "curl"
+                      ? handleCopyCurl
+                      : requestCodeFormat === "fetch"
+                        ? handleCopyFetch
+                        : handleCopyHttp
                 }
               >
-                {requestCodeFormat === "curl"
-                  ? t("workspace.copyCurl")
-                  : requestCodeFormat === "fetch"
-                    ? t("workspace.copyFetch")
-                    : t("workspace.copyHttp")}
+                {snippetLanguage
+                  ? t("workspace.copySnippet")
+                  : requestCodeFormat === "curl"
+                    ? t("workspace.copyCurl")
+                    : requestCodeFormat === "fetch"
+                      ? t("workspace.copyFetch")
+                      : t("workspace.copyHttp")}
               </button>
               <button
                 aria-label={t("workspace.downloadRequestCodeAriaLabel", {
@@ -1898,7 +1968,14 @@ function EndpointCardComponent({
           >
             {currentRequestCode}
           </pre>
-          {requestCodeFormat === "curl" && isCurlCopied ? (
+          {snippetLanguage && isSnippetCopied ? (
+            <p
+              className="mt-2 text-sm font-bold text-emerald-700"
+              role="status"
+            >
+              {t("workspace.snippetCopied")}
+            </p>
+          ) : requestCodeFormat === "curl" && isCurlCopied ? (
             <p
               className="mt-2 text-sm font-bold text-emerald-700"
               role="status"

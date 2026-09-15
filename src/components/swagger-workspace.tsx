@@ -24,6 +24,7 @@ import { HarInspectorPanel } from "@/components/har-inspector-panel";
 import { ApiTestPlanPanel } from "@/components/api-test-plan-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
 import { ApiStyleGuidePanel } from "@/components/api-style-guide-panel";
+import { CodeSamplesPanel } from "@/components/code-samples-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestCoveragePanel } from "@/components/request-coverage-panel";
@@ -2007,6 +2008,11 @@ export function SwaggerWorkspace({
               },
               {
                 group: "export",
+                id: "workspace-tool-code-samples",
+                label: "workspace.toolNavCodeSamples",
+              },
+              {
+                group: "export",
                 id: "workspace-tool-docs",
                 label: "workspace.toolNavDocs",
               },
@@ -2984,6 +2990,24 @@ export function SwaggerWorkspace({
               models={schemaModels}
               rootSchema={parseResult.value.schema}
               schema={artifactSchema}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
+        ) : null}
+
+        {artifactSchema && parseResult.ok && endpoints.length > 0 ? (
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-code-samples"
+            tabIndex={-1}
+          >
+            <CodeSamplesPanel
+              allEndpoints={endpoints}
+              rootSchema={parseResult.value.schema}
+              schemaFormat={parseResult.value.format}
+              schemaTitle={parseResult.value.title}
+              schemaVersion={parseResult.value.version}
+              securitySchemes={securitySchemes}
               visibleEndpoints={visibleEndpoints}
             />
           </div>

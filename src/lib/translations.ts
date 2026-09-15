@@ -2109,6 +2109,52 @@ export const translations = {
       "Could not find this location in the editor. Wait for the schema to finish updating and try again.",
     "workspace.upgradeMarkdownTitle": "OpenAPI upgrade notes: {title}",
     "workspace.toolNavUpgrade": "OpenAPI upgrade",
+    "workspace.moreSnippetLanguages": "More languages…",
+    "workspace.snippetLanguageAriaLabel":
+      "More code languages for {method} {path}",
+    "workspace.copySnippet": "Copy code",
+    "workspace.snippetCopied": "Code snippet copied.",
+    "workspace.codeSamplesTitle": "Code samples",
+    "workspace.codeSamplesDescription":
+      "Generate ready-to-run requests in 15 languages for guides, READMEs, or Redoc's x-codeSamples, using documented examples.",
+    "workspace.codeSamplesLanguagesLabel": "Languages",
+    "workspace.codeSamplesSelectAll": "Select all",
+    "workspace.codeSamplesSelectNone": "Clear",
+    "workspace.codeSamplesScopeLabel": "Endpoints",
+    "workspace.codeSamplesScopeAll": "Every endpoint ({count})",
+    "workspace.codeSamplesScopeVisible": "Filtered endpoints ({count})",
+    "workspace.codeSamplesAuth": "Include authentication placeholders",
+    "workspace.codeSamplesAuthHint":
+      "Secured endpoints use placeholders such as YOUR_TOKEN; stored credentials are never included.",
+    "workspace.codeSamplesSummary":
+      "{endpoints} endpoints × {languages} languages = {samples} samples",
+    "workspace.codeSamplesNoLanguages":
+      "Select at least one language to generate samples.",
+    "workspace.codeSamplesNoEndpoints":
+      "No endpoints match the current filters.",
+    "workspace.codeSamplesPreviewEndpoint": "Preview endpoint",
+    "workspace.codeSamplesPreviewLanguages": "Preview language",
+    "workspace.codeSamplesPreviewAriaLabel":
+      "Code sample preview for {method} {path} in {language}",
+    "workspace.codeSamplesCopySample": "Copy sample",
+    "workspace.codeSamplesCopyMarkdown": "Copy Markdown guide",
+    "workspace.codeSamplesDownloadMarkdown": "Download Markdown guide",
+    "workspace.codeSamplesDownloadSpec": "Download spec with x-codeSamples",
+    "workspace.codeSamplesSampleCopied": "Sample copied.",
+    "workspace.codeSamplesMarkdownCopied": "Markdown guide copied.",
+    "workspace.codeSamplesCopyError": "Could not copy to the clipboard.",
+    "workspace.codeSamplesMarkdownDownloaded":
+      "Markdown guide download started.",
+    "workspace.codeSamplesSpecDownloaded":
+      "Spec download started with code samples on {count} operations.",
+    "workspace.codeSamplesDownloadError": "Could not start the download.",
+    "workspace.codeSamplesMarkdownTitle": "{title} code samples",
+    "workspace.codeSamplesMarkdownSummary":
+      "Version {version} · {count} endpoints · {languages}",
+    "workspace.toolNavCodeSamples": "Code samples",
+    "workspace.codeSamplesShowOptions": "Choose languages and preview",
+    "workspace.codeSamplesHideOptions": "Hide options",
+    "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
     "inference.title": "Конструктор схемы ответа",
@@ -4266,6 +4312,52 @@ export const translations = {
       "Не удалось найти это место в редакторе. Дождитесь обновления схемы и попробуйте снова.",
     "workspace.upgradeMarkdownTitle": "Заметки об обновлении OpenAPI: {title}",
     "workspace.toolNavUpgrade": "Обновление OpenAPI",
+    "workspace.moreSnippetLanguages": "Другие языки…",
+    "workspace.snippetLanguageAriaLabel":
+      "Другие языки кода для {method} {path}",
+    "workspace.copySnippet": "Скопировать код",
+    "workspace.snippetCopied": "Фрагмент кода скопирован.",
+    "workspace.codeSamplesTitle": "Примеры кода",
+    "workspace.codeSamplesDescription":
+      "Генерирует готовые запросы на 15 языках для руководств, README или x-codeSamples в Redoc на основе документированных примеров.",
+    "workspace.codeSamplesLanguagesLabel": "Языки",
+    "workspace.codeSamplesSelectAll": "Выбрать все",
+    "workspace.codeSamplesSelectNone": "Очистить",
+    "workspace.codeSamplesScopeLabel": "Эндпоинты",
+    "workspace.codeSamplesScopeAll": "Все эндпоинты спецификации ({count})",
+    "workspace.codeSamplesScopeVisible": "Отфильтрованные эндпоинты ({count})",
+    "workspace.codeSamplesAuth": "Добавлять заглушки авторизации",
+    "workspace.codeSamplesAuthHint":
+      "Для защищённых эндпоинтов используются заглушки вроде YOUR_TOKEN; сохранённые учётные данные не включаются.",
+    "workspace.codeSamplesSummary":
+      "Эндпоинтов: {endpoints} × языков: {languages} = примеров: {samples}",
+    "workspace.codeSamplesNoLanguages":
+      "Выберите хотя бы один язык, чтобы сгенерировать примеры.",
+    "workspace.codeSamplesNoEndpoints":
+      "Нет эндпоинтов, подходящих под текущие фильтры.",
+    "workspace.codeSamplesPreviewEndpoint": "Эндпоинт для предпросмотра",
+    "workspace.codeSamplesPreviewLanguages": "Язык предпросмотра",
+    "workspace.codeSamplesPreviewAriaLabel":
+      "Предпросмотр примера для {method} {path} на {language}",
+    "workspace.codeSamplesCopySample": "Скопировать пример",
+    "workspace.codeSamplesCopyMarkdown": "Скопировать руководство Markdown",
+    "workspace.codeSamplesDownloadMarkdown": "Скачать руководство Markdown",
+    "workspace.codeSamplesDownloadSpec": "Скачать спецификацию с x-codeSamples",
+    "workspace.codeSamplesSampleCopied": "Пример скопирован.",
+    "workspace.codeSamplesMarkdownCopied": "Руководство Markdown скопировано.",
+    "workspace.codeSamplesCopyError": "Не удалось скопировать в буфер обмена.",
+    "workspace.codeSamplesMarkdownDownloaded":
+      "Скачивание руководства Markdown началось.",
+    "workspace.codeSamplesSpecDownloaded":
+      "Скачивание спецификации началось; примеры добавлены в операции: {count}.",
+    "workspace.codeSamplesDownloadError": "Не удалось начать скачивание.",
+    "workspace.codeSamplesMarkdownTitle": "Примеры кода {title}",
+    "workspace.codeSamplesMarkdownSummary":
+      "Версия {version} · эндпоинтов: {count} · {languages}",
+    "workspace.toolNavCodeSamples": "Примеры кода",
+    "workspace.codeSamplesShowOptions": "Выбрать языки и предпросмотр",
+    "workspace.codeSamplesHideOptions": "Скрыть настройки",
+    "workspace.snippetLanguageMenuLabel": "Языки кода для {method} {path}",
   },
 } as const;
 
