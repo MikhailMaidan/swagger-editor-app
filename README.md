@@ -27,6 +27,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Standalone CI smoke-test export for GET/HEAD endpoints with configuration templates, runtime authentication, response contract and timing checks, JSON reports, and meaningful exit codes
 - Offline HAR traffic inspector with browser capture imports, endpoint matching, undocumented-status detection, operation coverage, latency summaries, search, and aggregate JSON reports
 - Manual API test-plan workbench with generated positive, negative, and boundary cases, QA results and notes, endpoint navigation, restorable JSON progress, and Markdown checklists
+- API scenario runner with ordered multi-request workflows, typed variable templates, JSON Pointer response extraction, Mock/Live execution, status and timing assertions, optional response contract checks, cancellation, and portable definitions and reports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -89,6 +90,85 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Running API scenarios
+
+Open **API scenario runner** in the workspace's Testing tools to build and run
+an ordered workflow from the current document. Add up to 20 endpoint steps,
+edit their inputs, duplicate or reorder them, and rehearse the complete sequence
+with **Run Mock scenario**. Each step has its own documented Mock response,
+expected status codes (`200, 201`), status class (`2xx`), or `any`, request timeout,
+optional maximum response duration, and optional response contract checks.
+Contract checks cover documented status, media type, top-level body shape, and
+required properties; a partial result means some checks could not be evaluated.
+
+For example, a user lifecycle scenario can:
+
+1. Call `POST /users` with a request body template such as
+   `{"name":"{{name}}","enabled":"{{enabled}}"}`.
+2. Extract the response's `/id` JSON Pointer into the variable `userId`.
+3. Call `GET /users/{id}` with the `id` path parameter set to `{{userId}}`.
+4. Optionally add a `DELETE /users/{id}` step using the same variable.
+
+Set the starting **Session variables (JSON object)** to, for example:
+
+```json
+{
+  "name": "Ada",
+  "enabled": true,
+  "token": "your-session-token"
+}
+```
+
+Use `{{name}}` in parameter values, a server URL override, or request body strings.
+An entire JSON string placeholder preserves the variable's scalar type: the
+example body sends `enabled` as a boolean. Placeholders inside longer strings
+are interpolated with JSON escaping. Variable names use letters, digits, and
+underscores, starting with a letter or underscore. Values may be strings,
+finite safe numbers, booleans, or null; objects and arrays cannot be variables.
+JSON Pointer extraction supports array indexes and escaped keys (`~0` for `~`
+and `~1` for `/`); an empty pointer selects the root value.
+
+Configure authentication explicitly with a header parameter such as
+`Authorization: Bearer {{token}}`, or the API's query/cookie parameter.
+The runner does not automatically copy workspace authentication, environments,
+or endpoint request presets. A blank server override uses that endpoint's
+documented server. Every step must still match a unique operation in the current
+schema before any requests start. A run uses the schema available when it starts.
+
+**Mock rehearsal** uses documented or generated example responses locally,
+makes no network requests, and reports zero duration. It verifies the chain and
+checks against those examples; it does not simulate server state or measure
+performance. **Live requests** sends real requests through the application server,
+including POST, PUT, PATCH, and DELETE. Live targets must use public HTTP(S)
+addresses; private DNS results and URLs containing credentials, queries, or
+fragments are rejected. Put query values in step parameters. Redirects are
+reported without following them, and network failures never become Mock results.
+As with Try It Out, GET and HEAD do not send request bodies.
+
+Steps execute sequentially. Extracted variables become available only after all
+checks and extractions for that step pass. If a step fails, its declared output
+variables are cleared so later steps cannot reuse stale values. By default the
+run stops at the first unsuccessful step; disable that option to continue with
+independent steps. **Cancel scenario** aborts the active request and skips the
+remaining steps. Cancellation does not undo requests already received by the API.
+
+Definitions can be copied, downloaded, or imported as versioned JSON. Importing
+replaces the current draft and initializes declared session variables to empty
+strings; it never runs requests. Invalid imports leave the draft intact. Exports
+include authored request templates and variable names, but omit session values
+and captured responses. Keep secrets in session variables: literal secrets typed
+into a request template would be included in its definition export. Result reports
+contain operation paths, outcomes, statuses, durations, issue codes, contract
+results, and extracted variable names, without request/response bodies or headers.
+
+The scenario and its session variables stay in memory across panel closing and
+temporary schema errors. Export the definition before leaving the page; nothing
+is saved to browser storage or request history. Each run starts with the session
+variables again, without reusing values captured by an earlier run. Limits are
+20 steps, 64 variables, 64 parameters and 10 extractions per step, a 1–30 second
+step timeout, 2 MiB definition imports, and 1 MiB Live response bodies. JSON
+extraction also respects the response explorer's depth and node limits.
 
 ## Planning and tracking API tests
 

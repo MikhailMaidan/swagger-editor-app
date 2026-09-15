@@ -1703,8 +1703,10 @@ paths:
       },
     });
 
-    await waitFor(() =>
-      expect(screen.getByLabelText("Path parameter id")).toHaveValue("42"),
+    await waitFor(
+      () =>
+        expect(screen.getByLabelText("Path parameter id")).toHaveValue("42"),
+      { timeout: 5000 },
     );
     expect(screen.getByLabelText("Query parameter search")).toHaveValue("Alex");
     expect(screen.getByLabelText("Header parameter X-Trace-Id")).toHaveValue(

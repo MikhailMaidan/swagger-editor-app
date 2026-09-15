@@ -1,4 +1,5 @@
 import { DEFAULT_SERVER_URL } from "@/lib/openapi";
+import { lookup } from "node:dns/promises";
 import {
   buildCookieHeaderValue,
   buildRequestUrl,
@@ -6,7 +7,10 @@ import {
   hasUnresolvedPathParameters,
   resolvePathParameters,
 } from "@/lib/request-url";
-import { isPublicHttpServerUrl } from "@/lib/server-url";
+import {
+  isPrivateOrLocalHostname,
+  isPublicHttpServerUrl,
+} from "@/lib/server-url";
 import { getByteSize } from "@/lib/text-encoding";
 
 const DEFAULT_SERVER_HOSTNAME = new URL(DEFAULT_SERVER_URL).hostname;
@@ -23,6 +27,7 @@ type RequestParameter = {
 };
 
 type TryItOutPayload = {
+  requireLive?: boolean;
   contentType?: string;
   method?: string;
   path?: string;
@@ -230,6 +235,7 @@ async function executeServerRequest({
   requestParameters,
   serverUrl,
   timeoutMs,
+  strictSignal,
 }: {
   contentType: string;
   method: string;
@@ -238,6 +244,7 @@ async function executeServerRequest({
   requestParameters: RequestParameter[];
   serverUrl: string;
   timeoutMs: number;
+  strictSignal?: AbortSignal;
 }): Promise<TryItOutResult> {
   const normalizedMethod = method.toUpperCase();
   const hasRequestBody = hasSendableRequestBody(method, requestBody);
@@ -252,9 +259,12 @@ async function executeServerRequest({
       contentType,
     ),
     method: normalizedMethod,
-    signal: AbortSignal.timeout(timeoutMs),
+    signal: strictSignal ?? AbortSignal.timeout(timeoutMs),
+    ...(strictSignal ? { redirect: "manual" as const } : {}),
   });
-  const body = await response.text();
+  const body = strictSignal
+    ? await readScenarioResponse(response)
+    : await response.text();
   const requestSnapshot = JSON.stringify({
     body: hasRequestBody ? requestBody : "",
     method: normalizedMethod,
@@ -276,6 +286,48 @@ async function executeServerRequest({
   };
 }
 
+async function readScenarioResponse(response: Response) {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 1024 * 1024) {
+        await reader.cancel();
+        throw new Error("response-limit");
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function validateScenarioTarget(serverUrl: string) {
+  if (!isPublicHttpServerUrl(serverUrl)) return false;
+  const url = new URL(serverUrl);
+  if (
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash ||
+    isPrivateOrLocalHostname(url.hostname.replace(/\.$/, ""))
+  )
+    return false;
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  const addresses = await lookup(hostname, { all: true, verbatim: true });
+  return (
+    addresses.length > 0 &&
+    addresses.every(({ address }) => !isPrivateOrLocalHostname(address))
+  );
+}
+
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unable to execute request.";
 }
@@ -293,6 +345,62 @@ export async function POST(request: Request) {
     const serverUrl = readString(payload.serverUrl);
     const status = readString(payload.status, "200");
     const timeoutMs = readRequestTimeoutMs(payload.timeoutMs);
+    if (payload.requireLive === true) {
+      if (
+        getByteSize(JSON.stringify(payload)) > 2 * 1024 * 1024 ||
+        !/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$/.test(method) ||
+        !path.startsWith("/") ||
+        /[?#\\]/.test(path) ||
+        requestParameters.some(
+          (parameter) =>
+            parameter.location === "header" &&
+            /^(host|connection|content-length|transfer-encoding|upgrade)$/i.test(
+              parameter.name,
+            ),
+        )
+      ) {
+        return Response.json(
+          { error: "Invalid live request." },
+          { status: 400 },
+        );
+      }
+      const signal = AbortSignal.any([
+        request.signal,
+        AbortSignal.timeout(timeoutMs),
+      ]);
+      try {
+        if (!(await validateScenarioTarget(serverUrl)))
+          return Response.json(
+            { error: "Invalid live target." },
+            { status: 400 },
+          );
+        const result = await executeServerRequest({
+          contentType,
+          method,
+          path,
+          requestBody,
+          requestParameters,
+          serverUrl,
+          timeoutMs,
+          strictSignal: signal,
+        });
+        return Response.json(result);
+      } catch (error) {
+        const errorCode =
+          error instanceof Error && error.message === "response-limit"
+            ? "response-limit"
+            : signal.aborted
+              ? "timeout"
+              : "network";
+        return Response.json({
+          body: "",
+          status: "0",
+          durationMs: 0,
+          headers: {},
+          errorCode,
+        });
+      }
+    }
     const fallbackResult = createFallbackResult({
       method,
       path,

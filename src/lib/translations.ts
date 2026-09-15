@@ -3,6 +3,123 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "scenario.title": "API scenario runner",
+    "scenario.description":
+      "Build a workflow of up to 20 requests, pass response values between steps, and check the results. Drafts and variables stay in memory. Runs use the schema as it was when you started; no request history is written.",
+    "scenario.edit": "Edit API scenario",
+    "scenario.name": "Scenario name",
+    "scenario.mode": "Scenario execution mode",
+    "scenario.mock": "Mock rehearsal",
+    "scenario.live": "Live requests",
+    "scenario.stopOnFailure": "Stop after the first unsuccessful step",
+    "scenario.variables": "Session variables (JSON object)",
+    "scenario.variableHelp":
+      "Use {{name}} in parameter values, server URLs, or body strings. An entire JSON string placeholder preserves the variable’s number, boolean, null, or string type. Extract scalar values with JSON Pointers (empty selects the root). Only successful steps publish outputs. Configure auth headers here; workspace auth and environments are not applied automatically.",
+    "scenario.search": "Search scenario endpoints",
+    "scenario.endpoint": "Endpoint to add",
+    "scenario.noEndpoints": "No supported endpoints match",
+    "scenario.addStep": "Add scenario step",
+    "scenario.new": "New empty scenario",
+    "scenario.stepCount": "Scenario steps: {count}/20",
+    "scenario.steps": "Ordered scenario steps",
+    "scenario.editStep": "Edit scenario step {number}",
+    "scenario.moveUp": "Move step {number} up",
+    "scenario.moveDown": "Move step {number} down",
+    "scenario.duplicate": "Duplicate step {number}",
+    "scenario.duplicateLabel": "Duplicate",
+    "scenario.removeStep": "Remove step {number}",
+    "scenario.remove": "Remove",
+    "scenario.stepEditor": "Selected step",
+    "scenario.viewEndpoint": "View scenario endpoint",
+    "scenario.stepName": "Step name",
+    "scenario.server": "Server URL override (blank uses schema)",
+    "scenario.parameters": "Step parameters",
+    "scenario.parameterLocation": "Parameter {number} location",
+    "scenario.parameterName": "Parameter {number} name",
+    "scenario.parameterValue": "Parameter {number} value",
+    "scenario.removeParameter": "Remove parameter {number}",
+    "scenario.addParameter": "Add step parameter",
+    "scenario.contentType": "Step request content type",
+    "scenario.body": "Step request body template",
+    "scenario.expectedStatus": "Expected status (200, 2xx, or any)",
+    "scenario.mockStatus": "Documented response for Mock",
+    "scenario.timeoutLabel": "Step timeout (1,000–30,000 ms)",
+    "scenario.timeout": "The step reached its timeout.",
+    "scenario.maxDuration": "Maximum response duration (ms; 0 disables)",
+    "scenario.checkContract":
+      "Check documented status, media type, and body shape",
+    "scenario.extracts": "Extract response variables for later steps",
+    "scenario.extractName": "Extraction {number} variable name",
+    "scenario.extractPointer": "Extraction {number} JSON Pointer",
+    "scenario.removeExtract": "Remove extraction {number}",
+    "scenario.addExtract": "Add response extraction",
+    "scenario.unavailable": "Unavailable",
+    "scenario.mockHelp":
+      "Mock rehearsals use documented response examples or generated bodies, send no requests, and use a synthetic duration of 0 ms. They do not prove that a live workflow will succeed.",
+    "scenario.liveHelp":
+      "Live runs send every listed request, including write and delete operations. Only public HTTP(S) targets are supported. Redirects are reported without following them, and response bodies are limited to 1 MiB. Cancelling stops the active request and later steps; completed changes are not rolled back.",
+    "scenario.runMock": "Run Mock scenario",
+    "scenario.runLive": "Run Live scenario",
+    "scenario.running": "Running scenario · {count}/{total} steps finished",
+    "scenario.cancel": "Cancel scenario",
+    "scenario.sharing": "Scenario import and export",
+    "scenario.sharingHelp":
+      "Definition exports include authored request templates, which may contain sensitive literals. Session variable values and captured responses are excluded. Imports replace the current draft and initialize declared variables as empty strings. Reports contain outcomes and schema paths, without request or response values.",
+    "scenario.copyDefinition": "Copy scenario definition",
+    "scenario.downloadDefinition": "Download scenario definition",
+    "scenario.importFile": "Import scenario JSON file",
+    "scenario.importText": "Scenario JSON to import",
+    "scenario.import": "Import scenario definition",
+    "scenario.imported":
+      "Scenario imported. Fill in session variables before running.",
+    "scenario.loading": "Reading scenario file…",
+    "scenario.exported": "Scenario export completed.",
+    "scenario.exportFailed": "Could not export the scenario. Try again.",
+    "scenario.result": "Scenario {outcome} · {passed}/{total} steps passed",
+    "scenario.results": "Scenario step results",
+    "scenario.column.step": "Step",
+    "scenario.column.outcome": "Outcome",
+    "scenario.column.status": "HTTP status",
+    "scenario.column.duration": "Duration",
+    "scenario.column.outputs": "Published variables",
+    "scenario.contractResult": "Contract: {result}",
+    "scenario.copyReport": "Copy scenario report",
+    "scenario.downloadReport": "Download scenario report",
+    "scenario.passed": "passed",
+    "scenario.failed": "failed",
+    "scenario.error": "error",
+    "scenario.cancelled": "cancelled",
+    "scenario.skipped": "skipped",
+    "scenario.partial": "partial",
+    "scenario.invalid-plan":
+      "Check the scenario definition: names, endpoints, statuses, timeouts, parameters, and unique extraction names must be valid.",
+    "scenario.limit":
+      "Scenario limits exceeded: 20 steps, 2 MiB definitions, 64 variables, 64 parameters and 10 extractions per step, or bounded template expansion.",
+    "scenario.invalid-variables":
+      "Variables must be a JSON object with at most 64 named scalar values. Names use letters, digits, and underscores; values must be safe numbers, booleans, null, or strings up to 8,192 characters (128 KiB total).",
+    "scenario.missing-variable":
+      "A template variable is unavailable. Define it or publish it from an earlier successful step.",
+    "scenario.missing-endpoint":
+      "A scenario endpoint is missing or ambiguous in the current schema. Restore it before running.",
+    "scenario.invalid-body":
+      "The request body is missing or invalid. Put JSON placeholders inside quoted strings.",
+    "scenario.missing-parameter": "A required request parameter has no value.",
+    "scenario.invalid-server":
+      "The live target or request is invalid. Use a public HTTP(S) server without URL credentials, query, or fragment.",
+    "scenario.network":
+      "The live request failed. Check the server and request configuration.",
+    "scenario.invalid-response":
+      "No usable response was returned, or the selected Mock response no longer exists.",
+    "scenario.response-limit": "The response exceeds the 1 MiB limit.",
+    "scenario.status-mismatch":
+      "The response status did not match the expectation.",
+    "scenario.duration-exceeded":
+      "The response exceeded the configured duration limit.",
+    "scenario.contract-failed":
+      "The response failed a documented contract check.",
+    "scenario.extraction-failed":
+      "A response variable could not be extracted. Use an existing JSON Pointer to a safe scalar value.",
+    "scenario.stopped": "Not run because an earlier step was unsuccessful.",
     "inference.title": "Response schema builder",
     "inference.heading": "Build a schema from JSON examples",
     "inference.description":
@@ -2157,6 +2274,125 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "scenario.title": "Запуск API-сценариев",
+    "scenario.description":
+      "Создайте цепочку до 20 запросов, передавайте значения ответов между шагами и проверяйте результаты. Черновики и переменные хранятся в памяти. Используется схема на момент запуска; история запросов не записывается.",
+    "scenario.edit": "Редактирование API-сценария",
+    "scenario.name": "Название сценария",
+    "scenario.mode": "Режим выполнения сценария",
+    "scenario.mock": "Проверка на Mock",
+    "scenario.live": "Реальные запросы",
+    "scenario.stopOnFailure": "Остановить после первого неуспешного шага",
+    "scenario.variables": "Переменные сессии (объект JSON)",
+    "scenario.variableHelp":
+      "Используйте {{name}} в значениях параметров, URL сервера и строках тела. Подстановка на всю строку JSON сохраняет тип переменной: число, boolean, null или строку. Извлекайте скалярные значения через JSON Pointer (пустой путь выбирает корень). Результаты публикуют только успешные шаги. Настройте заголовки авторизации здесь; окружения и авторизация рабочей области автоматически не применяются.",
+    "scenario.search": "Поиск эндпоинтов сценария",
+    "scenario.endpoint": "Эндпоинт для добавления",
+    "scenario.noEndpoints": "Подходящих эндпоинтов нет",
+    "scenario.addStep": "Добавить шаг сценария",
+    "scenario.new": "Новый пустой сценарий",
+    "scenario.stepCount": "Шагов сценария: {count}/20",
+    "scenario.steps": "Порядок шагов сценария",
+    "scenario.editStep": "Редактировать шаг сценария {number}",
+    "scenario.moveUp": "Переместить шаг {number} вверх",
+    "scenario.moveDown": "Переместить шаг {number} вниз",
+    "scenario.duplicate": "Дублировать шаг {number}",
+    "scenario.duplicateLabel": "Дублировать",
+    "scenario.removeStep": "Удалить шаг {number}",
+    "scenario.remove": "Удалить",
+    "scenario.stepEditor": "Выбранный шаг",
+    "scenario.viewEndpoint": "Открыть эндпоинт сценария",
+    "scenario.stepName": "Название шага",
+    "scenario.server": "URL сервера (пустое поле — из схемы)",
+    "scenario.parameters": "Параметры шага",
+    "scenario.parameterLocation": "Расположение параметра {number}",
+    "scenario.parameterName": "Имя параметра {number}",
+    "scenario.parameterValue": "Значение параметра {number}",
+    "scenario.removeParameter": "Удалить параметр {number}",
+    "scenario.addParameter": "Добавить параметр шага",
+    "scenario.contentType": "Тип содержимого запроса шага",
+    "scenario.body": "Шаблон тела запроса шага",
+    "scenario.expectedStatus": "Ожидаемый статус (200, 2xx или any)",
+    "scenario.mockStatus": "Документированный ответ для Mock",
+    "scenario.timeoutLabel": "Таймаут шага (1 000–30 000 мс)",
+    "scenario.timeout": "Превышен таймаут шага.",
+    "scenario.maxDuration": "Максимальное время ответа (мс; 0 отключает)",
+    "scenario.checkContract":
+      "Проверить документированные статус, тип содержимого и структуру тела",
+    "scenario.extracts": "Извлечение переменных ответа для следующих шагов",
+    "scenario.extractName": "Имя переменной извлечения {number}",
+    "scenario.extractPointer": "JSON Pointer извлечения {number}",
+    "scenario.removeExtract": "Удалить извлечение {number}",
+    "scenario.addExtract": "Добавить извлечение ответа",
+    "scenario.unavailable": "Недоступно",
+    "scenario.mockHelp":
+      "Проверки Mock используют примеры или сгенерированные тела ответов, не отправляют запросы и показывают условную длительность 0 мс. Они не доказывают, что реальный сценарий будет успешным.",
+    "scenario.liveHelp":
+      "В реальном режиме отправляются все перечисленные запросы, включая изменение и удаление данных. Поддерживаются только публичные HTTP(S)-адреса. Перенаправления не выполняются; размер ответа ограничен 1 МиБ. Отмена останавливает текущий запрос и следующие шаги, но не откатывает завершённые изменения.",
+    "scenario.runMock": "Запустить сценарий Mock",
+    "scenario.runLive": "Запустить реальный сценарий",
+    "scenario.running":
+      "Сценарий выполняется · завершено шагов {count}/{total}",
+    "scenario.cancel": "Отменить сценарий",
+    "scenario.sharing": "Импорт и экспорт сценария",
+    "scenario.sharingHelp":
+      "Экспорт определения включает шаблоны запросов, которые могут содержать чувствительные значения. Значения переменных сессии и полученные ответы исключены. Импорт заменяет черновик и задаёт объявленным переменным пустые строки. Отчёты содержат результаты и пути из схемы без значений запросов и ответов.",
+    "scenario.copyDefinition": "Копировать определение сценария",
+    "scenario.downloadDefinition": "Скачать определение сценария",
+    "scenario.importFile": "Импорт JSON-файла сценария",
+    "scenario.importText": "JSON сценария для импорта",
+    "scenario.import": "Импортировать определение сценария",
+    "scenario.imported":
+      "Сценарий импортирован. Заполните переменные сессии перед запуском.",
+    "scenario.loading": "Чтение файла сценария…",
+    "scenario.exported": "Экспорт сценария завершён.",
+    "scenario.exportFailed":
+      "Не удалось экспортировать сценарий. Повторите попытку.",
+    "scenario.result": "Сценарий: {outcome} · пройдено шагов {passed}/{total}",
+    "scenario.results": "Результаты шагов сценария",
+    "scenario.column.step": "Шаг",
+    "scenario.column.outcome": "Результат",
+    "scenario.column.status": "HTTP-статус",
+    "scenario.column.duration": "Длительность",
+    "scenario.column.outputs": "Опубликованные переменные",
+    "scenario.contractResult": "Контракт: {result}",
+    "scenario.copyReport": "Копировать отчёт сценария",
+    "scenario.downloadReport": "Скачать отчёт сценария",
+    "scenario.passed": "пройден",
+    "scenario.failed": "не пройден",
+    "scenario.error": "ошибка",
+    "scenario.cancelled": "отменён",
+    "scenario.skipped": "пропущен",
+    "scenario.partial": "частично",
+    "scenario.invalid-plan":
+      "Проверьте определение сценария: названия, эндпоинты, статусы, таймауты, параметры и уникальные имена извлечений должны быть корректны.",
+    "scenario.limit":
+      "Превышены ограничения: 20 шагов, 2 МиБ на определение, 64 переменные, 64 параметра и 10 извлечений на шаг либо размер подстановок.",
+    "scenario.invalid-variables":
+      "Переменные должны быть объектом JSON, содержащим до 64 скалярных значений. Имена состоят из латинских букв, цифр и подчёркиваний. Значения: безопасные числа, boolean, null или строки до 8 192 символов (128 КиБ суммарно).",
+    "scenario.missing-variable":
+      "Переменная шаблона недоступна. Задайте её или получите из предыдущего успешного шага.",
+    "scenario.missing-endpoint":
+      "Эндпоинт сценария отсутствует или неоднозначен в текущей схеме. Восстановите его перед запуском.",
+    "scenario.invalid-body":
+      "Тело запроса отсутствует или некорректно. Поместите подстановки JSON внутрь строк в кавычках.",
+    "scenario.missing-parameter":
+      "Не задано значение обязательного параметра запроса.",
+    "scenario.invalid-server":
+      "Некорректный адрес или запрос. Используйте публичный HTTP(S)-сервер без учётных данных, параметров запроса и фрагмента в URL.",
+    "scenario.network":
+      "Реальный запрос не выполнен. Проверьте сервер и настройки запроса.",
+    "scenario.invalid-response":
+      "Нет пригодного ответа либо выбранный ответ Mock больше не существует.",
+    "scenario.response-limit": "Ответ превышает ограничение 1 МиБ.",
+    "scenario.status-mismatch": "Статус ответа не соответствует ожидаемому.",
+    "scenario.duration-exceeded":
+      "Ответ превысил заданное ограничение времени.",
+    "scenario.contract-failed":
+      "Ответ не прошёл проверку документированного контракта.",
+    "scenario.extraction-failed":
+      "Не удалось извлечь переменную. Укажите существующий JSON Pointer на безопасное скалярное значение.",
+    "scenario.stopped": "Не выполнен из-за предыдущего неуспешного шага.",
     "inference.title": "Конструктор схемы ответа",
     "inference.heading": "Создание схемы по примерам JSON",
     "inference.description":

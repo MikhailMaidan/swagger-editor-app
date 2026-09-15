@@ -22,6 +22,7 @@ import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
 import { ApiTestPlanPanel } from "@/components/api-test-plan-panel";
+import { ApiScenarioPanel } from "@/components/api-scenario-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
 import { ApiStyleGuidePanel } from "@/components/api-style-guide-panel";
 import { CodeSamplesPanel } from "@/components/code-samples-panel";
@@ -1989,6 +1990,11 @@ export function SwaggerWorkspace({
           id: "workspace-tool-test-plan",
           label: "workspace.toolNavTestPlan",
         },
+        {
+          group: "testing",
+          id: "workspace-tool-scenarios",
+          label: "scenario.title",
+        },
         ...(artifactSchema && endpoints.length > 0
           ? ([
               {
@@ -2945,6 +2951,16 @@ export function SwaggerWorkspace({
           <ApiTestPlanPanel
             allEndpoints={endpoints}
             visibleEndpoints={visibleEndpoints}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+          />
+        </div>
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-scenarios"
+          tabIndex={-1}
+        >
+          <ApiScenarioPanel
+            allEndpoints={endpoints}
             onSelectEndpoint={handleSelectAuditEndpoint}
           />
         </div>
