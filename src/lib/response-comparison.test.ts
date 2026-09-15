@@ -284,6 +284,15 @@ describe("response comparison", () => {
     expect(report.limited).toBe(true);
   });
 
+  it("does not mark a comparison with exactly the maximum differences as limited", () => {
+    const report = compare(
+      { a: Array.from({ length: 500 }, () => 1), b: {} },
+      { a: Array.from({ length: 500 }, () => 2), b: {} },
+    );
+    expect(report.differences).toHaveLength(500);
+    expect(report.limited).toBe(false);
+  });
+
   it("limits deeply nested or very wide comparisons without claiming equality", () => {
     let before: unknown = 1;
     let after: unknown = 2;

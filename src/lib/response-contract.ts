@@ -112,6 +112,37 @@ function mediaTypeMatches(documented: string, actual: string) {
   return documentedMediaType === actualMediaType;
 }
 
+function mediaTypeSpecificity(documented: string) {
+  const mediaType = normalizeMediaType(documented);
+
+  if (mediaType === "*/*") {
+    return 0;
+  }
+
+  return mediaType.endsWith("/*") ? 1 : 2;
+}
+
+// OpenAPI lets a response document both an exact media type and wildcards
+// such as `*/*`; the most specific match must win regardless of key order.
+function findBestMediaTypeMatch<T>(
+  entries: [string, T][],
+  actualContentType: string,
+) {
+  let bestMatch: [string, T] | undefined;
+
+  for (const entry of entries) {
+    if (
+      mediaTypeMatches(entry[0], actualContentType) &&
+      (!bestMatch ||
+        mediaTypeSpecificity(entry[0]) > mediaTypeSpecificity(bestMatch[0]))
+    ) {
+      bestMatch = entry;
+    }
+  }
+
+  return bestMatch;
+}
+
 function readContentType(headers: Record<string, string>) {
   const contentTypeEntry = Object.entries(headers).find(
     ([name]) => name.toLowerCase() === "content-type",
@@ -156,9 +187,10 @@ function createContentTypeCheck(
     });
   }
 
-  const matchedContentType = response.contentTypes.find((contentType) =>
-    mediaTypeMatches(contentType, actualContentType),
-  );
+  const matchedContentType = findBestMediaTypeMatch(
+    response.contentTypes.map((contentType) => [contentType, contentType]),
+    actualContentType,
+  )?.[0];
 
   return matchedContentType
     ? createCheck("content-type", "pass", "content-type-matched", {
@@ -176,8 +208,9 @@ function selectResponseSchema(
   actualContentType: string,
 ) {
   if (response.schemasByContentType && actualContentType) {
-    const matchedSchema = Object.entries(response.schemasByContentType).find(
-      ([contentType]) => mediaTypeMatches(contentType, actualContentType),
+    const matchedSchema = findBestMediaTypeMatch(
+      Object.entries(response.schemasByContentType),
+      actualContentType,
     );
 
     if (matchedSchema) {
@@ -243,18 +276,19 @@ function createBodyCheck(
     return createCheck("body", "skipped", "body-not-documented");
   }
 
-  if (!input.body.trim()) {
-    return createCheck("body", "fail", "body-empty", {
-      expected: schema?.type || "unknown",
-    });
-  }
-
   const expectedType =
     schema?.type === "unknown" &&
     (schema.properties.length > 0 ||
       (schema.requiredProperties?.length ?? 0) > 0)
       ? "object"
       : schema?.type || "unknown";
+
+  if (!input.body.trim()) {
+    return createCheck("body", "fail", "body-empty", {
+      expected: expectedType,
+    });
+  }
+
   let value: unknown = input.body;
 
   if (isJsonMediaType(actualContentType) || expectedType !== "string") {

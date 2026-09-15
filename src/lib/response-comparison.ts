@@ -255,11 +255,10 @@ export function compareResponses(
     )
       return;
     visits++;
-    if (
-      visits > MAX_VISITS ||
-      depth > MAX_DEPTH ||
-      report.differences.length >= MAX_DIFFERENCES
-    ) {
+    // The difference cap is enforced when a difference is added, so a
+    // comparison with exactly MAX_DIFFERENCES entries is not marked limited
+    // just because an unchanged node was visited afterwards.
+    if (visits > MAX_VISITS || depth > MAX_DEPTH) {
       report.limited = true;
       return;
     }

@@ -73,6 +73,75 @@ describe("response contract checks", () => {
     ).toBe("pass");
   });
 
+  it("prefers an exact media type schema over a wildcard documented first", () => {
+    const wildcardSchema = {
+      example: "",
+      exampleName: "",
+      properties: [],
+      type: "string",
+    };
+    const jsonSchema = {
+      example: "",
+      exampleName: "",
+      properties: ["id"],
+      requiredProperties: ["id"],
+      type: "object",
+    };
+    const report = createResponseContractReport(
+      [
+        createResponse({
+          contentTypes: ["*/*", "application/json"],
+          schema: wildcardSchema,
+          schemasByContentType: {
+            "*/*": wildcardSchema,
+            "application/json": jsonSchema,
+          },
+        }),
+      ],
+      {
+        body: '{"id":1}',
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status: "200",
+      },
+    );
+
+    expect(report.result).toBe("pass");
+    expect(report.checks.map((check) => check.code)).toEqual([
+      "status-matched",
+      "content-type-matched",
+      "body-matched",
+    ]);
+    expect(report.checks[1].params).toMatchObject({
+      documented: "application/json",
+    });
+  });
+
+  it("reports an object expectation for an empty body when only properties are documented", () => {
+    const report = createResponseContractReport(
+      [
+        createResponse({
+          schema: {
+            example: "",
+            exampleName: "",
+            properties: ["id"],
+            requiredProperties: ["id"],
+            type: "unknown",
+          },
+        }),
+      ],
+      {
+        body: "",
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status: "200",
+      },
+    );
+    const bodyCheck = report.checks.find((check) => check.code === "body-empty");
+
+    expect(bodyCheck?.params).toMatchObject({ expected: "object" });
+  });
+
   it("reports media type and top-level body type drift", () => {
     const report = createResponseContractReport([createResponse()], {
       body: "[]",
