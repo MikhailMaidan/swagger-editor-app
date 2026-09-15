@@ -57,8 +57,59 @@ button:focus-visible {
 }
 
 input:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
   box-shadow: 0 0 0 3px rgba(90, 45, 255, 0.24);
+}
+
+::selection {
+  background: rgba(90, 45, 255, 0.18);
+  color: var(--color-brand-navy);
+}
+
+pre,
+textarea {
+  scrollbar-color: var(--color-brand-border) transparent;
+  scrollbar-width: thin;
+}
+
+/* Workspace tool panels share one heading accent so the long stack of tools
+   reads as distinct, scannable sections. */
+.workspace-tool > section > div:first-child h3::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 1em;
+  margin-right: 0.5rem;
+  border-radius: 9999px;
+  vertical-align: -0.125em;
+  background: linear-gradient(
+    180deg,
+    var(--color-brand-purple),
+    var(--color-brand-purple-dark)
+  );
+}
+
+.workspace-tool:focus > section {
+  animation: workspace-tool-arrive 1.4s var(--ease-header);
+}
+
+@keyframes workspace-tool-arrive {
+  from {
+    background-color: var(--color-brand-soft);
+    box-shadow: inset 0 0 0 2px rgba(90, 45, 255, 0.18);
+  }
+
+  to {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 2px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-tool:focus > section {
+    animation: none;
+  }
 }
 
 .endpoint-method-tab {

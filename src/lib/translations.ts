@@ -1714,6 +1714,148 @@ export const translations = {
     "workspace.withRequestBodies": "With bodies",
     "workspace.withRequestBodyOnly": "With request body",
     "workspace.withoutRequestBodyOnly": "Without request body",
+    "workspace.examplesTitle": "Example validator",
+    "workspace.examplesDescription":
+      "Checks every documented example against its schema so documentation, mocks, and generated tests stay trustworthy.",
+    "workspace.examplesConformance": "{percentage}% conform",
+    "workspace.examplesSummary":
+      "{total} examples · {invalid} mismatched · {warnings} with warnings · {skipped} skipped",
+    "workspace.examplesTruncated":
+      "Validation stopped early to keep the editor responsive; some examples were not checked.",
+    "workspace.examplesCopy": "Copy example report",
+    "workspace.examplesExport": "Export example report",
+    "workspace.examplesCopySuccess": "Example report copied.",
+    "workspace.examplesCopyError": "Could not copy the example report.",
+    "workspace.examplesExportSuccess": "Example report export started.",
+    "workspace.examplesExportError": "Could not export the example report.",
+    "workspace.examplesStatValid": "Matches schema",
+    "workspace.examplesStatWarning": "With warnings",
+    "workspace.examplesStatInvalid": "Mismatches",
+    "workspace.examplesStatSkipped": "Not checked",
+    "workspace.examplesProgressLabel":
+      "Example results: {valid} matching, {warnings} with warnings, {invalid} mismatched, {skipped} not checked",
+    "workspace.examplesStatusFilterLabel": "Filter examples by result",
+    "workspace.examplesFilterAll": "All ({count})",
+    "workspace.examplesFilterInvalid": "Mismatches ({count})",
+    "workspace.examplesFilterWarning": "Warnings ({count})",
+    "workspace.examplesFilterValid": "Matching ({count})",
+    "workspace.examplesFilterSkipped": "Not checked ({count})",
+    "workspace.examplesKindFilterLabel": "Example location",
+    "workspace.examplesKindAll": "All locations",
+    "workspace.examplesKindParameter": "Parameters",
+    "workspace.examplesKindRequestBody": "Request bodies",
+    "workspace.examplesKindResponse": "Responses",
+    "workspace.examplesKindHeader": "Response headers",
+    "workspace.examplesKindSchema": "Component schemas",
+    "workspace.examplesBadgeParameter": "Parameter",
+    "workspace.examplesBadgeRequestBody": "Request body",
+    "workspace.examplesBadgeResponse": "Response",
+    "workspace.examplesBadgeHeader": "Header",
+    "workspace.examplesBadgeSchema": "Schema",
+    "workspace.examplesStatusValid": "Matches",
+    "workspace.examplesStatusWarning": "Needs review",
+    "workspace.examplesStatusInvalid": "Mismatch",
+    "workspace.examplesStatusSkipped": "Not checked",
+    "workspace.examplesSearchLabel": "Search examples",
+    "workspace.examplesSearchPlaceholder":
+      "Search by endpoint, location, or example name",
+    "workspace.examplesDefaultName": "example",
+    "workspace.examplesNoMatches": "No examples match these filters.",
+    "workspace.examplesAllClear": "Every checked example matches its schema.",
+    "workspace.examplesShowAll": "Show all {count} examples",
+    "workspace.examplesShowLess": "Show fewer examples",
+    "workspace.examplesRevealInEditor": "Show in editor",
+    "workspace.examplesRevealAriaLabel":
+      "Show {name} for {location} in the editor",
+    "workspace.examplesRevealError":
+      "Could not find this example in the editor. Wait for the schema to finish updating and try again.",
+    "workspace.examplesOpenEndpoint": "Open endpoint",
+    "workspace.examplesOpenEndpointAriaLabel": "Open endpoint {method} {path}",
+    "workspace.examplesHiddenIssues": "+{count} more issues",
+    "workspace.examplesRoot": "value",
+    "workspace.examplesIssueAdditionalProperties":
+      'Property "{property}" is not allowed by the schema.',
+    "workspace.examplesIssueAnyOf":
+      "Value does not match any of the {options} anyOf schemas.",
+    "workspace.examplesIssueConst": "Value must equal {expected}.",
+    "workspace.examplesIssueEnum": "Value must be one of: {allowed}.",
+    "workspace.examplesIssueFormat": "Value is not a valid {format}.",
+    "workspace.examplesIssueMaxItems": "List must have at most {limit} items.",
+    "workspace.examplesIssueMaxLength":
+      "Text must have at most {limit} characters.",
+    "workspace.examplesIssueMaxProperties":
+      "Object must have at most {limit} properties.",
+    "workspace.examplesIssueMaximum": "Value must be {comparison} {limit}.",
+    "workspace.examplesIssueMinItems": "List must have at least {limit} items.",
+    "workspace.examplesIssueMinLength":
+      "Text must have at least {limit} characters.",
+    "workspace.examplesIssueMinProperties":
+      "Object must have at least {limit} properties.",
+    "workspace.examplesIssueMinimum": "Value must be {comparison} {limit}.",
+    "workspace.examplesIssueMultipleOf":
+      "Value must be a multiple of {divisor}.",
+    "workspace.examplesIssueNot": "Value matches a schema it must not match.",
+    "workspace.examplesIssueOneOf":
+      "Value does not match any of the {options} oneOf schemas.",
+    "workspace.examplesIssueOneOfMultiple":
+      "Value matches {matches} oneOf schemas; exactly one is expected.",
+    "workspace.examplesIssuePattern":
+      "Text does not match the pattern {pattern}.",
+    "workspace.examplesIssueReadOnly":
+      'Read-only property "{property}" should not appear in a request example.',
+    "workspace.examplesIssueRequired":
+      'Required property "{property}" is missing.',
+    "workspace.examplesIssueSerialized":
+      "Example is a JSON string; use a structured value instead.",
+    "workspace.examplesIssueType": "Expected {expected}, but found {actual}.",
+    "workspace.examplesIssueUniqueItems":
+      "List items must be unique; item {index} is a duplicate.",
+    "workspace.examplesIssueWriteOnly":
+      'Write-only property "{property}" should not appear in a response example.',
+    "workspace.examplesSkipExternalValue":
+      "Uses externalValue, which is not downloaded for validation.",
+    "workspace.examplesSkipLimit":
+      "Skipped after reaching the validation limit.",
+    "workspace.examplesSkipMediaType":
+      "This media type is not validated as structured data.",
+    "workspace.examplesSkipMissingSchema":
+      "No schema is documented for this example.",
+    "workspace.examplesSkipUnresolvedReference":
+      "A referenced schema or example could not be resolved.",
+    "workspace.examplesMarkdownTitle": "Example validation: {title}",
+    "workspace.examplesMarkdownVersion": "Version: {version}",
+    "workspace.examplesMarkdownSummary":
+      "Checked {total} examples: {valid} matching, {warnings} with warnings, {invalid} mismatched, {skipped} not checked ({percentage}% conform).",
+    "workspace.examplesMarkdownFindings": "Findings",
+    "workspace.examplesMarkdownNoFindings":
+      "No mismatched examples or warnings were found.",
+    "workspace.toolNavLabel": "Workspace tools",
+    "workspace.toolNavTitle": "Jump to",
+    "workspace.toolNavCount": "{count} tools",
+    "workspace.toolNavEndpoints": "Endpoint list",
+    "workspace.toolNavCheckpoints": "Checkpoints",
+    "workspace.toolNavComponents": "Components",
+    "workspace.toolNavModels": "Data models",
+    "workspace.toolNavWorkflows": "Links",
+    "workspace.toolNavEvents": "Callbacks",
+    "workspace.toolNavSecurity": "Security",
+    "workspace.toolNavAudit": "Quality audit",
+    "workspace.toolNavExamples": "Examples",
+    "workspace.toolNavChanges": "Change review",
+    "workspace.toolNavMockSuite": "Mock suite",
+    "workspace.toolNavCoverage": "Coverage",
+    "workspace.toolNavHar": "HAR traffic",
+    "workspace.toolNavTestPlan": "Test plan",
+    "workspace.toolNavPostman": "Postman",
+    "workspace.toolNavSlice": "API slice",
+    "workspace.toolNavTypeScript": "TypeScript client",
+    "workspace.toolNavDocs": "HTML docs",
+    "workspace.toolNavMockServer": "Mock server",
+    "workspace.toolNavSmokeTests": "Smoke tests",
+    "workspace.toolNavGroupDesign": "Design",
+    "workspace.toolNavGroupQuality": "Quality",
+    "workspace.toolNavGroupTesting": "Testing",
+    "workspace.toolNavGroupExport": "Export",
   },
   ru: {
     "inference.title": "Конструктор схемы ответа",
@@ -3461,6 +3603,156 @@ export const translations = {
       "Эту схему безопасности нельзя применить автоматически.",
     "workspace.requestAuthUsername": "Имя пользователя",
     "workspace.requestAuthUsernameFor": "Имя пользователя для {name}",
+    "workspace.examplesTitle": "Проверка примеров",
+    "workspace.examplesDescription":
+      "Сверяет каждый документированный пример со схемой, чтобы документация, моки и сгенерированные тесты оставались достоверными.",
+    "workspace.examplesConformance": "Соответствие {percentage}%",
+    "workspace.examplesSummary":
+      "Примеров: {total} · несоответствий: {invalid} · с предупреждениями: {warnings} · пропущено: {skipped}",
+    "workspace.examplesTruncated":
+      "Проверка остановлена досрочно, чтобы редактор не зависал; часть примеров не проверена.",
+    "workspace.examplesCopy": "Копировать отчёт по примерам",
+    "workspace.examplesExport": "Экспортировать отчёт по примерам",
+    "workspace.examplesCopySuccess": "Отчёт по примерам скопирован.",
+    "workspace.examplesCopyError": "Не удалось скопировать отчёт по примерам.",
+    "workspace.examplesExportSuccess": "Экспорт отчёта по примерам начался.",
+    "workspace.examplesExportError":
+      "Не удалось экспортировать отчёт по примерам.",
+    "workspace.examplesStatValid": "Соответствуют схеме",
+    "workspace.examplesStatWarning": "С предупреждениями",
+    "workspace.examplesStatInvalid": "Несоответствия",
+    "workspace.examplesStatSkipped": "Не проверены",
+    "workspace.examplesProgressLabel":
+      "Результаты примеров: соответствуют {valid}, с предупреждениями {warnings}, не соответствуют {invalid}, не проверены {skipped}",
+    "workspace.examplesStatusFilterLabel": "Фильтр примеров по результату",
+    "workspace.examplesFilterAll": "Все ({count})",
+    "workspace.examplesFilterInvalid": "Несоответствия ({count})",
+    "workspace.examplesFilterWarning": "Предупреждения ({count})",
+    "workspace.examplesFilterValid": "Соответствуют ({count})",
+    "workspace.examplesFilterSkipped": "Не проверены ({count})",
+    "workspace.examplesKindFilterLabel": "Расположение примера",
+    "workspace.examplesKindAll": "Все расположения",
+    "workspace.examplesKindParameter": "Параметры",
+    "workspace.examplesKindRequestBody": "Тела запросов",
+    "workspace.examplesKindResponse": "Ответы",
+    "workspace.examplesKindHeader": "Заголовки ответов",
+    "workspace.examplesKindSchema": "Схемы компонентов",
+    "workspace.examplesBadgeParameter": "Параметр",
+    "workspace.examplesBadgeRequestBody": "Тело запроса",
+    "workspace.examplesBadgeResponse": "Ответ",
+    "workspace.examplesBadgeHeader": "Заголовок",
+    "workspace.examplesBadgeSchema": "Схема",
+    "workspace.examplesStatusValid": "Соответствует",
+    "workspace.examplesStatusWarning": "Требует внимания",
+    "workspace.examplesStatusInvalid": "Несоответствие",
+    "workspace.examplesStatusSkipped": "Не проверен",
+    "workspace.examplesSearchLabel": "Поиск примеров",
+    "workspace.examplesSearchPlaceholder":
+      "Поиск по эндпоинту, расположению или имени примера",
+    "workspace.examplesDefaultName": "пример",
+    "workspace.examplesNoMatches": "Нет примеров, подходящих под фильтры.",
+    "workspace.examplesAllClear":
+      "Все проверенные примеры соответствуют своим схемам.",
+    "workspace.examplesShowAll": "Показать все примеры ({count})",
+    "workspace.examplesShowLess": "Показать меньше примеров",
+    "workspace.examplesRevealInEditor": "Показать в редакторе",
+    "workspace.examplesRevealAriaLabel":
+      "Показать {name} для {location} в редакторе",
+    "workspace.examplesRevealError":
+      "Не удалось найти пример в редакторе. Дождитесь обновления схемы и попробуйте снова.",
+    "workspace.examplesOpenEndpoint": "Открыть эндпоинт",
+    "workspace.examplesOpenEndpointAriaLabel":
+      "Открыть эндпоинт {method} {path}",
+    "workspace.examplesHiddenIssues": "Ещё проблем: {count}",
+    "workspace.examplesRoot": "значение",
+    "workspace.examplesIssueAdditionalProperties":
+      'Свойство "{property}" не разрешено схемой.',
+    "workspace.examplesIssueAnyOf":
+      "Значение не подходит ни под одну из схем anyOf ({options}).",
+    "workspace.examplesIssueConst": "Значение должно быть равно {expected}.",
+    "workspace.examplesIssueEnum": "Значение должно быть одним из: {allowed}.",
+    "workspace.examplesIssueFormat":
+      "Значение не является корректным {format}.",
+    "workspace.examplesIssueMaxItems":
+      "Список должен содержать не более {limit} элементов.",
+    "workspace.examplesIssueMaxLength":
+      "Текст должен содержать не более {limit} символов.",
+    "workspace.examplesIssueMaxProperties":
+      "Объект должен содержать не более {limit} свойств.",
+    "workspace.examplesIssueMaximum":
+      "Значение должно быть {comparison} {limit}.",
+    "workspace.examplesIssueMinItems":
+      "Список должен содержать не менее {limit} элементов.",
+    "workspace.examplesIssueMinLength":
+      "Текст должен содержать не менее {limit} символов.",
+    "workspace.examplesIssueMinProperties":
+      "Объект должен содержать не менее {limit} свойств.",
+    "workspace.examplesIssueMinimum":
+      "Значение должно быть {comparison} {limit}.",
+    "workspace.examplesIssueMultipleOf":
+      "Значение должно быть кратно {divisor}.",
+    "workspace.examplesIssueNot": "Значение соответствует запрещённой схеме.",
+    "workspace.examplesIssueOneOf":
+      "Значение не подходит ни под одну из схем oneOf ({options}).",
+    "workspace.examplesIssueOneOfMultiple":
+      "Значение подходит под несколько схем oneOf ({matches}); ожидается ровно одна.",
+    "workspace.examplesIssuePattern":
+      "Текст не соответствует шаблону {pattern}.",
+    "workspace.examplesIssueReadOnly":
+      'Свойство только для чтения "{property}" не должно быть в примере запроса.',
+    "workspace.examplesIssueRequired":
+      'Отсутствует обязательное свойство "{property}".',
+    "workspace.examplesIssueSerialized":
+      "Пример записан JSON-строкой; используйте структурированное значение.",
+    "workspace.examplesIssueType": "Ожидается {expected}, получено {actual}.",
+    "workspace.examplesIssueUniqueItems":
+      "Элементы списка должны быть уникальными; элемент {index} повторяется.",
+    "workspace.examplesIssueWriteOnly":
+      'Свойство только для записи "{property}" не должно быть в примере ответа.',
+    "workspace.examplesSkipExternalValue":
+      "Используется externalValue, который не загружается для проверки.",
+    "workspace.examplesSkipLimit":
+      "Пропущено после достижения лимита проверки.",
+    "workspace.examplesSkipMediaType":
+      "Этот тип содержимого не проверяется как структурированные данные.",
+    "workspace.examplesSkipMissingSchema":
+      "Для этого примера не описана схема.",
+    "workspace.examplesSkipUnresolvedReference":
+      "Не удалось разрешить ссылку на схему или пример.",
+    "workspace.examplesMarkdownTitle": "Проверка примеров: {title}",
+    "workspace.examplesMarkdownVersion": "Версия: {version}",
+    "workspace.examplesMarkdownSummary":
+      "Проверено примеров: {total}; соответствуют {valid}, с предупреждениями {warnings}, не соответствуют {invalid}, не проверены {skipped} (соответствие {percentage}%).",
+    "workspace.examplesMarkdownFindings": "Находки",
+    "workspace.examplesMarkdownNoFindings":
+      "Несоответствий и предупреждений не найдено.",
+    "workspace.toolNavLabel": "Инструменты рабочей области",
+    "workspace.toolNavTitle": "Перейти к",
+    "workspace.toolNavCount": "Инструментов: {count}",
+    "workspace.toolNavEndpoints": "Список эндпоинтов",
+    "workspace.toolNavCheckpoints": "Контрольные точки",
+    "workspace.toolNavComponents": "Компоненты",
+    "workspace.toolNavModels": "Модели данных",
+    "workspace.toolNavWorkflows": "Связи",
+    "workspace.toolNavEvents": "Колбэки",
+    "workspace.toolNavSecurity": "Безопасность",
+    "workspace.toolNavAudit": "Аудит качества",
+    "workspace.toolNavExamples": "Примеры",
+    "workspace.toolNavChanges": "Обзор изменений",
+    "workspace.toolNavMockSuite": "Мок-набор",
+    "workspace.toolNavCoverage": "Покрытие",
+    "workspace.toolNavHar": "HAR-трафик",
+    "workspace.toolNavTestPlan": "Тест-план",
+    "workspace.toolNavPostman": "Postman",
+    "workspace.toolNavSlice": "Срез API",
+    "workspace.toolNavTypeScript": "Клиент TypeScript",
+    "workspace.toolNavDocs": "HTML-документация",
+    "workspace.toolNavMockServer": "Мок-сервер",
+    "workspace.toolNavSmokeTests": "Смоук-тесты",
+    "workspace.toolNavGroupDesign": "Проектирование",
+    "workspace.toolNavGroupQuality": "Качество",
+    "workspace.toolNavGroupTesting": "Тестирование",
+    "workspace.toolNavGroupExport": "Экспорт",
   },
 } as const;
 

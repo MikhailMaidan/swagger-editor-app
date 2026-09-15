@@ -13,6 +13,7 @@ import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
 import { ComponentRegistryPanel } from "@/components/component-registry-panel";
 import { DataModelExplorer } from "@/components/data-model-explorer";
 import { EndpointCard } from "@/components/endpoint-card";
+import { ExampleValidationPanel } from "@/components/example-validation-panel";
 import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
@@ -31,10 +32,16 @@ import { SchemaCheckpointPanel } from "@/components/schema-checkpoint-panel";
 import { SchemaChangePanel } from "@/components/schema-change-panel";
 import { SecurityPosturePanel } from "@/components/security-posture-panel";
 import { TypeScriptClientPanel } from "@/components/typescript-client-panel";
+import { WorkspaceToolNav } from "@/components/workspace-tool-nav";
+import type { WorkspaceTool } from "@/components/workspace-tool-nav";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useClientAuthState } from "@/lib/client-auth";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { createComponentRegistryReport } from "@/lib/component-registry";
+import {
+  createExampleValidationReport,
+  findJsonPointerSourceRange,
+} from "@/lib/example-validation";
 import {
   DEFAULT_EDITOR_FONT_SIZE,
   DEFAULT_EDITOR_INDENT_SIZE,
@@ -468,6 +475,13 @@ export function SwaggerWorkspace({
   );
   const schemaModels = useMemo(
     () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
+    [parseResult],
+  );
+  const exampleValidationReport = useMemo(
+    () =>
+      parseResult.ok
+        ? createExampleValidationReport(parseResult.value.schema)
+        : null,
     [parseResult],
   );
   const schemaChangeReport = useMemo(
@@ -1752,11 +1766,177 @@ export function SwaggerWorkspace({
     setSelectedCharacterCount(0);
   }
 
+  function handleRevealExample(pointer: string) {
+    const editor = editorRef.current;
+    const range = findJsonPointerSourceRange(schemaEditorText, pointer);
+
+    if (!editor || !range) {
+      return false;
+    }
+
+    const start = Math.min(range.start, schemaEditorText.length);
+    const end = Math.min(Math.max(range.end, start), schemaEditorText.length);
+
+    editor.focus();
+    editor.setSelectionRange(start, end);
+    editorSelectionRef.current = { end, start };
+    setEditorCursor(getTextPosition(schemaEditorText, start));
+    setSelectedCharacterCount(
+      getSelectedCharacterCount(schemaEditorText, start, end),
+    );
+
+    return true;
+  }
+
   function getSchemaErrorMessage(error: string) {
     const errorKey = schemaErrorKeys[error];
 
     return errorKey ? t(errorKey) : error;
   }
+
+  const workspaceTools: WorkspaceTool[] = parseResult.ok
+    ? [
+        {
+          group: "design",
+          id: "workspace-tool-checkpoints",
+          label: "workspace.toolNavCheckpoints",
+        },
+        ...(componentRegistryReport &&
+        (componentRegistryReport.totalCount > 0 ||
+          componentRegistryReport.brokenReferenceCount > 0 ||
+          componentRegistryReport.externalReferenceCount > 0)
+          ? [
+              {
+                alertCount: componentRegistryReport.brokenReferenceCount,
+                group: "design",
+                id: "workspace-tool-components",
+                label: "workspace.toolNavComponents",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        ...(schemaModels.length > 0
+          ? [
+              {
+                group: "design",
+                id: "workspace-tool-models",
+                label: "workspace.toolNavModels",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        ...(apiWorkflowReport && apiWorkflowReport.totalLinkCount > 0
+          ? [
+              {
+                group: "design",
+                id: "workspace-tool-workflows",
+                label: "workspace.toolNavWorkflows",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        ...(apiEventReport &&
+        (apiEventReport.totalOperationCount > 0 ||
+          apiEventReport.findings.length > 0)
+          ? [
+              {
+                group: "design",
+                id: "workspace-tool-events",
+                label: "workspace.toolNavEvents",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        ...(securitySchemes.length > 0 ||
+        securityPostureReport.undefinedSchemeNames.length > 0
+          ? [
+              {
+                alertCount: securityPostureReport.findingCounts.error,
+                group: "quality",
+                id: "workspace-tool-security",
+                label: "workspace.toolNavSecurity",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        {
+          alertCount: schemaAuditReport.issues.filter(
+            (issue) => issue.severity === "error",
+          ).length,
+          group: "quality",
+          id: "workspace-tool-audit",
+          label: "workspace.toolNavAudit",
+        },
+        ...(exampleValidationReport && exampleValidationReport.totalCount > 0
+          ? [
+              {
+                alertCount: exampleValidationReport.invalidCount,
+                group: "quality",
+                id: "workspace-tool-examples",
+                label: "workspace.toolNavExamples",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        {
+          group: "quality",
+          id: "workspace-tool-changes",
+          label: "workspace.toolNavChanges",
+        },
+        {
+          group: "testing",
+          id: "workspace-tool-mock-suite",
+          label: "workspace.toolNavMockSuite",
+        },
+        ...(artifactSchema && endpoints.length > 0
+          ? [
+              {
+                group: "testing",
+                id: "workspace-tool-coverage",
+                label: "workspace.toolNavCoverage",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
+        {
+          group: "testing",
+          id: "workspace-tool-har",
+          label: "workspace.toolNavHar",
+        },
+        {
+          group: "testing",
+          id: "workspace-tool-test-plan",
+          label: "workspace.toolNavTestPlan",
+        },
+        ...(artifactSchema && endpoints.length > 0
+          ? ([
+              {
+                group: "export",
+                id: "workspace-tool-postman",
+                label: "workspace.toolNavPostman",
+              },
+              {
+                group: "export",
+                id: "workspace-tool-slice",
+                label: "workspace.toolNavSlice",
+              },
+              {
+                group: "export",
+                id: "workspace-tool-typescript",
+                label: "workspace.toolNavTypeScript",
+              },
+              {
+                group: "export",
+                id: "workspace-tool-docs",
+                label: "workspace.toolNavDocs",
+              },
+              {
+                group: "export",
+                id: "workspace-tool-mock-server",
+                label: "workspace.toolNavMockServer",
+              },
+              {
+                group: "testing",
+                id: "workspace-tool-smoke-tests",
+                label: "workspace.toolNavSmokeTests",
+              },
+            ] satisfies WorkspaceTool[])
+          : []),
+      ]
+    : [];
 
   return (
     <section className="swagger-workspace mx-auto grid w-full max-w-[1600px] gap-6">
@@ -2412,191 +2592,328 @@ export function SwaggerWorkspace({
           </div>
         ) : null}
 
-        <SchemaCheckpointPanel
-          onRestore={handleRestoreSchemaCheckpoint}
-          schemaText={schemaText}
+        <WorkspaceToolNav
+          endpointListId={endpoints.length > 0 ? "workspace-endpoints" : ""}
+          tools={workspaceTools}
         />
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-checkpoints"
+          tabIndex={-1}
+        >
+          <SchemaCheckpointPanel
+            onRestore={handleRestoreSchemaCheckpoint}
+            schemaText={schemaText}
+          />
+        </div>
 
         {parseResult.ok &&
         componentRegistryReport &&
         (componentRegistryReport.totalCount > 0 ||
           componentRegistryReport.brokenReferenceCount > 0 ||
           componentRegistryReport.externalReferenceCount > 0) ? (
-          <ComponentRegistryPanel
-            report={componentRegistryReport}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-components"
+            tabIndex={-1}
+          >
+            <ComponentRegistryPanel
+              report={componentRegistryReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok && schemaModels.length > 0 ? (
-          <DataModelExplorer
-            models={schemaModels}
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-models"
+            tabIndex={-1}
+          >
+            <DataModelExplorer
+              models={schemaModels}
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok &&
         apiWorkflowReport &&
         apiWorkflowReport.totalLinkCount > 0 ? (
-          <ApiWorkflowExplorer
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            report={apiWorkflowReport}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-workflows"
+            tabIndex={-1}
+          >
+            <ApiWorkflowExplorer
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              report={apiWorkflowReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok &&
         apiEventReport &&
         (apiEventReport.totalOperationCount > 0 ||
           apiEventReport.findings.length > 0) ? (
-          <ApiEventExplorer
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            report={apiEventReport}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-events"
+            tabIndex={-1}
+          >
+            <ApiEventExplorer
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              report={apiEventReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok &&
         (securitySchemes.length > 0 ||
           securityPostureReport.undefinedSchemeNames.length > 0) ? (
-          <SecurityPosturePanel
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            report={securityPostureReport}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-security"
+            tabIndex={-1}
+          >
+            <SecurityPosturePanel
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              report={securityPostureReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok ? (
-          <SchemaAuditPanel
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            report={schemaAuditReport}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-audit"
+            tabIndex={-1}
+          >
+            <SchemaAuditPanel
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              report={schemaAuditReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
+        ) : null}
+
+        {parseResult.ok &&
+        exampleValidationReport &&
+        exampleValidationReport.totalCount > 0 ? (
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-examples"
+            tabIndex={-1}
+          >
+            <ExampleValidationPanel
+              onRevealExample={handleRevealExample}
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              report={exampleValidationReport}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok ? (
-          <SchemaChangePanel
-            baseline={schemaComparisonBaseline}
-            captureError={schemaComparisonCaptureError}
-            current={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-            onClearBaseline={handleClearSchemaComparisonBaseline}
-            onSetBaseline={handleSetSchemaComparisonBaseline}
-            report={schemaChangeReport}
-            storageError={schemaComparisonStorageError}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-changes"
+            tabIndex={-1}
+          >
+            <SchemaChangePanel
+              baseline={schemaComparisonBaseline}
+              captureError={schemaComparisonCaptureError}
+              current={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+              onClearBaseline={handleClearSchemaComparisonBaseline}
+              onSetBaseline={handleSetSchemaComparisonBaseline}
+              report={schemaChangeReport}
+              storageError={schemaComparisonStorageError}
+            />
+          </div>
         ) : null}
 
         {parseResult.ok ? (
-          <MockContractSuitePanel
-            allEndpoints={endpoints}
-            key={debouncedSchemaText}
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            schema={{
-              title: parseResult.value.title,
-              version: parseResult.value.version,
-            }}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-mock-suite"
+            tabIndex={-1}
+          >
+            <MockContractSuitePanel
+              allEndpoints={endpoints}
+              key={debouncedSchemaText}
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              schema={{
+                title: parseResult.value.title,
+                version: parseResult.value.version,
+              }}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && endpoints.length > 0 ? (
-          <RequestCoveragePanel
-            allEndpoints={endpoints}
-            onSelectEndpoint={handleSelectAuditEndpoint}
-            schema={artifactSchema}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-coverage"
+            tabIndex={-1}
+          >
+            <RequestCoveragePanel
+              allEndpoints={endpoints}
+              onSelectEndpoint={handleSelectAuditEndpoint}
+              schema={artifactSchema}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
-        <HarInspectorPanel
-          allEndpoints={endpoints}
-          visibleEndpoints={visibleEndpoints}
-          onSelectEndpoint={handleSelectAuditEndpoint}
-        />
-        <ApiTestPlanPanel
-          allEndpoints={endpoints}
-          visibleEndpoints={visibleEndpoints}
-          onSelectEndpoint={handleSelectAuditEndpoint}
-        />
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-har"
+          tabIndex={-1}
+        >
+          <HarInspectorPanel
+            allEndpoints={endpoints}
+            visibleEndpoints={visibleEndpoints}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+          />
+        </div>
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-test-plan"
+          tabIndex={-1}
+        >
+          <ApiTestPlanPanel
+            allEndpoints={endpoints}
+            visibleEndpoints={visibleEndpoints}
+            onSelectEndpoint={handleSelectAuditEndpoint}
+          />
+        </div>
 
         {artifactSchema && endpoints.length > 0 ? (
-          <PostmanExportPanel
-            allEndpoints={endpoints}
-            schema={artifactSchema}
-            securitySchemes={securitySchemes}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-postman"
+            tabIndex={-1}
+          >
+            <PostmanExportPanel
+              allEndpoints={endpoints}
+              schema={artifactSchema}
+              securitySchemes={securitySchemes}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && parseResult.ok && endpoints.length > 0 ? (
-          <ApiSlicePanel
-            allEndpoints={endpoints}
-            rootSchema={parseResult.value.schema}
-            title={artifactSchema.title}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-slice"
+            tabIndex={-1}
+          >
+            <ApiSlicePanel
+              allEndpoints={endpoints}
+              rootSchema={parseResult.value.schema}
+              title={artifactSchema.title}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && parseResult.ok && endpoints.length > 0 ? (
-          <TypeScriptClientPanel
-            allEndpoints={endpoints}
-            models={schemaModels}
-            rootSchema={parseResult.value.schema}
-            schema={artifactSchema}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-typescript"
+            tabIndex={-1}
+          >
+            <TypeScriptClientPanel
+              allEndpoints={endpoints}
+              models={schemaModels}
+              rootSchema={parseResult.value.schema}
+              schema={artifactSchema}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && endpoints.length > 0 ? (
-          <HtmlDocumentationPanel
-            allEndpoints={endpoints}
-            models={schemaModels}
-            schema={artifactSchema}
-            securitySchemes={securitySchemes}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-docs"
+            tabIndex={-1}
+          >
+            <HtmlDocumentationPanel
+              allEndpoints={endpoints}
+              models={schemaModels}
+              schema={artifactSchema}
+              securitySchemes={securitySchemes}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && endpoints.length > 0 ? (
-          <NodeMockServerPanel
-            allEndpoints={endpoints}
-            schema={artifactSchema}
-            visibleEndpoints={visibleEndpoints}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-mock-server"
+            tabIndex={-1}
+          >
+            <NodeMockServerPanel
+              allEndpoints={endpoints}
+              schema={artifactSchema}
+              visibleEndpoints={visibleEndpoints}
+            />
+          </div>
         ) : null}
 
         {artifactSchema && endpoints.length > 0 ? (
-          <SmokeTestExportPanel
-            allEndpoints={endpoints}
-            visibleEndpoints={visibleEndpoints}
-            title={artifactSchema.title}
-          />
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-smoke-tests"
+            tabIndex={-1}
+          >
+            <SmokeTestExportPanel
+              allEndpoints={endpoints}
+              visibleEndpoints={visibleEndpoints}
+              title={artifactSchema.title}
+            />
+          </div>
         ) : null}
 
         {endpoints.length > 0 ? (
-          <div className="mt-5 grid gap-3">
+          <div
+            className="mt-5 grid scroll-mt-40 gap-3 outline-none"
+            id="workspace-endpoints"
+            tabIndex={-1}
+          >
             <div className="flex flex-wrap items-center gap-3">
               <input
                 aria-keyshortcuts="/"
