@@ -250,6 +250,8 @@ describe("response assertions", () => {
       { path: "x".repeat(513) },
       { expected: "x".repeat(4097) },
       { expected: 7 },
+      { target: ["status"] },
+      { target: "status", operator: ["equals"] },
     ]) {
       expect(
         validateResponseAssertion(rule(patch as Partial<ResponseAssertion>)),

@@ -122,6 +122,9 @@ export function validateResponseAssertion(
     rule.path.length > 512 ||
     typeof rule.expected !== "string" ||
     rule.expected.length > 4096 ||
+    // Non-string targets would be coerced to a valid key by the lookup below.
+    typeof rule.target !== "string" ||
+    typeof rule.operator !== "string" ||
     !own(ASSERTION_OPERATORS, rule.target) ||
     !(ASSERTION_OPERATORS[rule.target] as readonly string[]).includes(
       rule.operator,

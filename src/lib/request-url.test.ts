@@ -20,6 +20,15 @@ describe("request-url helpers", () => {
     );
   });
 
+  it("strips repeated trailing slashes so request paths are not doubled", () => {
+    expect(normalizeServerUrl("https://api.example.com/v1//")).toBe(
+      "https://api.example.com/v1",
+    );
+    expect(buildRequestUrl("https://api.example.com//", "/users", [])).toBe(
+      "https://api.example.com/users",
+    );
+  });
+
   it("ensures a path always starts with a slash", () => {
     expect(normalizePath("users")).toBe("/users");
     expect(normalizePath("/users")).toBe("/users");

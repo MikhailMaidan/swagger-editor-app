@@ -20,6 +20,8 @@ describe("server URL validation", () => {
       "http://[::ffff:127.0.0.1]",
       "http://[fd00::1]",
       "http://100.64.0.1",
+      "http://localhost.:8080",
+      "http://api.localhost./v1",
     ]) {
       expect(isPublicHttpServerUrl(serverUrl)).toBe(false);
     }

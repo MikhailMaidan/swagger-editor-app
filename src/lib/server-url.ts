@@ -1,7 +1,11 @@
 const IPV4_PATTERN = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
 
 export function isPrivateOrLocalHostname(hostname: string) {
-  const normalizedHostname = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  // A fully qualified name such as `localhost.` resolves like `localhost`.
+  const normalizedHostname = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.+$/, "");
   const ipv4MappedAddress = normalizedHostname.match(
     /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/,
   )?.[1];
