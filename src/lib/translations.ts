@@ -1856,6 +1856,158 @@ export const translations = {
     "workspace.toolNavGroupQuality": "Quality",
     "workspace.toolNavGroupTesting": "Testing",
     "workspace.toolNavGroupExport": "Export",
+    "workspace.styleTitle": "API style guide",
+    "workspace.styleDescription":
+      "Lints naming, path design, pagination, and error models against your team's conventions.",
+    "workspace.styleScore": "Style score {score}",
+    "workspace.styleScoreLabel": "Style score {score} out of 100",
+    "workspace.styleSummary":
+      "{findings} findings · {errors} must fix · {warnings} should fix · {notes} to consider",
+    "workspace.styleRulesPassing": "{passing}/{enabled} rules passing",
+    "workspace.styleTruncated":
+      "Only the first findings are listed to keep the editor responsive; rule counts include every finding.",
+    "workspace.styleCopy": "Copy style report",
+    "workspace.styleExport": "Export style report",
+    "workspace.styleExportRuleset": "Export ruleset",
+    "workspace.styleImportRuleset": "Import ruleset",
+    "workspace.styleImportRulesetFile": "Style guide ruleset file",
+    "workspace.styleCopySuccess": "Style report copied.",
+    "workspace.styleCopyError": "Could not copy the style report.",
+    "workspace.styleExportSuccess": "Style report export started.",
+    "workspace.styleExportError": "Could not export the style report.",
+    "workspace.styleRulesetExportSuccess": "Ruleset export started.",
+    "workspace.styleRulesetExportError": "Could not export the ruleset.",
+    "workspace.styleImportSuccess": "Ruleset imported and applied.",
+    "workspace.styleImportInvalid":
+      "This file is not a valid RSSwag style guide ruleset.",
+    "workspace.styleImportTooLarge": "The ruleset file is too large.",
+    "workspace.styleImportReadError": "Could not read the ruleset file.",
+    "workspace.styleStorageError":
+      "Conventions apply for this session but could not be saved in this browser.",
+    "workspace.styleRevealError":
+      "Could not find this location in the editor. Wait for the schema to finish updating and try again.",
+    "workspace.styleConfigure": "Conventions and rules",
+    "workspace.styleConfigureHint":
+      "Changes apply instantly and are remembered in this browser.",
+    "workspace.styleConventionPathCase": "Path segments",
+    "workspace.styleConventionParameterCase": "Query and path parameters",
+    "workspace.styleConventionPropertyCase": "Schema properties",
+    "workspace.styleConventionOperationIdCase": "Operation IDs",
+    "workspace.styleResetConfig": "Reset to defaults",
+    "workspace.styleRuleFindings": "{count} findings",
+    "workspace.styleRulePassing": "Passing",
+    "workspace.styleRuleNotApplicable": "Not applicable",
+    "workspace.styleRuleDisabled": "Turned off",
+    "workspace.styleRuleToggle": "Enable rule: {rule}",
+    "workspace.styleCategoryPaths": "Paths & URLs",
+    "workspace.styleCategoryOperations": "Operations & methods",
+    "workspace.styleCategoryParameters": "Parameters & pagination",
+    "workspace.styleCategorySchemas": "Schemas & properties",
+    "workspace.styleCategoryResponses": "Error responses",
+    "workspace.styleCategoryDocument": "Document & tags",
+    "workspace.styleCategoryCardSummary": "{passing}/{total} rules passing",
+    "workspace.styleCategoryFilterAria": "Show findings for {category}",
+    "workspace.styleSeverityError": "Must fix",
+    "workspace.styleSeverityWarning": "Should fix",
+    "workspace.styleSeverityInfo": "Consider",
+    "workspace.styleSeverityFilterLabel": "Filter style findings by severity",
+    "workspace.styleFilterAll": "All findings ({count})",
+    "workspace.styleFilterError": "Must fix ({count})",
+    "workspace.styleFilterWarning": "Should fix ({count})",
+    "workspace.styleFilterInfo": "Consider ({count})",
+    "workspace.styleCategoryFilterLabel": "Rule category",
+    "workspace.styleCategoryAll": "All categories",
+    "workspace.styleSearchLabel": "Search style findings",
+    "workspace.styleSearchPlaceholder": "Search by rule, endpoint, or name",
+    "workspace.styleNoFindings":
+      "No style findings. The API follows every enabled rule.",
+    "workspace.styleNoMatches": "No style findings match these filters.",
+    "workspace.styleShowAll": "Show all {count} findings",
+    "workspace.styleShowLess": "Show fewer findings",
+    "workspace.styleSuggestion": "Suggested: {suggestion}",
+    "workspace.styleReveal": "Show in editor",
+    "workspace.styleRevealAriaLabel":
+      "Show {rule} finding at {pointer} in the editor",
+    "workspace.styleOpenEndpoint": "Open endpoint",
+    "workspace.styleOpenEndpointAriaLabel":
+      "Open {method} {path} from the style guide",
+    "workspace.styleMarkdownTitle": "API style guide: {title}",
+    "workspace.styleMarkdownVersion": "Version: {version}",
+    "workspace.styleMarkdownSummary":
+      "Style score {score}/100 · {passing}/{enabled} rules passing · {errors} must fix, {warnings} should fix, {notes} to consider.",
+    "workspace.styleMarkdownConventions": "Conventions",
+    "workspace.styleMarkdownRules": "Rules",
+    "workspace.styleMarkdownFindings": "Findings",
+    "workspace.styleRulePathAmbiguousTitle": "Unambiguous path templates",
+    "workspace.styleRulePathAmbiguousMessage":
+      "Conflicts with {conflict}; both templates match the same URLs.",
+    "workspace.styleRulePathCasingTitle": "Path segment casing",
+    "workspace.styleRulePathCasingMessage":
+      "Use {convention} for path segments: {segments}.",
+    "workspace.styleRulePathTrailingSlashTitle": "No trailing slashes",
+    "workspace.styleRulePathTrailingSlashMessage":
+      "Remove the trailing slash from the path.",
+    "workspace.styleRulePathVerbsTitle": "Resource-oriented paths",
+    "workspace.styleRulePathVerbsMessage":
+      'Avoid the verb in "{segment}"; let the HTTP method express the action.',
+    "workspace.styleRulePathFileExtensionTitle": "No file extensions in paths",
+    "workspace.styleRulePathFileExtensionMessage":
+      'Remove "{extension}" and negotiate formats with the Accept header.',
+    "workspace.styleRuleOperationIdCasingTitle": "Operation ID casing",
+    "workspace.styleRuleOperationIdCasingMessage":
+      'Use {convention} for operationId "{name}".',
+    "workspace.styleRuleRequestBodyOnSafeMethodTitle":
+      "No bodies on GET, HEAD, or DELETE",
+    "workspace.styleRuleRequestBodyOnSafeMethodMessage":
+      "{method} requests should not carry a body; many clients and proxies drop it.",
+    "workspace.styleRulePostCreateStatusTitle": "201 for created resources",
+    "workspace.styleRulePostCreateStatusMessage":
+      "This POST only documents 200; document 201 Created (or 202/204) when it creates a resource.",
+    "workspace.styleRuleSummaryStyleTitle": "Concise summaries",
+    "workspace.styleRuleSummaryStyleMessage":
+      "Keep summaries under {limit} characters without a trailing period (currently {length}).",
+    "workspace.styleRuleParameterCasingTitle": "Parameter casing",
+    "workspace.styleRuleParameterCasingMessage":
+      'Use {convention} for {location} parameter "{name}".',
+    "workspace.styleRuleReservedHeaderParameterTitle":
+      "No reserved header parameters",
+    "workspace.styleRuleReservedHeaderParameterMessage":
+      'OpenAPI ignores the "{name}" header parameter; use media types or security schemes instead.',
+    "workspace.styleRulePaginationStyleTitle": "Consistent pagination",
+    "workspace.styleRulePaginationStyleMessage":
+      "Uses {style} pagination while most endpoints use {dominant} pagination.",
+    "workspace.styleRulePageSizeNameTitle": "Consistent page size parameter",
+    "workspace.styleRulePageSizeNameMessage":
+      'Uses "{name}" for page size while most endpoints use "{dominant}".',
+    "workspace.styleRuleParameterDescriptionTitle": "Parameter descriptions",
+    "workspace.styleRuleParameterDescriptionMessage":
+      'Describe the {location} parameter "{name}".',
+    "workspace.styleRuleSchemaNameCasingTitle": "Schema name casing",
+    "workspace.styleRuleSchemaNameCasingMessage":
+      'Use PascalCase for schema "{name}".',
+    "workspace.styleRulePropertyCasingTitle": "Property casing",
+    "workspace.styleRulePropertyCasingMessage":
+      'Use {convention} for property "{name}".',
+    "workspace.styleRuleEnumValueCasingTitle": "Consistent enum casing",
+    "workspace.styleRuleEnumValueCasingMessage":
+      "Enum values mix letter casing: {values}.",
+    "workspace.styleRulePropertyTypeTitle": "Typed properties",
+    "workspace.styleRulePropertyTypeMessage":
+      'Property "{name}" has no type, reference, or composition.',
+    "workspace.styleRuleErrorSchemaConsistencyTitle": "Consistent error model",
+    "workspace.styleRuleErrorSchemaConsistencyMessage":
+      "{status} uses {schema} while most error responses use {dominant}.",
+    "workspace.styleRuleServerHttpsTitle": "HTTPS servers",
+    "workspace.styleRuleServerHttpsMessage": "Serve {url} over HTTPS.",
+    "workspace.styleRuleTagDeclaredTitle": "Declared tags",
+    "workspace.styleRuleTagDeclaredMessage":
+      'Tag "{tag}" is used but not declared in the top-level tags list.',
+    "workspace.styleRuleTagDescriptionTitle": "Tag descriptions",
+    "workspace.styleRuleTagDescriptionMessage": 'Describe tag "{tag}".',
+    "workspace.styleRuleInfoMetadataTitle": "API metadata",
+    "workspace.styleRuleInfoMetadataMessage":
+      "Add info.{field} so consumers know what the API does, who owns it, and how it may be used.",
+    "workspace.toolNavStyleGuide": "Style guide",
   },
   ru: {
     "inference.title": "Конструктор схемы ответа",
@@ -3753,6 +3905,163 @@ export const translations = {
     "workspace.toolNavGroupQuality": "Качество",
     "workspace.toolNavGroupTesting": "Тестирование",
     "workspace.toolNavGroupExport": "Экспорт",
+    "workspace.styleTitle": "Стайлгайд API",
+    "workspace.styleDescription":
+      "Проверяет именование, дизайн путей, пагинацию и модели ошибок на соответствие соглашениям команды.",
+    "workspace.styleScore": "Оценка стиля {score}",
+    "workspace.styleScoreLabel": "Оценка стиля {score} из 100",
+    "workspace.styleSummary":
+      "Находок: {findings} · исправить обязательно: {errors} · желательно: {warnings} · рассмотреть: {notes}",
+    "workspace.styleRulesPassing": "Правил пройдено: {passing}/{enabled}",
+    "workspace.styleTruncated":
+      "Показаны только первые находки, чтобы редактор не зависал; счётчики правил учитывают все находки.",
+    "workspace.styleCopy": "Копировать отчёт по стилю",
+    "workspace.styleExport": "Экспортировать отчёт по стилю",
+    "workspace.styleExportRuleset": "Экспортировать набор правил",
+    "workspace.styleImportRuleset": "Импортировать набор правил",
+    "workspace.styleImportRulesetFile": "Файл набора правил стайлгайда",
+    "workspace.styleCopySuccess": "Отчёт по стилю скопирован.",
+    "workspace.styleCopyError": "Не удалось скопировать отчёт по стилю.",
+    "workspace.styleExportSuccess": "Экспорт отчёта по стилю начался.",
+    "workspace.styleExportError": "Не удалось экспортировать отчёт по стилю.",
+    "workspace.styleRulesetExportSuccess": "Экспорт набора правил начался.",
+    "workspace.styleRulesetExportError":
+      "Не удалось экспортировать набор правил.",
+    "workspace.styleImportSuccess": "Набор правил импортирован и применён.",
+    "workspace.styleImportInvalid":
+      "Файл не является корректным набором правил стайлгайда RSSwag.",
+    "workspace.styleImportTooLarge": "Файл набора правил слишком большой.",
+    "workspace.styleImportReadError":
+      "Не удалось прочитать файл набора правил.",
+    "workspace.styleStorageError":
+      "Соглашения действуют в этой сессии, но не сохранены в браузере.",
+    "workspace.styleRevealError":
+      "Не удалось найти это место в редакторе. Дождитесь обновления схемы и попробуйте снова.",
+    "workspace.styleConfigure": "Соглашения и правила",
+    "workspace.styleConfigureHint":
+      "Изменения применяются сразу и запоминаются в этом браузере.",
+    "workspace.styleConventionPathCase": "Сегменты путей",
+    "workspace.styleConventionParameterCase": "Параметры запроса и пути",
+    "workspace.styleConventionPropertyCase": "Свойства схем",
+    "workspace.styleConventionOperationIdCase": "Идентификаторы операций",
+    "workspace.styleResetConfig": "Сбросить по умолчанию",
+    "workspace.styleRuleFindings": "Находок: {count}",
+    "workspace.styleRulePassing": "Пройдено",
+    "workspace.styleRuleNotApplicable": "Не применимо",
+    "workspace.styleRuleDisabled": "Выключено",
+    "workspace.styleRuleToggle": "Включить правило: {rule}",
+    "workspace.styleCategoryPaths": "Пути и URL",
+    "workspace.styleCategoryOperations": "Операции и методы",
+    "workspace.styleCategoryParameters": "Параметры и пагинация",
+    "workspace.styleCategorySchemas": "Схемы и свойства",
+    "workspace.styleCategoryResponses": "Ответы с ошибками",
+    "workspace.styleCategoryDocument": "Документ и теги",
+    "workspace.styleCategoryCardSummary": "Правил пройдено: {passing}/{total}",
+    "workspace.styleCategoryFilterAria":
+      "Показать находки категории {category}",
+    "workspace.styleSeverityError": "Исправить обязательно",
+    "workspace.styleSeverityWarning": "Желательно исправить",
+    "workspace.styleSeverityInfo": "Рассмотреть",
+    "workspace.styleSeverityFilterLabel": "Фильтр находок по важности",
+    "workspace.styleFilterAll": "Все находки ({count})",
+    "workspace.styleFilterError": "Исправить обязательно ({count})",
+    "workspace.styleFilterWarning": "Желательно исправить ({count})",
+    "workspace.styleFilterInfo": "Рассмотреть ({count})",
+    "workspace.styleCategoryFilterLabel": "Категория правил",
+    "workspace.styleCategoryAll": "Все категории",
+    "workspace.styleSearchLabel": "Поиск находок стиля",
+    "workspace.styleSearchPlaceholder": "Поиск по правилу, эндпоинту или имени",
+    "workspace.styleNoFindings":
+      "Находок нет. API соответствует всем включённым правилам.",
+    "workspace.styleNoMatches": "Нет находок, подходящих под фильтры.",
+    "workspace.styleShowAll": "Показать все находки ({count})",
+    "workspace.styleShowLess": "Показать меньше находок",
+    "workspace.styleSuggestion": "Предлагается: {suggestion}",
+    "workspace.styleReveal": "Показать в редакторе",
+    "workspace.styleRevealAriaLabel":
+      "Показать находку «{rule}» в {pointer} в редакторе",
+    "workspace.styleOpenEndpoint": "Открыть эндпоинт",
+    "workspace.styleOpenEndpointAriaLabel":
+      "Открыть {method} {path} из стайлгайда",
+    "workspace.styleMarkdownTitle": "Стайлгайд API: {title}",
+    "workspace.styleMarkdownVersion": "Версия: {version}",
+    "workspace.styleMarkdownSummary":
+      "Оценка стиля {score}/100 · правил пройдено {passing}/{enabled} · исправить обязательно: {errors}, желательно: {warnings}, рассмотреть: {notes}.",
+    "workspace.styleMarkdownConventions": "Соглашения",
+    "workspace.styleMarkdownRules": "Правила",
+    "workspace.styleMarkdownFindings": "Находки",
+    "workspace.styleRulePathAmbiguousTitle": "Однозначные шаблоны путей",
+    "workspace.styleRulePathAmbiguousMessage":
+      "Конфликтует с {conflict}; оба шаблона совпадают с одними и теми же URL.",
+    "workspace.styleRulePathCasingTitle": "Регистр сегментов пути",
+    "workspace.styleRulePathCasingMessage":
+      "Используйте {convention} для сегментов пути: {segments}.",
+    "workspace.styleRulePathTrailingSlashTitle": "Без завершающих слэшей",
+    "workspace.styleRulePathTrailingSlashMessage":
+      "Уберите завершающий слэш из пути.",
+    "workspace.styleRulePathVerbsTitle": "Ресурсно-ориентированные пути",
+    "workspace.styleRulePathVerbsMessage":
+      "Избегайте глагола в «{segment}»; действие выражает HTTP-метод.",
+    "workspace.styleRulePathFileExtensionTitle":
+      "Без расширений файлов в путях",
+    "workspace.styleRulePathFileExtensionMessage":
+      "Уберите «{extension}» и выбирайте формат через заголовок Accept.",
+    "workspace.styleRuleOperationIdCasingTitle":
+      "Регистр идентификаторов операций",
+    "workspace.styleRuleOperationIdCasingMessage":
+      "Используйте {convention} для operationId «{name}».",
+    "workspace.styleRuleRequestBodyOnSafeMethodTitle":
+      "Без тела у GET, HEAD и DELETE",
+    "workspace.styleRuleRequestBodyOnSafeMethodMessage":
+      "Запросы {method} не должны содержать тело; многие клиенты и прокси его отбрасывают.",
+    "workspace.styleRulePostCreateStatusTitle": "201 для созданных ресурсов",
+    "workspace.styleRulePostCreateStatusMessage":
+      "Этот POST описывает только 200; укажите 201 Created (или 202/204), если он создаёт ресурс.",
+    "workspace.styleRuleSummaryStyleTitle": "Краткие описания операций",
+    "workspace.styleRuleSummaryStyleMessage":
+      "Держите summary короче {limit} символов и без точки в конце (сейчас {length}).",
+    "workspace.styleRuleParameterCasingTitle": "Регистр параметров",
+    "workspace.styleRuleParameterCasingMessage":
+      "Используйте {convention} для параметра {location} «{name}».",
+    "workspace.styleRuleReservedHeaderParameterTitle":
+      "Без зарезервированных заголовков",
+    "workspace.styleRuleReservedHeaderParameterMessage":
+      "OpenAPI игнорирует параметр заголовка «{name}»; используйте типы содержимого или схемы безопасности.",
+    "workspace.styleRulePaginationStyleTitle": "Единая пагинация",
+    "workspace.styleRulePaginationStyleMessage":
+      "Используется пагинация {style}, тогда как большинство эндпоинтов используют {dominant}.",
+    "workspace.styleRulePageSizeNameTitle": "Единый параметр размера страницы",
+    "workspace.styleRulePageSizeNameMessage":
+      "Для размера страницы используется «{name}», тогда как большинство эндпоинтов используют «{dominant}».",
+    "workspace.styleRuleParameterDescriptionTitle": "Описания параметров",
+    "workspace.styleRuleParameterDescriptionMessage":
+      "Опишите параметр {location} «{name}».",
+    "workspace.styleRuleSchemaNameCasingTitle": "Регистр имён схем",
+    "workspace.styleRuleSchemaNameCasingMessage":
+      "Используйте PascalCase для схемы «{name}».",
+    "workspace.styleRulePropertyCasingTitle": "Регистр свойств",
+    "workspace.styleRulePropertyCasingMessage":
+      "Используйте {convention} для свойства «{name}».",
+    "workspace.styleRuleEnumValueCasingTitle": "Единый регистр enum",
+    "workspace.styleRuleEnumValueCasingMessage":
+      "Значения enum смешивают регистр: {values}.",
+    "workspace.styleRulePropertyTypeTitle": "Типизированные свойства",
+    "workspace.styleRulePropertyTypeMessage":
+      "У свойства «{name}» нет типа, ссылки или композиции.",
+    "workspace.styleRuleErrorSchemaConsistencyTitle": "Единая модель ошибок",
+    "workspace.styleRuleErrorSchemaConsistencyMessage":
+      "{status} использует {schema}, тогда как большинство ответов с ошибками используют {dominant}.",
+    "workspace.styleRuleServerHttpsTitle": "HTTPS-серверы",
+    "workspace.styleRuleServerHttpsMessage": "Обслуживайте {url} по HTTPS.",
+    "workspace.styleRuleTagDeclaredTitle": "Объявленные теги",
+    "workspace.styleRuleTagDeclaredMessage":
+      "Тег «{tag}» используется, но не объявлен в корневом списке tags.",
+    "workspace.styleRuleTagDescriptionTitle": "Описания тегов",
+    "workspace.styleRuleTagDescriptionMessage": "Опишите тег «{tag}».",
+    "workspace.styleRuleInfoMetadataTitle": "Метаданные API",
+    "workspace.styleRuleInfoMetadataMessage":
+      "Добавьте info.{field}, чтобы потребители знали назначение API, владельца и условия использования.",
+    "workspace.toolNavStyleGuide": "Стайлгайд",
   },
 } as const;
 

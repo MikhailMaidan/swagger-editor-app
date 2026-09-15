@@ -1799,7 +1799,7 @@ function findYamlChild(
   document: YAML.Document,
   node: unknown,
   segment: string,
-): unknown {
+): { key?: unknown; value: unknown } | undefined {
   const target = isAlias(node) ? node.resolve(document) : node;
 
   if (isMap(target)) {
@@ -1809,21 +1809,24 @@ function findYamlChild(
       return String(key) === segment;
     });
 
-    return pair?.value;
+    return pair ? { key: pair.key, value: pair.value } : undefined;
   }
 
   if (isSeq(target) && /^(0|[1-9]\d*)$/.test(segment)) {
-    return target.items[Number(segment)];
+    return { value: target.items[Number(segment)] };
   }
 
   return undefined;
 }
 
 // Maps a JSON pointer from the parsed document back to the source text, so
-// the editor can highlight the example exactly as the author wrote it.
+// the editor can highlight the example exactly as the author wrote it. With
+// `target: "key"`, a mapping entry is highlighted by its key instead, which
+// keeps selections short for large path items or schema properties.
 export function findJsonPointerSourceRange(
   sourceText: string,
   pointer: string,
+  options: { target?: "key" | "value" } = {},
 ): { end: number; start: number } | null {
   const segments = parseJsonPointer(pointer);
 
@@ -1834,16 +1837,21 @@ export function findJsonPointerSourceRange(
   try {
     const document = YAML.parseDocument(sourceText, { uniqueKeys: false });
     let node: unknown = document.contents;
+    let keyNode: unknown;
 
     for (const segment of segments) {
-      node = findYamlChild(document, node, segment);
+      const child = findYamlChild(document, node, segment);
 
-      if (node === undefined || node === null) {
+      if (!child || child.value === undefined || child.value === null) {
         return null;
       }
+
+      node = child.value;
+      keyNode = child.key;
     }
 
-    const range = (node as YamlNode).range;
+    const selectedNode = options.target === "key" && keyNode ? keyNode : node;
+    const range = (selectedNode as YamlNode).range;
 
     if (!range) {
       return null;

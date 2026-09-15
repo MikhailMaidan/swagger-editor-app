@@ -22,6 +22,7 @@ import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
 import { ApiTestPlanPanel } from "@/components/api-test-plan-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
+import { ApiStyleGuidePanel } from "@/components/api-style-guide-panel";
 import { PostmanExportPanel } from "@/components/postman-export-panel";
 import { RequestAuthManager } from "@/components/request-auth-manager";
 import { RequestCoveragePanel } from "@/components/request-coverage-panel";
@@ -242,6 +243,18 @@ export function SwaggerWorkspace({
   const goToLineInputRef = useRef<HTMLInputElement>(null);
   const schemaSearchInputRef = useRef<HTMLInputElement>(null);
   const editorSelectionRef = useRef({ end: 0, start: 0 });
+  const styleGuideHandlersRef = useRef<{
+    revealLocation: (pointer: string, target: "key" | "value") => boolean;
+    selectEndpoint: (method: string, path: string) => void;
+  }>({ revealLocation: () => false, selectEndpoint: () => {} });
+  // The style guide panel is memoized; these wrappers keep its props stable
+  // while always calling the handlers from the latest render.
+  const [styleGuideHandlers] = useState(() => ({
+    revealLocation: (pointer: string, target: "key" | "value") =>
+      styleGuideHandlersRef.current.revealLocation(pointer, target),
+    selectEndpoint: (method: string, path: string) =>
+      styleGuideHandlersRef.current.selectEndpoint(method, path),
+  }));
   const pendingEditorSelectionRef = useRef<{
     end: number;
     start: number;
@@ -1766,9 +1779,14 @@ export function SwaggerWorkspace({
     setSelectedCharacterCount(0);
   }
 
-  function handleRevealExample(pointer: string) {
+  function handleRevealExample(
+    pointer: string,
+    target: "key" | "value" = "value",
+  ) {
     const editor = editorRef.current;
-    const range = findJsonPointerSourceRange(schemaEditorText, pointer);
+    const range = findJsonPointerSourceRange(schemaEditorText, pointer, {
+      target,
+    });
 
     if (!editor || !range) {
       return false;
@@ -1793,6 +1811,13 @@ export function SwaggerWorkspace({
 
     return errorKey ? t(errorKey) : error;
   }
+
+  useLayoutEffect(() => {
+    styleGuideHandlersRef.current = {
+      revealLocation: handleRevealExample,
+      selectEndpoint: handleSelectAuditEndpoint,
+    };
+  });
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
@@ -1872,6 +1897,11 @@ export function SwaggerWorkspace({
               } satisfies WorkspaceTool,
             ]
           : []),
+        {
+          group: "quality",
+          id: "workspace-tool-style-guide",
+          label: "workspace.toolNavStyleGuide",
+        },
         {
           group: "quality",
           id: "workspace-tool-changes",
@@ -2736,6 +2766,22 @@ export function SwaggerWorkspace({
                 title: parseResult.value.title,
                 version: parseResult.value.version,
               }}
+            />
+          </div>
+        ) : null}
+
+        {parseResult.ok ? (
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-style-guide"
+            tabIndex={-1}
+          >
+            <ApiStyleGuidePanel
+              onRevealLocation={styleGuideHandlers.revealLocation}
+              onSelectEndpoint={styleGuideHandlers.selectEndpoint}
+              rootSchema={parseResult.value.schema}
+              schemaTitle={parseResult.value.title}
+              schemaVersion={parseResult.value.version}
             />
           </div>
         ) : null}
