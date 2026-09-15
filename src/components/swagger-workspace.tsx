@@ -17,6 +17,7 @@ import { ExampleValidationPanel } from "@/components/example-validation-panel";
 import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
+import { OpenApiUpgradePanel } from "@/components/openapi-upgrade-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
@@ -110,6 +111,8 @@ import {
   SchemaFormat,
 } from "@/lib/openapi";
 import type { EndpointSummary, SecuritySchemeSummary } from "@/lib/openapi";
+import { detectUpgradeSource } from "@/lib/openapi-upgrade";
+import type { OpenApiUpgradeTarget } from "@/lib/openapi-upgrade";
 import { createApiEventReport } from "@/lib/api-events";
 import { createApiWorkflowReport } from "@/lib/openapi-workflows";
 import {
@@ -243,17 +246,39 @@ export function SwaggerWorkspace({
   const goToLineInputRef = useRef<HTMLInputElement>(null);
   const schemaSearchInputRef = useRef<HTMLInputElement>(null);
   const editorSelectionRef = useRef({ end: 0, start: 0 });
-  const styleGuideHandlersRef = useRef<{
+  const toolHandlersRef = useRef<{
+    applyUpgrade: (
+      upgradedText: string,
+      target: OpenApiUpgradeTarget,
+      checkpointSaved: boolean,
+    ) => void;
+    getSchemaText: () => string;
     revealLocation: (pointer: string, target: "key" | "value") => boolean;
     selectEndpoint: (method: string, path: string) => void;
-  }>({ revealLocation: () => false, selectEndpoint: () => {} });
-  // The style guide panel is memoized; these wrappers keep its props stable
-  // while always calling the handlers from the latest render.
-  const [styleGuideHandlers] = useState(() => ({
+  }>({
+    applyUpgrade: () => {},
+    getSchemaText: () => "",
+    revealLocation: () => false,
+    selectEndpoint: () => {},
+  });
+  // Memoized tool panels receive these wrappers so their props stay stable
+  // while every call still reaches the handlers from the latest render.
+  const [toolHandlers] = useState(() => ({
+    applyUpgrade: (
+      upgradedText: string,
+      target: OpenApiUpgradeTarget,
+      checkpointSaved: boolean,
+    ) =>
+      toolHandlersRef.current.applyUpgrade(
+        upgradedText,
+        target,
+        checkpointSaved,
+      ),
+    getSchemaText: () => toolHandlersRef.current.getSchemaText(),
     revealLocation: (pointer: string, target: "key" | "value") =>
-      styleGuideHandlersRef.current.revealLocation(pointer, target),
+      toolHandlersRef.current.revealLocation(pointer, target),
     selectEndpoint: (method: string, path: string) =>
-      styleGuideHandlersRef.current.selectEndpoint(method, path),
+      toolHandlersRef.current.selectEndpoint(method, path),
   }));
   const pendingEditorSelectionRef = useRef<{
     end: number;
@@ -488,6 +513,11 @@ export function SwaggerWorkspace({
   );
   const schemaModels = useMemo(
     () => (parseResult.ok ? extractSchemaModels(parseResult.value.schema) : []),
+    [parseResult],
+  );
+  const upgradeSource = useMemo(
+    () =>
+      parseResult.ok ? detectUpgradeSource(parseResult.value.schema) : null,
     [parseResult],
   );
   const exampleValidationReport = useMemo(
@@ -1016,6 +1046,22 @@ export function SwaggerWorkspace({
         file: importDetails.fileName,
         size: String(importDetails.byteSize),
       }),
+    );
+  }
+
+  function handleApplyOpenApiUpgrade(
+    upgradedText: string,
+    target: OpenApiUpgradeTarget,
+    checkpointSaved: boolean,
+  ) {
+    replaceEditorSchema(upgradedText);
+    setSaveMessage(
+      t(
+        checkpointSaved
+          ? "workspace.upgradeApplied"
+          : "workspace.upgradeAppliedWithoutCheckpoint",
+        { version: target },
+      ),
     );
   }
 
@@ -1813,7 +1859,9 @@ export function SwaggerWorkspace({
   }
 
   useLayoutEffect(() => {
-    styleGuideHandlersRef.current = {
+    toolHandlersRef.current = {
+      applyUpgrade: handleApplyOpenApiUpgrade,
+      getSchemaText: () => schemaText,
       revealLocation: handleRevealExample,
       selectEndpoint: handleSelectAuditEndpoint,
     };
@@ -1826,6 +1874,15 @@ export function SwaggerWorkspace({
           id: "workspace-tool-checkpoints",
           label: "workspace.toolNavCheckpoints",
         },
+        ...(upgradeSource
+          ? [
+              {
+                group: "design",
+                id: "workspace-tool-upgrade",
+                label: "workspace.toolNavUpgrade",
+              } satisfies WorkspaceTool,
+            ]
+          : []),
         ...(componentRegistryReport &&
         (componentRegistryReport.totalCount > 0 ||
           componentRegistryReport.brokenReferenceCount > 0 ||
@@ -2638,6 +2695,28 @@ export function SwaggerWorkspace({
           />
         </div>
 
+        {parseResult.ok && upgradeSource ? (
+          <div
+            className="workspace-tool scroll-mt-40 outline-none"
+            id="workspace-tool-upgrade"
+            tabIndex={-1}
+          >
+            <OpenApiUpgradePanel
+              // A different source version offers different targets, so the
+              // panel starts fresh instead of keeping a stale selection.
+              key={upgradeSource}
+              getSchemaText={toolHandlers.getSchemaText}
+              onApply={toolHandlers.applyUpgrade}
+              onRevealLocation={toolHandlers.revealLocation}
+              rootSchema={parseResult.value.schema}
+              schemaFormat={parseResult.value.format}
+              schemaTitle={parseResult.value.title}
+              schemaVersion={parseResult.value.version}
+              source={upgradeSource}
+            />
+          </div>
+        ) : null}
+
         {parseResult.ok &&
         componentRegistryReport &&
         (componentRegistryReport.totalCount > 0 ||
@@ -2777,8 +2856,8 @@ export function SwaggerWorkspace({
             tabIndex={-1}
           >
             <ApiStyleGuidePanel
-              onRevealLocation={styleGuideHandlers.revealLocation}
-              onSelectEndpoint={styleGuideHandlers.selectEndpoint}
+              onRevealLocation={toolHandlers.revealLocation}
+              onSelectEndpoint={toolHandlers.selectEndpoint}
               rootSchema={parseResult.value.schema}
               schemaTitle={parseResult.value.title}
               schemaVersion={parseResult.value.version}

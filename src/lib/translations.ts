@@ -2008,6 +2008,107 @@ export const translations = {
     "workspace.styleRuleInfoMetadataMessage":
       "Add info.{field} so consumers know what the API does, who owns it, and how it may be used.",
     "workspace.toolNavStyleGuide": "Style guide",
+    "workspace.upgradeTitle": "OpenAPI upgrade assistant",
+    "workspace.upgradeDescription":
+      "Migrate this document to a newer OpenAPI version, review every change, and apply it safely with a checkpoint.",
+    "workspace.upgradeSourceSwagger2": "Swagger 2.0",
+    "workspace.upgradeSourceOpenApi30": "OpenAPI 3.0",
+    "workspace.upgradePath": "{source} → OpenAPI {target}",
+    "workspace.upgradeTargetLabel": "Target version",
+    "workspace.upgradeFormatLabel": "Output format",
+    "workspace.upgradeFormatYaml": "YAML document",
+    "workspace.upgradeFormatJson": "JSON document",
+    "workspace.upgradePreview": "Preview upgrade",
+    "workspace.upgradeHidePreview": "Hide preview",
+    "workspace.upgradeStatChanges": "Automatic changes",
+    "workspace.upgradeStatWarnings": "Manual review",
+    "workspace.upgradeStatEndpoints": "Endpoints preserved",
+    "workspace.upgradeStatEndpointsValue": "{upgraded}/{source}",
+    "workspace.upgradeStatLines": "Output lines",
+    "workspace.upgradeParityOk": "All {count} endpoints are preserved.",
+    "workspace.upgradeParityMissing":
+      "{count} endpoints would be lost: {endpoints}",
+    "workspace.upgradeInvalidOutput":
+      "The upgraded document could not be parsed, so it cannot be applied.",
+    "workspace.upgradeChangesTitle": "Automatic changes",
+    "workspace.upgradeNoChanges": "No structural changes are needed.",
+    "workspace.upgradeWarningsTitle": "Review after upgrading",
+    "workspace.upgradeNoWarnings": "Nothing needs manual review.",
+    "workspace.upgradeChangeVersion": "Declares OpenAPI {target}",
+    "workspace.upgradeChangeServers":
+      "Builds {count} server URLs from host, basePath, and schemes",
+    "workspace.upgradeChangeSchemas":
+      "Moves {count} definitions to components/schemas",
+    "workspace.upgradeChangeParameters":
+      "Converts {count} parameters to schema-based parameters",
+    "workspace.upgradeChangeRequestBodies":
+      "Creates {count} request bodies from body and form parameters",
+    "workspace.upgradeChangeFormData":
+      "Turns {count} form fields into request body properties",
+    "workspace.upgradeChangeResponses":
+      "Wraps {count} response schemas in media type content",
+    "workspace.upgradeChangeSecuritySchemes":
+      "Converts {count} security definitions to security schemes",
+    "workspace.upgradeChangeReferences":
+      "Rewrites {count} $ref pointers to components",
+    "workspace.upgradeChangeSerializationStyles":
+      "Maps {count} collection formats to style and explode",
+    "workspace.upgradeChangeFileTypes":
+      "Replaces {count} file types with binary strings",
+    "workspace.upgradeChangeNullable": "Converts {count} nullable flags",
+    "workspace.upgradeChangeBounds":
+      "Converts {count} exclusive bounds to numeric keywords",
+    "workspace.upgradeChangeSchemaExamples":
+      "Turns {count} schema examples into examples arrays",
+    "workspace.upgradeChangeWebhooks": "Promotes x-webhooks to webhooks",
+    "workspace.upgradeWarningBodyAndFormData":
+      "This operation mixes body and formData parameters; the form fields were not converted.",
+    "workspace.upgradeWarningExternalReference":
+      "External reference {reference} was rewritten, but the referenced file must be upgraded separately.",
+    "workspace.upgradeWarningFormDataMediaType":
+      "Form fields were declared with {consumes}; a form media type was used instead.",
+    "workspace.upgradeWarningMissingResponseDescription":
+      "The response had no description, so an empty one was added.",
+    "workspace.upgradeWarningNullableComposition":
+      "A nullable reference or composition was wrapped in anyOf with null; confirm generated types.",
+    "workspace.upgradeWarningOperationSchemes":
+      "Operation-level schemes ({schemes}) became operation servers.",
+    "workspace.upgradeWarningUnresolvedReference":
+      "Reference {reference} could not be resolved and was kept.",
+    "workspace.upgradeWarningUnsupportedCollectionFormat":
+      'Collection format "{format}" of "{name}" has no OpenAPI 3 equivalent.',
+    "workspace.upgradeWarningUnsupportedOauthFlow":
+      'OAuth flow "{flow}" is not recognized and needs a flows definition.',
+    "workspace.upgradeWarningWebsocketScheme":
+      "A server uses the {scheme} scheme; confirm your tooling supports it.",
+    "workspace.upgradeOutputLabel": "Upgraded document",
+    "workspace.upgradeCopy": "Copy upgraded document",
+    "workspace.upgradeDownload": "Download upgraded document",
+    "workspace.upgradeCopyNotes": "Copy migration notes",
+    "workspace.upgradeSaveCheckpoint":
+      "Save the current document as a checkpoint first",
+    "workspace.upgradeApply": "Apply to editor",
+    "workspace.upgradeCopySuccess": "Upgraded document copied.",
+    "workspace.upgradeCopyError": "Could not copy the upgraded document.",
+    "workspace.upgradeDownloadSuccess": "Upgraded document download started.",
+    "workspace.upgradeDownloadError":
+      "Could not download the upgraded document.",
+    "workspace.upgradeNotesCopied": "Migration notes copied.",
+    "workspace.upgradeNotesError": "Could not copy the migration notes.",
+    "workspace.upgradeCheckpointError":
+      "Could not save a checkpoint, so the editor was not changed. Remove old checkpoints or apply without one.",
+    "workspace.upgradeCheckpointName": "Before upgrade to OpenAPI {version}",
+    "workspace.upgradeApplied":
+      "Upgraded to OpenAPI {version}. The previous document was saved as a checkpoint.",
+    "workspace.upgradeAppliedWithoutCheckpoint":
+      "Upgraded to OpenAPI {version}.",
+    "workspace.upgradeReveal": "Show in editor",
+    "workspace.upgradeRevealAriaLabel":
+      "Show upgrade note at {pointer} in the editor",
+    "workspace.upgradeRevealError":
+      "Could not find this location in the editor. Wait for the schema to finish updating and try again.",
+    "workspace.upgradeMarkdownTitle": "OpenAPI upgrade notes: {title}",
+    "workspace.toolNavUpgrade": "OpenAPI upgrade",
   },
   ru: {
     "inference.title": "Конструктор схемы ответа",
@@ -4062,6 +4163,109 @@ export const translations = {
     "workspace.styleRuleInfoMetadataMessage":
       "Добавьте info.{field}, чтобы потребители знали назначение API, владельца и условия использования.",
     "workspace.toolNavStyleGuide": "Стайлгайд",
+    "workspace.upgradeTitle": "Помощник обновления OpenAPI",
+    "workspace.upgradeDescription":
+      "Переведите документ на новую версию OpenAPI, проверьте каждое изменение и примените его безопасно с контрольной точкой.",
+    "workspace.upgradeSourceSwagger2": "Swagger 2.0",
+    "workspace.upgradeSourceOpenApi30": "OpenAPI 3.0",
+    "workspace.upgradePath": "{source} → OpenAPI {target}",
+    "workspace.upgradeTargetLabel": "Целевая версия",
+    "workspace.upgradeFormatLabel": "Формат результата",
+    "workspace.upgradeFormatYaml": "Документ YAML",
+    "workspace.upgradeFormatJson": "Документ JSON",
+    "workspace.upgradePreview": "Предпросмотр обновления",
+    "workspace.upgradeHidePreview": "Скрыть предпросмотр",
+    "workspace.upgradeStatChanges": "Автоматические изменения",
+    "workspace.upgradeStatWarnings": "Ручная проверка",
+    "workspace.upgradeStatEndpoints": "Сохранено эндпоинтов",
+    "workspace.upgradeStatEndpointsValue": "{upgraded}/{source}",
+    "workspace.upgradeStatLines": "Строк в результате",
+    "workspace.upgradeParityOk": "Все эндпоинты сохранены: {count}.",
+    "workspace.upgradeParityMissing":
+      "Будут потеряны эндпоинты ({count}): {endpoints}",
+    "workspace.upgradeInvalidOutput":
+      "Обновлённый документ не удалось разобрать, поэтому его нельзя применить.",
+    "workspace.upgradeChangesTitle": "Автоматические изменения",
+    "workspace.upgradeNoChanges": "Структурные изменения не требуются.",
+    "workspace.upgradeWarningsTitle": "Проверить после обновления",
+    "workspace.upgradeNoWarnings": "Ручная проверка не требуется.",
+    "workspace.upgradeChangeVersion": "Объявляет OpenAPI {target}",
+    "workspace.upgradeChangeServers":
+      "Формирует URL серверов из host, basePath и schemes: {count}",
+    "workspace.upgradeChangeSchemas":
+      "Переносит definitions в components/schemas: {count}",
+    "workspace.upgradeChangeParameters":
+      "Переводит параметры на описание через schema: {count}",
+    "workspace.upgradeChangeRequestBodies":
+      "Создаёт тела запросов из параметров body и formData: {count}",
+    "workspace.upgradeChangeFormData":
+      "Превращает поля формы в свойства тела запроса: {count}",
+    "workspace.upgradeChangeResponses":
+      "Оборачивает схемы ответов в content с типами содержимого: {count}",
+    "workspace.upgradeChangeSecuritySchemes":
+      "Переводит securityDefinitions в схемы безопасности: {count}",
+    "workspace.upgradeChangeReferences":
+      "Переписывает ссылки $ref на components: {count}",
+    "workspace.upgradeChangeSerializationStyles":
+      "Заменяет collectionFormat на style и explode: {count}",
+    "workspace.upgradeChangeFileTypes":
+      "Заменяет тип file на бинарные строки: {count}",
+    "workspace.upgradeChangeNullable": "Преобразует признаки nullable: {count}",
+    "workspace.upgradeChangeBounds":
+      "Переводит исключающие границы в числовые ключевые слова: {count}",
+    "workspace.upgradeChangeSchemaExamples":
+      "Превращает example в схемах в массивы examples: {count}",
+    "workspace.upgradeChangeWebhooks": "Переносит x-webhooks в webhooks",
+    "workspace.upgradeWarningBodyAndFormData":
+      "Операция смешивает параметры body и formData; поля формы не преобразованы.",
+    "workspace.upgradeWarningExternalReference":
+      "Внешняя ссылка {reference} переписана, но связанный файл нужно обновить отдельно.",
+    "workspace.upgradeWarningFormDataMediaType":
+      "Поля формы объявлены с {consumes}; вместо этого использован тип формы.",
+    "workspace.upgradeWarningMissingResponseDescription":
+      "У ответа не было описания, поэтому добавлено пустое.",
+    "workspace.upgradeWarningNullableComposition":
+      "Nullable-ссылка или композиция обёрнута в anyOf с null; проверьте сгенерированные типы.",
+    "workspace.upgradeWarningOperationSchemes":
+      "Схемы уровня операции ({schemes}) превращены в серверы операции.",
+    "workspace.upgradeWarningUnresolvedReference":
+      "Ссылку {reference} не удалось разрешить, она сохранена.",
+    "workspace.upgradeWarningUnsupportedCollectionFormat":
+      "У формата коллекции «{format}» параметра «{name}» нет аналога в OpenAPI 3.",
+    "workspace.upgradeWarningUnsupportedOauthFlow":
+      "Поток OAuth «{flow}» не распознан, требуется описание flows.",
+    "workspace.upgradeWarningWebsocketScheme":
+      "Сервер использует схему {scheme}; убедитесь, что инструменты её поддерживают.",
+    "workspace.upgradeOutputLabel": "Обновлённый документ",
+    "workspace.upgradeCopy": "Копировать обновлённый документ",
+    "workspace.upgradeDownload": "Скачать обновлённый документ",
+    "workspace.upgradeCopyNotes": "Копировать заметки о миграции",
+    "workspace.upgradeSaveCheckpoint":
+      "Сначала сохранить текущий документ как контрольную точку",
+    "workspace.upgradeApply": "Применить в редакторе",
+    "workspace.upgradeCopySuccess": "Обновлённый документ скопирован.",
+    "workspace.upgradeCopyError":
+      "Не удалось скопировать обновлённый документ.",
+    "workspace.upgradeDownloadSuccess":
+      "Скачивание обновлённого документа началось.",
+    "workspace.upgradeDownloadError":
+      "Не удалось скачать обновлённый документ.",
+    "workspace.upgradeNotesCopied": "Заметки о миграции скопированы.",
+    "workspace.upgradeNotesError": "Не удалось скопировать заметки о миграции.",
+    "workspace.upgradeCheckpointError":
+      "Не удалось сохранить контрольную точку, поэтому редактор не изменён. Удалите старые точки или примените без неё.",
+    "workspace.upgradeCheckpointName": "До обновления до OpenAPI {version}",
+    "workspace.upgradeApplied":
+      "Документ обновлён до OpenAPI {version}. Предыдущая версия сохранена как контрольная точка.",
+    "workspace.upgradeAppliedWithoutCheckpoint":
+      "Документ обновлён до OpenAPI {version}.",
+    "workspace.upgradeReveal": "Показать в редакторе",
+    "workspace.upgradeRevealAriaLabel":
+      "Показать заметку об обновлении в {pointer} в редакторе",
+    "workspace.upgradeRevealError":
+      "Не удалось найти это место в редакторе. Дождитесь обновления схемы и попробуйте снова.",
+    "workspace.upgradeMarkdownTitle": "Заметки об обновлении OpenAPI: {title}",
+    "workspace.toolNavUpgrade": "Обновление OpenAPI",
   },
 } as const;
 
