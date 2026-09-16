@@ -265,27 +265,45 @@ function resolveLocalReference(
   schema: Record<string, unknown>,
   value: Record<string, unknown>,
 ) {
-  const reference = readString(value.$ref);
-
-  if (!reference.startsWith("#/")) {
-    return value;
-  }
-
-  const segments = reference
-    .slice(2)
-    .split("/")
-    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"));
-  let current: unknown = schema;
-
-  for (const segment of segments) {
-    if (!isRecord(current) || !(segment in current)) {
+  const seen = new Set<string>();
+  let aliasFields: Record<string, unknown> = {};
+  let resolved = value;
+  while (typeof resolved.$ref === "string" && resolved.$ref.startsWith("#/")) {
+    const reference = resolved.$ref;
+    if (seen.has(reference) || seen.size >= 128) return value;
+    // Keep fields that the previous one-hop resolver exposed on intermediate aliases.
+    if (seen.size) {
+      aliasFields = {
+        ...Object.fromEntries(
+          Object.entries(resolved).filter(([key]) => key !== "$ref"),
+        ),
+        ...aliasFields,
+      };
+    }
+    seen.add(reference);
+    let pointer: string;
+    try {
+      pointer = decodeURIComponent(reference.slice(1));
+    } catch {
       return value;
     }
-
-    current = current[segment];
+    if (/~(?![01])/.test(pointer)) return value;
+    let current: unknown = schema;
+    for (const part of pointer.slice(1).split("/")) {
+      const segment = part.replaceAll("~1", "/").replaceAll("~0", "~");
+      if (
+        (!isRecord(current) && !Array.isArray(current)) ||
+        !Object.hasOwn(current, segment)
+      )
+        return value;
+      current = (current as Record<string, unknown>)[segment];
+    }
+    if (!isRecord(current)) return value;
+    resolved = current;
   }
-
-  return isRecord(current) ? current : value;
+  return Object.keys(aliasFields).length
+    ? { ...resolved, ...aliasFields }
+    : resolved;
 }
 
 function isSecurityParameterLocation(
@@ -967,10 +985,18 @@ export function extractEndpoints(schema: Record<string, unknown>) {
     if (!isRecord(pathConfig)) {
       return [];
     }
+    // Bundled Path Items retain references; explicit local fields remain authoritative.
+    const resolvedPathConfig = {
+      ...resolveLocalReference(schema, pathConfig),
+      ...pathConfig,
+    };
 
-    const sharedParameters = normalizeParameters(pathConfig.parameters, schema);
+    const sharedParameters = normalizeParameters(
+      resolvedPathConfig.parameters,
+      schema,
+    );
 
-    return Object.entries(pathConfig).reduce<EndpointSummary[]>(
+    return Object.entries(resolvedPathConfig).reduce<EndpointSummary[]>(
       (endpoints, [method, operation]) => {
         if (!HTTP_METHODS.has(method) || !isRecord(operation)) {
           return endpoints;

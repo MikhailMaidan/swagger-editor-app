@@ -3,6 +3,101 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "bundle.title": "Multi-file OpenAPI workbench",
+    "bundle.description":
+      "Import or create local YAML/JSON files, resolve references, and build a single-file API document. Files stay in this tab until you export the project; no files or URLs are fetched automatically.",
+    "bundle.edit": "Edit multi-file project",
+    "bundle.importFiles": "Import definition files",
+    "bundle.importFolder": "Import definition folder",
+    "bundle.importHelp":
+      "Folder imports preserve relative paths and include .json, .yaml, and .yml files only. Choose the root API document after importing. File paths are case-sensitive.",
+    "bundle.replace": "Replace matching files on import or add",
+    "bundle.newPath": "New file path",
+    "bundle.addFile": "Create project file",
+    "bundle.useEditor": "Copy editor into project file",
+    "bundle.fileCount": "Project files: {count}/50",
+    "bundle.root": "Root API document",
+    "bundle.chooseRoot": "Choose a root document",
+    "bundle.selected": "Selected project file",
+    "bundle.removeFile": "Remove selected project file",
+    "bundle.source": "Source: {file}",
+    "bundle.build": "Build reference bundle",
+    "bundle.projectSharing": "Save or restore multi-file project",
+    "bundle.projectHelp":
+      "Project exports include every file and its full contents, including unused files and any sensitive examples. Project imports replace this workbench, without changing the main editor. Export before leaving the page.",
+    "bundle.copyProject": "Copy project JSON",
+    "bundle.downloadProject": "Download project JSON",
+    "bundle.importProject": "Restore project JSON file",
+    "bundle.imported":
+      "Files imported. Review the root document and build the bundle.",
+    "bundle.loading": "Reading project files…",
+    "bundle.exported": "Export completed.",
+    "bundle.exportFailed": "Export failed. Try copying or downloading again.",
+    "bundle.ready": "Bundle ready · {refs} references · {files} files used",
+    "bundle.blocked": "Bundle blocked · {issues} issues to fix",
+    "bundle.issues": "Bundle diagnostics",
+    "bundle.issueLimit":
+      "Showing the first 100 diagnostics. Fix these and rebuild to review the remaining issues.",
+    "bundle.unused": "Unused files: {files}",
+    "bundle.search": "Search bundle references",
+    "bundle.filter": "Reference resolution filter",
+    "bundle.all": "All references",
+    "bundle.resolved": "Resolved",
+    "bundle.unresolved": "Unresolved",
+    "bundle.matches": "Matching references: {count}",
+    "bundle.references": "Bundle reference map",
+    "bundle.from": "Source location",
+    "bundle.to": "Original reference",
+    "bundle.outputRef": "Bundled reference",
+    "bundle.tableLimit":
+      "Showing the first 100 matches. Refine the search to find more references.",
+    "bundle.outputHelp":
+      "Referenced fragments are stored under {namespace}; original fields and reference siblings are preserved. Cycles remain references. Relative references use their source file's directory. Unsupported resource identifiers and anchor references must be resolved before bundling.",
+    "bundle.format": "Bundle output format",
+    "bundle.preview": "Preview bundled document",
+    "bundle.previewText": "Bundled document preview",
+    "bundle.previewLimit":
+      "Preview limited to 50,000 characters; exports contain the full bundle.",
+    "bundle.copy": "Copy bundled document",
+    "bundle.download": "Download bundled document",
+    "bundle.applyHelp":
+      "Apply replaces the main editor with this bundle. The previous editor text is kept in this tab for one undo; later editor changes prevent undo from overwriting them. Copy or download a backup for longer-term recovery.",
+    "bundle.apply": "Apply bundle to editor",
+    "bundle.applied": "Bundle applied to the editor.",
+    "bundle.invalidOutput":
+      "The bundle does not meet this editor's minimum document requirements. You can still export it for review.",
+    "bundle.undo": "Undo bundle application",
+    "bundle.undoChanged":
+      "The main editor changed after applying the bundle. Undo is blocked to preserve those edits.",
+    "bundle.restored": "The previous editor document was restored.",
+    "bundle.error.path":
+      "Use a relative project path without backslashes, URL syntax, or traversal outside the project.",
+    "bundle.error.duplicate":
+      "A file with this path already exists. Enable replacement or choose a different path.",
+    "bundle.error.limit":
+      "A project or bundle limit was exceeded: 50 files, 2 MiB per file, 8 MiB total source, 16 MiB output, 1,000 embedded fragments, 5,000 references, or bounded nesting and node counts.",
+    "bundle.error.parse":
+      "This file is not usable JSON/YAML. Check syntax, duplicate keys, YAML tags or alias cycles, and unsafe numbers.",
+    "bundle.error.root":
+      "Choose an imported root document declaring OpenAPI 3.0–3.2 or Swagger 2.0.",
+    "bundle.error.missing-file":
+      "The referenced file is not in this project. Import it at the matching relative path.",
+    "bundle.error.missing-pointer":
+      "The JSON Pointer does not identify an existing value in the referenced file.",
+    "bundle.error.reference":
+      "The reference or target is unsupported. Use a file path with an optional JSON Pointer; named anchors and URL queries are not supported.",
+    "bundle.error.remote":
+      "Remote and absolute URI references are not fetched. Import the file and use a relative project reference.",
+    "bundle.error.dialect":
+      "Schema resource identifiers, anchors, and dynamic or recursive references require URI-aware processing and cannot be bundled here.",
+    "bundle.error.discriminator":
+      "Add an explicit discriminator mapping before bundling this schema.",
+    "bundle.error.relative-resource":
+      "A relative example resource or a relocated relative server/documentation URL needs an absolute URL or an inline value before bundling.",
+    "bundle.error.project":
+      "This is not a valid version 1 multi-file project, or no supported definition files were selected.",
+    "bundle.error.read":
+      "The file could not be read. The existing project has been preserved.",
     "scenario.title": "API scenario runner",
     "scenario.description":
       "Build a workflow of up to 20 requests, pass response values between steps, and check the results. Drafts and variables stay in memory. Runs use the schema as it was when you started; no request history is written.",
@@ -2274,6 +2369,102 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "bundle.title": "Многофайловый OpenAPI-проект",
+    "bundle.description":
+      "Импортируйте или создавайте локальные файлы YAML/JSON, разрешайте ссылки и собирайте единый документ API. Файлы хранятся во вкладке до экспорта; автоматических сетевых запросов нет.",
+    "bundle.edit": "Редактирование многофайлового проекта",
+    "bundle.importFiles": "Импорт файлов определений",
+    "bundle.importFolder": "Импорт папки определений",
+    "bundle.importHelp":
+      "Импорт папки сохраняет относительные пути и включает только .json, .yaml и .yml. После импорта выберите корневой документ API. Регистр букв в путях имеет значение.",
+    "bundle.replace": "Заменять совпадающие файлы при импорте или добавлении",
+    "bundle.newPath": "Путь нового файла",
+    "bundle.addFile": "Создать файл проекта",
+    "bundle.useEditor": "Скопировать редактор в файл проекта",
+    "bundle.fileCount": "Файлов проекта: {count}/50",
+    "bundle.root": "Корневой документ API",
+    "bundle.chooseRoot": "Выберите корневой документ",
+    "bundle.selected": "Выбранный файл проекта",
+    "bundle.removeFile": "Удалить выбранный файл проекта",
+    "bundle.source": "Исходный текст: {file}",
+    "bundle.build": "Собрать документ со ссылками",
+    "bundle.projectSharing": "Сохранение и восстановление проекта",
+    "bundle.projectHelp":
+      "Экспорт проекта включает все файлы целиком, в том числе неиспользуемые файлы и конфиденциальные примеры. Импорт заменяет этот проект, не меняя основной редактор. Экспортируйте проект перед закрытием страницы.",
+    "bundle.copyProject": "Копировать JSON проекта",
+    "bundle.downloadProject": "Скачать JSON проекта",
+    "bundle.importProject": "Восстановить проект из JSON",
+    "bundle.imported":
+      "Файлы импортированы. Проверьте корневой документ и выполните сборку.",
+    "bundle.loading": "Чтение файлов проекта…",
+    "bundle.exported": "Экспорт завершён.",
+    "bundle.exportFailed":
+      "Ошибка экспорта. Повторите копирование или скачивание.",
+    "bundle.ready": "Документ собран · ссылок: {refs} · файлов: {files}",
+    "bundle.blocked": "Сборка заблокирована · проблем: {issues}",
+    "bundle.issues": "Диагностика сборки",
+    "bundle.issueLimit":
+      "Показаны первые 100 проблем. Исправьте их и повторите сборку.",
+    "bundle.unused": "Неиспользуемые файлы: {files}",
+    "bundle.search": "Поиск ссылок сборки",
+    "bundle.filter": "Фильтр разрешения ссылок",
+    "bundle.all": "Все ссылки",
+    "bundle.resolved": "Разрешена",
+    "bundle.unresolved": "Не разрешена",
+    "bundle.matches": "Найдено ссылок: {count}",
+    "bundle.references": "Карта ссылок сборки",
+    "bundle.from": "Исходное расположение",
+    "bundle.to": "Исходная ссылка",
+    "bundle.outputRef": "Ссылка в сборке",
+    "bundle.tableLimit":
+      "Показаны первые 100 совпадений. Уточните поиск, чтобы найти другие ссылки.",
+    "bundle.outputHelp":
+      "Фрагменты размещаются в {namespace}; исходные поля и соседние поля ссылок сохраняются. Циклы остаются ссылками. Относительные ссылки разрешаются от папки исходного файла. Неподдерживаемые идентификаторы ресурсов и якоря нужно устранить до сборки.",
+    "bundle.format": "Формат собранного документа",
+    "bundle.preview": "Просмотр собранного документа",
+    "bundle.previewText": "Предпросмотр собранного документа",
+    "bundle.previewLimit":
+      "Предпросмотр ограничен 50 000 символами; экспорт содержит весь документ.",
+    "bundle.copy": "Копировать собранный документ",
+    "bundle.download": "Скачать собранный документ",
+    "bundle.applyHelp":
+      "Применение заменяет основной редактор сборкой. Предыдущий текст сохраняется во вкладке для одной отмены; последующие правки блокируют отмену, чтобы не затереть их. Для длительного хранения скопируйте или скачайте резервную копию.",
+    "bundle.apply": "Применить сборку к редактору",
+    "bundle.applied": "Сборка применена к редактору.",
+    "bundle.invalidOutput":
+      "Сборка не соответствует минимальным требованиям редактора к документу. Её можно экспортировать для проверки.",
+    "bundle.undo": "Отменить применение сборки",
+    "bundle.undoChanged":
+      "После применения сборки основной редактор изменился. Отмена заблокирована для сохранения правок.",
+    "bundle.restored": "Предыдущий документ редактора восстановлен.",
+    "bundle.error.path":
+      "Используйте относительный путь без обратных слешей, синтаксиса URL и выхода за пределы проекта.",
+    "bundle.error.duplicate":
+      "Файл с этим путём уже существует. Включите замену или выберите другой путь.",
+    "bundle.error.limit":
+      "Превышено ограничение: 50 файлов, 2 МиБ на файл, 8 МиБ исходного текста, 16 МиБ результата, 1 000 фрагментов, 5 000 ссылок либо глубина и число узлов.",
+    "bundle.error.parse":
+      "Файл не удалось прочитать как JSON/YAML. Проверьте синтаксис, повторяющиеся ключи, теги YAML, циклические псевдонимы и небезопасные числа.",
+    "bundle.error.root":
+      "Выберите импортированный корневой документ OpenAPI 3.0–3.2 или Swagger 2.0.",
+    "bundle.error.missing-file":
+      "Файла ссылки нет в проекте. Импортируйте его с соответствующим относительным путём.",
+    "bundle.error.missing-pointer":
+      "JSON Pointer не указывает на существующее значение в файле.",
+    "bundle.error.reference":
+      "Неподдерживаемая ссылка или цель. Используйте путь файла с необязательным JSON Pointer; именованные якоря и параметры URL не поддерживаются.",
+    "bundle.error.remote":
+      "Удалённые и абсолютные URI не загружаются. Импортируйте файл и укажите относительную ссылку.",
+    "bundle.error.dialect":
+      "Идентификаторы ресурсов схемы, якоря, динамические и рекурсивные ссылки требуют обработки URI, которая здесь не поддерживается.",
+    "bundle.error.discriminator":
+      "Перед сборкой добавьте явную карту сопоставления discriminator.",
+    "bundle.error.relative-resource":
+      "Относительный ресурс примера или переносимый относительный URL сервера/документации требует абсолютного URL либо встроенного значения.",
+    "bundle.error.project":
+      "Это не многофайловый проект версии 1 либо не выбраны поддерживаемые файлы определений.",
+    "bundle.error.read":
+      "Не удалось прочитать файл. Существующий проект сохранён.",
     "scenario.title": "Запуск API-сценариев",
     "scenario.description":
       "Создайте цепочку до 20 запросов, передавайте значения ответов между шагами и проверяйте результаты. Черновики и переменные хранятся в памяти. Используется схема на момент запуска; история запросов не записывается.",

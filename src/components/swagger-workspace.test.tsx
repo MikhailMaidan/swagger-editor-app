@@ -1,5 +1,7 @@
 import {
   act,
+  configure,
+  getConfig,
   fireEvent,
   render,
   screen,
@@ -7,7 +9,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { ENDPOINT_COLLAPSE_STORAGE_KEY } from "@/lib/endpoint-collapse";
 import { ENDPOINT_FAVORITES_STORAGE_KEY } from "@/lib/endpoint-favorites";
@@ -46,6 +48,11 @@ import {
 import { SwaggerWorkspace } from "./swagger-workspace";
 
 describe("SwaggerWorkspace", () => {
+  const originalAsyncTimeout = getConfig().asyncUtilTimeout;
+  // These integrations wait for debounced schema parsing and all mounted tools.
+  // Keep the assertions intact while allowing slower CI and local test workers.
+  beforeAll(() => configure({ asyncUtilTimeout: 5000 }));
+  afterAll(() => configure({ asyncUtilTimeout: originalAsyncTimeout }));
   it("expands the schema editor instead of showing a vertical scrollbar", () => {
     const originalDescriptor = Object.getOwnPropertyDescriptor(
       HTMLTextAreaElement.prototype,

@@ -18,6 +18,7 @@ import { HtmlDocumentationPanel } from "@/components/html-documentation-panel";
 import { useI18n } from "@/components/i18n-provider";
 import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { OpenApiUpgradePanel } from "@/components/openapi-upgrade-panel";
+import { OpenApiBundlePanel } from "@/components/openapi-bundle-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
@@ -249,6 +250,7 @@ export function SwaggerWorkspace({
   const schemaSearchInputRef = useRef<HTMLInputElement>(null);
   const editorSelectionRef = useRef({ end: 0, start: 0 });
   const toolHandlersRef = useRef<{
+    applyBundle: (text: string) => void;
     applyUpgrade: (
       upgradedText: string,
       target: OpenApiUpgradeTarget,
@@ -258,6 +260,7 @@ export function SwaggerWorkspace({
     revealLocation: (pointer: string, target: "key" | "value") => boolean;
     selectEndpoint: (method: string, path: string) => void;
   }>({
+    applyBundle: () => {},
     applyUpgrade: () => {},
     getSchemaText: () => "",
     revealLocation: () => false,
@@ -266,6 +269,7 @@ export function SwaggerWorkspace({
   // Memoized tool panels receive these wrappers so their props stay stable
   // while every call still reaches the handlers from the latest render.
   const [toolHandlers] = useState(() => ({
+    applyBundle: (text: string) => toolHandlersRef.current.applyBundle(text),
     applyUpgrade: (
       upgradedText: string,
       target: OpenApiUpgradeTarget,
@@ -1862,6 +1866,10 @@ export function SwaggerWorkspace({
 
   useLayoutEffect(() => {
     toolHandlersRef.current = {
+      applyBundle: (text) => {
+        invalidateActiveSchemaImport();
+        replaceEditorSchema(text);
+      },
       applyUpgrade: handleApplyOpenApiUpgrade,
       getSchemaText: () => schemaText,
       revealLocation: handleRevealExample,
@@ -1876,6 +1884,7 @@ export function SwaggerWorkspace({
           id: "workspace-tool-checkpoints",
           label: "workspace.toolNavCheckpoints",
         },
+        { group: "design", id: "workspace-tool-bundle", label: "bundle.title" },
         ...(upgradeSource
           ? [
               {
@@ -2035,7 +2044,7 @@ export function SwaggerWorkspace({
             ] satisfies WorkspaceTool[])
           : []),
       ]
-    : [];
+    : [{ group: "design", id: "workspace-tool-bundle", label: "bundle.title" }];
 
   return (
     <section className="swagger-workspace mx-auto grid w-full max-w-[1600px] gap-6">
@@ -2704,6 +2713,17 @@ export function SwaggerWorkspace({
           <SchemaCheckpointPanel
             onRestore={handleRestoreSchemaCheckpoint}
             schemaText={schemaText}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-bundle"
+          tabIndex={-1}
+        >
+          <OpenApiBundlePanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyBundle}
           />
         </div>
 

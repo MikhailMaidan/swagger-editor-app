@@ -11,6 +11,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
+- Multi-file OpenAPI workbench with folder imports, local file editing, cross-file reference resolution, source diagnostics, circular-reference preservation, JSON/YAML bundles, restorable projects, and reversible editor application
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
@@ -90,6 +91,106 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Working with multi-file definitions
+
+Open **Multi-file OpenAPI workbench** in the Design tools to work with an API
+split across local YAML and JSON files. Import a folder to retain its directory
+structure, or select individual definition files. Folder imports include only
+`.json`, `.yaml`, and `.yml` files. The workbench is also available while the main
+editor contains an invalid draft.
+
+For example, import a folder containing:
+
+```text
+api/openapi.yaml
+api/paths/users.yaml
+api/schemas/User.yaml
+```
+
+Select `api/openapi.yaml` as **Root API document**. It might contain:
+
+```yaml
+openapi: 3.1.0
+info:
+  title: Modular API
+  version: "1.0"
+paths:
+  /users:
+    $ref: ./paths/users.yaml
+```
+
+The `api/paths/users.yaml` file can refer to a sibling schema folder:
+
+```yaml
+get:
+  summary: List users
+  responses:
+    "200":
+      description: Users
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../schemas/User.yaml
+```
+
+Create missing files with **New file path** and **Create project file**, or use
+**Copy editor into project file** to take a snapshot of the current editor.
+Select a file to edit its source. These edits affect the in-memory project;
+they do not write back to disk or automatically change the main editor.
+Paths are case-sensitive. Matching imports are rejected unless **Replace matching
+files on import or add** is enabled. Failed imports preserve the existing project.
+
+**Build reference bundle** resolves local and relative-file `$ref` values,
+JSON Pointer fragments, operation links, and explicit discriminator mappings.
+Click a diagnostic or reference-map entry to focus its source text. Search and
+resolution filters help inspect larger projects; unused files are listed separately.
+File or root changes clear the previous result so an outdated bundle cannot be
+applied accidentally. Every imported file must be parseable before a bundle is
+produced, including unused files.
+
+Relative references use the referring file's directory, following the
+[OpenAPI rules for relative references](https://spec.openapis.org/oas/v3.1.0.html#relative-references-in-uris).
+URI-encoded filenames, escaped JSON Pointer keys, and array indexes are supported.
+Existing root components retain their identities. Referenced external fragments
+are copied into a collision-free `x-rsswag-bundled` extension and referenced
+internally. Repeated targets are reused and cycles stay as references. The root
+document's fields and reference siblings are retained; example payloads, defaults,
+enums, and extension data are not mistaken for schema references. YAML comments
+and formatting remain in project files but are not retained in serialized bundles.
+The endpoint viewer follows local Path Item references and bounded reference chains,
+so bundled operations work with the existing request tools.
+
+Preview the result and copy or download a JSON/YAML bundle. **Apply bundle to
+editor** explicitly replaces the main document and uses its normal draft/save
+behavior. **Undo bundle application** restores the previous editor text only if
+it has not changed since application. The undo snapshot stays in memory and is
+replaced by the next application; export a backup if you need longer-term recovery.
+
+Use **Download project JSON** or **Copy project JSON** to preserve all files,
+including unfinished drafts, for a future session. Restoring a project replaces
+the workbench without applying anything to the editor. Project files and the undo
+snapshot survive panel closing and temporary editor errors but are not persisted
+automatically. Exports include full source contents, so they can contain sensitive
+examples or literal credentials already present in those files.
+
+The bundler supports OpenAPI 3.0–3.2 and Swagger 2.0 documents with JSON Pointer
+references. It performs no network requests or full OpenAPI conformance validation.
+Remote references, paths escaping the project, named anchors, custom schema
+dialects, schema resource identifiers (`$id` or legacy `id`), and dynamic/recursive
+references block bundling instead of producing a document with altered resolution
+semantics. Discriminators need explicit mappings. Relative external example values
+and relocated relative server/documentation URLs need inline values or absolute URLs;
+absolute external example URLs are preserved without fetching their contents.
+
+Limits are 50 files, 2 MiB per file, 8 MiB total source, 16 MiB serialized output or
+project import, 1,000 embedded fragments, and 5,000 processed references. Parsing
+also limits YAML aliases, nesting to 80 levels, and nodes to 100,000 per file;
+bundling processes at most 200,000 nodes. Duplicate keys, cyclic YAML aliases,
+non-finite numbers, and integers outside JavaScript's safe range are rejected.
+The preview shows up to 50,000 characters; exports contain the complete output.
 
 ## Running API scenarios
 
