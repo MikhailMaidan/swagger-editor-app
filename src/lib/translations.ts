@@ -3,6 +3,124 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "transform.title": "API transformation workbench",
+    "transform.description":
+      "Create reusable JSON Patch recipes to produce API variants, update metadata, or reorganize a definition. Preview every change before applying it.",
+    "transform.help":
+      "Runs locally using a captured editor snapshot. Recipes and snapshots stay in memory; export them before leaving. Applying uses the editor's normal save behavior. Values may contain sensitive data. JSON/YAML formatting and comments are not preserved. References are not automatically rewritten; review the result with the existing quality tools.",
+    "transform.capture": "Use current editor as source",
+    "transform.source": "Captured source: {title}",
+    "transform.captured":
+      "Source captured. Your recipe is preserved; generate a new preview before applying.",
+    "transform.undo": "Undo transformation application",
+    "transform.importHeading": "Import a JSON Patch recipe",
+    "transform.file": "Recipe JSON file",
+    "transform.input": "Recipe JSON",
+    "transform.import": "Import pasted recipe",
+    "transform.loading": "Reading recipe…",
+    "transform.imported":
+      "Recipe imported. Existing steps were replaced; the editor is unchanged.",
+    "transform.add": "Add transformation step",
+    "transform.versionTemplate": "Add version change",
+    "transform.serverTemplate": "Add root server change",
+    "transform.clear": "Clear recipe",
+    "transform.steps": "Recipe steps: {count}/{max}",
+    "transform.empty":
+      "Add a step, choose a starter, or import an existing JSON Patch array.",
+    "transform.recipe": "Ordered transformation steps",
+    "transform.root": "(document root)",
+    "transform.up": "Move step {step} up",
+    "transform.down": "Move step {step} down",
+    "transform.remove": "Remove step {step}",
+    "transform.edit": "Edit step {step}",
+    "transform.operation": "Patch operation",
+    "transform.path": "Target JSON Pointer",
+    "transform.from": "Source JSON Pointer",
+    "transform.value": "Step value (JSON)",
+    "transform.duplicate": "Duplicate selected step",
+    "transform.op.add": "Insert or set a value",
+    "transform.op.replace": "Replace an existing value",
+    "transform.op.remove": "Remove an existing value",
+    "transform.op.copy": "Copy a value",
+    "transform.op.move": "Move a value",
+    "transform.op.test": "Require an expected value",
+    "transform.opHelp.add":
+      "Sets an object member or inserts an array item. The parent must already exist. Use /- to append to an array.",
+    "transform.opHelp.replace":
+      "Replaces an existing target. An absent target stops the entire recipe.",
+    "transform.opHelp.remove":
+      "Deletes an existing target. Array indices shift after removal.",
+    "transform.opHelp.copy":
+      "Copies the source value to the target using add semantics. Later edits to the copy do not affect the original.",
+    "transform.opHelp.move":
+      "Removes the source, then adds it at the target. Array target indices refer to the array after removal. References are not rewritten.",
+    "transform.opHelp.test":
+      "Stops the recipe unless the target equals this JSON value. Use this to guard the API version or other assumptions.",
+    "transform.browser": "Browse source JSON Pointers",
+    "transform.pointerHelp":
+      "Browse the captured source, before recipe steps. Escape / as ~1 and ~ as ~0. An empty pointer addresses the whole document; / addresses an empty property name. URI fragments (#/…) are not accepted.",
+    "transform.search": "Search source pointers",
+    "transform.matches": "Showing {shown} of {count} matching pointers",
+    "transform.use": "Use as target",
+    "transform.useSource": "Use as source",
+    "transform.usePath": "Use {path} as target pointer",
+    "transform.useFrom": "Use {path} as source pointer",
+    "transform.preview": "Preview transformation",
+    "transform.copyRecipe": "Copy recipe JSON",
+    "transform.downloadRecipe": "Download recipe JSON",
+    "transform.ready":
+      "Preview ready. The result passed the editor's structural checks; review references and API semantics before applying.",
+    "transform.stepError": "Step {step}:",
+    "transform.result": "Transformation preview",
+    "transform.changeCount": "Document changes: {count}",
+    "transform.truncated":
+      "Only the first 200 changes are listed. The exported document contains all changes.",
+    "transform.noChanges": "The recipe leaves the document data unchanged.",
+    "transform.kind.added": "Added",
+    "transform.kind.removed": "Removed",
+    "transform.kind.changed": "Changed",
+    "transform.before": "Before",
+    "transform.after": "After",
+    "transform.format": "Transformed definition format",
+    "transform.output": "View transformed definition",
+    "transform.previewLimit":
+      "Showing the first 50,000 characters. Copy and download include the full definition.",
+    "transform.copyDocument": "Copy transformed OpenAPI",
+    "transform.downloadDocument": "Download transformed OpenAPI",
+    "transform.apply": "Apply transformation to editor",
+    "transform.applied":
+      "Transformation applied. Undo is available until the editor changes.",
+    "transform.undone": "Previous editor text restored.",
+    "transform.copied": "Copied to clipboard.",
+    "transform.downloaded": "Download started.",
+    "transform.error.limit":
+      "A processing limit was reached: 2 MiB input/recipe, 100 steps, 50,000 JSON nodes, or 64 levels of nesting. Output is limited to 8 MiB.",
+    "transform.error.json":
+      "Enter valid JSON with finite, safely represented numbers and no circular values.",
+    "transform.error.recipe":
+      "Expected a JSON Patch array containing add, remove, replace, copy, move, or test operations with the required fields.",
+    "transform.error.pointer":
+      "Invalid JSON Pointer. Use an empty pointer or a path beginning with /, with ~0 and ~1 escapes.",
+    "transform.error.missing":
+      "A target, source, or parent does not exist. Check the path and the order of earlier steps.",
+    "transform.error.index":
+      "Invalid array index. Use an existing nonnegative index without leading zeros; add accepts the array length or - for append.",
+    "transform.error.descendant": "A value cannot be moved inside itself.",
+    "transform.error.test":
+      "The expected value does not match. The recipe stopped without changing the editor.",
+    "transform.error.source":
+      "The source must be a valid OpenAPI JSON or YAML document accepted by the editor.",
+    "transform.error.result":
+      "The transformed result is not an OpenAPI document accepted by the editor. Revise the recipe before exporting or applying it.",
+    "transform.error.read":
+      "Unable to read the recipe. Try pasting its JSON instead.",
+    "transform.error.copy": "Copy failed. Try downloading instead.",
+    "transform.error.download":
+      "The browser blocked the download. Try copying instead.",
+    "transform.error.stale":
+      "The editor changed after the source was captured. Use the current editor as source, then preview the recipe again.",
+    "transform.error.undo":
+      "The editor changed after application. Undo was stopped to preserve those edits.",
     "discovery.title": "Traffic-to-OpenAPI studio",
     "discovery.description":
       "Build an OpenAPI 3.1 draft from a browser HAR capture, review route templates, and infer request and response shapes. Everything runs locally; importing never sends API requests.",
@@ -2476,6 +2594,125 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "transform.title": "Мастер преобразования API",
+    "transform.description":
+      "Создавайте повторно используемые рецепты JSON Patch для вариантов API, обновления метаданных и изменения структуры. Просматривайте изменения до применения.",
+    "transform.help":
+      "Работает локально со снимком редактора. Рецепты и снимки хранятся в памяти: экспортируйте их перед уходом. После применения действует обычное сохранение редактора. Значения могут содержать конфиденциальные данные. Форматирование JSON/YAML и комментарии не сохраняются. Ссылки не обновляются автоматически: проверьте результат средствами контроля качества.",
+    "transform.capture": "Использовать текущий редактор как источник",
+    "transform.source": "Источник: {title}",
+    "transform.captured":
+      "Источник сохранён. Рецепт остался прежним; создайте новый предпросмотр перед применением.",
+    "transform.undo": "Отменить применение преобразования",
+    "transform.importHeading": "Импорт рецепта JSON Patch",
+    "transform.file": "Файл JSON с рецептом",
+    "transform.input": "JSON рецепта",
+    "transform.import": "Импортировать вставленный рецепт",
+    "transform.loading": "Чтение рецепта…",
+    "transform.imported":
+      "Рецепт импортирован. Шаги заменены; редактор не изменён.",
+    "transform.add": "Добавить шаг преобразования",
+    "transform.versionTemplate": "Добавить изменение версии",
+    "transform.serverTemplate": "Добавить изменение корневого сервера",
+    "transform.clear": "Очистить рецепт",
+    "transform.steps": "Шаги рецепта: {count}/{max}",
+    "transform.empty":
+      "Добавьте шаг, выберите заготовку или импортируйте массив JSON Patch.",
+    "transform.recipe": "Порядок шагов преобразования",
+    "transform.root": "(корень документа)",
+    "transform.up": "Переместить шаг {step} вверх",
+    "transform.down": "Переместить шаг {step} вниз",
+    "transform.remove": "Удалить шаг {step}",
+    "transform.edit": "Редактировать шаг {step}",
+    "transform.operation": "Операция Patch",
+    "transform.path": "Целевой JSON Pointer",
+    "transform.from": "Исходный JSON Pointer",
+    "transform.value": "Значение шага (JSON)",
+    "transform.duplicate": "Дублировать выбранный шаг",
+    "transform.op.add": "Вставить или задать значение",
+    "transform.op.replace": "Заменить существующее значение",
+    "transform.op.remove": "Удалить существующее значение",
+    "transform.op.copy": "Скопировать значение",
+    "transform.op.move": "Переместить значение",
+    "transform.op.test": "Проверить ожидаемое значение",
+    "transform.opHelp.add":
+      "Задаёт свойство объекта или вставляет элемент массива. Родитель должен существовать. /- добавляет в конец массива.",
+    "transform.opHelp.replace":
+      "Заменяет существующую цель. Если цель отсутствует, рецепт останавливается.",
+    "transform.opHelp.remove":
+      "Удаляет существующую цель. Индексы массива после удаления сдвигаются.",
+    "transform.opHelp.copy":
+      "Копирует исходное значение в цель по правилам add. Изменения копии не затрагивают оригинал.",
+    "transform.opHelp.move":
+      "Удаляет исходное значение и добавляет его в цель. Индексы цели вычисляются после удаления. Ссылки не обновляются.",
+    "transform.opHelp.test":
+      "Останавливает рецепт, если цель не равна указанному JSON. Подходит для проверки версии API и других предположений.",
+    "transform.browser": "Обзор JSON Pointer источника",
+    "transform.pointerHelp":
+      "Показан снимок до выполнения шагов. Заменяйте / на ~1, а ~ на ~0. Пустой указатель задаёт весь документ, / — свойство с пустым именем. URI-фрагменты (#/…) не поддерживаются.",
+    "transform.search": "Поиск указателей источника",
+    "transform.matches": "Показано {shown} из {count} подходящих указателей",
+    "transform.use": "Выбрать целью",
+    "transform.useSource": "Выбрать источником",
+    "transform.usePath": "Использовать {path} как целевой указатель",
+    "transform.useFrom": "Использовать {path} как исходный указатель",
+    "transform.preview": "Предпросмотр преобразования",
+    "transform.copyRecipe": "Скопировать JSON рецепта",
+    "transform.downloadRecipe": "Скачать JSON рецепта",
+    "transform.ready":
+      "Предпросмотр готов. Результат прошёл структурные проверки редактора; проверьте ссылки и семантику API перед применением.",
+    "transform.stepError": "Шаг {step}:",
+    "transform.result": "Предпросмотр преобразования API",
+    "transform.changeCount": "Изменений документа: {count}",
+    "transform.truncated":
+      "Показаны первые 200 изменений. Экспорт содержит все изменения.",
+    "transform.noChanges": "Рецепт не меняет данные документа.",
+    "transform.kind.added": "Добавлено",
+    "transform.kind.removed": "Удалено",
+    "transform.kind.changed": "Изменено",
+    "transform.before": "До",
+    "transform.after": "После",
+    "transform.format": "Формат преобразованной схемы",
+    "transform.output": "Просмотр преобразованной схемы",
+    "transform.previewLimit":
+      "Показаны первые 50 000 символов. Копирование и скачивание содержат всю схему.",
+    "transform.copyDocument": "Скопировать преобразованную OpenAPI",
+    "transform.downloadDocument": "Скачать преобразованную OpenAPI",
+    "transform.apply": "Применить преобразование к редактору",
+    "transform.applied":
+      "Преобразование применено. Отмена доступна до изменения редактора.",
+    "transform.undone": "Предыдущий текст редактора восстановлен.",
+    "transform.copied": "Скопировано в буфер обмена.",
+    "transform.downloaded": "Скачивание началось.",
+    "transform.error.limit":
+      "Достигнут предел: 2 МиБ для ввода/рецепта, 100 шагов, 50 000 узлов JSON или 64 уровня вложенности. Результат ограничен 8 МиБ.",
+    "transform.error.json":
+      "Введите корректный JSON с конечными, точно представимыми числами и без циклических значений.",
+    "transform.error.recipe":
+      "Ожидается массив JSON Patch с операциями add, remove, replace, copy, move или test и обязательными полями.",
+    "transform.error.pointer":
+      "Некорректный JSON Pointer. Используйте пустой указатель или путь с / в начале и экранированием ~0 и ~1.",
+    "transform.error.missing":
+      "Цель, источник или родитель отсутствует. Проверьте путь и порядок предыдущих шагов.",
+    "transform.error.index":
+      "Некорректный индекс массива. Используйте существующий неотрицательный индекс без ведущих нулей; add принимает длину массива или - для добавления в конец.",
+    "transform.error.descendant":
+      "Нельзя переместить значение внутрь самого себя.",
+    "transform.error.test":
+      "Ожидаемое значение не совпадает. Рецепт остановлен без изменения редактора.",
+    "transform.error.source":
+      "Источником должен быть документ OpenAPI JSON или YAML, принимаемый редактором.",
+    "transform.error.result":
+      "Результат не является документом OpenAPI, принимаемым редактором. Исправьте рецепт перед экспортом или применением.",
+    "transform.error.read":
+      "Не удалось прочитать рецепт. Попробуйте вставить JSON.",
+    "transform.error.copy": "Не удалось скопировать. Попробуйте скачать.",
+    "transform.error.download":
+      "Браузер заблокировал скачивание. Попробуйте скопировать.",
+    "transform.error.stale":
+      "Редактор изменился после создания снимка. Используйте текущий редактор как источник и создайте новый предпросмотр.",
+    "transform.error.undo":
+      "Редактор изменился после применения. Отмена остановлена для сохранения этих правок.",
     "discovery.title": "Создание OpenAPI из трафика",
     "discovery.description":
       "Создайте черновик OpenAPI 3.1 из HAR браузера, проверьте шаблоны путей и определите структуру запросов и ответов. Обработка локальная; импорт не отправляет запросов к API.",

@@ -20,6 +20,7 @@ import { MockContractSuitePanel } from "@/components/mock-contract-suite-panel";
 import { OpenApiUpgradePanel } from "@/components/openapi-upgrade-panel";
 import { OpenApiBundlePanel } from "@/components/openapi-bundle-panel";
 import { TrafficDiscoveryPanel } from "@/components/traffic-discovery-panel";
+import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
@@ -1892,6 +1893,11 @@ export function SwaggerWorkspace({
           id: "workspace-tool-discovery",
           label: "discovery.title",
         },
+        {
+          group: "design",
+          id: "workspace-tool-transform",
+          label: "transform.title",
+        },
         ...(upgradeSource
           ? [
               {
@@ -2053,6 +2059,11 @@ export function SwaggerWorkspace({
       ]
     : [
         { group: "design", id: "workspace-tool-bundle", label: "bundle.title" },
+        {
+          group: "design",
+          id: "workspace-tool-transform",
+          label: "transform.title",
+        },
         {
           group: "design",
           id: "workspace-tool-discovery",
@@ -2747,6 +2758,17 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <TrafficDiscoveryPanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyDocument}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-transform"
+          tabIndex={-1}
+        >
+          <ApiTransformPanel
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />

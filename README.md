@@ -13,6 +13,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
 - Multi-file OpenAPI workbench with folder imports, local file editing, cross-file reference resolution, source diagnostics, circular-reference preservation, JSON/YAML bundles, restorable projects, and reversible editor application
 - Traffic-to-OpenAPI studio that discovers an API from HAR captures, groups routes, infers request and response schemas, supports editable path templates and operation selection, and exports or reversibly applies an OpenAPI 3.1 draft
+- API transformation workbench with reusable JSON Patch recipes, ordered step editing, source pointer browsing, guarded atomic previews, JSON/YAML variant exports, and reversible editor application
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
@@ -92,6 +93,92 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Creating API variants with transformation recipes
+
+Open **API transformation workbench** in the Design tools to derive a variant
+from an existing OpenAPI 3 or Swagger 2 definition. A recipe can update metadata,
+switch root servers, copy response definitions, reorganize components, or exclude
+operations from a particular variant. No API requests are sent.
+
+1. Choose **Use current editor as source** to capture a valid definition. The
+   recipe runs against this snapshot, so later editor changes cannot silently
+   change its input. Capturing again refreshes the source and preserves the steps.
+2. Add a step or use the version/root-server starters. Select an operation, enter
+   its target JSON Pointer, and provide a JSON value or source pointer as needed.
+   Steps can be reordered, duplicated, edited, and removed. The root-server
+   starter is available for OpenAPI 3; Swagger 2 recipes can edit `host`,
+   `basePath`, and `schemes` directly. Nested server overrides remain in effect.
+3. Use **Browse source JSON Pointers** to search the captured document and fill
+   the selected step's target or source. The browser shows the document before
+   recipe execution; paths introduced by earlier steps can be entered manually.
+4. Choose **Preview transformation**. Steps run in order on an independent copy.
+   A failed step stops the recipe, identifies its position, and leaves the editor
+   untouched. The final result must pass the editor's existing structural checks.
+5. Review the changed paths and the transformed definition. Copy or download the
+   result as JSON/YAML, or explicitly **Apply transformation to editor**. If the
+   editor has changed since capture, application stops: recapture and preview
+   again. **Undo transformation application** restores the exact previous text,
+   provided no subsequent editor changes would be overwritten.
+
+Recipes use the standard [JSON Patch format (RFC 6902)](https://www.rfc-editor.org/rfc/rfc6902):
+an ordered JSON array with `add`, `remove`, `replace`, `copy`, `move`, and `test`
+operations. Import a `.json`/`.jsonpatch` file or paste a recipe, and export recipes
+independently of their source documents. A successful import replaces the current
+steps; a failed import preserves them. For example:
+
+```json
+[
+  { "op": "test", "path": "/info/version", "value": "1.0.0" },
+  { "op": "replace", "path": "/info/version", "value": "2.0.0" },
+  {
+    "op": "add",
+    "path": "/servers",
+    "value": [{ "url": "https://staging.example.com/v2" }]
+  },
+  {
+    "op": "add",
+    "path": "/info/description",
+    "value": "Staging variant"
+  }
+]
+```
+
+`test` guards assumptions such as an expected version; object key order does not
+affect equality, while array order and value types do. `add` sets an object member
+or inserts an array item, but requires an existing parent. `replace` and `remove`
+require an existing target. `copy` creates an independent value. `move` removes
+its source before inserting, so array target indices refer to the array after
+removal; moving a value into its own descendant is rejected. Use `/-` to append
+to an array. There are no wildcard or recursive selectors.
+
+Pointers follow [JSON Pointer (RFC 6901)](https://www.rfc-editor.org/rfc/rfc6901).
+Escape `/` in a key as `~1` and `~` as `~0`: the GET operation on `/users/{id}` is
+`/paths/~1users~1{id}/get`. An empty pointer addresses the whole document, while
+`/` addresses a property with an empty name. URI fragments such as `#/info` are
+not patch pointers. Values must be JSON: strings need quotes, and `null`, arrays,
+objects, numbers, and booleans retain their types.
+
+The workbench does not rewrite `$ref` values, operation links, security names, or
+discriminator mappings when their targets move. Structural acceptance is not full
+OpenAPI validation; review the resulting API with the component registry, quality
+audit, and other existing tools. Array changes use compact summaries in the change
+list; inspect the full definition to review their contents. JSON/YAML is serialized
+again, so comments, anchors, and original formatting are not preserved in output.
+Undo preserves the original text exactly.
+
+Source snapshots, recipe edits, and one level of undo stay in tab memory, including
+when the panel is closed or the main editor temporarily becomes invalid. Export
+recipes and definitions before leaving. Applying a result uses normal editor
+draft/save behavior. Sources and recipe values may contain credentials or private
+examples; exports retain these values, so review them before sharing.
+
+Processing limits are 2 MiB for each input/recipe and the compact intermediate
+document, 100 steps, 50,000 JSON nodes, and 64 levels of nesting. YAML aliases are
+bounded and cycles are rejected; non-finite and unsafe integer values are rejected
+to avoid silently changing data. Formatted output is limited to 8 MiB. The pointer
+browser shows the first 50 search matches, the change list the first 200 changes,
+and the text preview the first 50,000 characters; exports contain the full result.
 
 ## Discovering an API from traffic
 
