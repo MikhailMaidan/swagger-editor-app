@@ -152,13 +152,14 @@ export function parseTrafficCapture(text: string): TrafficCapture {
     headers: unknown,
     entry: number,
     part: "request" | "response",
+    reportedBody = false,
   ): TrafficBody | undefined {
     const content = record(value) ? value : {};
     const mime = mediaType(content.mimeType) || headerMedia(headers);
     const warn = (code: TrafficWarning["code"]) =>
       warnings.push({ entry, part, code });
     if (!mime) {
-      if (content.text || content.mimeType) warn("media");
+      if (content.text || content.mimeType || reportedBody) warn("media");
       return undefined;
     }
     if (!/(?:\/|\+)json$/.test(mime)) {
@@ -279,12 +280,22 @@ export function parseTrafficCapture(text: string): TrafficCapture {
         repeated: types.length > 1,
       })),
     };
-    if (method !== "GET" && method !== "HEAD" && record(request.postData))
+    // HAR can report uploaded bytes without retaining the request's postData.
+    const reportedRequestBody =
+      typeof request.bodySize === "number" &&
+      Number.isSafeInteger(request.bodySize) &&
+      request.bodySize > 0;
+    if (
+      method !== "GET" &&
+      method !== "HEAD" &&
+      (record(request.postData) || reportedRequestBody)
+    )
       observation.requestBody = body(
         request.postData,
         request.headers,
         index,
         "request",
+        reportedRequestBody,
       );
     if (method !== "HEAD" && status !== 204 && status !== 304 && status >= 200)
       observation.responseBody = body(

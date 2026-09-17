@@ -140,7 +140,10 @@ that were not exercised. No authentication scheme or security requirement is
 inferred from captured credentials. Header and cookie parameters are not inferred.
 
 Missing or invalid JSON bodies, unsupported encodings, and inference limits produce
-warnings and broad schemas rather than guessed structures. Non-JSON media types
+warnings and broad schemas rather than guessed structures. Requests reporting a
+positive body size without captured `postData` also retain their Content-Type with
+a broad schema and a warning; a Content-Type header alone does not imply that a
+request had a body. Non-JSON media types
 are retained; text types use a string schema and other content uses an unconstrained
 schema. Form and multipart fields are not inferred. HEAD, 204, and 304 responses
 have no generated body. Entries with network-failure status `0`, unsupported

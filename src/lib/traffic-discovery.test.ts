@@ -167,6 +167,87 @@ describe("traffic-to-OpenAPI discovery", () => {
     });
   });
 
+  it("keeps reported but uncaptured request bodies from narrowing the generated schema", () => {
+    const captured = entry("/users", { id: 1 }, 201, "POST");
+    const capture = parseTrafficCapture(
+      har([
+        {
+          ...captured,
+          request: {
+            ...captured.request,
+            postData: { mimeType: "application/json", text: '{"name":"Ada"}' },
+          },
+        },
+        {
+          ...captured,
+          request: {
+            ...captured.request,
+            bodySize: 24,
+            headers: [{ name: "Content-Type", value: "application/json" }],
+          },
+        },
+      ]),
+    );
+    expect(capture.warnings).toContainEqual({
+      entry: 2,
+      part: "request",
+      code: "missing",
+    });
+    expect(capture.observations[1].requestBody).toEqual({
+      mediaType: "application/json",
+      schema: {},
+    });
+    expect(
+      pathsOf(generate(capture, true).document)["/users"].post.requestBody,
+    ).toEqual({
+      required: true,
+      content: { "application/json": { schema: {} } },
+    });
+  });
+
+  it("warns when a reported request body has neither captured content nor a media type", () => {
+    const captured = entry("/users", {}, 201, "POST");
+    const capture = parseTrafficCapture(
+      har([{ ...captured, request: { ...captured.request, bodySize: 24 } }]),
+    );
+    expect(capture.warnings).toContainEqual({
+      entry: 1,
+      part: "request",
+      code: "media",
+    });
+    expect(capture.observations[0].requestBody).toBeUndefined();
+  });
+
+  it.each([
+    ["POST", undefined],
+    ["POST", 0],
+    ["POST", -1],
+    ["POST", "24"],
+    ["GET", 24],
+    ["HEAD", 24],
+  ])(
+    "does not infer a body from Content-Type alone or for bodyless methods (%s, %s)",
+    (method, bodySize) => {
+      const captured = entry("/users", {}, 200, method as string);
+      const capture = parseTrafficCapture(
+        har([
+          {
+            ...captured,
+            request: {
+              ...captured.request,
+              bodySize,
+              headers: [{ name: "Content-Type", value: "application/json" }],
+            },
+          },
+        ]),
+      );
+      expect(capture.observations[0].requestBody).toBeUndefined();
+      expect(
+        capture.warnings.filter((warning) => warning.part === "request"),
+      ).toEqual([]);
+    },
+  );
+
   it("infers repeated query keys as arrays and preserves empty, leading-zero and unsafe numeric strings", () => {
     const capture = parseTrafficCapture(
       har([
