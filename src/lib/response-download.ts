@@ -26,7 +26,9 @@ function getResponseFileExtension(contentType: string) {
     return "xml";
   }
 
-  return mediaTypeExtensions[mediaType] || "txt";
+  return Object.hasOwn(mediaTypeExtensions, mediaType)
+    ? mediaTypeExtensions[mediaType]
+    : "txt";
 }
 
 export function getResponseDownloadMetadata(
@@ -38,7 +40,9 @@ export function getResponseDownloadMetadata(
     status
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "unknown";
+      .replace(/^-|-$/g, "")
+      .slice(0, 80)
+      .replace(/-+$/g, "") || "unknown";
 
   return {
     contentType,
