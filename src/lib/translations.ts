@@ -3,6 +3,108 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "discovery.title": "Traffic-to-OpenAPI studio",
+    "discovery.description":
+      "Build an OpenAPI 3.1 draft from a browser HAR capture, review route templates, and infer request and response shapes. Everything runs locally; importing never sends API requests.",
+    "discovery.privacy":
+      "Body, query, header, and cookie values are not included as examples or saved. Hostnames, paths, and field names remain visible and are included in the generated document. Review them before sharing. This work stays in memory; export the definition before leaving.",
+    "discovery.file": "Import HAR for API discovery",
+    "discovery.paste": "Paste a HAR capture",
+    "discovery.input": "HAR JSON for discovery",
+    "discovery.import": "Discover API from pasted HAR",
+    "discovery.clear": "Clear discovery capture",
+    "discovery.loading": "Reading traffic capture…",
+    "discovery.configure": "Configure discovered API",
+    "discovery.counts":
+      "Captured requests: {count} · Skipped entries: {skipped} · Warnings: {warnings}",
+    "discovery.origin": "API origin",
+    "discovery.prefix": "Move path prefix into server URL",
+    "discovery.apiTitle": "Discovered API title",
+    "discovery.version": "Discovered API version",
+    "discovery.scopeHelp":
+      "Choose one origin. A prefix such as /api selects that path subtree and moves it into the server URL. Changing origin, prefix, or grouping resets route edits and selections.",
+    "discovery.parameterize":
+      "Suggest path parameters for numeric and UUID segments",
+    "discovery.required":
+      "Mark fields present in every observation as required",
+    "discovery.inferenceHelp":
+      "This is an observed draft, not a complete contract. Review suggested IDs, optional fields, authentication, and constraints. Edit whole path segments to {parameterName}; literals must still match the captured paths. Matching method/template pairs are merged.",
+    "discovery.routes": "Selected routes: {selected}/{total}",
+    "discovery.search": "Search discovered routes",
+    "discovery.select": "Select matching routes",
+    "discovery.exclude": "Exclude matching routes",
+    "discovery.table": "Discovered API routes",
+    "discovery.include": "Include",
+    "discovery.route": "Method and path template",
+    "discovery.evidence": "Observed traffic",
+    "discovery.includeRoute": "Include {route}",
+    "discovery.template": "Path template for {route}",
+    "discovery.observedPaths": "Observed paths (up to 10)",
+    "discovery.samples": "{count} observations",
+    "discovery.noMatches": "No routes match this scope or search.",
+    "discovery.previous": "Previous routes",
+    "discovery.next": "Next routes",
+    "discovery.page": "Page {current} of {total}",
+    "discovery.build": "Generate OpenAPI draft",
+    "discovery.warnings": "Capture and inference warnings",
+    "discovery.warningHelp":
+      "Warnings cover the whole imported capture, including excluded routes. Showing the first 100. Missing, invalid, unsupported, or limited bodies keep their media type with a broad schema.",
+    "discovery.warningRow": "Entry {entry} · {part}",
+    "discovery.part.request": "request",
+    "discovery.part.response": "response",
+    "discovery.part.entry": "entry",
+    "discovery.warning.skipped":
+      "Skipped an invalid request, unsupported method, or response without an HTTP status.",
+    "discovery.warning.missing": "JSON body content was not captured.",
+    "discovery.warning.invalid":
+      "Body is not supported JSON, contains unsafe numbers, or has invalid encoding.",
+    "discovery.warning.unsupported":
+      "Only JSON body shapes are inferred; other content keeps a broad schema.",
+    "discovery.warning.limit":
+      "Body inference or query parameter limits were reached.",
+    "discovery.warning.media":
+      "Body has no usable media type; its content was omitted.",
+    "discovery.ready":
+      "Draft ready · {count} operations · {observations} observations",
+    "discovery.format": "Discovered definition format",
+    "discovery.preview": "Preview generated definition",
+    "discovery.previewText": "Generated OpenAPI definition",
+    "discovery.previewLimit":
+      "Preview limited to 50,000 characters. Copy and download include the full definition.",
+    "discovery.copy": "Copy discovered OpenAPI",
+    "discovery.download": "Download discovered OpenAPI",
+    "discovery.applyHelp":
+      "Applying replaces the main editor with this draft and uses its normal save behavior. Undo is available while the editor still matches the applied draft.",
+    "discovery.apply": "Apply discovered API to editor",
+    "discovery.undo": "Undo discovered API application",
+    "discovery.imported":
+      "Capture imported. Review the routes before generating a draft.",
+    "discovery.exported": "Generated definition exported.",
+    "discovery.applied": "Discovered API applied to the editor.",
+    "discovery.restored": "Previous editor content restored.",
+    "discovery.error.invalid-har": "Enter a HAR object containing log.entries.",
+    "discovery.error.too-large":
+      "Input must be at most 5 MiB; generated output must be at most 10 MiB.",
+    "discovery.error.too-many":
+      "Discovery supports up to 1,000 captured entries and 500 routes. Narrow the capture or scope.",
+    "discovery.error.no-requests":
+      "No supported HTTP requests with responses were found.",
+    "discovery.error.origin": "Select an origin present in the capture.",
+    "discovery.error.prefix":
+      "Use a path prefix starting with /, without spaces, query, fragment, backslashes, or braces.",
+    "discovery.error.template":
+      "A path template must match every source path. Use unique whole-segment parameter names such as {userId}; keep literal segments unchanged.",
+    "discovery.error.conflict":
+      "Equivalent paths use different parameter names. Give them the same template or exclude one.",
+    "discovery.error.empty": "Select at least one route.",
+    "discovery.error.metadata":
+      "Enter an API title (up to 200 characters) and version (up to 80 characters).",
+    "discovery.error.read":
+      "Could not read the capture. The current discovery draft has been preserved.",
+    "discovery.error.export":
+      "Could not export the definition. Try the other export action.",
+    "discovery.error.undo":
+      "The editor has changed since application. Undo would overwrite those edits.",
     "bundle.title": "Multi-file OpenAPI workbench",
     "bundle.description":
       "Import or create local YAML/JSON files, resolve references, and build a single-file API document. Files stay in this tab until you export the project; no files or URLs are fetched automatically.",
@@ -2369,6 +2471,108 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "discovery.title": "Создание OpenAPI из трафика",
+    "discovery.description":
+      "Создайте черновик OpenAPI 3.1 из HAR браузера, проверьте шаблоны путей и определите структуру запросов и ответов. Обработка локальная; импорт не отправляет запросов к API.",
+    "discovery.privacy":
+      "Значения тел, query-параметров, заголовков и cookie не сохраняются и не добавляются как примеры. Имена хостов, пути и имена полей остаются видимыми и входят в документ. Проверьте их перед передачей. Данные хранятся в памяти; экспортируйте определение до закрытия страницы.",
+    "discovery.file": "Импорт HAR для создания API",
+    "discovery.paste": "Вставить HAR",
+    "discovery.input": "HAR JSON для создания API",
+    "discovery.import": "Создать API из вставленного HAR",
+    "discovery.clear": "Очистить захват трафика",
+    "discovery.loading": "Чтение захвата трафика…",
+    "discovery.configure": "Настройка обнаруженного API",
+    "discovery.counts":
+      "Запросов: {count} · Пропущено: {skipped} · Предупреждений: {warnings}",
+    "discovery.origin": "Источник API",
+    "discovery.prefix": "Перенести префикс пути в URL сервера",
+    "discovery.apiTitle": "Название обнаруженного API",
+    "discovery.version": "Версия обнаруженного API",
+    "discovery.scopeHelp":
+      "Выберите один источник. Префикс, например /api, выбирает поддерево путей и переносится в URL сервера. Изменение источника, префикса или группировки сбрасывает правки и выбор маршрутов.",
+    "discovery.parameterize": "Предлагать параметры пути для чисел и UUID",
+    "discovery.required":
+      "Считать обязательными поля, присутствующие во всех наблюдениях",
+    "discovery.inferenceHelp":
+      "Это черновик по наблюдениям, а не полный контракт. Проверьте ID, необязательные поля, авторизацию и ограничения. Заменяйте целые сегменты пути на {parameterName}; остальные сегменты должны совпадать с захваченными путями. Совпадающие метод и шаблон объединяются.",
+    "discovery.routes": "Выбрано маршрутов: {selected}/{total}",
+    "discovery.search": "Поиск обнаруженных маршрутов",
+    "discovery.select": "Выбрать найденные маршруты",
+    "discovery.exclude": "Исключить найденные маршруты",
+    "discovery.table": "Обнаруженные маршруты API",
+    "discovery.include": "Включить",
+    "discovery.route": "Метод и шаблон пути",
+    "discovery.evidence": "Наблюдаемый трафик",
+    "discovery.includeRoute": "Включить {route}",
+    "discovery.template": "Шаблон пути для {route}",
+    "discovery.observedPaths": "Наблюдаемые пути (до 10)",
+    "discovery.samples": "Наблюдений: {count}",
+    "discovery.noMatches": "Нет маршрутов в выбранной области или по запросу.",
+    "discovery.previous": "Предыдущие маршруты",
+    "discovery.next": "Следующие маршруты",
+    "discovery.page": "Страница {current} из {total}",
+    "discovery.build": "Создать черновик OpenAPI",
+    "discovery.warnings": "Предупреждения захвата и анализа",
+    "discovery.warningHelp":
+      "Предупреждения относятся ко всему захвату, включая исключённые маршруты. Показаны первые 100. Отсутствующие, некорректные, неподдерживаемые или слишком большие тела сохраняют тип содержимого с общей схемой.",
+    "discovery.warningRow": "Запись {entry} · {part}",
+    "discovery.part.request": "запрос",
+    "discovery.part.response": "ответ",
+    "discovery.part.entry": "запись",
+    "discovery.warning.skipped":
+      "Пропущен некорректный запрос, неподдерживаемый метод или ответ без HTTP-статуса.",
+    "discovery.warning.missing": "Содержимое тела JSON не было захвачено.",
+    "discovery.warning.invalid":
+      "Тело не является поддерживаемым JSON, содержит неточные числа или неверную кодировку.",
+    "discovery.warning.unsupported":
+      "Структура определяется только для JSON; другое содержимое сохраняет общую схему.",
+    "discovery.warning.limit":
+      "Достигнуты ограничения анализа тела или query-параметров.",
+    "discovery.warning.media":
+      "Нет подходящего типа содержимого; тело пропущено.",
+    "discovery.ready":
+      "Черновик готов · Операций: {count} · Наблюдений: {observations}",
+    "discovery.format": "Формат обнаруженного определения",
+    "discovery.preview": "Просмотр созданного определения",
+    "discovery.previewText": "Созданное определение OpenAPI",
+    "discovery.previewLimit":
+      "Показаны первые 50 000 символов. Копирование и скачивание включают полный документ.",
+    "discovery.copy": "Копировать обнаруженный OpenAPI",
+    "discovery.download": "Скачать обнаруженный OpenAPI",
+    "discovery.applyHelp":
+      "Применение заменит содержимое редактора черновиком с обычным поведением сохранения. Отмена доступна, пока редактор совпадает с применённым черновиком.",
+    "discovery.apply": "Применить обнаруженный API в редакторе",
+    "discovery.undo": "Отменить применение обнаруженного API",
+    "discovery.imported":
+      "Захват импортирован. Проверьте маршруты перед созданием черновика.",
+    "discovery.exported": "Созданное определение экспортировано.",
+    "discovery.applied": "Обнаруженный API применён в редакторе.",
+    "discovery.restored": "Предыдущее содержимое редактора восстановлено.",
+    "discovery.error.invalid-har":
+      "Укажите объект HAR, содержащий log.entries.",
+    "discovery.error.too-large":
+      "Входной файл — до 5 МиБ; созданный документ — до 10 МиБ.",
+    "discovery.error.too-many":
+      "Поддерживается до 1 000 записей и 500 маршрутов. Сократите захват или область.",
+    "discovery.error.no-requests":
+      "Не найдены поддерживаемые HTTP-запросы с ответами.",
+    "discovery.error.origin": "Выберите источник из захвата.",
+    "discovery.error.prefix":
+      "Префикс должен начинаться с / и не содержать пробелы, query, фрагменты, обратные слеши или фигурные скобки.",
+    "discovery.error.template":
+      "Шаблон должен соответствовать всем исходным путям. Используйте уникальные имена целых сегментов, например {userId}; остальные сегменты не меняйте.",
+    "discovery.error.conflict":
+      "Эквивалентные пути имеют разные имена параметров. Укажите одинаковые шаблоны или исключите один.",
+    "discovery.error.empty": "Выберите хотя бы один маршрут.",
+    "discovery.error.metadata":
+      "Укажите название API (до 200 символов) и версию (до 80 символов).",
+    "discovery.error.read":
+      "Не удалось прочитать захват. Текущий черновик сохранён.",
+    "discovery.error.export":
+      "Не удалось экспортировать определение. Попробуйте другой способ экспорта.",
+    "discovery.error.undo":
+      "Редактор изменён после применения. Отмена перезаписала бы эти изменения.",
     "bundle.title": "Многофайловый OpenAPI-проект",
     "bundle.description":
       "Импортируйте или создавайте локальные файлы YAML/JSON, разрешайте ссылки и собирайте единый документ API. Файлы хранятся во вкладке до экспорта; автоматических сетевых запросов нет.",

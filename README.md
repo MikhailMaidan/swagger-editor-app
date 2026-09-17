@@ -12,6 +12,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
 - Multi-file OpenAPI workbench with folder imports, local file editing, cross-file reference resolution, source diagnostics, circular-reference preservation, JSON/YAML bundles, restorable projects, and reversible editor application
+- Traffic-to-OpenAPI studio that discovers an API from HAR captures, groups routes, infers request and response schemas, supports editable path templates and operation selection, and exports or reversibly applies an OpenAPI 3.1 draft
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
@@ -91,6 +92,84 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Discovering an API from traffic
+
+Open **Traffic-to-OpenAPI studio** in the Design tools to create a definition
+for an API that does not yet have an OpenAPI document. Export a HAR capture from
+your browser's Network panel, then import the `.har` / `.json` file or paste its
+JSON. Capture response bodies where your browser supports it; a HAR without body
+content can still describe observed routes, parameters, statuses, and media types.
+The studio is available even when the main editor is empty or invalid.
+
+1. Select the **API origin** to exclude unrelated hosts in the browser capture.
+2. Optionally set **Move path prefix into server URL** to `/api/v1`, for example.
+   Only requests at that prefix or below it are selected. The generated server
+   becomes `https://your-host/api/v1`, and operation paths omit that prefix.
+3. Review the suggested routes. Numeric and UUID path segments become `{id}`, then
+   `{id2}`, and so on. Turn suggestions off to start from literal paths, or edit
+   whole segments to meaningful names such as `/users/{userId}/orders/{orderId}`.
+   Suggestions can include fixed numeric segments such as years, so review them.
+4. Search, include, or exclude routes. Bulk selection acts on all search matches,
+   across pages. Routes assigned the same method and path template are merged.
+   Different parameter names for the same path shape are rejected, including
+   across methods. Literal segments must still match the observed source paths.
+5. Set the API title and version, then choose **Generate OpenAPI draft**. Preview,
+   copy, or download JSON/YAML, or explicitly apply it to the main editor.
+
+For example, observations of `GET /api/users/12` and `GET /api/users/34` can become
+one `GET /users/{userId}` operation on a server ending in `/api`. Responses such as
+`{"id":12,"name":"Ada"}` and `{"id":34,"enabled":true}` produce properties for
+`id`, `name`, and `enabled`, with their observed types. Captured values are not
+copied into examples, defaults, or enums.
+
+Generation combines JSON request bodies for body-capable methods, JSON response
+bodies by status and media type, path parameters, and query parameters. Repeated
+query keys become arrays with form/explode serialization. Boolean and safe numeric
+query values suggest corresponding types; empty values, leading-zero numbers, and
+unsafe integers remain strings. The URL query is authoritative; HAR `queryString`
+is used when the URL contains no query. JSON media types with a `+json` suffix,
+UTF-8 base64 response content, nested arrays, nullable fields, and mixed types are
+supported. Empty arrays do not erase item shapes observed in other samples.
+
+Fields and request bodies are optional by default. **Mark fields present in every
+observation as required** enables intersection-based inference; path parameters
+are always required. This is a draft of observed behavior, not a complete contract:
+review types, required fields, authentication, formats, ranges, errors, and routes
+that were not exercised. No authentication scheme or security requirement is
+inferred from captured credentials. Header and cookie parameters are not inferred.
+
+Missing or invalid JSON bodies, unsupported encodings, and inference limits produce
+warnings and broad schemas rather than guessed structures. Non-JSON media types
+are retained; text types use a string schema and other content uses an unconstrained
+schema. Form and multipart fields are not inferred. HEAD, 204, and 304 responses
+have no generated body. Entries with network-failure status `0`, unsupported
+methods, invalid URLs, or invalid response statuses are skipped with warnings.
+Warnings describe the whole imported capture, including excluded routes.
+
+Processing is entirely local and sends no API requests. Normalized observations
+keep body shapes and query types, but discard body values, query values, URL
+credentials, fragments, headers, cookies, and unrelated HAR metadata. Hostnames,
+literal paths, and property/parameter names are retained and may themselves be
+sensitive; review the generated document before sharing it. Imported captures and
+route edits stay in this tab's memory and are not automatically saved to storage
+or request history. Export the generated document before leaving the page.
+
+Importing a new capture replaces the discovery draft only after a successful
+parse; failed imports preserve it. Changing origin, prefix, or grouping resets
+route edits and selections. Changes to generation settings invalidate old output.
+**Apply discovered API to editor** explicitly replaces the main document using
+its normal draft/save behavior. **Undo discovered API application** restores the
+previous editor text only if it has not changed since application. Undo is one
+level, held in memory, and replaced by the next application. Closing the panel or
+temporarily invalidating the main editor preserves the discovery work.
+
+Limits are 5 MiB per HAR import, 1,000 entries, 500 discovered routes per scope,
+128 distinct query parameters per entry, and 10 MiB per generated document.
+Each JSON body is limited to 1 MiB, 20,000 nodes, and 64 nesting levels; inference
+uses at most 100,000 body nodes across the capture. Up to 25 routes per page,
+10 distinct source paths per route, 100 warnings, and 50,000 preview characters
+are displayed; full generated definitions are copied/downloaded.
 
 ## Working with multi-file definitions
 
