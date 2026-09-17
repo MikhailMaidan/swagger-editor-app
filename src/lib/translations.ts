@@ -31,6 +31,8 @@ export const translations = {
       "This is an observed draft, not a complete contract. Review suggested IDs, optional fields, authentication, and constraints. Edit whole path segments to {parameterName}; literals must still match the captured paths. Matching method/template pairs are merged.",
     "discovery.routes": "Selected routes: {selected}/{total}",
     "discovery.search": "Search discovered routes",
+    "discovery.searchPlaceholder":
+      "Method, path template, captured path, or HTTP status",
     "discovery.select": "Select matching routes",
     "discovery.exclude": "Exclude matching routes",
     "discovery.table": "Discovered API routes",
@@ -2498,6 +2500,8 @@ export const translations = {
       "Это черновик по наблюдениям, а не полный контракт. Проверьте ID, необязательные поля, авторизацию и ограничения. Заменяйте целые сегменты пути на {parameterName}; остальные сегменты должны совпадать с захваченными путями. Совпадающие метод и шаблон объединяются.",
     "discovery.routes": "Выбрано маршрутов: {selected}/{total}",
     "discovery.search": "Поиск обнаруженных маршрутов",
+    "discovery.searchPlaceholder":
+      "Метод, шаблон пути, захваченный путь или HTTP-статус",
     "discovery.select": "Выбрать найденные маршруты",
     "discovery.exclude": "Исключить найденные маршруты",
     "discovery.table": "Обнаруженные маршруты API",

@@ -90,11 +90,13 @@ export const TrafficDiscoveryPanel = memo(function TrafficDiscoveryPanel({
   );
   const matching = useMemo(() => {
     const terms = search.toLowerCase().split(/\s+/).filter(Boolean);
-    return routes.filter((route) =>
-      terms.every((term) =>
-        `${route.method} ${route.path}`.toLowerCase().includes(term),
-      ),
-    );
+    if (!terms.length) return routes;
+    return routes.filter((route) => {
+      const text = `${route.method} ${route.path} ${route.observations
+        .map((row) => `${row.path} ${row.status}`)
+        .join(" ")}`.toLowerCase();
+      return terms.every((term) => text.includes(term));
+    });
   }, [routes, search]);
   const currentPage = Math.min(
     page,
@@ -128,6 +130,8 @@ export const TrafficDiscoveryPanel = memo(function TrafficDiscoveryPanel({
     });
   }
   function accept(text: string) {
+    // Failed pasted imports must also supersede pending clipboard feedback.
+    exportGeneration.current++;
     try {
       const next = parseTrafficCapture(text);
       scopeChanged();
@@ -367,6 +371,7 @@ export const TrafficDiscoveryPanel = memo(function TrafficDiscoveryPanel({
                     <input
                       type="search"
                       value={search}
+                      placeholder={t("discovery.searchPlaceholder")}
                       className={inputClass}
                       onChange={(event) => {
                         setSearch(event.target.value);

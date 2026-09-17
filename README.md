@@ -110,8 +110,10 @@ The studio is available even when the main editor is empty or invalid.
    `{id2}`, and so on. Turn suggestions off to start from literal paths, or edit
    whole segments to meaningful names such as `/users/{userId}/orders/{orderId}`.
    Suggestions can include fixed numeric segments such as years, so review them.
-4. Search, include, or exclude routes. Bulk selection acts on all search matches,
-   across pages. Routes assigned the same method and path template are merged.
+4. Search, include, or exclude routes. Search matches methods, edited path templates,
+   captured paths, and observed HTTP statuses, so `GET /users/12 404` can find a
+   grouped route. Bulk selection acts on all search matches, across pages.
+   Routes assigned the same method and path template are merged.
    Different parameter names for the same path shape are rejected, including
    across methods. Literal segments must still match the observed source paths.
 5. Set the API title and version, then choose **Generate OpenAPI draft**. Preview,

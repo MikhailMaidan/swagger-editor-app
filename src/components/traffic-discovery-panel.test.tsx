@@ -290,6 +290,36 @@ describe("TrafficDiscoveryPanel", () => {
     expect(screen.queryByText(/Page \d/)).not.toBeInTheDocument();
   });
 
+  it("preserves a newer pasted-import error when an earlier clipboard operation completes", async () => {
+    const { user, apply } = await setup();
+    await upload(user);
+    await user.click(button("Generate OpenAPI draft"));
+    let resolve!: (value: boolean) => void;
+    vi.mocked(writeTextToClipboard).mockImplementation(
+      () =>
+        new Promise<boolean>((done) => {
+          resolve = done;
+        }),
+    );
+    await user.click(button("Copy discovered OpenAPI"));
+    await user.click(screen.getByText("Paste a HAR capture"));
+    change("HAR JSON for discovery", "{}");
+    await user.click(button("Discover API from pasted HAR"));
+    expect(screen.getByRole("alert")).toHaveTextContent("log.entries");
+    await act(async () => resolve(true));
+    expect(screen.getByRole("alert")).toHaveTextContent("log.entries");
+    expect(
+      screen.getByText("Draft ready · 2 operations · 3 observations"),
+    ).toBeInTheDocument();
+    expect(apply).not.toHaveBeenCalled();
+
+    vi.mocked(writeTextToClipboard).mockResolvedValue(true);
+    await user.click(button("Copy discovered OpenAPI"));
+    expect(
+      screen.getByText("Generated definition exported."),
+    ).toBeInTheDocument();
+  });
+
   it("shows missing-body diagnostics and handles blocked and stale exports", async () => {
     const { user } = await setup();
     await upload(
