@@ -1273,6 +1273,9 @@ export const translations = {
     "workspace.downloadRequestCodeAriaLabel":
       "Download {format} snippet for {method} {path}",
     "workspace.downloadResponse": "Download response",
+    "workspace.responseDownloadSuccess": "Response download started.",
+    "workspace.responseDownloadError":
+      "Could not download the response. Try again or copy the response body.",
     "workspace.draftSaveFailed": "Draft could not be saved.",
     "workspace.draftSaved": "Draft saved locally.",
     "workspace.draftSaving": "Saving draft...",
@@ -3765,6 +3768,9 @@ export const translations = {
     "workspace.downloadRequestCodeAriaLabel":
       "Скачать сниппет {format} для {method} {path}",
     "workspace.downloadResponse": "Скачать ответ",
+    "workspace.responseDownloadSuccess": "Скачивание ответа началось.",
+    "workspace.responseDownloadError":
+      "Не удалось скачать ответ. Попробуйте ещё раз или скопируйте тело ответа.",
     "workspace.draftSaveFailed": "Не удалось сохранить черновик.",
     "workspace.draftSaved": "Черновик сохранён локально.",
     "workspace.draftSaving": "Сохранение черновика...",

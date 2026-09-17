@@ -89,6 +89,7 @@ import {
 } from "@/lib/request-mock";
 import { buildRequestUrl, hasSendableRequestBody } from "@/lib/request-url";
 import { getResponseDownloadMetadata } from "@/lib/response-download";
+import { downloadTextFile } from "@/lib/schema-download";
 import { createResponseContractReport } from "@/lib/response-contract";
 import { formatResponseHeaders } from "@/lib/response-headers";
 import { selectResponseRepresentation } from "@/lib/response-representation";
@@ -428,6 +429,9 @@ function EndpointCardComponent({
   const [copiedRequestUrl, setCopiedRequestUrl] = useState("");
   const [copiedResponseBody, setCopiedResponseBody] = useState("");
   const [copiedResponseHeaders, setCopiedResponseHeaders] = useState("");
+  const [responseDownloadFeedback, setResponseDownloadFeedback] = useState<
+    "success" | "error" | null
+  >(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [requestTimeoutMs, setRequestTimeoutMs] = useState(
     DEFAULT_REQUEST_TIMEOUT_MS,
@@ -542,6 +546,7 @@ function EndpointCardComponent({
 
     previousResponseStatusRef.current = activeResponseStatus;
     setMockResult(null);
+    setResponseDownloadFeedback(null);
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
   }, [activeResponseStatus]);
@@ -856,22 +861,13 @@ function EndpointCardComponent({
       mockResult.headers,
       mockResult.status,
     );
-    const objectUrl = URL.createObjectURL(
-      new Blob([mockResult.body], { type: contentType }),
-    );
-
-    try {
-      const downloadAnchor = document.createElement("a");
-      downloadAnchor.href = objectUrl;
-      downloadAnchor.download = fileName;
-      downloadAnchor.click();
-    } finally {
-      URL.revokeObjectURL(objectUrl);
-    }
+    const downloaded = downloadTextFile(mockResult.body, fileName, contentType);
+    setResponseDownloadFeedback(downloaded ? "success" : "error");
   }
 
   function handleClearResponse() {
     setMockResult(null);
+    setResponseDownloadFeedback(null);
     setCopiedResponseBody("");
     setCopiedResponseHeaders("");
   }
@@ -957,6 +953,7 @@ function EndpointCardComponent({
     setHasAttemptedExecution(false);
     setWasRequestCancelled(false);
     setMockResult(null);
+    setResponseDownloadFeedback(null);
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
@@ -1132,6 +1129,7 @@ function EndpointCardComponent({
 
     setIsExecuting(true);
     setWasRequestCancelled(false);
+    setResponseDownloadFeedback(null);
     setCopiedCurl("");
     setCopiedFetch("");
     setCopiedHttp("");
@@ -1250,6 +1248,7 @@ function EndpointCardComponent({
       }
     }
 
+    setResponseDownloadFeedback(null);
     setMockResult({
       ...executionResult,
       requestBody: requestBodyValue,
@@ -2094,6 +2093,18 @@ function EndpointCardComponent({
                 </button>
               </div>
             </div>
+            {responseDownloadFeedback ? (
+              <p
+                className={`mt-3 text-sm font-bold ${responseDownloadFeedback === "error" ? "text-red-700" : "text-emerald-700"}`}
+                role={responseDownloadFeedback === "error" ? "alert" : "status"}
+              >
+                {t(
+                  responseDownloadFeedback === "error"
+                    ? "workspace.responseDownloadError"
+                    : "workspace.responseDownloadSuccess",
+                )}
+              </p>
+            ) : null}
             <p className="mt-3 break-all font-mono text-xs font-semibold text-[color:var(--color-brand-muted)]">
               {mockResult.url}
             </p>
