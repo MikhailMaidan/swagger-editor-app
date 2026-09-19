@@ -26,6 +26,7 @@ import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
 import { HarInspectorPanel } from "@/components/har-inspector-panel";
 import { ApiTestPlanPanel } from "@/components/api-test-plan-panel";
 import { ApiScenarioPanel } from "@/components/api-scenario-panel";
+import { ApiParityPanel } from "@/components/api-parity-panel";
 import { ApiSlicePanel } from "@/components/api-slice-panel";
 import { ApiStyleGuidePanel } from "@/components/api-style-guide-panel";
 import { CodeSamplesPanel } from "@/components/code-samples-panel";
@@ -2017,6 +2018,11 @@ export function SwaggerWorkspace({
           id: "workspace-tool-scenarios",
           label: "scenario.title",
         },
+        {
+          group: "testing",
+          id: "workspace-tool-parity",
+          label: "parity.title",
+        },
         ...(artifactSchema && endpoints.length > 0
           ? ([
               {
@@ -2058,6 +2064,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-parity",
+          label: "parity.title",
+        },
         { group: "design", id: "workspace-tool-bundle", label: "bundle.title" },
         {
           group: "design",
@@ -3029,6 +3040,18 @@ export function SwaggerWorkspace({
           <ApiScenarioPanel
             allEndpoints={endpoints}
             onSelectEndpoint={handleSelectAuditEndpoint}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-parity"
+          tabIndex={-1}
+        >
+          <ApiParityPanel
+            allEndpoints={endpoints}
+            visibleEndpoints={visibleEndpoints}
+            onSelectEndpoint={toolHandlers.selectEndpoint}
           />
         </div>
 

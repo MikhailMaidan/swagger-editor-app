@@ -31,6 +31,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Offline HAR traffic inspector with browser capture imports, endpoint matching, undocumented-status detection, operation coverage, latency summaries, search, and aggregate JSON reports
 - Manual API test-plan workbench with generated positive, negative, and boundary cases, QA results and notes, endpoint navigation, restorable JSON progress, and Markdown checklists
 - API scenario runner with ordered multi-request workflows, typed variable templates, JSON Pointer response extraction, Mock/Live execution, status and timing assertions, optional response contract checks, cancellation, and portable definitions and reports
+- Environment comparison runner with reusable GET/HEAD plans, paired baseline/candidate requests, isolated session headers, structural response and contract comparisons, latency checks, offline rehearsals, cancellation, and reports without response values
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -93,6 +94,103 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Comparing API environments
+
+Open **Environment comparison runner** in the Testing tools to check whether two
+deployments behave alike for the same requests. For example, compare an existing
+release at `https://api.example.com/v1` with a candidate deployment at
+`https://staging.example.com/v1` before changing client traffic.
+
+1. Use **Add comparison case** to select a documented GET or HEAD operation, or
+   **Add visible GET/HEAD endpoints** to use the current endpoint view. Bulk add
+   excludes operations already in the plan and fills up to the 20-case limit.
+   Duplicate a case to exercise different parameters; reorder or remove cases as
+   needed. POST, PUT, PATCH, DELETE, OPTIONS, and TRACE cannot be imported or run.
+2. Set case parameters. The same values go to both targets; repeated query keys
+   are supported and blank values are omitted. Path values use the existing
+   request builder's encoding. Case parameters are literal values, not variable
+   templates. The **View comparison endpoint** action opens the existing endpoint
+   tools without changing the schema.
+3. Start with **Mock** to rehearse locally using the two selected documented
+   response variants. Mock needs no URLs, credentials, or required request values,
+   sends no requests, and suppresses bodies for HEAD/204/304 responses. Choose
+   different variants to exercise mismatch reporting. Mock is not verification of
+   a deployment or its performance.
+4. Select **Live**, then enter baseline and candidate base URLs. Both override the
+   schema's root and operation servers. Base path prefixes are retained, so a
+   server ending in `/v1` and an operation `/users` requests `/v1/users`. Use public
+   HTTP(S) URLs without user information, query strings, or fragments. The existing
+   proxy validates public targets, does not follow redirects, and enforces response limits;
+   Live execution cannot silently fall back to a mock response.
+5. If needed, open **Session headers for each target** and supply separate JSON
+   objects such as `{"Authorization":"Bearer …"}`. Names are case insensitive
+   when overriding case headers. These headers are in-memory only and are excluded
+   from both definition and report exports. Existing workspace authentication and
+   request-environment headers are not automatically forwarded. Editing a target
+   URL clears that target's headers; a successful plan import clears both sets and
+   switches execution back to Mock. Cookie parameters use the existing request
+   builder, which produces the outgoing Cookie header when present.
+6. Configure comparison rules, then explicitly choose **Run Live comparison**.
+   The entire plan is checked against the current schema and required parameters
+   for both targets before the first request. Cases execute in order, baseline
+   first and candidate second, with at most one request in flight. Each request
+   has its own 1–30 second timeout. There are no automatic retries. A failed
+   baseline request skips the candidate for that case; a candidate failure retains
+   baseline metadata. Later cases continue unless **Stop after the first
+   non-matching case** is selected. **Cancel environment comparison** remains
+   available when the panel is closed, aborts the active request, and prevents
+   further requests. Leaving the component also cancels an active run.
+
+By default the runner compares status, body, and headers, ignoring `date`,
+`x-request-id`, and `server-timing`. Header names are case insensitive. JSON objects
+are compared structurally regardless of key order; arrays retain their ordering.
+For changing timestamps or IDs, list JSON Pointers such as `/updatedAt` or
+`/metadata/requestId` in **Ignored body JSON Pointers**, one per line. Each excludes
+that subtree during structural comparison. Escape `/` as `~1` and `~` as `~0` in
+property names. There are no wildcards, and the root cannot be ignored. Non-JSON
+bodies and JSON containing unsafe numeric values are compared as text, where JSON
+Pointer exclusions do not apply.
+
+Optional contract checks inspect each response independently against the schema
+captured when the run starts: documented status, content type, top-level body type,
+and required fields. They are the existing advisory checks, not full recursive
+JSON Schema validation. Ignoring response differences or disabling header
+comparison does not disable these checks. The **Allowed candidate slowdown** is
+an absolute millisecond increase over the baseline sample; zero disables it and
+an increase equal to the allowance passes. Sequential single samples can be noisy;
+this is a regression signal, not a load test or performance benchmark.
+
+Results show statuses, byte counts, durations, the candidate-minus-baseline timing
+delta, contract pass/fail/skip counts, and changed field paths. Filter by result or
+search by method, path, status, and outcome. **Matched** means all enabled checks
+agree within their scope; identical documented error responses can also match.
+Known differences, failed contract checks, or excessive slowdown produce
+**Different**. An incomplete comparison without an observed mismatch produces
+**Inconclusive**, which does not pass the overall run. Comparison limits are 500
+differences, 20,000 structural visits, and 60 levels of nesting; difference paths
+longer than 2,048 characters are omitted and mark the comparison as limited.
+Requests are limited to 1 MiB response bodies and 128 KiB response headers in the
+runner. Limits and request failures never count as a successful match.
+
+Export a plan as `rsswag-environment-plan.json` to keep its URLs, literal case
+parameters, mock selections, and comparison rules. Definitions are versioned and
+validated on file/paste import; failed imports preserve the current plan. Review
+literal parameters and URLs before sharing, and use session headers for secrets.
+Exports of `rsswag-environment-report.json` include the plan name, run timestamps,
+Mock/Live mode, rules, and results. They exclude target URLs, request parameters,
+session headers, raw responses, and before/after response values. Operation paths,
+field names, and other metadata can still be sensitive. Reports with cancellation
+or request errors can be exported as well. Use individual endpoint tools for
+separate inspection of response values.
+
+Plans, session credentials, and results stay in tab memory and are not added to
+request history or browser storage. Closing the panel or temporarily making the
+main schema invalid preserves the plan; editing its configuration invalidates old
+results. Export work before leaving. A run uses a snapshot of the plan and schema;
+rerun after changing the API definition. The main editor is never modified by this
+tool. Limits are 20 cases, 64 parameters per case, 64 ignored paths/headers, and
+2 MiB per definition; each target's session headers are limited to 64 KiB.
 
 ## Creating API variants with transformation recipes
 
