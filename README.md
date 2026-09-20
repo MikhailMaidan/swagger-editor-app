@@ -33,6 +33,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API scenario runner with ordered multi-request workflows, typed variable templates, JSON Pointer response extraction, Mock/Live execution, status and timing assertions, optional response contract checks, cancellation, and portable definitions and reports
 - Environment comparison runner with reusable GET/HEAD plans, paired baseline/candidate requests, isolated session headers, structural response and contract comparisons, latency checks, offline rehearsals, cancellation, and reports without response values
 - API fixture studio with seeded test-data generation, linked datasets, sequence and constant field overrides, schema diagnostics, reusable recipes, and JSON/NDJSON/CSV exports
+- API performance lab with bounded concurrent GET/HEAD workloads, warm-up phases, weighted traffic, launch-rate limits, Mock rehearsals, latency percentiles, performance budgets, baseline comparisons, cancellation, and portable JSON/CSV reports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -95,6 +96,77 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Measuring API performance
+
+Open **API performance lab** in the Testing tools to run a repeatable workload
+against read endpoints and inspect latency, failures, and throughput.
+
+1. Add individual GET/HEAD operations or **Add visible benchmark endpoints**.
+   Existing endpoint filters control the bulk selection; write operations are
+   excluded. You can add an operation more than once to test different literal
+   parameters. Give each case a name, traffic weight, and expected statuses such
+   as `200,204`, `2xx`, or `any`. Reorder or remove cases as needed.
+2. Configure measured requests, warm-up requests, concurrency, maximum launches
+   per second, per-request timeout, and overall time limit. Cases follow weighted
+   round robin; a case with weight 2 appears twice per schedule cycle. Warm-up
+   finishes before measurement starts, and each phase restarts the schedule.
+   Short runs may not visit every case. The rate is a launch ceiling, not a
+   guarantee of achieved throughput. There are no catch-up bursts.
+3. Rehearse with **Run Mock benchmark**. Choose a documented response and delay
+   for each case to exercise status failures, timeouts, and budgets offline.
+   Mock runs ignore credentials and request parameters, send no network traffic,
+   and measure simulated browser delays and local processing. They do not
+   measure the performance of a deployed API.
+4. To measure a service you are authorized to test, select **Live**, provide a
+   public HTTP(S) base URL, and choose **Run Live benchmark**. The target replaces
+   schema servers and must omit credentials, query strings, and fragments.
+   Optional session headers are a JSON object and override case headers by name.
+   Changing the target clears them. Requests use the existing server proxy and
+   its destination and response-size safeguards; they are not added to history.
+   All cases and required parameters are checked before the first request.
+5. Inspect the latency chart, per-case metrics, and filterable sample table.
+   Configure maximum p95 latency and failure percentage, plus optional minimum
+   throughput. Unexpected HTTP statuses, timeouts, and transport failures count
+   as failures. You can stop after a configured number of measured failures.
+   **Stop benchmark**, the time limit, and the failure limit stop scheduling and
+   cancel active client requests. Partial results remain inspectable and
+   exportable, and enabled budgets are marked incomplete for partial runs.
+6. **Pin benchmark as baseline** and run again to compare p95, mean latency,
+   failure rate, and throughput. Import a previously exported report as a
+   baseline to compare across sessions. Different modes, workload settings,
+   recorded cases, or incomplete runs are flagged. Target URLs, parameter values,
+   and credentials are absent from reports, so matching report settings cannot
+   establish equivalent inputs or network conditions.
+7. Download or copy the JSON report, or download all sample metadata as CSV.
+   CSV includes measured and warm-up samples, a zero-based row index, and a
+   one-based request sequence number; spreadsheet formula prefixes are escaped.
+   Download the workload plan to reuse it. Importing a plan replaces the current
+   configuration, resets execution to Mock, and clears session headers. Report
+   imports only change the baseline; malformed imports preserve existing work.
+
+Latency uses the browser's monotonic clock from dispatch until completion,
+including proxy and network overhead. Proxy-reported timing is a separate sample
+field. All completed measured attempts, including HTTP failures, timeouts, and
+network errors, contribute to latency and throughput; cancelled attempts and
+warm-up requests do not. Percentiles use nearest rank. Throughput divides
+completed attempts by the window from the first measured dispatch through the
+last completion or stop; per-case throughput uses that same window. No samples
+or a zero-length window yield unavailable metrics where appropriate. Small
+samples are descriptive checks, not a service-capacity estimate. Browser timer
+throttling, background tabs, client load, and the proxy affect measurements;
+keep the tab active and compare equivalent conditions.
+
+Limits: 10 cases, weights 1–10, 200 total requests including up to 20 warm-up
+requests, 5 concurrent requests, 10 launches/second, 1–30 second request
+timeouts, and a configurable 1–120 second run limit. Plans and reports are
+limited to 2 MiB. Mock delays support 0–5 seconds. Timing limits depend on
+browser scheduling and cannot stop work already being processed by a server.
+Plans include target URLs and literal request inputs; use session headers for
+credentials when possible. Reports omit targets, parameters, response bodies,
+and headers but retain operation names and paths. Nothing runs or persists
+automatically. Plans, reports, and baselines survive closing the panel and
+invalid editor text, and the lab never modifies the API document.
 
 ## Generating linked API test data
 
