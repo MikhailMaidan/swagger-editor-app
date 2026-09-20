@@ -32,6 +32,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Manual API test-plan workbench with generated positive, negative, and boundary cases, QA results and notes, endpoint navigation, restorable JSON progress, and Markdown checklists
 - API scenario runner with ordered multi-request workflows, typed variable templates, JSON Pointer response extraction, Mock/Live execution, status and timing assertions, optional response contract checks, cancellation, and portable definitions and reports
 - Environment comparison runner with reusable GET/HEAD plans, paired baseline/candidate requests, isolated session headers, structural response and contract comparisons, latency checks, offline rehearsals, cancellation, and reports without response values
+- API fixture studio with seeded test-data generation, linked datasets, sequence and constant field overrides, schema diagnostics, reusable recipes, and JSON/NDJSON/CSV exports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -94,6 +95,66 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Generating linked API test data
+
+Open **API fixture studio** in the Testing tools to build repeatable datasets for
+frontend development, demos, and automated tests without making API requests.
+
+1. Choose **Use current editor as fixture source**. The studio captures an
+   independent JSON/YAML snapshot and discovers component models, Swagger 2
+   definitions, and JSON request/response schemas from ordinary path operations.
+   Local references are resolved; external references are never fetched.
+2. Choose a schema and **Add fixture dataset**. Give each dataset a unique export
+   name and row count. Request mode omits read-only fields; response mode omits
+   write-only fields. Model mode includes both. Turn off optional properties to
+   generate minimal records, subject to required fields and object constraints.
+3. Add **Field overrides** for top-level object properties. A sequence can create
+   numeric IDs or strings such as `USR-1`; a JSON constant sets a specific value.
+   A dataset reference copies a scalar field from another dataset, cycling through
+   its rows. For example, generate `users.id` with a sequence, then reference it
+   from `orders.userId`. Parents are generated before their dependents even when
+   listed later in the recipe. Missing keys, null/object/array references, and
+   dependency cycles stop generation with an actionable error.
+4. Set a seed and choose **Generate fixtures**. The same source, recipe, and
+   generator version produce the same rows. Adding or reordering unrelated
+   datasets does not change an existing dataset's random stream. Large runs
+   yield periodically and can be cancelled; cancelled runs publish no partial
+   results. Changing the recipe clears the previous results.
+5. Review row counts and diagnostics, and page through the JSON preview. Export
+   one dataset as a JSON array, NDJSON, or spreadsheet-safe CSV, or all datasets
+   as a JSON object keyed by dataset name. CSV includes a zero-based row index,
+   uses JSON cells for nested values, and supports up to 64 columns. Previews
+   show ten rows at a time and shorten very large values; exports contain all
+   rows, including those with diagnostics.
+6. **Download fixture recipe** to reuse the configuration. Importing a recipe
+   replaces the current configuration, while an invalid import preserves it.
+   Recipes contain schema pointers and field overrides, including constants;
+   they omit the source document and generated rows. Capture a compatible schema
+   before generating. Nothing is persisted automatically or written to the
+   editor. Captured sources and recipes remain available while the current
+   editor contains incomplete or invalid text.
+
+The generator supports primitive types, enum/const values, object properties,
+local references, common schema compositions, numeric ranges and multiples,
+string lengths, bounded arrays, and UUID/email/URI/date/date-time/IP formats.
+Examples and defaults are not sampled. Generation is intentionally bounded and
+does not solve arbitrary JSON Schema constraints: complex compositions may
+produce invalid rows, patterns require review, recursive references become
+null, and unsupported keywords or unresolved references produce diagnostics.
+Every row is checked against the original schema with the app's existing
+validator, which itself supports a subset of JSON Schema. A row may count as
+both invalid and needing review. Diagnostics are advisory; inspect the output
+before using it as a conformant fixture.
+
+Limits are 10 datasets, 500 rows per dataset, 2,000 rows total, 64 overrides per
+dataset, 50 items per nested array, 100 properties per generated object, 4,096
+characters per generated string, and 12 levels of generated nesting. Source and
+recipe files are limited to 2 MiB, source discovery to 500 schemas, displayed
+diagnostics to 200, and generated data and individual exports to 8 MiB. Additional
+parsing, generation, and validation budgets stop excessive processing. Sequence
+values are rounded to six decimal places. Enum/const values and overrides may
+contain sensitive data; review exported data and recipes before sharing them.
 
 ## Comparing API environments
 

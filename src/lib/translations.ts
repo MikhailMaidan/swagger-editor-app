@@ -3,6 +3,128 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "fixtures.title": "API fixture studio",
+    "fixtures.description":
+      "Generate repeatable test datasets from your OpenAPI schemas. Link records across datasets, customize fields, and export data for frontend development and automated tests.",
+    "fixtures.privacy":
+      "Runs offline in this tab. Nothing is sent to an API or saved automatically. Examples and defaults are not sampled; enum values, constants, and your overrides can contain real data. Review exports before sharing.",
+    "fixtures.configure": "Configure fixture datasets",
+    "fixtures.capture": "Use current editor as fixture source",
+    "fixtures.captured":
+      "Fixture source captured. Your recipe is ready to configure.",
+    "fixtures.sourceSummary": "{title} · {count} schema sources",
+    "fixtures.snapshot":
+      "Generation uses the captured source. Capture again after editing the API; your recipe is retained.",
+    "fixtures.sourcesLimited":
+      "Source discovery was capped at 500 schemas or its scan limit. Use a smaller document to access omitted schemas.",
+    "fixtures.noSources":
+      "No component models or JSON request/response schemas were found.",
+    "fixtures.seed": "Generation seed",
+    "fixtures.optional": "Include optional properties",
+    "fixtures.search": "Search fixture schemas",
+    "fixtures.source": "Schema for new dataset",
+    "fixtures.chooseSource": "Choose a schema",
+    "fixtures.add": "Add fixture dataset",
+    "fixtures.counts": "Datasets: {datasets}/10 · Rows: {rows}/2000",
+    "fixtures.dataset": "Dataset to edit",
+    "fixtures.name": "Dataset name",
+    "fixtures.rows": "Rows to generate",
+    "fixtures.direction": "Schema direction",
+    "fixtures.direction.none": "Model (all fields)",
+    "fixtures.direction.request": "Request (omit read-only fields)",
+    "fixtures.direction.response": "Response (omit write-only fields)",
+    "fixtures.nameHelp":
+      "Use unique names with letters, digits, underscores, or hyphens, starting with a letter or underscore (up to 64 characters).",
+    "fixtures.rules": "Field overrides",
+    "fixtures.rulesHelp":
+      "Override top-level object fields with a sequence, JSON constant, or a scalar field from another dataset. References cycle through parent rows in order. Dependencies are generated first; circular references are rejected.",
+    "fixtures.rule": "Field rule {index}",
+    "fixtures.field": "Target field",
+    "fixtures.ruleType": "Override type",
+    "fixtures.kind.sequence": "Sequence",
+    "fixtures.kind.constant": "JSON constant",
+    "fixtures.kind.reference": "Dataset reference",
+    "fixtures.start": "Sequence start",
+    "fixtures.step": "Sequence step",
+    "fixtures.asString": "Generate string IDs",
+    "fixtures.prefix": "ID prefix",
+    "fixtures.constant": "Constant value (JSON)",
+    "fixtures.parent": "Referenced dataset",
+    "fixtures.chooseDataset": "Choose a dataset",
+    "fixtures.parentField": "Referenced field name",
+    "fixtures.removeRule": "Remove field rule",
+    "fixtures.addRule": "Add field rule",
+    "fixtures.removeDataset": "Remove dataset",
+    "fixtures.generate": "Generate fixtures",
+    "fixtures.generated":
+      "Fixtures generated. Review diagnostics before using the data.",
+    "fixtures.progress": "Generating fixtures: {done}/{total} rows",
+    "fixtures.loading": "Reading fixture recipe…",
+    "fixtures.cancel": "Cancel fixture operation",
+    "fixtures.exportRecipe": "Download fixture recipe",
+    "fixtures.limits":
+      "Up to 10 datasets, 500 rows each, and 2,000 rows total. Nested arrays are capped at 50 items; objects at 100 properties. Sources and recipes: 2 MiB; each export: 8 MiB. Large or complex schemas may reach processing limits.",
+    "fixtures.importExport": "Fixture recipe import and export",
+    "fixtures.recipeHelp":
+      "Recipes include seeds, schema pointers, dataset settings, and overrides, including constant values. They exclude the source document and generated rows. Import replaces the current recipe; capture a compatible schema before generating.",
+    "fixtures.recipeJson": "Fixture recipe JSON",
+    "fixtures.importRecipe": "Import fixture recipe",
+    "fixtures.importFile": "Import fixture recipe file",
+    "fixtures.imported":
+      "Fixture recipe imported. Capture a compatible source to generate data.",
+    "fixtures.results": "Generated fixture datasets",
+    "fixtures.resultSeed": "Seed: {seed}",
+    "fixtures.resultSummary":
+      "{name}: {rows} rows · {invalid} invalid · {review} need review",
+    "fixtures.validationHelp":
+      "Rows are checked with the app’s supported schema validator, not a complete JSON Schema implementation. Complex compositions may produce invalid rows. Patterns, recursion, unresolved references, and unsupported keywords need review. Exports include all rows, including invalid ones.",
+    "fixtures.exportScope": "Dataset to export",
+    "fixtures.allDatasets": "All datasets (JSON object)",
+    "fixtures.format": "Fixture export format",
+    "fixtures.download": "Download fixture data",
+    "fixtures.copy": "Copy fixture data",
+    "fixtures.copied": "Fixture data copied.",
+    "fixtures.downloaded": "Fixture download started.",
+    "fixtures.preview":
+      "Preview: {name}, rows {start}–{end} of {total}. Large previews are shortened; exports contain all rows.",
+    "fixtures.previewLabel": "Fixture data preview",
+    "fixtures.previous": "Previous fixture rows",
+    "fixtures.next": "Next fixture rows",
+    "fixtures.issues": "Fixture diagnostics ({count})",
+    "fixtures.issueLocation": "{name}, row {row}:",
+    "fixtures.issuesLimited":
+      "Showing the first 200 diagnostics. Counts include all diagnostics.",
+    "fixtures.issue.unsupported": "This schema keyword needs manual review.",
+    "fixtures.issue.reference": "The reference could not be resolved locally.",
+    "fixtures.issue.recursive": "A recursive reference was replaced with null.",
+    "fixtures.issue.depth": "The nesting limit was reached.",
+    "fixtures.issue.pattern":
+      "Pattern-based generation is not supported; review this value.",
+    "fixtures.issue.constraint":
+      "The generator could not satisfy this constraint.",
+    "fixtures.issue.validation": "The generated value failed a schema check.",
+    "fixtures.issue.validation-limit":
+      "Schema checking reached its processing limit.",
+    "fixtures.error.recipe":
+      "Invalid recipe. Check unique names, row limits, seeds, field rules, and JSON constants. Dataset: {dataset}",
+    "fixtures.error.source":
+      "The editor must contain a valid OpenAPI or Swagger document in JSON or YAML.",
+    "fixtures.error.limit":
+      "The source, recipe, generated data, or processing work exceeds a fixture limit. Reduce its size or complexity.",
+    "fixtures.error.missing-source":
+      "A dataset schema is missing from the captured source. Dataset: {dataset}",
+    "fixtures.error.cycle":
+      "Dataset references form a cycle. Remove a circular reference. Dataset: {dataset}",
+    "fixtures.error.reference":
+      "A referenced dataset or field is missing, null, or not a scalar value. Dataset: {dataset}",
+    "fixtures.error.field":
+      "Field overrides require an object schema with the selected top-level field. Dataset: {dataset}",
+    "fixtures.error.cancelled": "Fixture operation cancelled.",
+    "fixtures.error.csv":
+      "Choose one dataset for NDJSON or CSV. CSV supports up to 64 columns.",
+    "fixtures.error.read": "The fixture operation could not be completed.",
+    "fixtures.error.export":
+      "Export failed. Try the other copy or download option.",
     "parity.title": "Environment comparison runner",
     "parity.description":
       "Compare the same GET/HEAD requests against two deployments. Find status, response, contract, and latency differences before promoting an API change.",
@@ -2743,6 +2865,127 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "fixtures.title": "Студия тестовых данных API",
+    "fixtures.description":
+      "Создавайте воспроизводимые наборы тестовых данных из схем OpenAPI. Связывайте записи разных наборов, настраивайте поля и экспортируйте данные для разработки интерфейсов и автоматических тестов.",
+    "fixtures.privacy":
+      "Работает локально в этой вкладке. Запросы к API не отправляются, автоматического сохранения нет. Примеры и значения по умолчанию не используются; enum, константы и ваши переопределения могут содержать реальные данные. Проверяйте экспорт перед передачей.",
+    "fixtures.configure": "Настройка наборов тестовых данных",
+    "fixtures.capture": "Использовать текущую схему редактора",
+    "fixtures.captured": "Исходная схема сохранена. Можно настроить рецепт.",
+    "fixtures.sourceSummary": "{title} · источников схем: {count}",
+    "fixtures.snapshot":
+      "Генерация использует снимок схемы. После редактирования API создайте новый снимок; рецепт сохранится.",
+    "fixtures.sourcesLimited":
+      "Поиск ограничен 500 схемами или лимитом обхода. Уменьшите документ для доступа к пропущенным схемам.",
+    "fixtures.noSources":
+      "Модели компонентов и JSON-схемы запросов или ответов не найдены.",
+    "fixtures.seed": "Начальное значение генератора",
+    "fixtures.optional": "Включать необязательные свойства",
+    "fixtures.search": "Поиск схем для тестовых данных",
+    "fixtures.source": "Схема нового набора",
+    "fixtures.chooseSource": "Выберите схему",
+    "fixtures.add": "Добавить набор данных",
+    "fixtures.counts": "Наборы: {datasets}/10 · Строки: {rows}/2000",
+    "fixtures.dataset": "Редактируемый набор",
+    "fixtures.name": "Название набора",
+    "fixtures.rows": "Количество строк",
+    "fixtures.direction": "Назначение схемы",
+    "fixtures.direction.none": "Модель (все поля)",
+    "fixtures.direction.request": "Запрос (без полей только для чтения)",
+    "fixtures.direction.response": "Ответ (без полей только для записи)",
+    "fixtures.nameHelp":
+      "Уникальное название: латинские буквы, цифры, подчёркивания или дефисы. Первый символ — буква или подчёркивание; не более 64 символов.",
+    "fixtures.rules": "Переопределения полей",
+    "fixtures.rulesHelp":
+      "Заменяйте поля верхнего уровня последовательностью, JSON-константой или скалярным полем другого набора. Ссылки циклически перебирают строки родительского набора. Зависимости создаются первыми; циклические ссылки запрещены.",
+    "fixtures.rule": "Правило поля {index}",
+    "fixtures.field": "Целевое поле",
+    "fixtures.ruleType": "Тип переопределения",
+    "fixtures.kind.sequence": "Последовательность",
+    "fixtures.kind.constant": "JSON-константа",
+    "fixtures.kind.reference": "Ссылка на набор",
+    "fixtures.start": "Начало последовательности",
+    "fixtures.step": "Шаг последовательности",
+    "fixtures.asString": "Строковые идентификаторы",
+    "fixtures.prefix": "Префикс идентификатора",
+    "fixtures.constant": "Постоянное значение (JSON)",
+    "fixtures.parent": "Связанный набор",
+    "fixtures.chooseDataset": "Выберите набор",
+    "fixtures.parentField": "Имя связанного поля",
+    "fixtures.removeRule": "Удалить правило поля",
+    "fixtures.addRule": "Добавить правило поля",
+    "fixtures.removeDataset": "Удалить набор",
+    "fixtures.generate": "Создать тестовые данные",
+    "fixtures.generated":
+      "Данные созданы. Проверьте диагностику перед использованием.",
+    "fixtures.progress": "Генерация данных: {done}/{total} строк",
+    "fixtures.loading": "Чтение рецепта…",
+    "fixtures.cancel": "Отменить операцию",
+    "fixtures.exportRecipe": "Скачать рецепт данных",
+    "fixtures.limits":
+      "До 10 наборов, 500 строк в каждом и 2000 строк всего. Вложенные массивы — до 50 элементов, объекты — до 100 свойств. Схемы и рецепты: 2 МиБ; каждый экспорт: 8 МиБ. Большие или сложные схемы могут достичь лимита обработки.",
+    "fixtures.importExport": "Импорт и экспорт рецепта данных",
+    "fixtures.recipeHelp":
+      "Рецепт содержит начальное значение, указатели схем, настройки наборов и переопределения, включая константы. Исходная схема и созданные строки не входят в рецепт. Импорт заменяет текущий рецепт; перед генерацией загрузите совместимую схему.",
+    "fixtures.recipeJson": "JSON рецепта данных",
+    "fixtures.importRecipe": "Импортировать рецепт данных",
+    "fixtures.importFile": "Импортировать файл рецепта",
+    "fixtures.imported":
+      "Рецепт импортирован. Для генерации используйте совместимую исходную схему.",
+    "fixtures.results": "Созданные наборы данных",
+    "fixtures.resultSeed": "Начальное значение: {seed}",
+    "fixtures.resultSummary":
+      "{name}: строк — {rows} · с ошибками — {invalid} · требуют проверки — {review}",
+    "fixtures.validationHelp":
+      "Строки проверяются встроенным валидатором приложения, который поддерживает не весь JSON Schema. Сложные композиции могут давать некорректные строки. Шаблоны, рекурсия, неразрешённые ссылки и неподдерживаемые ключевые слова требуют проверки. Экспорт включает все строки, в том числе с ошибками.",
+    "fixtures.exportScope": "Набор для экспорта",
+    "fixtures.allDatasets": "Все наборы (JSON-объект)",
+    "fixtures.format": "Формат экспорта данных",
+    "fixtures.download": "Скачать тестовые данные",
+    "fixtures.copy": "Копировать тестовые данные",
+    "fixtures.copied": "Данные скопированы.",
+    "fixtures.downloaded": "Скачивание начато.",
+    "fixtures.preview":
+      "Просмотр: {name}, строки {start}–{end} из {total}. Большие значения сокращены; экспорт содержит все строки.",
+    "fixtures.previewLabel": "Просмотр тестовых данных",
+    "fixtures.previous": "Предыдущие строки",
+    "fixtures.next": "Следующие строки",
+    "fixtures.issues": "Диагностика данных ({count})",
+    "fixtures.issueLocation": "{name}, строка {row}:",
+    "fixtures.issuesLimited":
+      "Показаны первые 200 сообщений. Счётчики учитывают все сообщения.",
+    "fixtures.issue.unsupported":
+      "Это ключевое слово схемы требует ручной проверки.",
+    "fixtures.issue.reference": "Не удалось разрешить ссылку локально.",
+    "fixtures.issue.recursive": "Рекурсивная ссылка заменена на null.",
+    "fixtures.issue.depth": "Достигнут предел вложенности.",
+    "fixtures.issue.pattern":
+      "Генерация по регулярным выражениям не поддерживается; проверьте значение.",
+    "fixtures.issue.constraint": "Генератор не смог выполнить это ограничение.",
+    "fixtures.issue.validation": "Созданное значение не прошло проверку схемы.",
+    "fixtures.issue.validation-limit":
+      "Проверка схемы достигла лимита обработки.",
+    "fixtures.error.recipe":
+      "Некорректный рецепт. Проверьте уникальность названий, число строк, начальное значение, правила и JSON-константы. Набор: {dataset}",
+    "fixtures.error.source":
+      "Редактор должен содержать корректный документ OpenAPI или Swagger в формате JSON или YAML.",
+    "fixtures.error.limit":
+      "Схема, рецепт, данные или объём вычислений превышают лимит. Уменьшите размер или сложность.",
+    "fixtures.error.missing-source":
+      "Схема набора отсутствует в текущем снимке. Набор: {dataset}",
+    "fixtures.error.cycle":
+      "Ссылки между наборами образуют цикл. Удалите циклическую ссылку. Набор: {dataset}",
+    "fixtures.error.reference":
+      "Связанный набор или поле отсутствует, содержит null или нескалярное значение. Набор: {dataset}",
+    "fixtures.error.field":
+      "Переопределения требуют объектной схемы с выбранным полем верхнего уровня. Набор: {dataset}",
+    "fixtures.error.cancelled": "Операция отменена.",
+    "fixtures.error.csv":
+      "Для NDJSON или CSV выберите один набор. CSV поддерживает до 64 столбцов.",
+    "fixtures.error.read": "Не удалось выполнить операцию с тестовыми данными.",
+    "fixtures.error.export":
+      "Экспорт не удался. Попробуйте копирование или скачивание.",
     "parity.title": "Сравнение окружений API",
     "parity.description":
       "Сравнивайте одинаковые GET/HEAD-запросы в двух окружениях. Находите различия статусов, ответов, контрактов и задержек перед выпуском изменений API.",
