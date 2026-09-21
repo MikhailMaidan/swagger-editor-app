@@ -23,6 +23,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Callback and webhook contract explorer with reusable-reference resolution, payload examples, receiver responses, source navigation, diagnostics, Markdown sharing, and JSON reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
+- Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
 - OpenAPI slice export in JSON or YAML using endpoint filters and favorites, with transitive component retention, optional webhooks, contract previews, and reference diagnostics
 - Dependency-free TypeScript Fetch client generation with typed models, request parameters and bodies, success responses, API errors, cancellation, configurable generation scope, and source download
 - Self-contained offline HTML documentation with endpoint search, method filtering, light and dark themes, print styles, scoped models and security schemes, browser preview, and download
@@ -96,6 +97,54 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Migrating a Postman collection
+
+Open **Design → Postman migration studio**, then import or paste a
+[Postman Collection v2.1](https://schema.postman.com/collection/json/v2.1.0/draft-04/collection.json).
+The studio works even while the editor contains an invalid document.
+
+1. Optionally import a Postman environment under **Variables and environment**.
+   JSON string overrides take priority over enabled environment values, then
+   request, folder, and collection variables. Supply a fallback HTTP(S) server
+   for relative URLs or an unresolved leading base-URL variable.
+2. Search and select requests. Nested folder names become tags. Standalone
+   `:id` and `{{id}}` path segments become `{id}` parameters; other static
+   variables are substituted. Path overrides can combine concrete URLs into a
+   shared route. Server origins remain attached to individual operations.
+3. Generate the draft and review its operation inventory and diagnostics.
+   Matching method/path requests merge their bodies, statuses, servers, and
+   authentication alternatives. Conflicting parameter names, unsupported
+   methods, and unresolved URLs block export until corrected or deselected.
+4. Copy/download JSON or YAML, or explicitly apply the draft to replace the
+   editor document. Application checks that the editor has not changed since
+   generation; Undo restores the previous document only if subsequent edits
+   would not be overwritten. The imported collection and configuration remain
+   available when the panel is collapsed or the editor changes.
+
+The converter handles raw JSON/text/XML, URL-encoded forms, multipart fields,
+binary upload schemas, GraphQL request envelopes, and saved response bodies.
+Repeated query/form fields become arrays. JSON sample shapes are combined
+without turning observed values into enums; required-property inference is
+optional, and query/header parameters and request bodies stay optional.
+Basic, Bearer, Digest, and API-key helpers become security schemes without
+copying credential values. Inherited auth and explicit `noauth` are respected.
+Other helpers are flagged for manual configuration and marked
+`x-postman-auth-review-required`. This is a draft inferred from examples, not
+a verified contract or a complete Postman runtime migration: scripts, tests,
+dynamic/vault variables, cookies, saved response headers, file contents, and
+protocol settings are not translated. GraphQL query semantics are not inferred.
+
+All conversion is local to the tab and nothing runs or saves automatically.
+Examples are excluded by default; the opt-in includes resolved query/header
+and raw request/response body values. Auth helper credentials, Authorization/
+Cookie headers, URL userinfo, and file paths are excluded. This does not scrub
+arbitrary secrets from source URLs, names, descriptions, or opt-in examples;
+review exported documents before sharing. Limits include 5 MiB per import,
+500 requests, 100,000 input nodes, 48 nesting levels, bounded variable expansion
+and JSON inference, and 2 MiB per generated document. Up to 200 diagnostics are
+displayed, prioritizing errors. Importing a new collection clears imported
+environment values and manual overrides; failed imports preserve current work.
 
 ## Measuring API performance
 

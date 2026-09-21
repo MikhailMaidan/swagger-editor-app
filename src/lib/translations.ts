@@ -3,6 +3,127 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "migration.title": "Postman migration studio",
+    "migration.description":
+      "Turn a Postman Collection v2.1 into an OpenAPI 3.1 draft with folder tags, editable paths, request and response schemas, authentication definitions, and conversion diagnostics.",
+    "migration.privacy":
+      "Conversion runs locally in this tab. Collections and environments are not saved automatically. Scripts, dynamic variables, and file contents are never executed or loaded. Up to 500 requests and 5 MiB per import; generated documents are limited to 2 MiB.",
+    "migration.file": "Import Postman collection",
+    "migration.pasteHeading": "Paste collection JSON",
+    "migration.paste": "Postman collection JSON",
+    "migration.import": "Import pasted collection",
+    "migration.loading": "Reading Postman file…",
+    "migration.imported":
+      "Import complete. Generate a draft to review the conversion.",
+    "migration.selected": "Selected requests: {count}/{total}",
+    "migration.apiTitle": "Migrated API title",
+    "migration.version": "Migrated API version",
+    "migration.variablesHeading": "Variables and environment",
+    "migration.variablesHelp":
+      "String overrides take priority over enabled environment values, then request, folder, and collection variables. Standalone path variables become OpenAPI parameters; other static variables are resolved. A new collection clears environment values and overrides.",
+    "migration.environment": "Import Postman environment",
+    "migration.environmentCount": "Enabled environment values: {count}",
+    "migration.clearEnvironment": "Clear imported environment",
+    "migration.overrides": "Migration variable overrides (JSON string map)",
+    "migration.fallback":
+      "Fallback server for relative or unresolved base URLs",
+    "migration.examples": "Include resolved query/header and raw-body examples",
+    "migration.examplesHelp":
+      "Examples are off by default. Enabling them can include private request and response values. Auth helper credentials and Authorization/Cookie headers are excluded; URLs, names, descriptions, and other fields still require review before sharing.",
+    "migration.required":
+      "Mark consistently observed JSON and form properties as required",
+    "migration.search": "Search collection requests",
+    "migration.selectFiltered": "Select filtered requests",
+    "migration.deselectFiltered": "Deselect filtered requests",
+    "migration.pathHelp":
+      "Leave a path override blank to use the source path. Use /users/{id} to combine concrete routes. Matching method/path requests merge into one operation, combining observed shapes, statuses, servers, and authentication alternatives.",
+    "migration.selectRequest": "Select {name} ({id})",
+    "migration.pathOverride": "Path override for {name} ({id})",
+    "migration.noMatches": "No matching requests.",
+    "migration.previous": "Previous requests",
+    "migration.next": "Next requests",
+    "migration.page": "Page {page}/{total}",
+    "migration.generate": "Generate migrated OpenAPI",
+    "migration.result": "Postman migration result",
+    "migration.summary":
+      "Migration draft · {requests} requests · {operations} operations",
+    "migration.review":
+      "Inferred schemas describe the supplied examples, not a verified API contract. Query/header parameters and bodies remain optional. Review required fields, authentication, content types, and all conversion diagnostics before use.",
+    "migration.operations": "Converted operations (source request count)",
+    "migration.diagnostics":
+      "Conversion diagnostics: {count} (showing {shown})",
+    "migration.severity.warning": "Review",
+    "migration.severity.error": "Error",
+    "migration.blocked":
+      "Fix or deselect requests with errors, then regenerate. Export and editor application are disabled to prevent an incomplete migration.",
+    "migration.format": "Migrated definition format",
+    "migration.preview": "Migrated OpenAPI preview (first 12,000 characters)",
+    "migration.copy": "Copy migrated OpenAPI",
+    "migration.download": "Download migrated OpenAPI",
+    "migration.apply": "Apply migrated API to editor",
+    "migration.applyHelp":
+      "Applying replaces the editor document. Undo is available until you change that document. If the editor changed since generation, generate a fresh draft first.",
+    "migration.undo": "Undo migration application",
+    "migration.copied": "Migrated OpenAPI copied.",
+    "migration.downloaded": "Migrated OpenAPI download started.",
+    "migration.applied": "Migrated API applied to the editor.",
+    "migration.undone": "Previous editor document restored.",
+    "migration.error.json":
+      "Enter valid JSON with finite, safely represented numbers.",
+    "migration.error.limit":
+      "The import exceeds the supported size, request count, nesting, or structure limits.",
+    "migration.error.collection":
+      "Import a Postman Collection v2.1 JSON file containing at least one valid request.",
+    "migration.error.environment":
+      "Import a Postman environment JSON object with a values array of named string, number, or boolean values.",
+    "migration.error.overrides":
+      "Variable overrides must be a JSON object with nonempty keys and string values.",
+    "migration.error.selection":
+      "Select at least one request from the imported collection.",
+    "migration.error.metadata":
+      "Enter an API title (up to 200 characters), version (up to 80), and a valid HTTP(S) fallback server if supplied.",
+    "migration.error.output":
+      "The draft cannot be exported: resolve conversion errors or reduce its size/complexity (2 MiB maximum).",
+    "migration.error.read":
+      "The Postman file could not be read. Your current migration is still available.",
+    "migration.error.copy":
+      "Clipboard access failed. Download the document instead.",
+    "migration.error.download":
+      "The browser blocked the download. Copy the document instead.",
+    "migration.error.stale":
+      "The editor changed since generation. Generate a fresh draft before applying.",
+    "migration.error.undo":
+      "The editor changed after application. Undo would overwrite those edits, so it was stopped.",
+    "migration.diagnostic.scripts":
+      "Scripts are present. Pre-request and test scripts are not executed or translated; recreate their behavior manually.",
+    "migration.diagnostic.settings":
+      "Postman protocol settings are present and are not translated into the API contract.",
+    "migration.diagnostic.method":
+      "This request method cannot be represented as an OpenAPI operation.",
+    "migration.diagnostic.url":
+      "The URL could not be converted. Supply missing static variables or a valid fallback server, then check the path.",
+    "migration.diagnostic.path":
+      "Use an absolute path without query/fragment text. Parameters must occupy a full segment, have unique names, and use letters, digits, or underscores.",
+    "migration.diagnostic.unresolved":
+      "A variable is unresolved, dynamic, cyclic, or beyond the expansion limit. Supply static overrides and review the inferred output.",
+    "migration.diagnostic.auth":
+      "This authentication helper needs manual configuration. The operation is marked x-postman-auth-review-required; do not interpret it as a public endpoint.",
+    "migration.diagnostic.headers":
+      "Authorization, Cookie, or invalid header names were excluded. Review authentication requirements; only supported auth helpers generate security schemes.",
+    "migration.diagnostic.body":
+      "This request body mode is not supported. Add its contract manually.",
+    "migration.diagnostic.sample":
+      "A JSON body could not be safely inferred or exceeded the sample limits. Its media type is retained with an unconstrained schema.",
+    "migration.diagnostic.file":
+      "File payloads are represented as binary schemas. Local filenames and file contents are not imported.",
+    "migration.diagnostic.response":
+      "A saved response has an invalid HTTP status and was skipped. Review response coverage.",
+    "migration.diagnostic.merged":
+      "Requests with the same method and path were merged. Review combined schemas and security alternatives; examples use the first available value per media type.",
+    "migration.diagnostic.conflict":
+      "Equivalent path templates use different parameter names. Give these requests the same path override or deselect one.",
+    "migration.diagnostic.credentials":
+      "Credentials embedded in the URL were removed from the server URL. Configure authentication separately.",
     "benchmark.title": "API performance lab",
     "benchmark.description":
       "Measure GET/HEAD endpoint performance with a bounded workload, warm-up traffic, concurrent requests, latency percentiles, and reusable performance budgets.",
@@ -3057,6 +3178,128 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "migration.title": "Студия миграции Postman",
+    "migration.description":
+      "Преобразуйте коллекцию Postman v2.1 в черновик OpenAPI 3.1 с тегами папок, редактируемыми путями, схемами запросов и ответов, определениями авторизации и диагностикой.",
+    "migration.privacy":
+      "Преобразование выполняется локально в этой вкладке. Коллекции и окружения не сохраняются автоматически. Скрипты, динамические переменные и содержимое файлов не выполняются и не загружаются. До 500 запросов и 5 МиБ на импорт; результат — до 2 МиБ.",
+    "migration.file": "Импорт коллекции Postman",
+    "migration.pasteHeading": "Вставить JSON коллекции",
+    "migration.paste": "JSON коллекции Postman",
+    "migration.import": "Импортировать вставленную коллекцию",
+    "migration.loading": "Чтение файла Postman…",
+    "migration.imported":
+      "Импорт завершён. Создайте черновик для проверки преобразования.",
+    "migration.selected": "Выбрано запросов: {count}/{total}",
+    "migration.apiTitle": "Название импортируемого API",
+    "migration.version": "Версия импортируемого API",
+    "migration.variablesHeading": "Переменные и окружение",
+    "migration.variablesHelp":
+      "Строковые переопределения имеют приоритет над включёнными значениями окружения, затем переменными запроса, папки и коллекции. Переменные, занимающие сегмент пути целиком, становятся параметрами OpenAPI; остальные статические переменные подставляются. Новая коллекция очищает окружение и переопределения.",
+    "migration.environment": "Импорт окружения Postman",
+    "migration.environmentCount": "Включённых значений окружения: {count}",
+    "migration.clearEnvironment": "Очистить импортированное окружение",
+    "migration.overrides":
+      "Переопределения переменных миграции (JSON со строками)",
+    "migration.fallback":
+      "Резервный сервер для относительных или неопределённых базовых URL",
+    "migration.examples": "Включить примеры query/header и необработанных тел",
+    "migration.examplesHelp":
+      "Примеры выключены по умолчанию. При включении они могут содержать частные данные запросов и ответов. Секреты помощников авторизации и заголовки Authorization/Cookie исключаются; URL, названия, описания и остальные поля всё равно нужно проверить перед передачей.",
+    "migration.required":
+      "Считать стабильно наблюдаемые поля JSON и форм обязательными",
+    "migration.search": "Поиск запросов коллекции",
+    "migration.selectFiltered": "Выбрать найденные запросы",
+    "migration.deselectFiltered": "Снять выбор найденных запросов",
+    "migration.pathHelp":
+      "Оставьте переопределение пустым для исходного пути. Используйте /users/{id} для объединения конкретных маршрутов. Запросы с одинаковыми методом и путём объединяются: схемы, статусы, серверы и варианты авторизации.",
+    "migration.selectRequest": "Выбрать {name} ({id})",
+    "migration.pathOverride": "Переопределение пути для {name} ({id})",
+    "migration.noMatches": "Подходящих запросов нет.",
+    "migration.previous": "Предыдущие запросы",
+    "migration.next": "Следующие запросы",
+    "migration.page": "Страница {page}/{total}",
+    "migration.generate": "Создать OpenAPI из коллекции",
+    "migration.result": "Результат миграции Postman",
+    "migration.summary":
+      "Черновик миграции · запросов: {requests} · операций: {operations}",
+    "migration.review":
+      "Выведенные схемы описывают предоставленные примеры, а не проверенный контракт API. Параметры query/header и тела остаются необязательными. Проверьте обязательные поля, авторизацию, типы содержимого и диагностику перед использованием.",
+    "migration.operations":
+      "Преобразованные операции (число исходных запросов)",
+    "migration.diagnostics":
+      "Замечаний при преобразовании: {count} (показано {shown})",
+    "migration.severity.warning": "Проверить",
+    "migration.severity.error": "Ошибка",
+    "migration.blocked":
+      "Исправьте запросы с ошибками или снимите их выбор и создайте черновик заново. Экспорт и применение недоступны, чтобы избежать неполной миграции.",
+    "migration.format": "Формат импортируемого описания",
+    "migration.preview": "Предпросмотр OpenAPI (первые 12 000 символов)",
+    "migration.copy": "Копировать OpenAPI из коллекции",
+    "migration.download": "Скачать OpenAPI из коллекции",
+    "migration.apply": "Применить импортированный API в редакторе",
+    "migration.applyHelp":
+      "Применение заменяет документ редактора. Отмена доступна до его изменения. Если редактор изменился после создания черновика, сначала создайте новый черновик.",
+    "migration.undo": "Отменить применение миграции",
+    "migration.copied": "OpenAPI из коллекции скопирован.",
+    "migration.downloaded": "Скачивание OpenAPI из коллекции начато.",
+    "migration.applied": "Импортированный API применён в редакторе.",
+    "migration.undone": "Предыдущий документ редактора восстановлен.",
+    "migration.error.json":
+      "Введите корректный JSON с конечными числами, представимыми без потери точности.",
+    "migration.error.limit":
+      "Превышен предел размера, числа запросов, вложенности или сложности импорта.",
+    "migration.error.collection":
+      "Импортируйте JSON коллекции Postman v2.1 хотя бы с одним корректным запросом.",
+    "migration.error.environment":
+      "Импортируйте JSON окружения Postman с массивом values из именованных строковых, числовых или логических значений.",
+    "migration.error.overrides":
+      "Переопределения должны быть JSON-объектом с непустыми ключами и строковыми значениями.",
+    "migration.error.selection":
+      "Выберите хотя бы один запрос импортированной коллекции.",
+    "migration.error.metadata":
+      "Введите название API (до 200 символов), версию (до 80) и корректный резервный HTTP(S)-сервер, если он нужен.",
+    "migration.error.output":
+      "Черновик нельзя экспортировать: исправьте ошибки преобразования или уменьшите размер/сложность (максимум 2 МиБ).",
+    "migration.error.read":
+      "Не удалось прочитать файл Postman. Текущая миграция сохранена в этой вкладке.",
+    "migration.error.copy": "Нет доступа к буферу обмена. Скачайте документ.",
+    "migration.error.download":
+      "Браузер заблокировал скачивание. Скопируйте документ.",
+    "migration.error.stale":
+      "Редактор изменился после создания черновика. Создайте новый черновик перед применением.",
+    "migration.error.undo":
+      "Редактор изменился после применения. Отмена остановлена, чтобы не перезаписать эти правки.",
+    "migration.diagnostic.scripts":
+      "Обнаружены скрипты. Скрипты перед запросами и тесты не выполняются и не переводятся; перенесите их поведение вручную.",
+    "migration.diagnostic.settings":
+      "Настройки протокола Postman не переносятся в контракт API.",
+    "migration.diagnostic.method":
+      "Метод этого запроса нельзя представить операцией OpenAPI.",
+    "migration.diagnostic.url":
+      "Не удалось преобразовать URL. Задайте недостающие статические переменные или резервный сервер и проверьте путь.",
+    "migration.diagnostic.path":
+      "Укажите абсолютный путь без query/fragment. Параметры должны занимать сегмент целиком, иметь уникальные имена из букв, цифр и подчёркиваний.",
+    "migration.diagnostic.unresolved":
+      "Переменная не определена, динамическая, циклическая или превышает предел подстановки. Задайте статическое переопределение и проверьте результат.",
+    "migration.diagnostic.auth":
+      "Эта авторизация требует ручной настройки. Операция отмечена x-postman-auth-review-required; не считайте её публичной.",
+    "migration.diagnostic.headers":
+      "Заголовки Authorization, Cookie или заголовки с некорректными именами исключены. Проверьте требования авторизации; схемы безопасности создаются только для поддерживаемых помощников авторизации.",
+    "migration.diagnostic.body":
+      "Этот режим тела запроса не поддерживается. Добавьте его контракт вручную.",
+    "migration.diagnostic.sample":
+      "JSON-тело не удалось безопасно проанализировать или превышен предел примеров. Тип содержимого сохранён со схемой без ограничений.",
+    "migration.diagnostic.file":
+      "Файловые данные представлены бинарными схемами. Локальные имена и содержимое файлов не импортируются.",
+    "migration.diagnostic.response":
+      "Сохранённый ответ с некорректным HTTP-статусом пропущен. Проверьте полноту ответов.",
+    "migration.diagnostic.merged":
+      "Запросы с одинаковыми методом и путём объединены. Проверьте схемы и варианты авторизации; для каждого типа содержимого используется первый доступный пример.",
+    "migration.diagnostic.conflict":
+      "Эквивалентные шаблоны пути используют разные имена параметров. Задайте одинаковое переопределение пути или снимите выбор одного запроса.",
+    "migration.diagnostic.credentials":
+      "Учётные данные удалены из URL сервера. Настройте авторизацию отдельно.",
     "benchmark.title": "Лаборатория производительности API",
     "benchmark.description":
       "Измеряйте производительность GET/HEAD-эндпоинтов: ограниченная нагрузка, прогрев, параллельные запросы, перцентили задержки и проверка заданных порогов.",
