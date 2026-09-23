@@ -12,6 +12,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
 - Multi-file OpenAPI workbench with folder imports, local file editing, cross-file reference resolution, source diagnostics, circular-reference preservation, JSON/YAML bundles, restorable projects, and reversible editor application
+- API gateway composer that combines independent services with route prefixes, component and operation namespaces, inherited security, rewritten local references and links, route-conflict diagnostics, reusable projects, routing inventories, and reversible OpenAPI export/application
 - Traffic-to-OpenAPI studio that discovers an API from HAR captures, groups routes, infers request and response schemas, supports editable path templates and operation selection, and exports or reversibly applies an OpenAPI 3.1 draft
 - API transformation workbench with reusable JSON Patch recipes, ordered step editing, source pointer browsing, guarded atomic previews, JSON/YAML variant exports, and reversible editor application
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
@@ -97,6 +98,61 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Composing an API gateway contract
+
+Open **Design → API gateway composer** to combine independent OpenAPI services.
+Add JSON/YAML files, paste definitions, or capture the current editor. Give each
+service a unique namespace and an optional static route prefix such as
+`/billing`. Include/exclude and reorder services, or edit their source documents
+inside the composer. Source edits must be validated or discarded before
+composition/export; switching services preserves pending edits.
+
+Set the gateway API title, version, and HTTP(S) server URL, then preview the
+composition. Primary operations use this gateway URL, while the routing
+inventory records each original path and its effective upstream server URLs.
+This feature designs the contract; it does **not** configure or deploy an actual
+gateway. Configure matching routes before using the generated API against one.
+
+The composer namespaces reusable components, operation IDs, tags, webhook names,
+and security scheme requirements. It rewrites structural local references,
+response links, and explicit discriminator mappings while leaving example
+payloads untouched. Each operation receives its service's effective security
+requirements, including public overrides and optional-auth alternatives.
+Links targeting primary gateway operations inherit the gateway server too.
+Callback/webhook operations retain their own server configuration and inherited
+service settings. Service info and root extensions remain available in
+`x-gateway-services`. Extension values are opaque and require manual review.
+These transformations follow the relevant
+[OpenAPI object definitions](https://spec.openapis.org/oas/v3.1.0.html).
+
+Overlapping paths (including equivalent parameter templates), duplicate IDs or
+namespaces, broken references, and incompatible versions block API export and
+application. A path is owned by one service, even if another service would add
+a different HTTP method; resolve this with a prefix or source edit. Sources
+must use the same OpenAPI 3.0 or 3.1 family and compatible JSON Schema dialect
+(the standard OAS 3.1 dialect or JSON Schema 2020-12; custom dialects are blocked).
+External references must first be bundled with the existing multi-file tool.
+Path-item references must be expanded explicitly; schema IDs, anchors,
+dynamic/recursive references, and implicit discriminator mappings require
+normalization before composition. This is not a complete OpenAPI validator;
+review the resulting contract and custom extensions before publishing.
+
+Search/paginate the routing inventory, inspect service-specific diagnostics,
+download JSON/YAML or a JSON routing report, and save/restore the complete
+composition project. Projects include original definitions, settings, and
+examples; imports and previews stay in memory and perform no network requests.
+Exports can contain private values from the source documents and URLs, so
+review them before sharing. Up to 8 services, 1 MiB per source, 1.5 MiB combined
+source text, 1,000 operation declarations, and 2 MiB per project/output are
+supported, with additional nesting/node limits and up to 200 visible diagnostics.
+Errors take priority in the diagnostic list. Failed imports preserve current
+work and multi-file additions are atomic.
+
+Applying a composition explicitly replaces the editor document after checking
+that it still matches the preview's starting document. Undo restores that
+document only if doing so would not overwrite later edits. The composer remains
+available when the editor is invalid, and collapsing it preserves its state.
 
 ## Migrating a Postman collection
 

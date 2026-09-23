@@ -21,6 +21,7 @@ import { OpenApiUpgradePanel } from "@/components/openapi-upgrade-panel";
 import { OpenApiBundlePanel } from "@/components/openapi-bundle-panel";
 import { TrafficDiscoveryPanel } from "@/components/traffic-discovery-panel";
 import { PostmanMigrationPanel } from "@/components/postman-migration-panel";
+import { ApiComposerPanel } from "@/components/api-composer-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1896,6 +1897,11 @@ export function SwaggerWorkspace({
           id: "workspace-tool-migration",
           label: "migration.title",
         },
+        {
+          group: "design",
+          id: "workspace-tool-composer",
+          label: "composer.title",
+        },
         { group: "design", id: "workspace-tool-bundle", label: "bundle.title" },
         {
           group: "design",
@@ -2101,6 +2107,11 @@ export function SwaggerWorkspace({
           group: "design",
           id: "workspace-tool-migration",
           label: "migration.title",
+        },
+        {
+          group: "design",
+          id: "workspace-tool-composer",
+          label: "composer.title",
         },
         { group: "design", id: "workspace-tool-bundle", label: "bundle.title" },
         {
@@ -2791,6 +2802,17 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <OpenApiBundlePanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyDocument}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-composer"
+          tabIndex={-1}
+        >
+          <ApiComposerPanel
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />

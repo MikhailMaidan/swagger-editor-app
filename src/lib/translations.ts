@@ -3,6 +3,124 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "composer.title": "API gateway composer",
+    "composer.description":
+      "Combine independent service definitions into one OpenAPI gateway contract with route prefixes, isolated components, security requirements, and a source routing inventory.",
+    "composer.help":
+      "This designs a contract; it does not deploy or configure a gateway. Primary routes use the gateway URL, so configure matching gateway routes before execution. Work stays in this tab until explicitly exported or applied. Projects contain original schemas, examples, and URLs; review them before sharing. Up to 8 services, 1 MiB per source, 1.5 MiB combined source text, and 2 MiB per project/output.",
+    "composer.files": "Add service definitions (JSON/YAML)",
+    "composer.projectFile":
+      "Restore composition project (replaces current project)",
+    "composer.loading": "Reading composition files…",
+    "composer.capture": "Add current editor as a service",
+    "composer.exportProject": "Download composition project",
+    "composer.pasteHeading": "Paste a service definition",
+    "composer.paste": "Service definition to add",
+    "composer.addPasted": "Add pasted service",
+    "composer.apiTitle": "Gateway API title",
+    "composer.version": "Gateway API version",
+    "composer.gateway": "Gateway server URL",
+    "composer.serviceCount": "Services: {count}/{max}",
+    "composer.enable": "Include {name} ({key})",
+    "composer.serviceEditor": "Service configuration",
+    "composer.name": "Service display name",
+    "composer.namespace": "Service namespace",
+    "composer.prefix": "Gateway route prefix",
+    "composer.namespaceHelp":
+      "Namespaces must be unique: lowercase letters, digits, or hyphens, starting with a letter (32 characters maximum). Prefixes are static paths such as /billing; leave blank for original paths. Services must use the same OpenAPI 3.0 or 3.1 family and JSON Schema dialect.",
+    "composer.moveUp": "Move service earlier",
+    "composer.moveDown": "Move service later",
+    "composer.remove": "Remove service from composition",
+    "composer.sourceHeading": "Edit this service definition",
+    "composer.source": "Selected service source",
+    "composer.saveSource": "Validate and use source edits",
+    "composer.revertSource": "Discard pending source edits",
+    "composer.dirty":
+      "Some service source edits are pending. Validate or discard them before composing or exporting. Switching services keeps those edits.",
+    "composer.generate": "Preview gateway composition",
+    "composer.result": "Gateway composition result",
+    "composer.summary":
+      "Composition · {services} services · {routes} routes · {components} components",
+    "composer.search": "Search composed routes",
+    "composer.route": "Gateway route and operation ID",
+    "composer.upstream": "Original service route and servers",
+    "composer.noServer": "No upstream server declared",
+    "composer.noRoutes": "No matching routes.",
+    "composer.previous": "Previous composed routes",
+    "composer.next": "Next composed routes",
+    "composer.page": "Page {page}/{total}",
+    "composer.diagnosticCount":
+      "Composition diagnostics: {count} (showing {shown})",
+    "composer.severity.error": "Error",
+    "composer.severity.warning": "Review",
+    "composer.inspect": "Inspect service",
+    "composer.blocked":
+      "Composition is incomplete. Fix the errors or exclude the affected services, then preview again. API export and application are disabled.",
+    "composer.exportInventory": "Download routing inventory and diagnostics",
+    "composer.format": "Composed API format",
+    "composer.preview": "Composed OpenAPI preview (first 12,000 characters)",
+    "composer.copy": "Copy composed OpenAPI",
+    "composer.download": "Download composed OpenAPI",
+    "composer.apply": "Apply composed API to editor",
+    "composer.applyHelp":
+      "Applying replaces the editor document and keeps an undo snapshot. If the editor changed since preview, preview again first. Undo stops if later editor edits would be overwritten.",
+    "composer.undo": "Undo composition application",
+    "composer.imported": "Composition sources imported.",
+    "composer.sourceSaved":
+      "Validated source edits are now part of the composition.",
+    "composer.copied": "Composed API copied.",
+    "composer.downloaded": "Composition download started.",
+    "composer.applied": "Composed API applied to the editor.",
+    "composer.undone": "Previous editor document restored.",
+    "composer.error.source":
+      "Use a valid OpenAPI 3.0 or 3.1 JSON/YAML document. Upgrade Swagger 2 with the existing upgrade tool first.",
+    "composer.error.limit":
+      "The composition exceeds its file, service count, operation count, or structure limits. Reduce the project size or complexity.",
+    "composer.error.project":
+      "The composition project or service settings are invalid. Current work has been preserved.",
+    "composer.error.settings":
+      "Enter a title, version, and absolute HTTP(S) gateway URL without credentials, query strings, fragments, or variables.",
+    "composer.error.empty": "Include at least one service in the composition.",
+    "composer.error.output":
+      "The composition cannot be exported. Resolve its diagnostics or reduce the output size/complexity (2 MiB maximum).",
+    "composer.error.read":
+      "The files could not be read. Current work has been preserved.",
+    "composer.error.copy":
+      "Clipboard access failed. Download the composed API instead.",
+    "composer.error.download":
+      "The download was blocked. Try copying the API or downloading again.",
+    "composer.error.stale":
+      "The editor changed since preview. Preview the composition again before applying.",
+    "composer.error.undo":
+      "The editor changed after application. Undo was stopped to preserve those edits.",
+    "composer.issue.settings":
+      "Correct this service's namespace or static route prefix. Prefix segments cannot be . or .., variables, queries, or fragments.",
+    "composer.issue.version":
+      "Services must use the same OpenAPI minor version family and declared JSON Schema dialect. Convert them to a common version first.",
+    "composer.issue.namespace":
+      "Another included service uses this namespace. Choose a unique namespace.",
+    "composer.issue.collision":
+      "This gateway path overlaps another path, including equivalent parameter templates. Change a service prefix or its source paths; no path is overwritten.",
+    "composer.issue.reference":
+      "A local reference is broken, points outside retained components/paths/webhooks, or targets metadata removed by gateway routing. Correct the reference before composing.",
+    "composer.issue.external":
+      "External or relative references cannot be safely relocated. Bundle the service's files first; no references are fetched automatically.",
+    "composer.issue.pathRef":
+      "Referenced path items require expansion before composition. Inline the path item so routing and inherited settings can be reviewed explicitly.",
+    "composer.issue.operationId":
+      "This operation ID is duplicated within the service. Give operations unique IDs before composing.",
+    "composer.issue.link":
+      "A response link does not resolve to a known operation in this service. Correct its operationId or local operationRef.",
+    "composer.issue.security":
+      "A security requirement is malformed or names a missing scheme. Define the scheme or correct the requirement.",
+    "composer.issue.schemaScope":
+      "Custom schema dialects, schema IDs, anchors, and dynamic/recursive references need manual normalization before namespacing; their resolution scope cannot be safely relocated.",
+    "composer.issue.discriminator":
+      "Implicit discriminator mappings can change when schemas are renamed. Provide explicit mappings for every discriminator value before composing.",
+    "composer.issue.extensions":
+      "Vendor extension values are retained as opaque data. Review embedded names, references, and gateway-specific settings manually. Root extensions are kept in service metadata.",
+    "composer.issue.shape":
+      "This path, operation, or component has an unsupported or invalid structure. Correct the source definition.",
     "migration.title": "Postman migration studio",
     "migration.description":
       "Turn a Postman Collection v2.1 into an OpenAPI 3.1 draft with folder tags, editable paths, request and response schemas, authentication definitions, and conversion diagnostics.",
@@ -3178,6 +3296,123 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "composer.title": "Компоновщик API-шлюза",
+    "composer.description":
+      "Объедините определения независимых сервисов в один контракт OpenAPI для шлюза с префиксами маршрутов, изолированными компонентами, требованиями авторизации и списком исходных маршрутов.",
+    "composer.help":
+      "Инструмент создаёт контракт, но не развёртывает и не настраивает шлюз. Основные маршруты используют URL шлюза: настройте соответствующую маршрутизацию перед выполнением запросов. Данные остаются в этой вкладке до явного экспорта или применения. Проекты содержат исходные схемы, примеры и URL — проверьте их перед передачей. До 8 сервисов, 1 МиБ на источник, 1,5 МиБ суммарно и 2 МиБ на проект/результат.",
+    "composer.files": "Добавить определения сервисов (JSON/YAML)",
+    "composer.projectFile": "Восстановить проект компоновки (заменяет текущий)",
+    "composer.loading": "Чтение файлов компоновки…",
+    "composer.capture": "Добавить документ редактора как сервис",
+    "composer.exportProject": "Скачать проект компоновки",
+    "composer.pasteHeading": "Вставить определение сервиса",
+    "composer.paste": "Добавляемое определение сервиса",
+    "composer.addPasted": "Добавить вставленный сервис",
+    "composer.apiTitle": "Название API шлюза",
+    "composer.version": "Версия API шлюза",
+    "composer.gateway": "URL сервера шлюза",
+    "composer.serviceCount": "Сервисов: {count}/{max}",
+    "composer.enable": "Включить {name} ({key})",
+    "composer.serviceEditor": "Настройки сервиса",
+    "composer.name": "Отображаемое имя сервиса",
+    "composer.namespace": "Пространство имён сервиса",
+    "composer.prefix": "Префикс маршрутов шлюза",
+    "composer.namespaceHelp":
+      "Пространства имён должны быть уникальными: строчные латинские буквы, цифры и дефисы, начиная с буквы (до 32 символов). Префикс — статический путь, например /billing; пустое значение сохраняет исходные пути. Сервисы должны использовать одну версию OpenAPI 3.0 или 3.1 и один диалект JSON Schema.",
+    "composer.moveUp": "Переместить сервис выше",
+    "composer.moveDown": "Переместить сервис ниже",
+    "composer.remove": "Удалить сервис из компоновки",
+    "composer.sourceHeading": "Редактировать определение сервиса",
+    "composer.source": "Исходный текст выбранного сервиса",
+    "composer.saveSource": "Проверить и использовать правки",
+    "composer.revertSource": "Отменить неподтверждённые правки",
+    "composer.dirty":
+      "Есть неподтверждённые правки исходных текстов. Проверьте или отмените их перед компоновкой и экспортом. Переключение сервисов сохраняет эти правки.",
+    "composer.generate": "Предпросмотр компоновки шлюза",
+    "composer.result": "Результат компоновки шлюза",
+    "composer.summary":
+      "Компоновка · сервисов: {services} · маршрутов: {routes} · компонентов: {components}",
+    "composer.search": "Поиск маршрутов компоновки",
+    "composer.route": "Маршрут шлюза и ID операции",
+    "composer.upstream": "Исходный маршрут и серверы сервиса",
+    "composer.noServer": "Исходный сервер не указан",
+    "composer.noRoutes": "Подходящих маршрутов нет.",
+    "composer.previous": "Предыдущие маршруты компоновки",
+    "composer.next": "Следующие маршруты компоновки",
+    "composer.page": "Страница {page}/{total}",
+    "composer.diagnosticCount":
+      "Замечаний компоновки: {count} (показано {shown})",
+    "composer.severity.error": "Ошибка",
+    "composer.severity.warning": "Проверить",
+    "composer.inspect": "Открыть сервис",
+    "composer.blocked":
+      "Компоновка неполна. Исправьте ошибки или исключите проблемные сервисы и повторите предпросмотр. Экспорт API и применение недоступны.",
+    "composer.exportInventory": "Скачать маршруты и диагностику",
+    "composer.format": "Формат составного API",
+    "composer.preview":
+      "Предпросмотр составного OpenAPI (первые 12 000 символов)",
+    "composer.copy": "Копировать составной OpenAPI",
+    "composer.download": "Скачать составной OpenAPI",
+    "composer.apply": "Применить составной API в редакторе",
+    "composer.applyHelp":
+      "Применение заменяет документ редактора и сохраняет снимок для отмены. Если редактор изменился после предпросмотра, повторите предпросмотр. Отмена остановится, если она перезапишет последующие правки.",
+    "composer.undo": "Отменить применение компоновки",
+    "composer.imported": "Источники компоновки импортированы.",
+    "composer.sourceSaved": "Проверенные правки включены в компоновку.",
+    "composer.copied": "Составной API скопирован.",
+    "composer.downloaded": "Скачивание компоновки начато.",
+    "composer.applied": "Составной API применён в редакторе.",
+    "composer.undone": "Предыдущий документ редактора восстановлен.",
+    "composer.error.source":
+      "Используйте корректный OpenAPI 3.0 или 3.1 в JSON/YAML. Swagger 2 сначала преобразуйте существующим инструментом обновления.",
+    "composer.error.limit":
+      "Превышен предел размера файлов, числа сервисов, операций или сложности структуры. Уменьшите проект.",
+    "composer.error.project":
+      "Проект компоновки или настройки сервиса некорректны. Текущие данные сохранены.",
+    "composer.error.settings":
+      "Введите название, версию и абсолютный HTTP(S)-URL шлюза без учётных данных, query, fragment и переменных.",
+    "composer.error.empty": "Включите хотя бы один сервис в компоновку.",
+    "composer.error.output":
+      "Не удалось экспортировать компоновку. Исправьте замечания или уменьшите размер/сложность результата (до 2 МиБ).",
+    "composer.error.read":
+      "Не удалось прочитать файлы. Текущие данные сохранены.",
+    "composer.error.copy":
+      "Нет доступа к буферу обмена. Скачайте составной API.",
+    "composer.error.download":
+      "Скачивание заблокировано. Попробуйте скопировать API или скачать снова.",
+    "composer.error.stale":
+      "Редактор изменился после предпросмотра. Повторите предпросмотр перед применением.",
+    "composer.error.undo":
+      "Редактор изменился после применения. Отмена остановлена для сохранения этих правок.",
+    "composer.issue.settings":
+      "Исправьте пространство имён или статический префикс сервиса. Сегменты префикса не могут быть . или .., переменными, query или fragment.",
+    "composer.issue.version":
+      "Сервисы должны использовать одну ветку версий OpenAPI и одинаковый объявленный диалект JSON Schema. Сначала приведите их к общей версии.",
+    "composer.issue.namespace":
+      "Это пространство имён уже занято другим включённым сервисом. Выберите уникальное.",
+    "composer.issue.collision":
+      "Путь шлюза совпадает с другим, в том числе с эквивалентным шаблоном параметров. Измените префикс сервиса или исходные пути; существующий путь не перезаписывается.",
+    "composer.issue.reference":
+      "Локальная ссылка повреждена, ведёт за пределы сохраняемых компонентов/путей/webhooks или к метаданным, удаляемым при маршрутизации через шлюз. Исправьте ссылку.",
+    "composer.issue.external":
+      "Внешние или относительные ссылки нельзя безопасно перенести. Сначала соберите файлы сервиса в единый документ; ссылки автоматически не загружаются.",
+    "composer.issue.pathRef":
+      "Ссылки на объекты путей нужно раскрыть перед компоновкой. Вставьте объект пути, чтобы проверить маршрутизацию и наследуемые настройки.",
+    "composer.issue.operationId":
+      "Этот ID операции повторяется в сервисе. Задайте уникальные ID перед компоновкой.",
+    "composer.issue.link":
+      "Ссылка ответа не указывает на известную операцию сервиса. Исправьте operationId или локальный operationRef.",
+    "composer.issue.security":
+      "Требование авторизации некорректно или ссылается на отсутствующую схему. Определите схему или исправьте требование.",
+    "composer.issue.schemaScope":
+      "Пользовательские диалекты, ID, якоря и динамические/рекурсивные ссылки схем требуют ручной нормализации перед сменой пространства имён: область их разрешения нельзя безопасно перенести.",
+    "composer.issue.discriminator":
+      "Неявные соответствия discriminator могут измениться при переименовании схем. Задайте явные соответствия для каждого значения перед компоновкой.",
+    "composer.issue.extensions":
+      "Значения расширений сохранены как непрозрачные данные. Проверьте встроенные имена, ссылки и настройки шлюза вручную. Корневые расширения сохранены в метаданных сервиса.",
+    "composer.issue.shape":
+      "Путь, операция или компонент имеет неподдерживаемую или некорректную структуру. Исправьте исходное определение.",
     "migration.title": "Студия миграции Postman",
     "migration.description":
       "Преобразуйте коллекцию Postman v2.1 в черновик OpenAPI 3.1 с тегами папок, редактируемыми путями, схемами запросов и ответов, определениями авторизации и диагностикой.",
