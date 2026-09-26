@@ -3,6 +3,106 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "sandbox.title": "Stateful API sandbox",
+    "sandbox.description":
+      "Build a local mock service whose records survive between requests. Rehearse create, read, update, and delete workflows with editable resources and endpoint bindings.",
+    "sandbox.help":
+      "Everything runs in this tab: no HTTP requests, server, authentication, or automatic storage. The editor is untouched. Start with the task example or bind your own endpoints. Projects and record downloads contain seed data; logs contain request paths. Review exports before sharing.",
+    "sandbox.import":
+      "Restore sandbox project (replaces configuration and running state)",
+    "sandbox.loading": "Reading sandbox project…",
+    "sandbox.configuration": "Service configuration",
+    "sandbox.name": "Sandbox name",
+    "sandbox.resources": "Seeded resources",
+    "sandbox.resource": "Resource to configure",
+    "sandbox.resourceKey": "Resource key",
+    "sandbox.addResource": "Add resource",
+    "sandbox.removeResource": "Remove resource and its routes",
+    "sandbox.idField": "Record ID field",
+    "sandbox.idType": "Record ID type",
+    "sandbox.number": "Integer",
+    "sandbox.string": "String",
+    "sandbox.seed": "Seed records (JSON array)",
+    "sandbox.seedHelp":
+      "Each record needs a unique ID within its resource. Creates without IDs generate increasing integers or sandbox-N strings. Up to 10 resources, 500 records per resource, 2,000 records total, and 512 KiB of state.",
+    "sandbox.routes": "Endpoint bindings",
+    "sandbox.capture": "Read endpoints from editor",
+    "sandbox.operation": "Endpoint for a new binding",
+    "sandbox.manual": "Enter a route manually",
+    "sandbox.route": "Binding to configure",
+    "sandbox.addRoute": "Add binding to selected resource",
+    "sandbox.removeRoute": "Remove binding",
+    "sandbox.routeMethod": "Binding HTTP method",
+    "sandbox.routePath": "Binding path template",
+    "sandbox.routeResource": "Binding resource",
+    "sandbox.action": "Resource action",
+    "sandbox.action.list": "List records",
+    "sandbox.action.read": "Read one record",
+    "sandbox.action.create": "Create record",
+    "sandbox.action.replace": "Replace record",
+    "sandbox.action.merge": "Update record fields",
+    "sandbox.action.delete": "Delete record",
+    "sandbox.idParameter": "ID path parameter (blank for list/create)",
+    "sandbox.scope": "Parent scope mapping (JSON object)",
+    "sandbox.routeHelp":
+      'Bind GET/HEAD to list/read, POST to create, PUT to replace, PATCH to field updates, and DELETE to delete. For /teams/{teamId}/tasks/{id}, map {"teamId":"teamId"} to scope records by that field. Account for every path parameter. Static routes take priority over overlapping parameter routes. Up to 100 bindings.',
+    "sandbox.dirty":
+      "Configuration has pending changes. Start/restart to apply them and reset records, or discard edits to continue the current run.",
+    "sandbox.start": "Validate and start/restart sandbox",
+    "sandbox.discard": "Discard configuration edits",
+    "sandbox.exportProject": "Download sandbox project",
+    "sandbox.console": "Local request console",
+    "sandbox.consoleHelp":
+      "Use a concrete local path, such as /tasks/1. List requests support exact scalar filters, repeated values as alternatives, and _offset/_limit (default 0/100, limit up to 500). PUT replaces fields; PATCH merges top-level fields and keeps null values. Responses use 200, 201 for creates, and 204 for deletes. This simulates resource behavior, not the complete OpenAPI contract.",
+    "sandbox.method": "Sandbox request method",
+    "sandbox.path": "Sandbox request path and query",
+    "sandbox.body": "Sandbox request JSON body",
+    "sandbox.send": "Send local request",
+    "sandbox.undo": "Undo last sandbox request",
+    "sandbox.reset": "Reset records to seeds",
+    "sandbox.response": "Sandbox response",
+    "sandbox.state": "Current resource state",
+    "sandbox.inspectResource": "Resource to inspect",
+    "sandbox.records": "Current records preview (first 16,000 characters)",
+    "sandbox.recordCount": "Records: {count}",
+    "sandbox.exportState": "Download all current records",
+    "sandbox.checkpoint": "Use current records as seeds and restart",
+    "sandbox.history": "Sandbox request log",
+    "sandbox.historyHelp":
+      "The last 20 requests retain undo snapshots. Undo removes the most recent request, including failed/read requests. Reset and restart clear the log. Logs exclude bodies and record values; paths can contain private IDs or query values.",
+    "sandbox.emptyHistory": "Send a request to begin a workflow.",
+    "sandbox.changed": "Records changed",
+    "sandbox.unchanged": "Records unchanged",
+    "sandbox.exportLog": "Download sandbox run log",
+    "sandbox.started": "Sandbox started from its seed records.",
+    "sandbox.resetDone": "Seed records restored and request log cleared.",
+    "sandbox.undone": "Last sandbox request undone.",
+    "sandbox.checkpointed":
+      "Current records saved as project seeds; the request log has been cleared.",
+    "sandbox.captured":
+      "Editor endpoint choices refreshed. Select an endpoint and add a binding; review its action and scope settings.",
+    "sandbox.imported": "Sandbox project restored and started from seeds.",
+    "sandbox.downloaded": "Sandbox download started.",
+    "sandbox.error.json":
+      "Use valid JSON within the size and nesting limits. Current running state is preserved.",
+    "sandbox.error.project":
+      "This is not a valid version 1 RSSwag stateful sandbox project.",
+    "sandbox.error.limit":
+      "The sandbox exceeds its file, record, route, or structure limits. Projects are limited to 1 MiB and request bodies to 64 KiB.",
+    "sandbox.error.resource":
+      "Resources need unique keys (lowercase letters, digits, hyphens; starting with a letter), an ID field/type, and a JSON array of records.",
+    "sandbox.error.identity":
+      "Every seed record needs a unique ID of the configured type: a safe integer or a nonempty string of at most 256 characters. String IDs cannot be dot segments or contain control characters.",
+    "sandbox.error.route":
+      "Check binding paths, methods, actions, resource choices, ID parameters, and scope mappings. Every path parameter must map to the ID or one distinct non-ID field.",
+    "sandbox.error.ambiguous":
+      "Two bindings for the same HTTP method overlap with equal specificity. Change or remove one before starting.",
+    "sandbox.error.source":
+      "Could not read endpoint choices. Use a valid OpenAPI document within the import limits.",
+    "sandbox.error.read":
+      "Could not read this sandbox project. Current work is preserved.",
+    "sandbox.error.download":
+      "The sandbox download could not start. Try again.",
     "composer.title": "API gateway composer",
     "composer.description":
       "Combine independent service definitions into one OpenAPI gateway contract with route prefixes, isolated components, security requirements, and a source routing inventory.",
@@ -3296,6 +3396,105 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "sandbox.title": "Песочница API с состоянием",
+    "sandbox.description":
+      "Создайте локальный макет сервиса, сохраняющий записи между запросами. Проверяйте создание, чтение, изменение и удаление с настраиваемыми ресурсами и привязками эндпоинтов.",
+    "sandbox.help":
+      "Всё работает в этой вкладке: без HTTP-запросов, сервера, авторизации и автоматического сохранения. Редактор не изменяется. Начните с примера задач или привяжите свои эндпоинты. Проекты и выгрузки записей содержат исходные данные, журналы — пути запросов. Проверяйте файлы перед передачей.",
+    "sandbox.import":
+      "Восстановить проект песочницы (заменяет настройки и текущее состояние)",
+    "sandbox.loading": "Чтение проекта песочницы…",
+    "sandbox.configuration": "Настройки сервиса",
+    "sandbox.name": "Название песочницы",
+    "sandbox.resources": "Ресурсы с начальными данными",
+    "sandbox.resource": "Настраиваемый ресурс",
+    "sandbox.resourceKey": "Ключ ресурса",
+    "sandbox.addResource": "Добавить ресурс",
+    "sandbox.removeResource": "Удалить ресурс и его маршруты",
+    "sandbox.idField": "Поле идентификатора записи",
+    "sandbox.idType": "Тип идентификатора записи",
+    "sandbox.number": "Целое число",
+    "sandbox.string": "Строка",
+    "sandbox.seed": "Начальные записи (массив JSON)",
+    "sandbox.seedHelp":
+      "У каждой записи должен быть уникальный ID в пределах ресурса. При создании без ID генерируются возрастающие числа или строки sandbox-N. До 10 ресурсов, 500 записей на ресурс, 2000 записей всего и 512 КиБ состояния.",
+    "sandbox.routes": "Привязки эндпоинтов",
+    "sandbox.capture": "Прочитать эндпоинты из редактора",
+    "sandbox.operation": "Эндпоинт для новой привязки",
+    "sandbox.manual": "Ввести маршрут вручную",
+    "sandbox.route": "Настраиваемая привязка",
+    "sandbox.addRoute": "Добавить привязку к выбранному ресурсу",
+    "sandbox.removeRoute": "Удалить привязку",
+    "sandbox.routeMethod": "HTTP-метод привязки",
+    "sandbox.routePath": "Шаблон пути привязки",
+    "sandbox.routeResource": "Ресурс привязки",
+    "sandbox.action": "Действие с ресурсом",
+    "sandbox.action.list": "Список записей",
+    "sandbox.action.read": "Прочитать запись",
+    "sandbox.action.create": "Создать запись",
+    "sandbox.action.replace": "Заменить запись",
+    "sandbox.action.merge": "Изменить поля записи",
+    "sandbox.action.delete": "Удалить запись",
+    "sandbox.idParameter": "Параметр ID в пути (пустой для списка/создания)",
+    "sandbox.scope": "Сопоставление родительских параметров (объект JSON)",
+    "sandbox.routeHelp":
+      'GET/HEAD — список или чтение, POST — создание, PUT — замена, PATCH — изменение полей, DELETE — удаление. Для /teams/{teamId}/tasks/{id} задайте {"teamId":"teamId"}, чтобы ограничить записи этим полем. Учитывайте каждый параметр пути. Статические маршруты приоритетнее пересекающихся параметризованных. До 100 привязок.',
+    "sandbox.dirty":
+      "Есть изменения настроек. Запустите/перезапустите песочницу, чтобы применить их и сбросить записи, или отмените правки для продолжения текущего сеанса.",
+    "sandbox.start": "Проверить и запустить/перезапустить песочницу",
+    "sandbox.discard": "Отменить изменения настроек",
+    "sandbox.exportProject": "Скачать проект песочницы",
+    "sandbox.console": "Консоль локальных запросов",
+    "sandbox.consoleHelp":
+      "Используйте конкретный локальный путь, например /tasks/1. Для списков доступны точные фильтры скалярных полей, повторные значения как альтернативы и _offset/_limit (по умолчанию 0/100, лимит до 500). PUT заменяет поля; PATCH объединяет поля верхнего уровня, сохраняя null. Ответы: 200, 201 при создании, 204 при удалении. Это модель поведения ресурсов, а не всего контракта OpenAPI.",
+    "sandbox.method": "Метод запроса песочницы",
+    "sandbox.path": "Путь и параметры запроса песочницы",
+    "sandbox.body": "Тело запроса песочницы в JSON",
+    "sandbox.send": "Отправить локальный запрос",
+    "sandbox.undo": "Отменить последний запрос песочницы",
+    "sandbox.reset": "Восстановить начальные записи",
+    "sandbox.response": "Ответ песочницы",
+    "sandbox.state": "Текущее состояние ресурсов",
+    "sandbox.inspectResource": "Ресурс для просмотра",
+    "sandbox.records": "Предпросмотр записей (первые 16 000 символов)",
+    "sandbox.recordCount": "Записей: {count}",
+    "sandbox.exportState": "Скачать все текущие записи",
+    "sandbox.checkpoint": "Сделать текущие записи начальными и перезапустить",
+    "sandbox.history": "Журнал запросов песочницы",
+    "sandbox.historyHelp":
+      "Снимки для отмены хранятся для последних 20 запросов. Отмена удаляет последний запрос, включая чтение и ошибки. Сброс и перезапуск очищают журнал. Тела и значения записей не экспортируются в журнал, но пути могут содержать частные ID или параметры.",
+    "sandbox.emptyHistory": "Отправьте запрос, чтобы начать сценарий.",
+    "sandbox.changed": "Записи изменены",
+    "sandbox.unchanged": "Записи не изменены",
+    "sandbox.exportLog": "Скачать журнал песочницы",
+    "sandbox.started": "Песочница запущена с начальными записями.",
+    "sandbox.resetDone": "Начальные записи восстановлены, журнал очищен.",
+    "sandbox.undone": "Последний запрос песочницы отменён.",
+    "sandbox.checkpointed":
+      "Текущие записи сохранены как начальные; журнал очищен.",
+    "sandbox.captured":
+      "Список эндпоинтов обновлён. Выберите эндпоинт, добавьте привязку и проверьте действие и родительские параметры.",
+    "sandbox.imported": "Проект восстановлен и запущен с начальными записями.",
+    "sandbox.downloaded": "Загрузка файла песочницы началась.",
+    "sandbox.error.json":
+      "Используйте корректный JSON в пределах ограничений размера и вложенности. Текущее состояние сохранено.",
+    "sandbox.error.project": "Это не проект песочницы RSSwag версии 1.",
+    "sandbox.error.limit":
+      "Превышен лимит файлов, записей, маршрутов или структуры. Проекты ограничены 1 МиБ, тела запросов — 64 КиБ.",
+    "sandbox.error.resource":
+      "Ресурсам нужны уникальные ключи (строчные латинские буквы, цифры, дефисы; первая — буква), поле и тип ID, а также массив записей JSON.",
+    "sandbox.error.identity":
+      "Каждой начальной записи нужен уникальный ID заданного типа: безопасное целое число или непустая строка до 256 символов. Строковый ID не может быть точечным сегментом или содержать управляющие символы.",
+    "sandbox.error.route":
+      "Проверьте пути, методы, действия, ресурсы, параметры ID и родительские поля. Каждый параметр пути должен соответствовать ID или отдельному полю, отличному от ID.",
+    "sandbox.error.ambiguous":
+      "Две привязки одного HTTP-метода пересекаются с одинаковым приоритетом. Измените или удалите одну перед запуском.",
+    "sandbox.error.source":
+      "Не удалось прочитать эндпоинты. Используйте корректный документ OpenAPI в пределах ограничений импорта.",
+    "sandbox.error.read":
+      "Не удалось прочитать проект песочницы. Текущая работа сохранена.",
+    "sandbox.error.download":
+      "Не удалось начать загрузку файла песочницы. Повторите попытку.",
     "composer.title": "Компоновщик API-шлюза",
     "composer.description":
       "Объедините определения независимых сервисов в один контракт OpenAPI для шлюза с префиксами маршрутов, изолированными компонентами, требованиями авторизации и списком исходных маршрутов.",

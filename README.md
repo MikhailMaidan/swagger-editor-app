@@ -36,6 +36,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Environment comparison runner with reusable GET/HEAD plans, paired baseline/candidate requests, isolated session headers, structural response and contract comparisons, latency checks, offline rehearsals, cancellation, and reports without response values
 - API fixture studio with seeded test-data generation, linked datasets, sequence and constant field overrides, schema diagnostics, reusable recipes, and JSON/NDJSON/CSV exports
 - API performance lab with bounded concurrent GET/HEAD workloads, warm-up phases, weighted traffic, launch-rate limits, Mock rehearsals, latency percentiles, performance budgets, baseline comparisons, cancellation, and portable JSON/CSV reports
+- Stateful API sandbox with seeded resources, configurable CRUD endpoint bindings, parent-scoped routes, deterministic IDs, filtered/paginated lists, local request execution, state inspection, undo/reset, reusable projects, and record/run-log exports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -98,6 +99,78 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Rehearsing stateful API workflows
+
+Open **Testing → Stateful API sandbox** to model a service whose records change
+between requests. The sandbox runs entirely in the tab, with no network requests,
+server process, authentication, or automatic storage. It does not alter the
+editor, existing Mock mode, or other request runners.
+
+1. Use the included task service or add resources with a unique key, an ID field,
+   an integer/string ID type, and a JSON array of seed records. Every seed needs
+   a unique ID within its resource. Resource renames update their bindings.
+2. Configure endpoint bindings manually, or **Read endpoints from editor** and
+   add selected operations to a resource. Imported choices capture method/path
+   only; review the action, ID parameter, and parent scope yourself. Bindings
+   remain available if the editor changes or becomes invalid.
+3. **Validate and start/restart sandbox** validates the entire configuration
+   before replacing the running state. Unsaved settings disable execution and
+   exports; discard them to continue the previous run. Failed validation/import
+   preserves the running state. Restart/reset clears the request log.
+4. Send concrete local requests: `POST /tasks` with `{"title":"Ship release"}`
+   creates ID 2, `PATCH /tasks/2` with `{"done":true}` updates it, and
+   `GET /tasks/2` reads the updated record. Inspect the response and resource
+   state, undo requests, or reset to the original seeds.
+5. Download the reusable project (configuration and seeds), all current records,
+   or the last 20 request log entries. **Use current records as seeds and restart**
+   makes a new starting point for future runs and project exports. Restore a
+   project to replace the configuration and start from its seeds.
+
+GET/HEAD bindings list or read records; POST creates (201), PUT replaces (200),
+PATCH updates top-level fields (200), and DELETE removes (204). HEAD returns no
+body. PATCH replaces nested values as whole fields and retains nulls; it is not
+JSON Merge Patch. PUT retains identity and parent fields while replacing other
+fields. IDs cannot be changed. Creates can provide an ID or generate increasing
+integers / `sandbox-N` strings. Generated IDs are deterministic and are not
+reused after deletion during a run. Conflicts, malformed bodies, unknown routes,
+and capacity failures leave records and ID counters unchanged.
+String IDs are limited to 256 characters and cannot be `.`/`..` or contain
+control characters, so they remain addressable through concrete paths.
+
+List routes support exact scalar query filters, repeated values as alternatives
+within a field, and AND across fields. `_offset` and `_limit` are reserved for
+pagination (defaults 0/100; maximum limit 500); response headers include total
+matching records and pagination settings. Missing/null/object/array fields do
+not match scalar filters. Lists preserve insertion order.
+
+For a nested route such as `/teams/{teamId}/tasks/{id}`, use ID parameter `id`
+and parent scope `{"teamId":"team"}`. Requests only see records with a scalar
+`team` field matching that path value. Creates inject absent parent fields as
+strings; existing numeric/boolean fields can match their string representations.
+Conflicting body scopes are rejected. Every template parameter must map to the
+ID or a distinct parent field. IDs remain unique across the whole resource,
+including different parents. Parent existence and cascading deletes are not
+enforced. Static segments take priority over less specific parameter bindings;
+equally specific overlapping routes for the same method block startup.
+
+This tool models CRUD behavior, not full OpenAPI validation, custom business
+logic, response wrappers, or a listening HTTP server. Paths use complete static
+or `{parameter}` segments; trailing slashes, dot segments, and percent-encoded
+binding templates are rejected. Concrete request IDs may be percent-encoded.
+It does not enforce API security or request/response schemas. Keep using the
+existing contract checks, scenario runner, and mock-server export for those
+workflows.
+
+Limits: 10 resources, 100 bindings, 500 records per resource, 2,000 records total,
+512 KiB of compact state, 64 KiB request bodies, 1 MiB project/export files, and
+the shared JSON nesting/node limits. The last 20 requests retain undo snapshots,
+including reads and failures; undo removes the latest entry. Previews show the
+first 16,000 characters; downloads retain complete data within export limits.
+Collapsing the panel preserves state, but closing/reloading the tab does not.
+Projects and record exports contain data values. Logs omit bodies and record
+values but include request paths, which may contain private IDs/query values.
+Review exported files before sharing.
 
 ## Composing an API gateway contract
 
