@@ -3,6 +3,144 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "redaction.title": "Data redaction studio",
+    "redaction.description":
+      "Prepare API artifacts for sharing with scoped credential masking, optional personal-data pseudonyms, custom pointer rules, and consistent replacements across multiple files.",
+    "redaction.help":
+      "Processing stays in this tab, with no requests or automatic storage. Automatic OpenAPI rules target examples, not schema constraints or names; HAR rules target headers, cookies, queries, URLs, and JSON bodies. Detection is based on known field names and does not guarantee every private value is removed. Projects contain original data; rule sets omit source files. Review redacted outputs before sharing.",
+    "redaction.import.sources": "Add artifacts (OpenAPI, HAR, JSON)",
+    "redaction.import.project":
+      "Restore redaction project (replaces current work)",
+    "redaction.import.rules":
+      "Import rule set (replaces rules/options, keeps sources)",
+    "redaction.loading": "Reading redaction files…",
+    "redaction.inputs": "Artifacts and project",
+    "redaction.name": "Redaction project name",
+    "redaction.capture": "Add current editor for redaction",
+    "redaction.exportProject": "Download project with original inputs",
+    "redaction.exportRules": "Download reusable rule set",
+    "redaction.undo": "Undo redacted API application",
+    "redaction.pasteHeading": "Paste an artifact",
+    "redaction.pasteKind": "Pasted artifact type",
+    "redaction.kind.auto": "Detect type automatically",
+    "redaction.kind.openapi": "OpenAPI 3.0/3.1",
+    "redaction.kind.har": "HAR capture",
+    "redaction.kind.json": "JSON data",
+    "redaction.paste": "Artifact text to add",
+    "redaction.addPasted": "Add pasted artifact",
+    "redaction.source": "Artifact to inspect",
+    "redaction.sourceHeading": "Edit original artifact inside this project",
+    "redaction.sourceName": "Artifact display name",
+    "redaction.sourceText": "Selected original artifact",
+    "redaction.saveSource": "Validate and save artifact edits",
+    "redaction.discardSource": "Discard artifact edits",
+    "redaction.removeSource": "Remove artifact from project",
+    "redaction.automatic": "Automatic redaction",
+    "redaction.option.secrets":
+      "Mask known credential fields and URL credentials",
+    "redaction.option.personal": "Include common personal-data fields",
+    "redaction.option.dropOpaqueBodies": "Remove opaque HAR body text",
+    "redaction.strategy": "Automatic replacement strategy",
+    "redaction.action.mask": "Mask values",
+    "redaction.action.pseudonymize": "Use consistent pseudonyms",
+    "redaction.action.remove": "Remove field or array item",
+    "redaction.action.replace": "Replace with custom JSON",
+    "redaction.automaticHelp":
+      "Masking preserves JSON types, keys, and container shape: strings become [redacted], numbers 0, and booleans false. Pseudonyms are repeatable aliases within a preview and are not encryption or irreversible anonymization. They may violate formats, enums, or example constraints. Common personal fields include email, phone, name, address, IP, and user/customer/account IDs. Arbitrary text, binary bodies, extensions, schema constraints, and metadata need review.",
+    "redaction.rules": "Ordered custom rules",
+    "redaction.ruleDefault": "Custom rule",
+    "redaction.addRule": "Add custom redaction rule",
+    "redaction.rule": "Rule to configure",
+    "redaction.ruleName": "Rule name",
+    "redaction.enableRule": "Enable rule",
+    "redaction.selector": "Rule pointer pattern",
+    "redaction.ruleAction": "Rule action",
+    "redaction.replacement": "Custom replacement (JSON value)",
+    "redaction.saveReplacement": "Validate and save replacement",
+    "redaction.discardReplacement": "Discard replacement edits",
+    "redaction.moveUp": "Move rule earlier",
+    "redaction.moveDown": "Move rule later",
+    "redaction.removeRule": "Remove rule",
+    "redaction.ruleHelp":
+      "Use JSON Pointer escapes (~1 for slash, ~0 for tilde), * for one segment, and ** for any depth; /**/privateNote matches that field anywhere. HAR JSON bodies use virtual paths ending in /text/$json/field. The first matching rule at a node wins. Parent replacements/removals stop child rules and automatic detection there. Custom rules can target structural fields; deleting essential OpenAPI fields blocks API export/application.",
+    "redaction.dirty":
+      "Artifact or replacement edits are pending. Validate or discard them before previewing or exporting. Switching selections keeps drafts.",
+    "redaction.generate": "Preview redacted artifacts",
+    "redaction.result": "Redaction preview and audit",
+    "redaction.summary":
+      "Files: {files} · changed targets: {changes} · review items: {diagnostics}",
+    "redaction.reviewHelp":
+      "Preview shows outputs only. Original values are excluded from audit reports, but names and pointers may still contain private information. A clean diagnostic list is not a completeness guarantee. Use the existing example checks to review transformed examples. Applying an OpenAPI output replaces the editor explicitly and checks for intervening edits.",
+    "redaction.exportReport": "Download redaction audit report",
+    "redaction.exportBundle": "Download bundle of redacted outputs",
+    "redaction.output": "Redacted output: {name} · changes: {count}",
+    "redaction.preview": "Redacted output preview (first 16,000 characters)",
+    "redaction.exportFile": "Download selected redacted artifact",
+    "redaction.apply": "Apply selected redacted API to editor",
+    "redaction.search": "Search redaction findings",
+    "redaction.findingCount":
+      "Changed targets: {total} · retained findings: {shown} · visible review items: {diagnostics}",
+    "redaction.findings": "Redaction findings",
+    "redaction.noMatches": "No matching redaction findings.",
+    "redaction.previous": "Previous redaction findings",
+    "redaction.next": "Next redaction findings",
+    "redaction.page": "Page {page}/{total}",
+    "redaction.category.credential": "Credentials",
+    "redaction.category.email": "Email",
+    "redaction.category.phone": "Phone",
+    "redaction.category.name": "Name",
+    "redaction.category.address": "Address",
+    "redaction.category.ip": "IP address",
+    "redaction.category.identifier": "Identifier",
+    "redaction.category.custom": "Custom rule/body removal",
+    "redaction.diagnostic.extension":
+      "Opaque extension retained; inspect or target it with a custom rule.",
+    "redaction.diagnostic.constraint-values":
+      "Potentially sensitive schema constraint values retained to preserve the contract.",
+    "redaction.diagnostic.external-example":
+      "Referenced/external example not expanded; inspect its source separately.",
+    "redaction.diagnostic.opaque-body":
+      "Opaque, encoded, oversized, or non-JSON body text requires review (or explicit omission).",
+    "redaction.diagnostic.url-unparsed":
+      "URL could not be analyzed; its original value was retained.",
+    "redaction.diagnostic.url-template":
+      "Templated URL retained; use a custom replacement if needed.",
+    "redaction.diagnostic.invalid-openapi":
+      "The custom rules removed required API structure. API export and application are blocked.",
+    "redaction.diagnostic.custom-structure":
+      "A custom rule targets API structure or metadata. Review contract validity beyond the basic parser check.",
+    "redaction.diagnostic.external-reference":
+      "External reference URL retained to preserve reference semantics; inspect it separately.",
+    "redaction.imported": "Redaction artifacts added.",
+    "redaction.rulesImported": "Rule set imported; current artifacts retained.",
+    "redaction.projectImported": "Redaction project restored.",
+    "redaction.sourceSaved": "Artifact edits validated and saved.",
+    "redaction.replacementSaved": "Custom replacement validated and saved.",
+    "redaction.generated":
+      "Redacted previews generated. Review outputs and diagnostics before sharing.",
+    "redaction.downloaded": "Redaction download started.",
+    "redaction.applied": "Redacted API applied to the editor.",
+    "redaction.undone": "Previous editor document restored.",
+    "redaction.error.json":
+      "Use valid JSON within the structure and size limits. Existing work is preserved.",
+    "redaction.error.source":
+      "Use valid JSON data, a HAR log with an entries array, or OpenAPI 3.0/3.1 JSON/YAML. Upgrade Swagger 2 with the existing tool first.",
+    "redaction.error.project":
+      "Use a valid version 1 RSSwag redaction project or rule set with unique keys and valid options.",
+    "redaction.error.rule":
+      "Check rule names, unique keys, pointer escapes, actions, and required custom replacements.",
+    "redaction.error.limit":
+      "Redaction exceeds its count, byte, nesting, pointer, or processing limits. Reduce the project size or rule complexity.",
+    "redaction.error.root":
+      "A rule would remove an entire document. Target a field or use a replacement instead.",
+    "redaction.error.read":
+      "Could not read these redaction files. Existing work is preserved.",
+    "redaction.error.download":
+      "The redaction download could not start. Try again.",
+    "redaction.error.changed":
+      "The editor changed since preview. Preview again before applying.",
+    "redaction.error.undo":
+      "The editor changed after application. Undo stopped to preserve those edits.",
     "consumer.title": "Consumer compatibility workbench",
     "consumer.description":
       "Record what each API client depends on, then check a candidate definition for changes that affect those consumers. Track response fields, request examples, and public-access requirements across reusable profiles.",
@@ -3531,6 +3669,145 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "redaction.title": "Студия обезличивания данных",
+    "redaction.description":
+      "Подготовьте материалы API к передаче: скрывайте учётные данные, заменяйте личные данные псевдонимами и применяйте правила указателей с согласованными заменами в нескольких файлах.",
+    "redaction.help":
+      "Обработка выполняется во вкладке без запросов и автоматического хранения. Правила OpenAPI обрабатывают примеры, а не ограничения или имена схем; HAR — заголовки, cookies, параметры, URL и тела JSON. Поиск основан на известных именах полей и не гарантирует удаления всех частных значений. Проекты содержат исходные данные; наборы правил не включают исходные файлы. Проверяйте результаты перед передачей.",
+    "redaction.import.sources": "Добавить материалы (OpenAPI, HAR, JSON)",
+    "redaction.import.project": "Восстановить проект (заменяет текущую работу)",
+    "redaction.import.rules":
+      "Импортировать правила (заменяет правила/настройки, сохраняет материалы)",
+    "redaction.loading": "Чтение файлов обработки…",
+    "redaction.inputs": "Материалы и проект",
+    "redaction.name": "Название проекта обработки",
+    "redaction.capture": "Добавить редактор для обработки",
+    "redaction.exportProject": "Скачать проект с исходными данными",
+    "redaction.exportRules": "Скачать набор правил",
+    "redaction.undo": "Отменить применение обработанного API",
+    "redaction.pasteHeading": "Вставить материал",
+    "redaction.pasteKind": "Тип вставляемого материала",
+    "redaction.kind.auto": "Определить автоматически",
+    "redaction.kind.openapi": "OpenAPI 3.0/3.1",
+    "redaction.kind.har": "Запись HAR",
+    "redaction.kind.json": "Данные JSON",
+    "redaction.paste": "Текст добавляемого материала",
+    "redaction.addPasted": "Добавить вставленный материал",
+    "redaction.source": "Материал для просмотра",
+    "redaction.sourceHeading": "Изменить исходный материал в проекте",
+    "redaction.sourceName": "Название материала",
+    "redaction.sourceText": "Выбранный исходный материал",
+    "redaction.saveSource": "Проверить и сохранить правки материала",
+    "redaction.discardSource": "Отменить правки материала",
+    "redaction.removeSource": "Удалить материал из проекта",
+    "redaction.automatic": "Автоматическая обработка",
+    "redaction.option.secrets":
+      "Скрывать известные поля учётных данных и секреты в URL",
+    "redaction.option.personal":
+      "Обрабатывать распространённые поля личных данных",
+    "redaction.option.dropOpaqueBodies": "Удалять непрозрачные тела HAR",
+    "redaction.strategy": "Способ автоматической замены",
+    "redaction.action.mask": "Скрыть значения",
+    "redaction.action.pseudonymize": "Использовать согласованные псевдонимы",
+    "redaction.action.remove": "Удалить поле или элемент массива",
+    "redaction.action.replace": "Заменить заданным JSON",
+    "redaction.automaticHelp":
+      "Скрытие сохраняет типы JSON, ключи и форму контейнеров: строки становятся [redacted], числа — 0, логические значения — false. Псевдонимы повторяются в пределах предпросмотра; это не шифрование и не необратимое обезличивание. Замены могут нарушать форматы, enum или ограничения примеров. Обрабатываются распространённые поля email, телефона, имени, адреса, IP и ID пользователей/клиентов/аккаунтов. Произвольный текст, бинарные тела, расширения, ограничения схем и метаданные требуют проверки.",
+    "redaction.rules": "Упорядоченные правила",
+    "redaction.ruleDefault": "Своё правило",
+    "redaction.addRule": "Добавить правило обработки",
+    "redaction.rule": "Настраиваемое правило",
+    "redaction.ruleName": "Название правила",
+    "redaction.enableRule": "Включить правило",
+    "redaction.selector": "Шаблон указателя правила",
+    "redaction.ruleAction": "Действие правила",
+    "redaction.replacement": "Значение замены (JSON)",
+    "redaction.saveReplacement": "Проверить и сохранить замену",
+    "redaction.discardReplacement": "Отменить правки замены",
+    "redaction.moveUp": "Переместить правило раньше",
+    "redaction.moveDown": "Переместить правило позже",
+    "redaction.removeRule": "Удалить правило",
+    "redaction.ruleHelp":
+      "Экранирование JSON Pointer: ~1 для /, ~0 для ~; * — один сегмент, ** — любая глубина. /**/privateNote находит поле везде. Для тел JSON в HAR используйте виртуальные пути /text/$json/поле. На узле применяется первое подходящее правило. Замена/удаление родителя прекращает правила и поиск внутри него. Правила могут затрагивать структуру; удаление обязательных полей OpenAPI блокирует экспорт/применение.",
+    "redaction.dirty":
+      "Есть несохранённые правки материалов или замен. Проверьте или отмените их перед предпросмотром/экспортом. При смене выбора черновики сохраняются.",
+    "redaction.generate": "Предпросмотр обработанных материалов",
+    "redaction.result": "Результат обработки и аудит",
+    "redaction.summary":
+      "Файлов: {files} · изменённых целей: {changes} · замечаний: {diagnostics}",
+    "redaction.reviewHelp":
+      "Предпросмотр показывает только результат. Исходные значения не включаются в отчёт, но названия и указатели могут содержать частную информацию. Отсутствие замечаний не гарантирует полноту обработки. Проверьте изменённые примеры имеющимися инструментами. Применение OpenAPI явно заменяет редактор с проверкой промежуточных правок.",
+    "redaction.exportReport": "Скачать отчёт обработки",
+    "redaction.exportBundle": "Скачать набор обработанных файлов",
+    "redaction.output": "Обработанный материал: {name} · изменений: {count}",
+    "redaction.preview": "Предпросмотр результата (первые 16 000 символов)",
+    "redaction.exportFile": "Скачать выбранный обработанный материал",
+    "redaction.apply": "Применить выбранный обработанный API к редактору",
+    "redaction.search": "Поиск результатов обработки",
+    "redaction.findingCount":
+      "Изменённых целей: {total} · сохранённых записей: {shown} · видимых замечаний: {diagnostics}",
+    "redaction.findings": "Записи обработки",
+    "redaction.noMatches": "Нет подходящих записей обработки.",
+    "redaction.previous": "Предыдущие записи обработки",
+    "redaction.next": "Следующие записи обработки",
+    "redaction.page": "Страница {page}/{total}",
+    "redaction.category.credential": "Учётные данные",
+    "redaction.category.email": "Email",
+    "redaction.category.phone": "Телефон",
+    "redaction.category.name": "Имя",
+    "redaction.category.address": "Адрес",
+    "redaction.category.ip": "IP-адрес",
+    "redaction.category.identifier": "Идентификатор",
+    "redaction.category.custom": "Своё правило/удаление тела",
+    "redaction.diagnostic.extension":
+      "Непрозрачное расширение сохранено; проверьте или задайте своё правило.",
+    "redaction.diagnostic.constraint-values":
+      "Возможно частные значения ограничений сохранены для сохранения контракта.",
+    "redaction.diagnostic.external-example":
+      "Ссылка/внешний пример не раскрыт; проверьте источник отдельно.",
+    "redaction.diagnostic.opaque-body":
+      "Непрозрачное, закодированное, крупное или не-JSON тело требует проверки либо явного удаления.",
+    "redaction.diagnostic.url-unparsed":
+      "URL не удалось разобрать; исходное значение сохранено.",
+    "redaction.diagnostic.url-template":
+      "Шаблонный URL сохранён; при необходимости задайте замену.",
+    "redaction.diagnostic.invalid-openapi":
+      "Правила удалили обязательную структуру API. Экспорт и применение заблокированы.",
+    "redaction.diagnostic.custom-structure":
+      "Правило затрагивает структуру или метаданные API. Проверьте контракт дополнительно к базовой проверке парсера.",
+    "redaction.diagnostic.external-reference":
+      "URL внешней ссылки сохранён для сохранения её смысла; проверьте его отдельно.",
+    "redaction.imported": "Материалы добавлены для обработки.",
+    "redaction.rulesImported":
+      "Правила импортированы; текущие материалы сохранены.",
+    "redaction.projectImported": "Проект обработки восстановлен.",
+    "redaction.sourceSaved": "Правки материала проверены и сохранены.",
+    "redaction.replacementSaved": "Значение замены проверено и сохранено.",
+    "redaction.generated":
+      "Предпросмотр сформирован. Проверьте результат и замечания перед передачей.",
+    "redaction.downloaded": "Загрузка файла обработки началась.",
+    "redaction.applied": "Обработанный API применён к редактору.",
+    "redaction.undone": "Предыдущий документ редактора восстановлен.",
+    "redaction.error.json":
+      "Используйте корректный JSON в пределах ограничений структуры и размера. Текущая работа сохранена.",
+    "redaction.error.source":
+      "Используйте корректный JSON, HAR с массивом entries или OpenAPI 3.0/3.1 в JSON/YAML. Сначала преобразуйте Swagger 2 имеющимся инструментом.",
+    "redaction.error.project":
+      "Используйте проект или набор правил RSSwag версии 1 с уникальными ключами и корректными настройками.",
+    "redaction.error.rule":
+      "Проверьте названия правил, уникальные ключи, экранирование указателей, действия и заданные замены.",
+    "redaction.error.limit":
+      "Превышены ограничения количества, размера, вложенности, указателей или обработки. Уменьшите проект или сложность правил.",
+    "redaction.error.root":
+      "Правило удаляет весь документ. Выберите поле или используйте замену.",
+    "redaction.error.read":
+      "Не удалось прочитать файлы обработки. Текущая работа сохранена.",
+    "redaction.error.download":
+      "Не удалось начать загрузку файла обработки. Повторите попытку.",
+    "redaction.error.changed":
+      "Редактор изменился после предпросмотра. Сформируйте результат заново перед применением.",
+    "redaction.error.undo":
+      "После применения редактор изменился. Отмена остановлена для сохранения этих правок.",
     "consumer.title": "Проверка совместимости потребителей API",
     "consumer.description":
       "Зафиксируйте зависимости каждого клиента API и проверяйте новые определения на изменения, влияющие на этих потребителей. Сохраняйте поля ответов, примеры запросов и требования публичного доступа в профилях.",

@@ -38,6 +38,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API performance lab with bounded concurrent GET/HEAD workloads, warm-up phases, weighted traffic, launch-rate limits, Mock rehearsals, latency percentiles, performance budgets, baseline comparisons, cancellation, and portable JSON/CSV reports
 - Stateful API sandbox with seeded resources, configurable CRUD endpoint bindings, parent-scoped routes, deterministic IDs, filtered/paginated lists, local request execution, state inspection, undo/reset, reusable projects, and record/run-log exports
 - Consumer compatibility workbench with reusable client profiles, selected response-field dependencies, typed request examples, public-access requirements, candidate OpenAPI checks, consumer-specific impact summaries, and JSON/Markdown release reports
+- Data redaction studio for OpenAPI examples, HAR captures, and JSON artifacts with scoped credential masking, optional consistent personal-data pseudonyms, ordered pointer rules, editable inputs, source-free rule sets, reusable projects, redacted bundles, value-free audit reports, and reversible editor application
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -100,6 +101,99 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Redacting API artifacts before sharing
+
+Open **Quality → Data redaction studio** to prepare OpenAPI definitions, HAR
+captures, and JSON fixtures for sharing. Add files, paste an artifact, or capture
+the current editor. Several inputs can be processed together so repeated values
+receive consistent pseudonyms in a single preview. Work remains in the tab;
+no requests run and no data saves automatically.
+
+1. Select credential masking (enabled by default) and optionally common personal
+   fields: email, phone, name, address, IP, and user/customer/account IDs. Choose
+   **Mask values** or **Use consistent pseudonyms**. Masking preserves JSON types,
+   keys, and container shape: strings become `[redacted]`, numbers `0`, booleans
+   `false`, and null remains null. Container targets replace their scalar leaves.
+2. Add custom rules for fields outside the automatic detector. Rules use pointer
+   patterns, a chosen action, and an optional JSON replacement. Reorder or disable
+   them without deleting their definitions. Save/discard replacement JSON edits
+   and artifact edits before previewing or exporting. Switching selections keeps
+   pending drafts.
+3. **Preview redacted artifacts**, select an input to view its output, inspect
+   review diagnostics, and search/paginate the change inventory. Reports record
+   file identity, original pointers, categories, actions, and value types without
+   copying original or replacement values.
+4. Download individual redacted files, a JSON bundle containing all redacted
+   outputs, or an audit report. **Download reusable rule set** includes options
+   and rules without source files. Importing one replaces rules/options while
+   keeping current inputs. Full projects include original inputs and should be
+   handled accordingly; restoring a project replaces current studio work.
+5. Optionally apply the selected OpenAPI output to the editor. Application checks
+   that the editor still matches the preview's starting document. Undo restores
+   that document only if later editor edits would not be overwritten. Previewing
+   and downloading leave the editor intact. The studio remains available if the
+   editor becomes invalid, and collapsing it preserves its state.
+
+Automatic OpenAPI processing supports 3.0/3.1 JSON/YAML and targets inline,
+parameter/header, schema, and reusable example values. Schema/property names,
+operation IDs, paths, references, constraints, enums, and defaults remain intact.
+Known sensitive constraint/default values, opaque extensions, and referenced or
+external examples are flagged for review. External references are not fetched
+or rewritten. Metadata such as descriptions and contact details is outside
+automatic example processing; use explicit custom rules when needed.
+
+HAR processing handles request/response headers and cookies, query values,
+form-parameter values, request/redirect URLs, URL-valued headers, and parsed JSON
+body text. JSON bodies up to 256 KiB are decoded and processed even when stored
+as strings. Base64, other encoded, oversized, or non-JSON bodies remain with a
+review diagnostic unless **Remove opaque HAR body text** is enabled. That option
+removes the text field; capture metadata such as MIME type, encoding, sizes, and
+timings remains. This is not a complete HAR validator or metadata scrubber.
+
+HTTP(S) URL analysis removes userinfo, masks known sensitive query values, and
+omits credential-bearing fragments while preserving ordinary anchors. URL-valued
+query parameters are inspected to a bounded depth. Unchanged URLs remain exactly
+as provided; changed ones use standard URL serialization. Templates and URLs
+outside the supported parsing limits remain with a review diagnostic.
+
+Custom rules use `~1` for slash and `~0` for tilde, `*` for one path segment, and
+`**` for any depth. For example, `/**/privateNote` matches that field anywhere,
+and `/rows/*/email` matches an array's email fields. These wildcard segments are
+reserved; literal `*`/`**` names cannot be selected individually. HAR JSON body
+rules use virtual paths such as
+`/log/entries/*/response/content/text/$json/privateNote`. Audit entries retain the
+actual text-field pointer and a separate pointer inside its decoded JSON.
+
+The first matching enabled rule at a node wins, ahead of automatic processing
+at that node. Parent replacements/removals stop processing below that target,
+including child rules. Array removals use original indices, then compact the
+output. Whole-document removal is blocked. Custom structural changes receive
+review diagnostics, and outputs that fail the basic OpenAPI parser check cannot
+be exported/applied as an API. That check is not complete schema validation;
+review the resulting contract and use the existing quality/example tools.
+
+Aliases are consistent within a category or custom rule, across all files in a
+preview, and repeatable for the same project/source order. Numeric IDs and exact
+matching numeric strings share an alias while retaining their JSON types, so
+JSON IDs can stay linked to HAR query values. Different categories/rules have
+separate alias groups. Pseudonyms are not encryption or irreversible
+anonymization. Replacements may violate formats, enums, or other sample
+constraints. Detection uses known field names rather than inspecting every
+possible secret; a zero-change result or clean diagnostic list is not proof that
+an artifact contains no private data. Review outputs before sharing. File names,
+project names, pointers, and retained metadata may themselves be private.
+
+Limits: 8 inputs, 1 MiB per input, 2 MiB per project/rule set/audit report, 50
+custom rules, 1,000 HAR entries, shared JSON nesting/node limits, 4,096-character
+walk paths, and bounded traversal/matching work. Outputs are limited to 2 MiB
+per file and 4 MiB combined; bundles are limited to 6 MiB. URL analysis supports
+up to 16,384 characters, 1,000 query entries, and four nested URL levels. Audit
+lists retain up to 500 changes and 100 diagnostics (errors take priority) while
+total counts include omitted entries. Output previews show 16,000 characters;
+downloads include complete results within export limits. Failed additions and
+imports preserve current work and multi-file additions are atomic. Closing or
+reloading the tab loses studio state unless exported.
 
 ## Checking changes against API consumers
 

@@ -24,6 +24,7 @@ import { PostmanMigrationPanel } from "@/components/postman-migration-panel";
 import { ApiComposerPanel } from "@/components/api-composer-panel";
 import { ApiSandboxPanel } from "@/components/api-sandbox-panel";
 import { ConsumerContractPanel } from "@/components/consumer-contract-panel";
+import { DataRedactionPanel } from "@/components/data-redaction-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1891,6 +1892,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "quality",
+          id: "workspace-tool-redaction",
+          label: "redaction.title",
+        },
+        {
+          group: "quality",
           id: "workspace-tool-consumers",
           label: "consumer.title",
         },
@@ -2100,6 +2106,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "quality",
+          id: "workspace-tool-redaction",
+          label: "redaction.title",
+        },
         {
           group: "quality",
           id: "workspace-tool-consumers",
@@ -2854,6 +2865,17 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <ConsumerContractPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-redaction"
+          tabIndex={-1}
+        >
+          <DataRedactionPanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyDocument}
+          />
         </div>
 
         <div
