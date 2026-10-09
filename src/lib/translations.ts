@@ -3,6 +3,135 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "matrix.title": "Data-driven workflow tests",
+    "matrix.description":
+      "Run one reusable API workflow across JSON or CSV test cases with isolated variables, per-case expectations, and response assertions. Rehearse with Mock or execute a controlled Live batch, then export JSON or JUnit results.",
+    "matrix.help":
+      "Matrix definitions and datasets remain in this tab until downloaded. Projects and scenario exports contain request examples and row values; review them before sharing. Reports omit those values, response bodies, and session headers, but names and path templates may be private. Up to 100 cases, 20 steps, 500 step attempts per batch, 4 concurrent cases, and a 5-minute maximum budget.",
+    "matrix.import.project":
+      "Restore matrix project (replaces configuration and cases)",
+    "matrix.import.scenario":
+      "Import API scenario as workflow (keeps cases, clears bindings)",
+    "matrix.import.dataset": "Import test cases (JSON/CSV; replaces cases)",
+    "matrix.loading": "Reading matrix file…",
+    "matrix.configuration": "Workflow and test cases",
+    "matrix.name": "Matrix project name",
+    "matrix.workflow": "Reusable workflow",
+    "matrix.capture": "Read endpoint choices from editor",
+    "matrix.endpoint": "Endpoint to add to workflow",
+    "matrix.addStep": "Add endpoint workflow step",
+    "matrix.templateHelp":
+      "New steps template parameter values with {{columnName}} when the parameter name is a valid variable, filling missing case columns from examples. Existing values are preserved. Edit the workflow JSON for step order, request bodies, extraction, status, timing, and contract checks, or import an existing scenario.",
+    "matrix.editWorkflow": "Edit workflow and expectation bindings",
+    "matrix.workflowJson": "Workflow JSON (ApiScenario object)",
+    "matrix.bindingsJson": "Per-step expectation bindings (JSON array)",
+    "matrix.addBinding": "Add binding for next unconfigured step",
+    "matrix.bindingHelp":
+      "Each binding has stepId, statusVariable, mockStatusVariable, durationVariable (blank skips the override), and assertions. Assertions use name, target, path, operator, expected, and valueVariable (blank uses the literal expected). Body equals checks preserve JSON types from valueVariable. Assertions can use case values and prior-step extracted variables. A body path such as /items/{{index}}/id templates individual pointer segments safely. Status/duration/Mock overrides use case columns only.",
+    "matrix.saveDefinitions": "Validate and save workflow/bindings",
+    "matrix.discardDefinitions": "Discard workflow/binding edits",
+    "matrix.data": "Case dataset",
+    "matrix.dataFormat": "Pasted dataset format",
+    "matrix.inferCsv": "Infer canonical CSV numbers, booleans, and null",
+    "matrix.dataset": "Test-case dataset to load",
+    "matrix.useDataset": "Replace cases with pasted dataset",
+    "matrix.dataHelp":
+      'JSON is an array of objects with scalar variable values, for example [{"id":1,"wantedId":1},{"id":2,"wantedId":2}]. CSV needs unique variable-name headers; cells stay strings unless inference is enabled. Quoted commas/newlines and escaped quotes are supported. Up to 32 columns and 64 KiB per case. Generic case labels avoid copying data into reports; labels can be edited separately.',
+    "matrix.addCase": "Add or duplicate selected case",
+    "matrix.enableAll": "Enable all cases",
+    "matrix.disableAll": "Disable all cases",
+    "matrix.selectCase": "Case to configure",
+    "matrix.caseName": "Case display name",
+    "matrix.caseEnabled": "Include case in runs",
+    "matrix.caseValues": "Selected case variables (JSON object)",
+    "matrix.saveCase": "Validate and save case variables",
+    "matrix.discardCase": "Discard case variable edits",
+    "matrix.removeCase": "Remove selected case",
+    "matrix.concurrency": "Concurrent cases (1–4)",
+    "matrix.budget": "Total run budget (1,000–300,000 ms)",
+    "matrix.stopOnFailure":
+      "Stop launching new cases after a failure (active cases finish)",
+    "matrix.negativeInputs":
+      "Allow missing required query/header/cookie/body inputs for negative tests",
+    "matrix.dirty":
+      "Some workflow, binding, or case JSON edits are pending. Validate or discard them before previewing, running, or exporting. Switching cases preserves drafts.",
+    "matrix.exportProject": "Download matrix project with data",
+    "matrix.exportScenario": "Download reusable API scenario",
+    "matrix.execution": "Batch execution",
+    "matrix.mode": "Matrix execution mode",
+    "matrix.liveHelp":
+      "Live runs send each enabled case through the existing request proxy. POST/PUT/PATCH/DELETE can change server data and require the checkbox below. Session headers override matching workflow headers and apply to every step; supply a static HTTP(S) server override when using them. Imports reset Live mode and session credentials. Mock uses documented responses and does not simulate behavior for different input values.",
+    "matrix.server": "Live server override (required for session headers)",
+    "matrix.headers": "Session-only shared headers (JSON string values)",
+    "matrix.allowWrites": "Allow Live methods that may change server data",
+    "matrix.caseCount":
+      "Enabled cases: {enabled}/{total} · workflow steps: {steps}",
+    "matrix.preview": "Validate and preview matrix batch",
+    "matrix.run": "Run enabled cases",
+    "matrix.rerun": "Rerun prior failed/error cases only",
+    "matrix.previewSummary":
+      "Validated batch: {cases} cases · up to {requests} step attempts",
+    "matrix.progress":
+      "Cases completed: {completed}/{total} · active: {active}",
+    "matrix.cancel": "Cancel matrix run",
+    "matrix.results": "Matrix case results",
+    "matrix.summary":
+      "Passed: {passed} · failed: {failed} · errors: {error} · cancelled: {cancelled} · skipped: {skipped}",
+    "matrix.stop.cancelled":
+      "The run was cancelled; queued cases were not started.",
+    "matrix.stop.budget":
+      "The total run budget expired; active work was cancelled.",
+    "matrix.stop.failure":
+      "A case was unsuccessful; no further cases were launched.",
+    "matrix.exportReport": "Download matrix JSON results",
+    "matrix.exportJUnit": "Download JUnit XML results",
+    "matrix.search": "Search matrix case results",
+    "matrix.filter": "Filter case outcome",
+    "matrix.all": "All outcomes",
+    "matrix.outcome.passed": "Passed",
+    "matrix.outcome.failed": "Failed",
+    "matrix.outcome.error": "Error",
+    "matrix.outcome.cancelled": "Cancelled",
+    "matrix.outcome.skipped": "Skipped",
+    "matrix.noMatches": "No matching case results.",
+    "matrix.unnamedAssertion": "Response assertion",
+    "matrix.previous": "Previous matrix cases",
+    "matrix.next": "Next matrix cases",
+    "matrix.page": "Page {page}/{total}",
+    "matrix.inspectInvalid": "Inspect invalid case {key}",
+    "matrix.choicesLoaded": "Endpoint choices captured from the editor.",
+    "matrix.definitionsSaved": "Workflow and bindings validated and saved.",
+    "matrix.datasetLoaded": "Test-case dataset loaded.",
+    "matrix.caseSaved": "Case variables validated and saved.",
+    "matrix.projectLoaded":
+      "Matrix project restored. Execution mode reset to Mock.",
+    "matrix.scenarioLoaded":
+      "Scenario imported as workflow; data retained and bindings cleared.",
+    "matrix.previewReady": "The enabled cases passed matrix preflight checks.",
+    "matrix.completed": "Matrix run completed. Review individual outcomes.",
+    "matrix.cancelled": "Matrix run stopped; partial results are available.",
+    "matrix.downloaded": "Matrix download started.",
+    "matrix.error.project":
+      "Use a valid version 1 matrix project with a valid scenario, enabled cases, and supported run settings.",
+    "matrix.error.dataset":
+      "Use scalar case variables with valid variable names, unique case keys, and valid JSON. Existing data is preserved.",
+    "matrix.error.csv":
+      "Check CSV quoting, unique variable-name headers, and matching column counts on every row.",
+    "matrix.error.limit":
+      "The matrix input, case/step count, request budget, or export exceeds its limits. Reduce the batch or report size.",
+    "matrix.error.variables":
+      "A case is missing a template/assertion variable, has an invalid JSON body, or omits an input required by the workflow. Inspect the affected case before running.",
+    "matrix.error.binding":
+      "Check step IDs, expectation variables, assertion definitions, concrete case expectations, and documented Mock response choices.",
+    "matrix.error.endpoint":
+      "Every workflow step must match exactly one current editor operation. Refresh the API or update the workflow before running.",
+    "matrix.error.writes":
+      "Enable the Live write-method checkbox before running methods that may change server data.",
+    "matrix.error.headers":
+      "Use a bounded JSON object of unique, valid header names and string values without line breaks. Shared Live headers also require a static HTTP(S) server override without URL credentials.",
+    "matrix.error.source":
+      "Use a valid, bounded OpenAPI editor document or server override before running the matrix.",
+    "matrix.error.download": "The matrix download could not start. Try again.",
     "redaction.title": "Data redaction studio",
     "redaction.description":
       "Prepare API artifacts for sharing with scoped credential masking, optional personal-data pseudonyms, custom pointer rules, and consistent replacements across multiple files.",
@@ -1509,6 +1638,7 @@ export const translations = {
       "The response exceeded the configured duration limit.",
     "scenario.contract-failed":
       "The response failed a documented contract check.",
+    "scenario.assertion-failed": "The response failed a configured assertion.",
     "scenario.extraction-failed":
       "A response variable could not be extracted. Use an existing JSON Pointer to a safe scalar value.",
     "scenario.stopped": "Not run because an earlier step was unsuccessful.",
@@ -3669,6 +3799,135 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "matrix.title": "Проверки сценариев API по наборам данных",
+    "matrix.description":
+      "Запускайте один сценарий API по тестовым случаям JSON/CSV с изолированными переменными, индивидуальными ожиданиями и проверками ответов. Используйте Mock или управляемый пакет Live, затем экспортируйте JSON/JUnit.",
+    "matrix.help":
+      "Сценарии и данные матрицы хранятся во вкладке до скачивания. Проекты и экспорт сценариев содержат примеры запросов и значения строк; проверяйте их перед передачей. Отчёты не содержат этих значений, тел ответов и сеансовых заголовков, но названия и шаблоны путей могут быть частными. До 100 случаев, 20 шагов, 500 попыток шагов за запуск, 4 параллельных случаев и 5 минут общего бюджета.",
+    "matrix.import.project":
+      "Восстановить проект матрицы (заменяет настройки и случаи)",
+    "matrix.import.scenario":
+      "Импортировать сценарий API (сохраняет случаи, очищает привязки)",
+    "matrix.import.dataset": "Импортировать случаи (JSON/CSV; заменяет случаи)",
+    "matrix.loading": "Чтение файла матрицы…",
+    "matrix.configuration": "Сценарий и тестовые случаи",
+    "matrix.name": "Название проекта матрицы",
+    "matrix.workflow": "Повторно используемый сценарий",
+    "matrix.capture": "Прочитать эндпоинты из редактора",
+    "matrix.endpoint": "Эндпоинт для добавления в сценарий",
+    "matrix.addStep": "Добавить шаг эндпоинта",
+    "matrix.templateHelp":
+      "Новые шаги используют {{columnName}} для параметров с допустимыми именами переменных и заполняют отсутствующие столбцы примерами. Заданные значения сохраняются. Меняйте JSON для порядка шагов, тел, извлечения переменных, статусов, времени и проверок контракта или импортируйте готовый сценарий.",
+    "matrix.editWorkflow": "Изменить сценарий и привязки ожиданий",
+    "matrix.workflowJson": "JSON сценария (объект ApiScenario)",
+    "matrix.bindingsJson": "Привязки ожиданий шагов (массив JSON)",
+    "matrix.addBinding": "Добавить привязку следующего ненастроенного шага",
+    "matrix.bindingHelp":
+      "Привязка содержит stepId, statusVariable, mockStatusVariable, durationVariable (пустые не заменяют настройки) и assertions. Проверки: name, target, path, operator, expected, valueVariable (пустое — буквальное expected). body equals сохраняет тип JSON из valueVariable. Доступны значения случая и переменные предыдущих шагов. /items/{{index}}/id безопасно подставляет сегменты указателя. Замены статуса/времени/Mock используют только столбцы случаев.",
+    "matrix.saveDefinitions": "Проверить и сохранить сценарий/привязки",
+    "matrix.discardDefinitions": "Отменить правки сценария/привязок",
+    "matrix.data": "Набор тестовых случаев",
+    "matrix.dataFormat": "Формат вставляемого набора",
+    "matrix.inferCsv": "Определять канонические числа, boolean и null в CSV",
+    "matrix.dataset": "Набор тестовых случаев для загрузки",
+    "matrix.useDataset": "Заменить случаи вставленным набором",
+    "matrix.dataHelp":
+      'JSON — массив объектов со скалярными значениями переменных, например [{"id":1,"wantedId":1},{"id":2,"wantedId":2}]. CSV требует уникальных заголовков переменных; значения остаются строками без включённого определения типов. Поддерживаются запятые/переносы в кавычках и экранированные кавычки. До 32 столбцов и 64 КиБ на случай. Общие названия случаев не копируют данные в отчёты; названия редактируются отдельно.',
+    "matrix.addCase": "Добавить или скопировать выбранный случай",
+    "matrix.enableAll": "Включить все случаи",
+    "matrix.disableAll": "Отключить все случаи",
+    "matrix.selectCase": "Настраиваемый случай",
+    "matrix.caseName": "Название случая",
+    "matrix.caseEnabled": "Включить случай в запуски",
+    "matrix.caseValues": "Переменные выбранного случая (объект JSON)",
+    "matrix.saveCase": "Проверить и сохранить переменные случая",
+    "matrix.discardCase": "Отменить правки переменных случая",
+    "matrix.removeCase": "Удалить выбранный случай",
+    "matrix.concurrency": "Параллельных случаев (1–4)",
+    "matrix.budget": "Общий бюджет запуска (1000–300000 мс)",
+    "matrix.stopOnFailure":
+      "Не запускать новые случаи после ошибки (активные завершатся)",
+    "matrix.negativeInputs":
+      "Разрешить отсутствие обязательных query/header/cookie/body для негативных тестов",
+    "matrix.dirty":
+      "Есть несохранённые JSON-правки сценария, привязок или случая. Проверьте или отмените их перед предпросмотром, запуском или экспортом. При смене случая черновики сохраняются.",
+    "matrix.exportProject": "Скачать проект матрицы с данными",
+    "matrix.exportScenario": "Скачать сценарий API",
+    "matrix.execution": "Пакетный запуск",
+    "matrix.mode": "Режим запуска матрицы",
+    "matrix.liveHelp":
+      "Live отправляет каждый включённый случай через имеющийся прокси. POST/PUT/PATCH/DELETE могут менять данные сервера и требуют флажка ниже. Сеансовые заголовки заменяют одноимённые заголовки сценария для всех шагов; для них задайте статический сервер HTTP(S). Импорт сбрасывает Live и сеансовые данные. Mock использует описанные ответы и не моделирует поведение для разных входных данных.",
+    "matrix.server": "Сервер Live (обязателен для сеансовых заголовков)",
+    "matrix.headers": "Общие заголовки сеанса (JSON со строковыми значениями)",
+    "matrix.allowWrites": "Разрешить методы Live, изменяющие данные сервера",
+    "matrix.caseCount": "Включено случаев: {enabled}/{total} · шагов: {steps}",
+    "matrix.preview": "Проверить и просмотреть пакет матрицы",
+    "matrix.run": "Запустить включённые случаи",
+    "matrix.rerun": "Повторить только прошлые неуспешные случаи",
+    "matrix.previewSummary":
+      "Проверенный пакет: {cases} случаев · до {requests} попыток шагов",
+    "matrix.progress":
+      "Завершено случаев: {completed}/{total} · активно: {active}",
+    "matrix.cancel": "Отменить запуск матрицы",
+    "matrix.results": "Результаты случаев матрицы",
+    "matrix.summary":
+      "Успешно: {passed} · неуспешно: {failed} · ошибок: {error} · отменено: {cancelled} · пропущено: {skipped}",
+    "matrix.stop.cancelled": "Запуск отменён; случаи в очереди не запущены.",
+    "matrix.stop.budget": "Общий бюджет истёк; активная работа отменена.",
+    "matrix.stop.failure":
+      "Случай завершился неуспешно; новые случаи не запущены.",
+    "matrix.exportReport": "Скачать результаты матрицы в JSON",
+    "matrix.exportJUnit": "Скачать результаты JUnit XML",
+    "matrix.search": "Поиск результатов случаев",
+    "matrix.filter": "Фильтр исхода случая",
+    "matrix.all": "Все исходы",
+    "matrix.outcome.passed": "Успешно",
+    "matrix.outcome.failed": "Неуспешно",
+    "matrix.outcome.error": "Ошибка",
+    "matrix.outcome.cancelled": "Отменено",
+    "matrix.outcome.skipped": "Пропущено",
+    "matrix.noMatches": "Нет подходящих результатов.",
+    "matrix.unnamedAssertion": "Проверка ответа",
+    "matrix.previous": "Предыдущие случаи матрицы",
+    "matrix.next": "Следующие случаи матрицы",
+    "matrix.page": "Страница {page}/{total}",
+    "matrix.inspectInvalid": "Открыть некорректный случай {key}",
+    "matrix.choicesLoaded": "Эндпоинты прочитаны из редактора.",
+    "matrix.definitionsSaved": "Сценарий и привязки проверены и сохранены.",
+    "matrix.datasetLoaded": "Тестовые случаи загружены.",
+    "matrix.caseSaved": "Переменные случая проверены и сохранены.",
+    "matrix.projectLoaded":
+      "Проект матрицы восстановлен. Режим сброшен на Mock.",
+    "matrix.scenarioLoaded":
+      "Сценарий импортирован; данные сохранены, привязки очищены.",
+    "matrix.previewReady":
+      "Включённые случаи прошли предварительную проверку матрицы.",
+    "matrix.completed": "Запуск матрицы завершён. Проверьте отдельные исходы.",
+    "matrix.cancelled":
+      "Запуск матрицы остановлен; частичные результаты доступны.",
+    "matrix.downloaded": "Загрузка файла матрицы началась.",
+    "matrix.error.project":
+      "Используйте проект матрицы RSSwag версии 1 с допустимым сценарием, включёнными случаями и настройками запуска.",
+    "matrix.error.dataset":
+      "Используйте скалярные переменные с допустимыми именами, уникальные ключи случаев и корректный JSON. Текущие данные сохранены.",
+    "matrix.error.csv":
+      "Проверьте кавычки CSV, уникальные заголовки переменных и одинаковое число столбцов в каждой строке.",
+    "matrix.error.limit":
+      "Превышены ограничения исходных данных, случаев/шагов, попыток запросов или экспорта. Уменьшите пакет или отчёт.",
+    "matrix.error.variables":
+      "Не хватает переменной шаблона/проверки, тело JSON некорректно или отсутствует требуемое сценарием значение. Проверьте указанный случай перед запуском.",
+    "matrix.error.binding":
+      "Проверьте ID шагов, переменные ожиданий, определения проверок, значения ожиданий случаев и описанные варианты Mock.",
+    "matrix.error.endpoint":
+      "Каждый шаг должен точно соответствовать одной операции текущего редактора. Обновите API или сценарий перед запуском.",
+    "matrix.error.writes":
+      "Включите разрешение методов Live, меняющих данные сервера, перед их запуском.",
+    "matrix.error.headers":
+      "Используйте ограниченный объект JSON с уникальными допустимыми именами заголовков и строками без переносов. Для общих Live-заголовков нужен статический сервер HTTP(S) без учётных данных в URL.",
+    "matrix.error.source":
+      "Используйте корректный документ OpenAPI в редакторе или допустимый сервер перед запуском матрицы.",
+    "matrix.error.download":
+      "Не удалось начать загрузку файла матрицы. Повторите попытку.",
     "redaction.title": "Студия обезличивания данных",
     "redaction.description":
       "Подготовьте материалы API к передаче: скрывайте учётные данные, заменяйте личные данные псевдонимами и применяйте правила указателей с согласованными заменами в нескольких файлах.",
@@ -5177,6 +5436,7 @@ export const translations = {
       "Ответ превысил заданное ограничение времени.",
     "scenario.contract-failed":
       "Ответ не прошёл проверку документированного контракта.",
+    "scenario.assertion-failed": "Ответ не прошёл настроенную проверку.",
     "scenario.extraction-failed":
       "Не удалось извлечь переменную. Укажите существующий JSON Pointer на безопасное скалярное значение.",
     "scenario.stopped": "Не выполнен из-за предыдущего неуспешного шага.",

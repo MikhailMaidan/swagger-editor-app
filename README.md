@@ -33,6 +33,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Offline HAR traffic inspector with browser capture imports, endpoint matching, undocumented-status detection, operation coverage, latency summaries, search, and aggregate JSON reports
 - Manual API test-plan workbench with generated positive, negative, and boundary cases, QA results and notes, endpoint navigation, restorable JSON progress, and Markdown checklists
 - API scenario runner with ordered multi-request workflows, typed variable templates, JSON Pointer response extraction, Mock/Live execution, status and timing assertions, optional response contract checks, cancellation, and portable definitions and reports
+- Data-driven workflow tests with JSON/CSV case imports, isolated multi-step runs, per-case status/Mock/timing bindings, response assertions, controlled concurrency, failed-case reruns, portable projects, and JSON/JUnit reports
 - Environment comparison runner with reusable GET/HEAD plans, paired baseline/candidate requests, isolated session headers, structural response and contract comparisons, latency checks, offline rehearsals, cancellation, and reports without response values
 - API fixture studio with seeded test-data generation, linked datasets, sequence and constant field overrides, schema diagnostics, reusable recipes, and JSON/NDJSON/CSV exports
 - API performance lab with bounded concurrent GET/HEAD workloads, warm-up phases, weighted traffic, launch-rate limits, Mock rehearsals, latency percentiles, performance budgets, baseline comparisons, cancellation, and portable JSON/CSV reports
@@ -101,6 +102,120 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Running data-driven workflow tests
+
+Open **Testing → Data-driven workflow tests** to run a reusable API workflow
+against multiple input rows. This is useful for parameter combinations,
+boundary values, and regression datasets. Existing scenarios and all other
+testing tools remain available.
+
+Read endpoint choices from the editor and add a workflow step, or import an
+export from **API scenario runner**. Added steps use `{{parameterName}}`
+templates where the parameter name is a valid variable. Missing case columns
+are filled from documented examples; existing values are preserved. Fill any
+empty required values before running. Use **Edit workflow and expectation
+bindings** to change step order, request bodies, response extractions, status
+expectations, timeouts, timing thresholds, and contract checks. The workflow
+editor accepts the inner `ApiScenario` object; scenario file imports accept
+the existing versioned scenario export.
+
+Import or paste a JSON array of scalar variable objects:
+
+```json
+[
+  { "id": 7, "wantedId": 7, "expectedStatus": "200" },
+  { "id": 999, "wantedId": 999, "expectedStatus": "404" }
+]
+```
+
+CSV uses unique variable names in its header row and supports quoted commas,
+newlines, and escaped quotes. Cells remain strings by default. Optional scalar
+inference converts canonical JSON numbers, booleans, and `null`, including
+quoted cells; leading-zero IDs and unsafe integer values remain strings. JSON
+can preserve types directly. Variable names match
+`[A-Za-z_][A-Za-z0-9_]{0,63}`. Cases get generic labels independent of their
+values. You can rename, enable, duplicate, remove, or edit each case. Switching
+cases preserves pending JSON drafts; save or discard all drafts before running
+or exporting. Replacing the dataset requires every column referenced by the
+workflow, including templates for optional parameters; supply an empty string
+to omit an optional parameter, or remove its parameter entry from the workflow.
+
+Add a binding for a workflow step to vary expectations by row. For a step
+whose ID is `step-1`, this example checks its status and the typed `/id` value:
+
+```json
+[
+  {
+    "stepId": "step-1",
+    "statusVariable": "expectedStatus",
+    "mockStatusVariable": "",
+    "durationVariable": "",
+    "assertions": [
+      {
+        "name": "Returned ID matches the case",
+        "target": "body",
+        "path": "/id",
+        "operator": "equals",
+        "expected": "",
+        "valueVariable": "wantedId"
+      }
+    ]
+  }
+]
+```
+
+Blank binding variables keep the workflow defaults. `mockStatusVariable`
+selects an exact documented response status; `durationVariable` provides a
+0–60,000 ms threshold, with zero disabling that threshold. These overrides use
+initial case values. Assertions support the existing status, header, JSON
+Pointer, and duration operators. A blank `valueVariable` uses the literal
+`expected` string; body `equals` parses that literal as JSON. A bound body
+`equals` check keeps the case value's JSON type. Assertion expectations and
+paths can also use variables extracted by **earlier** steps. A path such as
+`/items/{{index}}/id` expands and escapes each pointer segment independently.
+Assertions run after the workflow's status, timing, and contract checks, before
+that step publishes its extracted variables. A failed check follows the
+workflow's stop-on-failure setting.
+
+Use **Validate and preview matrix batch** before execution. Preflight checks
+all enabled cases and their endpoint/variable bindings before any case starts;
+an invalid case can be opened directly from the error. **Mock** is the default
+and uses documented examples without requests. It does not simulate different
+server behavior for different inputs: the example above requires a Live API
+that returns the expected body for each case, or appropriate documented Mock
+variants. For negative input testing, explicitly allow missing required
+query/header/cookie/body inputs. Unresolved path parameters remain blocked.
+
+**Live** uses the existing request proxy. Methods other than GET, HEAD, and
+OPTIONS require the write-method checkbox. Session headers override matching
+workflow headers and apply to every step; they require a static HTTP(S) server
+override without credentials, a query, or a fragment. Session headers and this
+override are excluded from exported projects. Importing a project or workflow
+clears them and resets execution to Mock. Requests within a case stay ordered;
+each case has its own variables and extractions. Up to four cases may run in
+parallel. Stop-on-case-failure prevents new cases from starting while active
+cases finish. Cancellation and the total run budget abort active requests and
+skip queued cases.
+
+Search, filter, and paginate results, correct failed/error cases, and use
+**Rerun prior failed/error cases only**. A rerun creates a report for just those
+selected cases; it does not merge old successes into the new report. Download
+the matrix project to restore the workflow, bindings, cases, and run settings,
+or export its workflow for the existing scenario runner. Projects contain
+case values and request examples; work stays in memory until explicitly
+downloaded. Closing the panel preserves it, and leaving the workspace cancels
+active work. Running a matrix never changes the OpenAPI editor.
+
+JSON results contain per-case counts and per-step status, timing, assertion,
+and contract outcomes. JUnit XML produces one testcase per workflow step,
+with failure/error/skipped outcomes, and a skipped testcase for a queued case
+that never started. Both exports omit case values, response bodies, request
+headers, server URLs, and expanded assertion pointers. Labels, endpoint path
+templates, variable names, and assertion names remain visible. Limits are
+100 cases, 20 steps, 500 potential step attempts per batch, 32 columns and
+64 KiB per case, 25 assertions per step, 2 MiB per imported/exported artifact,
+and a 1–300 second total run budget.
 
 ## Redacting API artifacts before sharing
 

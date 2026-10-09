@@ -51,6 +51,7 @@ export type ScenarioIssue =
   | "status-mismatch"
   | "duration-exceeded"
   | "contract-failed"
+  | "assertion-failed"
   | "extraction-failed"
   | "cancelled"
   | "stopped";
@@ -350,28 +351,30 @@ function expandBody(
   return JSON.stringify(expand(index.nodes.get("")!.value));
 }
 
-function prepareRequest(
+export function prepareScenarioRequest(
   step: ScenarioStep,
   endpoint: EndpointSummary,
   variables: Map<string, ScenarioValue>,
+  allowInvalidInputs = false,
 ): ScenarioRequest {
   const requestParameters = step.parameters.map((parameter) => ({
     ...parameter,
     value: expandScenarioText(parameter.value, variables),
   }));
   if (
-    endpoint.parameters.some(
-      (parameter) =>
-        parameter.required &&
-        !requestParameters.some(
-          (entry) =>
-            entry.location === parameter.location &&
-            (parameter.location === "header"
-              ? entry.name.toLowerCase() === parameter.name.toLowerCase()
-              : entry.name === parameter.name) &&
-            entry.value.trim(),
-        ),
-    ) ||
+    (!allowInvalidInputs &&
+      endpoint.parameters.some(
+        (parameter) =>
+          parameter.required &&
+          !requestParameters.some(
+            (entry) =>
+              entry.location === parameter.location &&
+              (parameter.location === "header"
+                ? entry.name.toLowerCase() === parameter.name.toLowerCase()
+                : entry.name === parameter.name) &&
+              entry.value.trim(),
+          ),
+      )) ||
     hasUnresolvedPathParameters(
       resolvePathParameters(step.path, requestParameters),
     )
@@ -379,6 +382,7 @@ function prepareRequest(
     throw new ScenarioError("missing-parameter");
   const requestBody = expandBody(step.body, step.contentType, variables);
   if (
+    !allowInvalidInputs &&
     endpoint.requestBodies.some((body) => body.required) &&
     !requestBody.trim()
   )
@@ -479,6 +483,12 @@ export async function runApiScenario(
     signal: AbortSignal;
     onProgress?: (results: ScenarioStepResult[]) => void;
     transport?: ScenarioTransport;
+    onResponse?: (
+      step: ScenarioStep,
+      response: ScenarioResponse,
+      variables: ReadonlyMap<string, ScenarioValue>,
+    ) => void;
+    allowInvalidInputs?: boolean;
   },
 ): Promise<ScenarioReport> {
   if (!validateScenario(plan) || !plan.steps.length)
@@ -528,7 +538,12 @@ export async function runApiScenario(
       controller.abort();
     }, step.timeoutMs);
     try {
-      const request = prepareRequest(step, endpoint, variables);
+      const request = prepareScenarioRequest(
+        step,
+        endpoint,
+        variables,
+        options.allowInvalidInputs,
+      );
       const selected = endpoint.responses.find(
         (response) => response.status === step.mockStatus,
       );
@@ -579,6 +594,7 @@ export async function runApiScenario(
             : "passed";
         if (report.failedCount) throw new ScenarioError("contract-failed");
       }
+      options.onResponse?.(step, response, new Map(variables));
       const extracted = new Map<string, ScenarioValue>();
       if (step.extracts.length) {
         const parsed = indexResponseJson(response.body);
@@ -611,6 +627,7 @@ export async function runApiScenario(
                 "status-mismatch",
                 "duration-exceeded",
                 "contract-failed",
+                "assertion-failed",
                 "extraction-failed",
               ].includes(issue)
             ? "failed"
