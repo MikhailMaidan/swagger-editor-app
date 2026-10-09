@@ -3,6 +3,141 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "consumer.title": "Consumer compatibility workbench",
+    "consumer.description":
+      "Record what each API client depends on, then check a candidate definition for changes that affect those consumers. Track response fields, request examples, and public-access requirements across reusable profiles.",
+    "consumer.help":
+      "Analysis runs locally and leaves the editor untouched. Compatible means the tracked requirements passed the supported checks; it is not a runtime guarantee. Unsupported schemas require review. Projects include request examples and allowed enum values; reports omit those values. Up to 20 consumers, 100 dependencies, 1,000 fields, and 2 MiB per file. Work stays in this tab until downloaded.",
+    "consumer.import": "Restore consumer project (replaces current profiles)",
+    "consumer.loading": "Reading consumer compatibility file…",
+    "consumer.profiles": "Consumer profiles",
+    "consumer.projectName": "Consumer project name",
+    "consumer.selectConsumer": "Consumer to configure",
+    "consumer.defaultName": "API client",
+    "consumer.addConsumer": "Add consumer",
+    "consumer.removeConsumer": "Remove consumer and dependencies",
+    "consumer.consumerName": "Consumer name",
+    "consumer.enableConsumer": "Include consumer in checks",
+    "consumer.captureHeading": "Capture dependencies from a reference API",
+    "consumer.readReference": "Capture current editor as reference",
+    "consumer.referenceTitle": "Reference: {title} ({version})",
+    "consumer.operation": "Reference operation",
+    "consumer.variant": "Reference response variant",
+    "consumer.noBody": "No media requirement",
+    "consumer.captureStatus": "Concrete expected response status",
+    "consumer.fieldsHelp":
+      "Select only the fields this client uses. Pointers use /* for every existing array item; the root pointer is empty. Captured types, requiredness, and scalar enum values become editable expectations. Required fields must remain present through every parent; arrays may be empty. Inventory shows up to 200 fields and 10 levels. A dependency with no fields still checks operation, status, media, and public access.",
+    "consumer.selectAll": "Select all response fields",
+    "consumer.clearFields": "Clear response field selection",
+    "consumer.fieldChoices": "Response field choices",
+    "consumer.selectField": "Track response field {pointer}",
+    "consumer.root": "Response root",
+    "consumer.anyType": "Any type",
+    "consumer.required": "Required",
+    "consumer.optional": "Optional",
+    "consumer.noFields": "No inspectable response fields for this variant.",
+    "consumer.capture": "Add dependency to selected consumer",
+    "consumer.dependencies": "Consumer dependencies",
+    "consumer.selectContract": "Dependency to configure",
+    "consumer.contractName": "Dependency name",
+    "consumer.method": "Dependency HTTP method",
+    "consumer.path": "Dependency path template",
+    "consumer.status": "Required documented status",
+    "consumer.media": "Required response media type (blank to skip)",
+    "consumer.enableContract": "Include dependency in checks",
+    "consumer.requirePublic": "Require an authentication-free alternative",
+    "consumer.fieldJson": "Response field expectations (JSON array)",
+    "consumer.requestJson":
+      "Request example (JSON; blank to skip request checks)",
+    "consumer.requestHelp":
+      'Use {"parameters":[{"name":"id","location":"path","value":1}],"body":{"mediaType":"application/json","value":{}}}. Omit body when absent. Values are typed JSON examples, not serialized HTTP inputs. Only supplied examples are checked; leave blank to track responses alone. Save or discard JSON edits before checking/exporting. Changing clients preserves pending edits.',
+    "consumer.save": "Validate and save dependency JSON",
+    "consumer.discard": "Discard dependency JSON edits",
+    "consumer.removeContract": "Remove dependency",
+    "consumer.dirty":
+      "Some dependency JSON edits are pending. Save or discard them before capturing more dependencies, checking candidates, or exporting.",
+    "consumer.exportProject": "Download consumer project",
+    "consumer.checkHeading": "Check a candidate API",
+    "consumer.checkEditor": "Check current editor against consumers",
+    "consumer.candidate": "Candidate OpenAPI definition (JSON/YAML)",
+    "consumer.checkPasted": "Check pasted candidate",
+    "consumer.candidateFile": "Import and check candidate definition",
+    "consumer.report": "Consumer impact report",
+    "consumer.summary":
+      "Consumers · compatible: {compatible} · affected: {breaking} · review: {review} · untracked: {untracked}",
+    "consumer.status.compatible": "Compatible",
+    "consumer.status.breaking": "Affected by breaking changes",
+    "consumer.status.review": "Needs review",
+    "consumer.status.untracked": "Not checked",
+    "consumer.search": "Search consumer dependencies",
+    "consumer.filter": "Filter dependency outcome",
+    "consumer.all": "All outcomes",
+    "consumer.noMatches": "No matching dependencies.",
+    "consumer.fieldCount": "Tracked fields: {count}",
+    "consumer.hidden": "Additional findings: {count}",
+    "consumer.previous": "Previous dependencies",
+    "consumer.next": "Next dependencies",
+    "consumer.page": "Page {page}/{total}",
+    "consumer.exportReport": "Download consumer impact JSON",
+    "consumer.exportMarkdown": "Download release review checklist",
+    "consumer.preview": "Impact JSON preview (first 12,000 characters)",
+    "consumer.referenceLoaded":
+      "Reference captured. Choose an operation, response, and fields to track.",
+    "consumer.captured": "Consumer dependency captured.",
+    "consumer.saved": "Dependency JSON validated and saved.",
+    "consumer.checked": "Candidate checked against the consumer project.",
+    "consumer.imported": "Consumer project restored.",
+    "consumer.downloaded": "Consumer compatibility download started.",
+    "consumer.error.source":
+      "Use a valid OpenAPI 3.0 or 3.1 JSON/YAML document with the standard dialect. Bundle external references and upgrade Swagger 2 with the existing tools first.",
+    "consumer.error.project":
+      "Use a valid version 1 RSSwag consumer project with unique consumer/dependency keys and names.",
+    "consumer.error.json":
+      "Use valid JSON within the nesting and size limits. Existing work is preserved.",
+    "consumer.error.limit":
+      "The consumer project, input, or export exceeds its count, size, or structure limits.",
+    "consumer.error.contract":
+      "Check dependency settings, unique pointers, supported types, scalar enums, and typed request examples. Status must be a concrete 100–599 code.",
+    "consumer.error.read":
+      "Could not read this compatibility file. Existing work is preserved.",
+    "consumer.error.download":
+      "The compatibility download could not start. Try again.",
+    "consumer.finding.operation-missing":
+      "The operation is no longer documented.",
+    "consumer.finding.response-missing":
+      "The required status has no documented response.",
+    "consumer.finding.media-missing":
+      "The required response media type is no longer documented.",
+    "consumer.finding.schema-unknown":
+      "The schema does not provide enough information to prove this expectation.",
+    "consumer.finding.field-missing": "A required field is no longer declared.",
+    "consumer.finding.field-optional":
+      "A field or parent is no longer guaranteed to be present.",
+    "consumer.finding.nullable-parent":
+      "A parent may now be null, so this field may be unavailable.",
+    "consumer.finding.type-expanded":
+      "The provider may return a type the consumer does not accept.",
+    "consumer.finding.enum-expanded":
+      "The provider may return an enum value the consumer does not accept.",
+    "consumer.finding.security-required":
+      "The operation no longer offers an authentication-free alternative.",
+    "consumer.finding.request-parameter-missing":
+      "The request example omits a required parameter.",
+    "consumer.finding.request-body-missing":
+      "The request example omits a required body.",
+    "consumer.finding.request-media-missing":
+      "The request body media type is unavailable or undocumented.",
+    "consumer.finding.request-invalid":
+      "The request example violates a documented constraint.",
+    "consumer.finding.parameter-removed":
+      "A supplied request parameter is no longer documented; review whether it is still accepted.",
+    "consumer.finding.schema-unsupported":
+      "This schema uses a construct that requires manual review.",
+    "consumer.finding.reference-unresolved":
+      "A schema or object reference could not be resolved locally.",
+    "consumer.finding.limit": "The schema analysis reached its safety budget.",
+    "consumer.finding.deprecated":
+      "The consumer depends on a deprecated operation.",
     "sandbox.title": "Stateful API sandbox",
     "sandbox.description":
       "Build a local mock service whose records survive between requests. Rehearse create, read, update, and delete workflows with editable resources and endpoint bindings.",
@@ -3396,6 +3531,141 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "consumer.title": "Проверка совместимости потребителей API",
+    "consumer.description":
+      "Зафиксируйте зависимости каждого клиента API и проверяйте новые определения на изменения, влияющие на этих потребителей. Сохраняйте поля ответов, примеры запросов и требования публичного доступа в профилях.",
+    "consumer.help":
+      "Анализ выполняется локально и не меняет редактор. Совместимость означает прохождение поддерживаемых проверок зависимостей, а не гарантию поведения сервиса. Неподдерживаемые схемы требуют проверки. Проекты содержат примеры запросов и значения enum; отчёты их не включают. До 20 потребителей, 100 зависимостей, 1000 полей и 2 МиБ на файл. Работа хранится во вкладке до скачивания.",
+    "consumer.import":
+      "Восстановить проект потребителей (заменяет текущие профили)",
+    "consumer.loading": "Чтение файла совместимости…",
+    "consumer.profiles": "Профили потребителей",
+    "consumer.projectName": "Название проекта потребителей",
+    "consumer.selectConsumer": "Настраиваемый потребитель",
+    "consumer.defaultName": "Клиент API",
+    "consumer.addConsumer": "Добавить потребителя",
+    "consumer.removeConsumer": "Удалить потребителя и зависимости",
+    "consumer.consumerName": "Название потребителя",
+    "consumer.enableConsumer": "Включить потребителя в проверку",
+    "consumer.captureHeading": "Зафиксировать зависимости из исходного API",
+    "consumer.readReference": "Зафиксировать редактор как исходный API",
+    "consumer.referenceTitle": "Исходный API: {title} ({version})",
+    "consumer.operation": "Операция исходного API",
+    "consumer.variant": "Вариант исходного ответа",
+    "consumer.noBody": "Без требования к медиатипу",
+    "consumer.captureStatus": "Конкретный ожидаемый статус ответа",
+    "consumer.fieldsHelp":
+      "Выберите только используемые клиентом поля. /* в указателе означает каждый существующий элемент массива; корневой указатель пустой. Типы, обязательность и скалярные enum станут редактируемыми требованиями. Обязательные поля должны быть доступны через всех родителей; массивы могут быть пустыми. Список ограничен 200 полями и 10 уровнями. Без полей проверяются операция, статус, медиатип и публичный доступ.",
+    "consumer.selectAll": "Выбрать все поля ответа",
+    "consumer.clearFields": "Снять выбор полей ответа",
+    "consumer.fieldChoices": "Выбор полей ответа",
+    "consumer.selectField": "Отслеживать поле ответа {pointer}",
+    "consumer.root": "Корень ответа",
+    "consumer.anyType": "Любой тип",
+    "consumer.required": "Обязательное",
+    "consumer.optional": "Необязательное",
+    "consumer.noFields": "Для этого варианта нет доступных полей ответа.",
+    "consumer.capture": "Добавить зависимость выбранному потребителю",
+    "consumer.dependencies": "Зависимости потребителя",
+    "consumer.selectContract": "Настраиваемая зависимость",
+    "consumer.contractName": "Название зависимости",
+    "consumer.method": "HTTP-метод зависимости",
+    "consumer.path": "Шаблон пути зависимости",
+    "consumer.status": "Необходимый документированный статус",
+    "consumer.media": "Необходимый медиатип ответа (пустой — пропустить)",
+    "consumer.enableContract": "Включить зависимость в проверку",
+    "consumer.requirePublic": "Требовать вариант без авторизации",
+    "consumer.fieldJson": "Требования к полям ответа (массив JSON)",
+    "consumer.requestJson":
+      "Пример запроса (JSON; пустой — без проверки запросов)",
+    "consumer.requestHelp":
+      'Формат: {"parameters":[{"name":"id","location":"path","value":1}],"body":{"mediaType":"application/json","value":{}}}. Если тела нет, опустите body. Значения — типизированные примеры JSON, не сериализованные HTTP-данные. Проверяются только заданные примеры; пустое поле оставляет проверку ответов. Сохраните или отмените JSON-правки перед проверкой/экспортом. При смене клиента правки сохраняются.',
+    "consumer.save": "Проверить и сохранить JSON зависимости",
+    "consumer.discard": "Отменить JSON-правки зависимости",
+    "consumer.removeContract": "Удалить зависимость",
+    "consumer.dirty":
+      "Есть несохранённые JSON-правки зависимостей. Сохраните или отмените их перед добавлением зависимостей, проверкой кандидатов или экспортом.",
+    "consumer.exportProject": "Скачать проект потребителей",
+    "consumer.checkHeading": "Проверить новую версию API",
+    "consumer.checkEditor": "Проверить редактор для потребителей",
+    "consumer.candidate": "Проверяемое определение OpenAPI (JSON/YAML)",
+    "consumer.checkPasted": "Проверить вставленное определение",
+    "consumer.candidateFile": "Импортировать и проверить определение",
+    "consumer.report": "Отчёт о влиянии на потребителей",
+    "consumer.summary":
+      "Потребители · совместимы: {compatible} · затронуты: {breaking} · требуют проверки: {review} · не проверены: {untracked}",
+    "consumer.status.compatible": "Совместимо",
+    "consumer.status.breaking": "Затронуто несовместимыми изменениями",
+    "consumer.status.review": "Требует проверки",
+    "consumer.status.untracked": "Не проверено",
+    "consumer.search": "Поиск зависимостей потребителей",
+    "consumer.filter": "Фильтр результата зависимости",
+    "consumer.all": "Все результаты",
+    "consumer.noMatches": "Нет подходящих зависимостей.",
+    "consumer.fieldCount": "Отслеживаемых полей: {count}",
+    "consumer.hidden": "Дополнительных замечаний: {count}",
+    "consumer.previous": "Предыдущие зависимости",
+    "consumer.next": "Следующие зависимости",
+    "consumer.page": "Страница {page}/{total}",
+    "consumer.exportReport": "Скачать JSON влияния на потребителей",
+    "consumer.exportMarkdown": "Скачать список проверки выпуска",
+    "consumer.preview": "Предпросмотр JSON отчёта (первые 12 000 символов)",
+    "consumer.referenceLoaded":
+      "Исходный API зафиксирован. Выберите операцию, ответ и отслеживаемые поля.",
+    "consumer.captured": "Зависимость потребителя зафиксирована.",
+    "consumer.saved": "JSON зависимости проверен и сохранён.",
+    "consumer.checked": "Определение проверено по проекту потребителей.",
+    "consumer.imported": "Проект потребителей восстановлен.",
+    "consumer.downloaded": "Загрузка файла совместимости началась.",
+    "consumer.error.source":
+      "Используйте корректный OpenAPI 3.0 или 3.1 в JSON/YAML со стандартным диалектом. Сначала объедините внешние ссылки и преобразуйте Swagger 2 имеющимися инструментами.",
+    "consumer.error.project":
+      "Используйте проект потребителей RSSwag версии 1 с уникальными ключами потребителей/зависимостей и названиями.",
+    "consumer.error.json":
+      "Используйте корректный JSON в пределах ограничений размера и вложенности. Текущая работа сохранена.",
+    "consumer.error.limit":
+      "Проект, исходный файл или экспорт превышает ограничения количества, размера или структуры.",
+    "consumer.error.contract":
+      "Проверьте настройки зависимости, уникальные указатели, поддерживаемые типы, скалярные enum и типизированные примеры запросов. Статус — конкретный код 100–599.",
+    "consumer.error.read":
+      "Не удалось прочитать файл совместимости. Текущая работа сохранена.",
+    "consumer.error.download":
+      "Не удалось начать загрузку файла совместимости. Повторите попытку.",
+    "consumer.finding.operation-missing": "Операция больше не описана.",
+    "consumer.finding.response-missing":
+      "Для нужного статуса нет описания ответа.",
+    "consumer.finding.media-missing":
+      "Нужный медиатип ответа больше не описан.",
+    "consumer.finding.schema-unknown":
+      "Схема не даёт достаточно информации для подтверждения требования.",
+    "consumer.finding.field-missing": "Обязательное поле больше не объявлено.",
+    "consumer.finding.field-optional":
+      "Наличие поля или родительского объекта больше не гарантируется.",
+    "consumer.finding.nullable-parent":
+      "Родитель может быть null, поэтому поле может быть недоступно.",
+    "consumer.finding.type-expanded":
+      "API может вернуть тип, который потребитель не принимает.",
+    "consumer.finding.enum-expanded":
+      "API может вернуть значение enum, которое потребитель не принимает.",
+    "consumer.finding.security-required":
+      "Операция больше не предлагает вариант без авторизации.",
+    "consumer.finding.request-parameter-missing":
+      "В примере запроса нет обязательного параметра.",
+    "consumer.finding.request-body-missing":
+      "В примере запроса нет обязательного тела.",
+    "consumer.finding.request-media-missing":
+      "Медиатип тела запроса отсутствует или не описан.",
+    "consumer.finding.request-invalid":
+      "Пример запроса нарушает описанное ограничение.",
+    "consumer.finding.parameter-removed":
+      "Заданный параметр запроса больше не описан; проверьте, принимается ли он ещё.",
+    "consumer.finding.schema-unsupported":
+      "Конструкция схемы требует ручной проверки.",
+    "consumer.finding.reference-unresolved":
+      "Не удалось локально разрешить ссылку на схему или объект.",
+    "consumer.finding.limit": "Анализ схемы достиг ограничения ресурсов.",
+    "consumer.finding.deprecated":
+      "Потребитель зависит от устаревающей операции.",
     "sandbox.title": "Песочница API с состоянием",
     "sandbox.description":
       "Создайте локальный макет сервиса, сохраняющий записи между запросами. Проверяйте создание, чтение, изменение и удаление с настраиваемыми ресурсами и привязками эндпоинтов.",

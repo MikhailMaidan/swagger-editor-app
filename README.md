@@ -37,6 +37,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API fixture studio with seeded test-data generation, linked datasets, sequence and constant field overrides, schema diagnostics, reusable recipes, and JSON/NDJSON/CSV exports
 - API performance lab with bounded concurrent GET/HEAD workloads, warm-up phases, weighted traffic, launch-rate limits, Mock rehearsals, latency percentiles, performance budgets, baseline comparisons, cancellation, and portable JSON/CSV reports
 - Stateful API sandbox with seeded resources, configurable CRUD endpoint bindings, parent-scoped routes, deterministic IDs, filtered/paginated lists, local request execution, state inspection, undo/reset, reusable projects, and record/run-log exports
+- Consumer compatibility workbench with reusable client profiles, selected response-field dependencies, typed request examples, public-access requirements, candidate OpenAPI checks, consumer-specific impact summaries, and JSON/Markdown release reports
 - Local schema picker access with `Ctrl+O` or `Cmd+O`
 - Schema downloads with `Ctrl+Shift+S` or `Cmd+Shift+S`
 - Localized success and error feedback for schema copy, save, import, and download actions
@@ -99,6 +100,98 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Checking changes against API consumers
+
+Open **Quality → Consumer compatibility workbench** to record the API behavior
+each client depends on and assess a candidate definition against those needs.
+For example, a web client may require `/profile/name` while a mobile client only
+uses `/id`; changing the name's type can affect the web client while the mobile
+client's tracked requirements still pass. This complements whole-API comparison
+with an explicit inventory of client dependencies.
+
+1. Add named consumers and **Capture current editor as reference**. Select an
+   operation, response variant, concrete status code, and the fields used by the
+   client. Add the dependency to that consumer. The reference is a captured
+   snapshot; refresh it explicitly when needed. Saved dependencies remain
+   independent of subsequent editor changes.
+2. Review the dependency's field expectations and public-access requirement.
+   Captured types, requiredness, and scalar enum values are editable JSON:
+
+   ```json
+   [{ "pointer": "/profile/name", "types": ["string"], "required": true }]
+   ```
+
+   An empty pointer means the response root; `/*` selects every existing array
+   item, as in `/items/*/sku`. `~1` and `~0` escape slash and tilde property names.
+   Literal `*` property names are not supported. `required: true` requires the
+   entire property chain to stay present and non-null; array checks allow empty
+   arrays. An empty `types` array accepts any type. Missing optional fields with
+   unknown behavior are reported for review rather than assumed compatible.
+
+3. Optionally supply a typed request example with `parameters` and an optional
+   `body`. Parameter locations are `path`, `query`, `header`, or `cookie`; header
+   names match without case sensitivity. Use a body's `mediaType` and JSON
+   `value`. For example:
+
+   ```json
+   {
+     "parameters": [{ "name": "id", "location": "path", "value": 1 }],
+     "body": { "mediaType": "application/json", "value": { "name": "Ada" } }
+   }
+   ```
+
+   These are schema examples, not serialized HTTP requests. They are never sent.
+   A blank example skips request checks. Save/discard JSON edits before checking
+   or exporting; switching consumers/dependencies preserves pending edits.
+
+4. Check the current editor, paste a candidate, or import a JSON/YAML file.
+   Inspect each consumer's outcome, filter/search dependency findings, and
+   download the complete JSON impact report or Markdown release review checklist.
+   A dependency/consumer can be excluded without deleting it.
+5. Download the consumer project to retain profiles, expectations, and request
+   examples. Restore it later to replace current profiles atomically. Failed
+   imports/checks preserve current work; collapsing the panel preserves state.
+   Work is not stored automatically and is lost on tab reload unless exported.
+
+The analysis checks method/path presence, documented response status/media,
+required nested fields, response type widening, scalar enum expansion, and loss
+of a public authentication alternative. Integer responses are acceptable to a
+number consumer. Response status ranges/defaults and media wildcards can fulfill
+concrete requirements, with exact declarations taking priority. Local references
+and `allOf` intersections are supported; OpenAPI 3.0 nullability and 3.1 schema
+reference siblings follow their respective semantics. See the
+[OpenAPI specification](https://spec.openapis.org/oas/v3.1.0.html) and
+[JSON Schema object rules](https://json-schema.org/understanding-json-schema/reference/object)
+for the underlying field/requiredness definitions.
+
+Request examples check effective path/operation parameters, newly required
+parameters/bodies, request media, and supported nested value constraints.
+Undocumented supplied parameters require review, since removal from a definition
+does not prove a server rejects them. Authentication credentials and parameter
+serialization are not verified. Regex patterns, unions/conditional schemas,
+custom dialects, dynamic/anchored references, unresolved references, and other
+unsupported constructs are not certified. Path-item references with structural
+siblings also require review; normalize them before checking. Supported source documents are
+OpenAPI 3.0/3.1 with the standard dialects; bundle external references or upgrade
+Swagger 2 with the existing tools first.
+
+**Compatible** means the tracked requirements passed the bounded, supported
+checks. **Affected by breaking changes** means a tracked expectation is no longer
+documented/guaranteed or a saved request example violates a checked constraint.
+**Needs review** means the analysis cannot prove compatibility. **Not checked**
+covers excluded dependencies and consumers with no active dependencies. This is
+not a complete OpenAPI validator or evidence of actual deployed server behavior;
+review findings and use the existing runtime tools before releasing changes.
+
+Limits: 20 consumers, 100 total dependencies, 1,000 total tracked fields, 64 KiB
+per request example, 2 MiB per input/project/JSON report, and shared JSON nesting
+and node limits. Reference inventory shows up to 200 fields and 10 levels; reports
+display up to 20 findings per dependency, prioritizing breaks, with omitted counts.
+Reports/checklists omit request bodies, parameter values, and allowed enum values;
+consumer names, paths, pointers, and field names remain. Projects include supplied
+data values. Review exports before sharing. No editor changes, API requests, or
+automatic persistence occur.
 
 ## Rehearsing stateful API workflows
 

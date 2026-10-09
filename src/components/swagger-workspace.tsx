@@ -23,6 +23,7 @@ import { TrafficDiscoveryPanel } from "@/components/traffic-discovery-panel";
 import { PostmanMigrationPanel } from "@/components/postman-migration-panel";
 import { ApiComposerPanel } from "@/components/api-composer-panel";
 import { ApiSandboxPanel } from "@/components/api-sandbox-panel";
+import { ConsumerContractPanel } from "@/components/consumer-contract-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1889,6 +1890,11 @@ export function SwaggerWorkspace({
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
         {
+          group: "quality",
+          id: "workspace-tool-consumers",
+          label: "consumer.title",
+        },
+        {
           group: "testing",
           id: "workspace-tool-sandbox",
           label: "sandbox.title",
@@ -2094,6 +2100,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "quality",
+          id: "workspace-tool-consumers",
+          label: "consumer.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-sandbox",
@@ -2835,6 +2846,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <ApiSandboxPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-consumers"
+          tabIndex={-1}
+        >
+          <ConsumerContractPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
