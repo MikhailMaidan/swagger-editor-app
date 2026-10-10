@@ -16,6 +16,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Traffic-to-OpenAPI studio that discovers an API from HAR captures, groups routes, infers request and response schemas, supports editable path templates and operation selection, and exports or reversibly applies an OpenAPI 3.1 draft
 - API transformation workbench with reusable JSON Patch recipes, ordered step editing, source pointer browsing, guarded atomic previews, JSON/YAML variant exports, and reversible editor application
 - OpenAPI three-way merge studio with Base/Ours/Theirs JSON/YAML versions, independent-change merging, explicit value/deletion/order conflicts, identity-based parameter/tag/server arrays, custom JSON resolutions, contract/reference review, restorable projects, decision reports, and guarded Apply/Undo
+- API documentation localization studio with multiple language catalogs, documentation-only editing, reviewed/draft/outdated tracking, retained orphaned translations, JSON/CSV exchange, strict or source-fallback publication, localized OpenAPI and offline HTML exports, portable projects, progress reports, and guarded Apply/Undo
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
@@ -104,6 +105,117 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Localizing API documentation
+
+Open **Design → API documentation localization studio** to maintain documentation
+for different languages without changing the API's machine contract. Capture the
+editor or import an OpenAPI JSON/YAML source, then add a language tag such as
+`fr`, `ru`, `pt-BR`, or `zh-Hant`. Language tags are canonicalized, and each
+language has its own translation catalog and progress counters. The tool works
+independently of editor validity, retains work when closed, and performs no
+automatic network calls, browser-storage writes, or editor changes.
+
+The inventory covers nonempty documentation annotations in API information,
+operations and path items, parameters, request bodies, responses and headers,
+schema titles/descriptions and nested properties/applicators, named example
+metadata, links, callbacks, webhooks, tags, servers and server variables,
+external-documentation descriptions, and supported reusable components.
+Swagger 2 definitions, shared parameters/responses, and security descriptions
+are included. References are preserved and never fetched; local reusable objects
+are inventoried at their actual definition locations.
+
+Routes, operation IDs, tag names, parameter/property/component names, server
+URLs, references, security requirements, runtime expressions, constraints,
+defaults, enums, constants, and example payload values stay unchanged. Arbitrary
+extension contents and unrecognized schema keywords are excluded. Translating
+`title`, `summary`, or `description` inside an example's actual payload would
+change test data, so those strings are deliberately absent from the inventory.
+Localization preserves document data rather than original YAML comments,
+anchors, quoting, or JSON whitespace.
+
+Search documentation, translation text, or JSON Pointer locations, filter by
+section/status, and select a field. Editing a translation makes it a draft;
+**Mark translation reviewed for current source** explicitly approves it.
+Refreshing the source keeps every translation. A changed source string makes a
+translation outdated, with the previous and current text visible together.
+Removed or moved documentation locations become orphaned: they remain in
+projects/catalogs and are excluded from output. Locations are JSON Pointers,
+so renamed properties or reordered array entries may need manual reassignment
+and review in a catalog. Exact source-text matching controls freshness; it is
+not a semantic translation-quality check.
+
+Both publication policies use only reviewed translations whose source still
+matches. **Source fallback** retains original text for missing, draft, or
+outdated fields. **Require all documentation fields reviewed** blocks output
+downloads and application until every active field is reviewed and current.
+Generate a fresh preview after any change to the source, selected language,
+translation, policy, or format. JSON/YAML downloads include the full API with
+only the approved documentation annotations replaced. Offline HTML reuses the
+existing documentation renderer: API text uses the chosen translation language,
+navigation labels use the app's English/Russian language, and the page declares
+the target language. It includes the renderer's supported endpoints, models,
+and security schemes rather than every inventoried annotation.
+
+**Apply localized OpenAPI to editor** is explicit and requires the editor to
+match its text at preview time. **Undo last localization application** restores
+the exact previous text and is blocked if later editor edits would be erased.
+The captured source stays separate from the applied output, allowing additional
+language variants to be exported from the same original API.
+
+Catalog JSON uses this format; missing active fields are included as blank
+translation rows when downloading from the studio:
+
+```json
+{
+  "kind": "rsswag-documentation-catalog",
+  "version": 1,
+  "locale": "fr",
+  "translations": [
+    {
+      "pointer": "/info/title",
+      "source": "Shop API",
+      "currentSource": "Shop API",
+      "text": "API de la boutique",
+      "reviewed": true
+    }
+  ]
+}
+```
+
+CSV catalogs have unique `locale,pointer,source,current_source,translation,reviewed`
+columns, accept reordered columns and BOMs, and support quoted commas, quotes,
+and multiline text. All rows must use one language and boolean `true`/`false`
+review flags. Formula-like cells and leading apostrophes receive a protective
+apostrophe on export; the importer removes that escape. JSON is preferable for
+lossless exchanges with systems that rewrite spreadsheet cell escapes.
+`source` is the text a translation was based on; `currentSource` /
+`current_source` provides the latest text for translators. To approve a changed
+translation externally, update `source` to the current text and set `reviewed`
+to `true`. Current-source metadata is informational and cannot override the
+freshness check against the captured API.
+
+Catalog imports merge by canonical language and pointer. Existing nonempty
+translations are kept unless **Replace matching translations on catalog
+import** is enabled; unrelated rows and other languages remain untouched.
+Duplicate/malformed pointers and unsupported catalog versions are rejected
+atomically. Even an imported, reviewed record can only change inventoried
+documentation at a matching source location. Portable projects include the
+source and all catalogs; restoration recomputes inventory and requires a fresh
+preview, ignoring any claimed saved output or progress. Progress reports contain
+complete counters and locations/statuses without documentation or translation
+values. A shared 8 MiB report budget bounds location lists fairly across languages;
+`entriesTruncated` and `orphanedPointersTruncated` explicitly mark omitted detail
+while counters still cover all active and orphaned records.
+
+Sources and localized outputs are limited to 2 MiB, catalogs to 8 MiB, projects
+to 16 MiB, individual translations to 64 KiB of UTF-8, active inventory and
+catalogs to 5,000 fields/rows each, and projects to 20 languages. Nesting and
+node counts are bounded, and output is checked again through the supported
+OpenAPI reader. Catalog exports include retained orphaned rows as well as
+active fields; the combined rows must fit the catalog limit. Projects contain
+the complete API, and catalogs contain documentation text. Progress reports
+still expose paths and names, so inspect downloads before sharing them.
 
 ## Reconciling parallel API edits
 

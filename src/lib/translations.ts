@@ -3,6 +3,130 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "localeStudio.catalogHelp":
+      "Catalog rows keep the source their translation was based on. currentSource (JSON) / current_source (CSV) shows today’s text. When reviewing an updated translation in a catalog, copy that text into source and set reviewed to true. The current-source column is informational; imports still verify source against the captured API.",
+    "localeStudio.title": "API documentation localization studio",
+    "localeStudio.description":
+      "Maintain documentation in multiple languages with translation catalogs, review status, source-change tracking, and localized OpenAPI and offline HTML exports.",
+    "localeStudio.help":
+      "Capture or import an API, add a language, translate its documentation, then mark each translation reviewed. Routes, identifiers, references, schema constraints, and example values are preserved. Everything stays in memory until you download a file or explicitly apply an output.",
+    "localeStudio.loading": "Reading localization file…",
+    "localeStudio.import.source":
+      "Import documentation source (OpenAPI JSON/YAML)",
+    "localeStudio.import.project": "Restore localization project (JSON)",
+    "localeStudio.import.catalog": "Import translation catalog (JSON/CSV)",
+    "localeStudio.capture": "Capture or refresh documentation from editor",
+    "localeStudio.overwrite": "Replace matching translations on catalog import",
+    "localeStudio.importHelp":
+      "Catalog imports merge by language and document location; existing nonempty translations are kept by default. Enable replacement to update matching rows. Other translations remain. CSV supports quoted multiline text and uses apostrophes to protect formula-like cells.",
+    "localeStudio.name": "Localization project name",
+    "localeStudio.inventory": "{title}: {count} documentation fields.",
+    "localeStudio.sourceDetails": "Captured documentation source",
+    "localeStudio.sourceText": "Captured OpenAPI documentation source",
+    "localeStudio.newLocale": "New translation language code",
+    "localeStudio.addLocale": "Add translation language",
+    "localeStudio.localeHelp":
+      "Use a language tag such as fr, ru, pt-BR, or zh-Hant. Up to 20 languages and 5,000 documentation fields. Refreshing the source retains translations; changed text becomes outdated and moved or removed locations become orphaned.",
+    "localeStudio.progress": "Translation progress by language",
+    "localeStudio.locale": "Language",
+    "localeStudio.coverage": "Reviewed / total",
+    "localeStudio.orphaned": "Orphaned",
+    "localeStudio.status.missing": "Missing",
+    "localeStudio.status.draft": "Draft",
+    "localeStudio.status.stale": "Outdated",
+    "localeStudio.status.reviewed": "Reviewed",
+    "localeStudio.search": "Search documentation and translations",
+    "localeStudio.filter": "Filter translation status",
+    "localeStudio.allStatuses": "All statuses",
+    "localeStudio.section": "Documentation section",
+    "localeStudio.allSections": "All sections",
+    "localeStudio.section.info": "API information",
+    "localeStudio.section.operations": "Operations and webhooks",
+    "localeStudio.section.schemas": "Schemas and properties",
+    "localeStudio.section.other": "Components, tags, and servers",
+    "localeStudio.noEntries": "No documentation fields match these filters.",
+    "localeStudio.entries": "Documentation fields",
+    "localeStudio.previous": "Previous documentation fields",
+    "localeStudio.next": "Next documentation fields",
+    "localeStudio.page": "Page {page}/{total}",
+    "localeStudio.original": "Current source text",
+    "localeStudio.previousSource":
+      "Source text when this translation was written",
+    "localeStudio.translation": "Translation ({locale})",
+    "localeStudio.review": "Mark translation reviewed for current source",
+    "localeStudio.unreview": "Return translation to draft",
+    "localeStudio.copySource": "Copy source into translation draft",
+    "localeStudio.clear": "Clear selected translation",
+    "localeStudio.reviewHelp":
+      "Editing text makes it a draft. Reviewing confirms that it matches the current source, including when the previous source has changed. Empty, draft, and outdated translations are never published.",
+    "localeStudio.orphanDetails": "Orphaned translation locations (first 30)",
+    "localeStudio.orphanHelp":
+      "These locations no longer contain documentation in the captured source. Their translations remain in projects and catalogs, but are excluded from localized output. Reuse them by editing a catalog and importing it at the new location.",
+    "localeStudio.exportCatalog": "Download translation catalog JSON",
+    "localeStudio.exportCsv": "Download translation catalog CSV",
+    "localeStudio.policy": "Localization publication policy",
+    "localeStudio.policy.fallback":
+      "Use reviewed translations with source fallback",
+    "localeStudio.policy.strict": "Require all documentation fields reviewed",
+    "localeStudio.format": "Localized OpenAPI output format",
+    "localeStudio.preview": "Preview localized documentation",
+    "localeStudio.policyHelp":
+      "Fallback retains source text for missing, draft, or outdated translations. Strict mode blocks export and application until every active field has a current reviewed translation. Orphaned entries are retained separately.",
+    "localeStudio.previewSummary":
+      "{locale}: {translated}/{total} fields use reviewed translations.",
+    "localeStudio.previewText":
+      "Localized API preview (first 16,000 characters)",
+    "localeStudio.needsPreview":
+      "Preview again after changing a language, translation, source, format, or publication policy.",
+    "localeStudio.exportApi": "Download localized OpenAPI",
+    "localeStudio.exportHtml": "Download localized offline HTML documentation",
+    "localeStudio.apply": "Apply localized OpenAPI to editor",
+    "localeStudio.htmlHelp":
+      "Offline HTML uses translated API content and the app language for navigation labels. It includes the existing documentation renderer’s supported endpoints, models, and security schemes.",
+    "localeStudio.exportProject": "Download localization project with source",
+    "localeStudio.exportProgress": "Download translation progress report",
+    "localeStudio.exportHelp":
+      "Projects include the complete API source and all translations. Catalogs include documentation text and locations, including retained outdated/orphaned rows. Progress reports include complete counters and bounded location/status lists with truncation flags; paths and names may still be sensitive. Imported reports and previews are never trusted as published output.",
+    "localeStudio.undo": "Undo last localization application",
+    "localeStudio.captured":
+      "Documentation source captured; existing translations retained.",
+    "localeStudio.restored":
+      "Localization project restored. Generate a fresh preview before applying it.",
+    "localeStudio.imported":
+      "Catalog merged: {imported} rows imported, {kept} existing translations kept.",
+    "localeStudio.ready":
+      "Localized documentation is ready for review and export.",
+    "localeStudio.blocked":
+      "Strict publication is blocked: review every active documentation field first.",
+    "localeStudio.downloaded": "Localization download started.",
+    "localeStudio.staleEditor":
+      "The editor changed after this preview. Generate a fresh preview before applying.",
+    "localeStudio.staleUndo":
+      "The editor changed after application. Undo is blocked to preserve those edits.",
+    "localeStudio.unchanged":
+      "The editor already contains this localized output.",
+    "localeStudio.applied":
+      "Localized documentation applied. Undo is available while the editor remains unchanged.",
+    "localeStudio.undone":
+      "The editor was restored to its exact previous text.",
+    "localeStudio.error.source":
+      "Use a valid supported OpenAPI or Swagger document in JSON or YAML.",
+    "localeStudio.error.limit":
+      "Localization limits exceeded: sources/outputs 2 MiB, catalogs 8 MiB, projects 16 MiB, 5,000 fields/rows, 20 languages, and bounded nesting.",
+    "localeStudio.error.locale":
+      "Use a valid, unique language tag such as fr, ru, pt-BR, or zh-Hant.",
+    "localeStudio.error.catalog":
+      "Invalid translation catalog. Check its version, unique documentation pointers, text, and boolean review flags.",
+    "localeStudio.error.project":
+      "Invalid localization project. Check its format, version, name, source, and language catalogs.",
+    "localeStudio.error.csv":
+      "Invalid catalog CSV. Use unique locale,pointer,source,current_source,translation,reviewed columns, one language, matching row widths, true/false review flags, and valid quoting.",
+    "localeStudio.error.text":
+      "Each translation must fit within 64 KiB of UTF-8 text.",
+    "localeStudio.error.result":
+      "Localized output cannot be published. Complete required reviews and keep the result within supported document limits.",
+    "localeStudio.error.download":
+      "The browser blocked the localization download. Try again.",
     "mergeStudio.title": "OpenAPI three-way merge studio",
     "mergeStudio.description":
       "Reconcile parallel edits to the same API using a shared base and two edited versions. Merge independent changes, inspect conflicts, choose explicit resolutions, and preview a combined contract before exporting or applying it.",
@@ -4072,6 +4196,132 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "localeStudio.catalogHelp":
+      "Строки каталога сохраняют исходник, на котором основан перевод. currentSource (JSON) / current_source (CSV) показывает текущий текст. При подтверждении обновлённого перевода в каталоге скопируйте этот текст в source и установите reviewed в true. Столбец текущего текста носит справочный характер; импорт проверяет source по захваченному API.",
+    "localeStudio.title": "Студия локализации документации API",
+    "localeStudio.description":
+      "Ведите документацию на нескольких языках: каталоги переводов, проверка текста, отслеживание изменений исходника и экспорт локализованных OpenAPI и автономного HTML.",
+    "localeStudio.help":
+      "Захватите или импортируйте API, добавьте язык, переведите документацию и подтвердите каждый перевод. Маршруты, идентификаторы, ссылки, ограничения схем и значения примеров сохраняются. Данные хранятся в памяти до скачивания файла или явного применения результата.",
+    "localeStudio.loading": "Чтение файла локализации…",
+    "localeStudio.import.source":
+      "Импорт исходника документации (OpenAPI JSON/YAML)",
+    "localeStudio.import.project": "Восстановить проект локализации (JSON)",
+    "localeStudio.import.catalog": "Импорт каталога переводов (JSON/CSV)",
+    "localeStudio.capture": "Захватить или обновить документацию из редактора",
+    "localeStudio.overwrite":
+      "Заменять совпадающие переводы при импорте каталога",
+    "localeStudio.importHelp":
+      "Каталоги объединяются по языку и месту в документе; непустые переводы по умолчанию сохраняются. Включите замену для обновления совпадающих строк. Остальные переводы остаются. CSV поддерживает многострочный текст в кавычках и апострофы для защиты ячеек, похожих на формулы.",
+    "localeStudio.name": "Название проекта локализации",
+    "localeStudio.inventory": "{title}: полей документации — {count}.",
+    "localeStudio.sourceDetails": "Захваченный исходник документации",
+    "localeStudio.sourceText": "Захваченный исходник документации OpenAPI",
+    "localeStudio.newLocale": "Код нового языка перевода",
+    "localeStudio.addLocale": "Добавить язык перевода",
+    "localeStudio.localeHelp":
+      "Используйте код вроде fr, ru, pt-BR или zh-Hant. До 20 языков и 5000 полей документации. Обновление исходника сохраняет переводы: изменённый текст становится устаревшим, а перемещённые или удалённые места — потерявшими связь.",
+    "localeStudio.progress": "Готовность переводов по языкам",
+    "localeStudio.locale": "Язык",
+    "localeStudio.coverage": "Подтверждено / всего",
+    "localeStudio.orphaned": "Без связи",
+    "localeStudio.status.missing": "Отсутствует",
+    "localeStudio.status.draft": "Черновик",
+    "localeStudio.status.stale": "Устарел",
+    "localeStudio.status.reviewed": "Подтверждён",
+    "localeStudio.search": "Поиск документации и переводов",
+    "localeStudio.filter": "Фильтр статуса перевода",
+    "localeStudio.allStatuses": "Все статусы",
+    "localeStudio.section": "Раздел документации",
+    "localeStudio.allSections": "Все разделы",
+    "localeStudio.section.info": "Информация об API",
+    "localeStudio.section.operations": "Операции и вебхуки",
+    "localeStudio.section.schemas": "Схемы и свойства",
+    "localeStudio.section.other": "Компоненты, теги и серверы",
+    "localeStudio.noEntries":
+      "Нет полей документации, соответствующих фильтрам.",
+    "localeStudio.entries": "Поля документации",
+    "localeStudio.previous": "Предыдущие поля документации",
+    "localeStudio.next": "Следующие поля документации",
+    "localeStudio.page": "Страница {page}/{total}",
+    "localeStudio.original": "Текущий исходный текст",
+    "localeStudio.previousSource": "Исходный текст на момент создания перевода",
+    "localeStudio.translation": "Перевод ({locale})",
+    "localeStudio.review": "Подтвердить перевод для текущего исходника",
+    "localeStudio.unreview": "Вернуть перевод в черновик",
+    "localeStudio.copySource": "Скопировать исходник в черновик перевода",
+    "localeStudio.clear": "Очистить выбранный перевод",
+    "localeStudio.reviewHelp":
+      "Редактирование делает текст черновиком. Подтверждение означает, что перевод соответствует текущему исходнику, даже если предыдущий текст изменился. Пустые, черновые и устаревшие переводы не публикуются.",
+    "localeStudio.orphanDetails": "Места переводов без связи (первые 30)",
+    "localeStudio.orphanHelp":
+      "В этих местах больше нет документации в захваченном исходнике. Переводы остаются в проектах и каталогах, но исключаются из результата. Для повторного использования измените место в каталоге и импортируйте его.",
+    "localeStudio.exportCatalog": "Скачать каталог переводов JSON",
+    "localeStudio.exportCsv": "Скачать каталог переводов CSV",
+    "localeStudio.policy": "Правило публикации локализации",
+    "localeStudio.policy.fallback":
+      "Подтверждённые переводы с исходным текстом для остальных полей",
+    "localeStudio.policy.strict":
+      "Требовать подтверждения всех полей документации",
+    "localeStudio.format": "Формат локализованного OpenAPI",
+    "localeStudio.preview": "Предпросмотр локализованной документации",
+    "localeStudio.policyHelp":
+      "При использовании исходного текста отсутствующие, черновые и устаревшие переводы заменяются оригиналом. Строгий режим блокирует экспорт и применение до подтверждения всех активных полей. Переводы без связи сохраняются отдельно.",
+    "localeStudio.previewSummary":
+      "{locale}: подтверждённые переводы используются в {translated} из {total} полей.",
+    "localeStudio.previewText":
+      "Предпросмотр локализованного API (первые 16 000 символов)",
+    "localeStudio.needsPreview":
+      "Повторите предпросмотр после изменения языка, перевода, исходника, формата или правила публикации.",
+    "localeStudio.exportApi": "Скачать локализованный OpenAPI",
+    "localeStudio.exportHtml":
+      "Скачать локализованную автономную HTML-документацию",
+    "localeStudio.apply": "Применить локализованный OpenAPI к редактору",
+    "localeStudio.htmlHelp":
+      "Автономный HTML использует переведённое содержимое API и язык приложения для навигации. Включаются эндпоинты, модели и схемы безопасности, поддерживаемые существующим генератором документации.",
+    "localeStudio.exportProject": "Скачать проект локализации с исходником",
+    "localeStudio.exportProgress": "Скачать отчёт о готовности переводов",
+    "localeStudio.exportHelp":
+      "Проекты содержат полный исходник API и все переводы. Каталоги содержат текст документации и места, включая устаревшие строки и строки без связи. Отчёты содержат полные счётчики и ограниченные списки мест/статусов с флагами усечения; пути и имена могут быть конфиденциальными. Импортированные отчёты и предпросмотры не используются как готовый результат.",
+    "localeStudio.undo": "Отменить последнее применение локализации",
+    "localeStudio.captured":
+      "Исходник документации захвачен; существующие переводы сохранены.",
+    "localeStudio.restored":
+      "Проект локализации восстановлен. Создайте новый предпросмотр перед применением.",
+    "localeStudio.imported":
+      "Каталог объединён: импортировано строк — {imported}, сохранено существующих переводов — {kept}.",
+    "localeStudio.ready":
+      "Локализованная документация готова к проверке и экспорту.",
+    "localeStudio.blocked":
+      "Строгая публикация заблокирована: сначала подтвердите каждое активное поле документации.",
+    "localeStudio.downloaded": "Начато скачивание локализации.",
+    "localeStudio.staleEditor":
+      "Редактор изменился после предпросмотра. Создайте новый предпросмотр перед применением.",
+    "localeStudio.staleUndo":
+      "Редактор изменился после применения. Отмена заблокирована, чтобы сохранить эти изменения.",
+    "localeStudio.unchanged":
+      "Редактор уже содержит этот локализованный результат.",
+    "localeStudio.applied":
+      "Локализованная документация применена. Отмена доступна, пока редактор не изменён.",
+    "localeStudio.undone": "В редакторе восстановлен точный предыдущий текст.",
+    "localeStudio.error.source":
+      "Используйте корректный поддерживаемый документ OpenAPI или Swagger в JSON или YAML.",
+    "localeStudio.error.limit":
+      "Превышены ограничения локализации: исходники/результаты 2 МиБ, каталоги 8 МиБ, проекты 16 МиБ, 5000 полей/строк, 20 языков и ограниченная вложенность.",
+    "localeStudio.error.locale":
+      "Используйте корректный уникальный код языка вроде fr, ru, pt-BR или zh-Hant.",
+    "localeStudio.error.catalog":
+      "Некорректный каталог переводов. Проверьте версию, уникальные указатели на документацию, текст и логические флаги подтверждения.",
+    "localeStudio.error.project":
+      "Некорректный проект локализации. Проверьте формат, версию, название, исходник и каталоги языков.",
+    "localeStudio.error.csv":
+      "Некорректный CSV-каталог. Используйте уникальные столбцы locale,pointer,source,current_source,translation,reviewed, один язык, одинаковую ширину строк, true/false для подтверждения и корректные кавычки.",
+    "localeStudio.error.text":
+      "Каждый перевод должен занимать не более 64 КиБ текста UTF-8.",
+    "localeStudio.error.result":
+      "Локализованный результат нельзя опубликовать. Завершите обязательные проверки и соблюдайте ограничения документа.",
+    "localeStudio.error.download":
+      "Браузер заблокировал скачивание локализации. Повторите попытку.",
     "mergeStudio.title": "Студия трёхстороннего слияния OpenAPI",
     "mergeStudio.description":
       "Согласуйте параллельные изменения одного API по общей базе и двум изменённым версиям. Объединяйте независимые правки, изучайте конфликты, выбирайте решения и проверяйте контракт перед экспортом или применением.",
