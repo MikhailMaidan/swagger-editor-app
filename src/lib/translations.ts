@@ -3,6 +3,167 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "graphqlStudio.error.introspection":
+      "Use the dedicated schema/introspection export for __schema and __type queries. Offline fixture rehearsal supports ordinary operations and __typename.",
+    "graphqlStudio.implementations": "GraphQL interface implementations",
+    "graphqlStudio.title": "GraphQL contract studio",
+    "graphqlStudio.description":
+      "Design and explore GraphQL schemas, build reusable operations, validate documents and variables, rehearse responses locally, and export HTTP contracts for the REST workspace.",
+    "graphqlStudio.help":
+      "Use SDL or introspection JSON. This studio stays separate from the OpenAPI editor and makes no network requests. Load the demo or import your schema, generate an operation, then validate or rehearse it with editable JSON fixtures.",
+    "graphqlStudio.loading": "Reading GraphQL file…",
+    "graphqlStudio.import.schema":
+      "Import GraphQL schema (SDL/introspection JSON)",
+    "graphqlStudio.import.project": "Restore GraphQL studio project (JSON)",
+    "graphqlStudio.import.request": "Import GraphQL HTTP request (JSON)",
+    "graphqlStudio.projectName": "GraphQL project name",
+    "graphqlStudio.source": "GraphQL schema source (SDL/introspection JSON)",
+    "graphqlStudio.load": "Load and validate GraphQL schema",
+    "graphqlStudio.demo": "Load demo GraphQL contract",
+    "graphqlStudio.capture": "Read editor as GraphQL schema",
+    "graphqlStudio.dirty":
+      "Schema source has unvalidated changes. Load and validate it before using the operation tools; the previous schema and saved operations are retained.",
+    "graphqlStudio.schemaSummary":
+      "{types} types, {fields} fields, {operations} root operations; source: {format}.",
+    "graphqlStudio.workspace": "GraphQL operations and exports",
+    "graphqlStudio.explorer": "Explore GraphQL types and dependencies",
+    "graphqlStudio.typeSearch": "Search GraphQL types and fields",
+    "graphqlStudio.typeFilter": "Filter GraphQL type kind",
+    "graphqlStudio.allTypes": "All type kinds",
+    "graphqlStudio.type.object": "Object",
+    "graphqlStudio.type.input": "Input object",
+    "graphqlStudio.type.interface": "Interface",
+    "graphqlStudio.type.union": "Union",
+    "graphqlStudio.type.enum": "Enum",
+    "graphqlStudio.type.scalar": "Scalar",
+    "graphqlStudio.types": "GraphQL types",
+    "graphqlStudio.noTypes": "No types match these filters.",
+    "graphqlStudio.previousTypes": "Previous GraphQL types",
+    "graphqlStudio.nextTypes": "Next GraphQL types",
+    "graphqlStudio.previousFields": "Previous GraphQL fields",
+    "graphqlStudio.nextFields": "Next GraphQL fields",
+    "graphqlStudio.page": "Page {page}/{total}",
+    "graphqlStudio.oneOf": "OneOf input: provide exactly one non-null field.",
+    "graphqlStudio.dependencies": "GraphQL type dependencies",
+    "graphqlStudio.members": "Members / implemented interfaces: {names}",
+    "graphqlStudio.enumValues": "GraphQL enum values (first 100)",
+    "graphqlStudio.fields": "GraphQL fields",
+    "graphqlStudio.deprecated": "Deprecated",
+    "graphqlStudio.default": "Default: {value}",
+    "graphqlStudio.required": "required",
+    "graphqlStudio.exportSdl": "Download GraphQL SDL",
+    "graphqlStudio.exportIntrospection": "Download GraphQL introspection JSON",
+    "graphqlStudio.exportInventory": "Download GraphQL schema inventory",
+    "graphqlStudio.operationSearch": "Search GraphQL root operations",
+    "graphqlStudio.operationFilter": "Filter GraphQL operation kind",
+    "graphqlStudio.allOperations": "All operation kinds",
+    "graphqlStudio.operation.query": "Query",
+    "graphqlStudio.operation.mutation": "Mutation",
+    "graphqlStudio.operation.subscription": "Subscription",
+    "graphqlStudio.rootOperation": "GraphQL root operation",
+    "graphqlStudio.depth": "Generated selection depth",
+    "graphqlStudio.optionalArguments":
+      "Include optional arguments and input fields",
+    "graphqlStudio.generate": "Generate operation, variables, and fixtures",
+    "graphqlStudio.generatorHelp":
+      "Generation replaces the current draft. It selects up to eight nondeprecated fields per object, skips nested fields requiring arguments, uses __typename at cycles/depth limits, and supplies editable sample values. Review custom scalars and generated inputs.",
+    "graphqlStudio.draftName": "GraphQL operation draft name",
+    "graphqlStudio.operationName":
+      "GraphQL operation name (blank for one operation)",
+    "graphqlStudio.document": "GraphQL operation document",
+    "graphqlStudio.variables": "GraphQL variables (JSON object)",
+    "graphqlStudio.fixtures": "GraphQL root fixtures (JSON object)",
+    "graphqlStudio.validate": "Validate GraphQL document and variables",
+    "graphqlStudio.rehearse": "Run offline GraphQL rehearsal",
+    "graphqlStudio.rehearsalHelp":
+      "Fixtures provide values by actual field name; aliases, fragments, built-in directives, enum/scalar completion, and null propagation use GraphQL execution rules. Add __typename for interface/union objects. Arguments are validated but fixtures do not implement filtering, business logic, authentication, or mutation side effects. Custom scalar/directive semantics are not executed. Subscriptions can be designed and validated, but streaming transport is not simulated.",
+    "graphqlStudio.checkSummary":
+      "{issues} request issues, {warnings} custom-rule notes, {ignored} ignored extra variable keys.",
+    "graphqlStudio.availableOperations":
+      "Operation names in this document: {names}",
+    "graphqlStudio.anonymous": "anonymous",
+    "graphqlStudio.issues": "GraphQL request diagnostics",
+    "graphqlStudio.phase.document": "Document",
+    "graphqlStudio.phase.selection": "Operation selection",
+    "graphqlStudio.phase.variables": "Variables",
+    "graphqlStudio.warning.custom-scalar":
+      "Custom scalar {name}: provide representative values; server parsing/serialization rules are not available here.",
+    "graphqlStudio.warning.custom-directive":
+      "Custom directive {name}: its application behavior is not simulated.",
+    "graphqlStudio.response":
+      "Offline GraphQL response (first 16,000 characters)",
+    "graphqlStudio.exportRequest": "Download GraphQL HTTP request",
+    "graphqlStudio.exportResponse": "Download offline GraphQL response",
+    "graphqlStudio.exportReport": "Download GraphQL check report",
+    "graphqlStudio.reportHelp":
+      "Check reports omit query text, variables, fixtures, response values, and diagnostic messages. They still include operation/type/directive names and source locations. Editing a draft or schema clears previous check results.",
+    "graphqlStudio.library": "Saved GraphQL operation library",
+    "graphqlStudio.savedOperation": "Saved GraphQL operation",
+    "graphqlStudio.chooseCase": "Choose a saved operation",
+    "graphqlStudio.saveNew": "Save as new GraphQL operation",
+    "graphqlStudio.updateCase": "Update selected saved operation",
+    "graphqlStudio.loadCase": "Load selected saved operation into draft",
+    "graphqlStudio.removeCase": "Remove selected saved operation",
+    "graphqlStudio.libraryHelp":
+      "{count}/50 saved operations. Saving requires a valid document/variables and JSON fixtures. Loading explicitly replaces the draft; removing a saved entry leaves the current draft. Schema refresh keeps entries, which must be checked again against the new schema.",
+    "graphqlStudio.httpContract": "GraphQL HTTP contract for REST tools",
+    "graphqlStudio.endpoint": "GraphQL HTTP endpoint URL",
+    "graphqlStudio.bridgeFormat": "GraphQL HTTP OpenAPI output format",
+    "graphqlStudio.exportBridge": "Download GraphQL HTTP OpenAPI contract",
+    "graphqlStudio.bridgeHelp":
+      "Exports an OpenAPI 3.1 POST contract for this validated query or mutation, with typed variables, the prepared request example, and a generic data/errors response envelope. Response selections, custom scalar rules, and authentication are not modeled. This creates no gateway or resolvers. Import the download or combine it using the API gateway composer; exporting does not change the editor.",
+    "graphqlStudio.exportProject": "Download GraphQL studio project",
+    "graphqlStudio.exportHelp":
+      "Projects include schema source, the active draft, variables, fixtures, endpoint URL, and saved operations. Requests and response downloads include values; schema inventories include descriptions/defaults. Restored projects rebuild the schema and require fresh checks. Limits: 2 MiB schema/result/artifact, 128 KiB document/variables, 256 KiB fixtures, 8 MiB project, 50 saved operations, plus bounded nesting, tokens, fields, and rehearsal work.",
+    "graphqlStudio.loaded":
+      "GraphQL schema loaded; existing draft and saved operations retained.",
+    "graphqlStudio.demoLoaded":
+      "Demo schema loaded with an editable sample operation and fixtures.",
+    "graphqlStudio.requestImported":
+      "GraphQL HTTP request imported; current root fixtures retained. Validate it against the loaded schema.",
+    "graphqlStudio.restored":
+      "GraphQL project restored. Validate or rehearse again before exporting checked requests.",
+    "graphqlStudio.generated":
+      "Operation, variable values, and fixtures generated. Review and validate before use.",
+    "graphqlStudio.valid":
+      "Document and variables are valid for the loaded schema.",
+    "graphqlStudio.invalid":
+      "GraphQL request has issues; review the diagnostics below.",
+    "graphqlStudio.rehearsal.success":
+      "Offline GraphQL rehearsal completed with data and no execution errors.",
+    "graphqlStudio.rehearsal.errors":
+      "Offline GraphQL rehearsal produced execution errors. Review fixture values and nullability.",
+    "graphqlStudio.rehearsal.invalid":
+      "Request validation failed; no fixture execution was performed.",
+    "graphqlStudio.saved": "GraphQL operation saved.",
+    "graphqlStudio.caseLoaded":
+      "Saved operation loaded into the current draft; fresh checks are required.",
+    "graphqlStudio.caseRemoved":
+      "Selected saved operation removed; current draft retained.",
+    "graphqlStudio.downloaded": "GraphQL download started.",
+    "graphqlStudio.error.schema":
+      "Unable to load a valid GraphQL schema. Check the SDL or introspection structure and details below.",
+    "graphqlStudio.error.limit":
+      "GraphQL studio limits exceeded. Reduce input size, nesting, selection expansion, or fixture/output work.",
+    "graphqlStudio.error.variables":
+      "Variables must be a bounded JSON object with supported JSON values.",
+    "graphqlStudio.error.fixtures":
+      "Root fixtures must be a bounded JSON object with supported JSON values.",
+    "graphqlStudio.error.generation":
+      "Could not generate this operation within supported limits. Choose another field/depth or write the operation and input values manually.",
+    "graphqlStudio.error.request":
+      "Use a valid GraphQL request document and variables before saving or exporting. Imported HTTP requests need query text and object variables.",
+    "graphqlStudio.error.subscription":
+      "Subscriptions can be designed, validated, and saved, but offline execution and this HTTP export support queries and mutations only.",
+    "graphqlStudio.error.endpoint":
+      "Use an absolute HTTP(S) endpoint URL without credentials, query parameters, or a fragment.",
+    "graphqlStudio.error.project":
+      "Invalid GraphQL project. Check the format/version, names, schema source, drafts, unique saved IDs, and JSON values.",
+    "graphqlStudio.error.case": "Select an existing saved GraphQL operation.",
+    "graphqlStudio.error.file":
+      "Unable to read the selected GraphQL file. Try selecting it again.",
+    "graphqlStudio.error.download":
+      "The browser blocked the GraphQL download. Try again.",
     "localeStudio.catalogHelp":
       "Catalog rows keep the source their translation was based on. currentSource (JSON) / current_source (CSV) shows today’s text. When reviewing an updated translation in a catalog, copy that text into source and set reviewed to true. The current-source column is informational; imports still verify source against the captured API.",
     "localeStudio.title": "API documentation localization studio",
@@ -4196,6 +4357,169 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "graphqlStudio.error.introspection":
+      "Для запросов __schema и __type используйте отдельный экспорт схемы/интроспекции. Локальное выполнение с тестовыми данными поддерживает обычные операции и __typename.",
+    "graphqlStudio.implementations": "Реализации интерфейса GraphQL",
+    "graphqlStudio.title": "Студия контрактов GraphQL",
+    "graphqlStudio.description":
+      "Проектируйте и изучайте схемы GraphQL, создавайте переиспользуемые операции, проверяйте документы и переменные, моделируйте ответы локально и экспортируйте HTTP-контракты для REST-инструментов.",
+    "graphqlStudio.help":
+      "Используйте SDL или JSON-интроспекцию. Студия работает отдельно от редактора OpenAPI и не выполняет сетевые запросы. Загрузите пример или свою схему, создайте операцию и проверьте её либо выполните локально с редактируемыми JSON-данными.",
+    "graphqlStudio.loading": "Чтение файла GraphQL…",
+    "graphqlStudio.import.schema":
+      "Импорт схемы GraphQL (SDL/JSON-интроспекция)",
+    "graphqlStudio.import.project": "Восстановить проект студии GraphQL (JSON)",
+    "graphqlStudio.import.request": "Импорт HTTP-запроса GraphQL (JSON)",
+    "graphqlStudio.projectName": "Название проекта GraphQL",
+    "graphqlStudio.source": "Исходник схемы GraphQL (SDL/JSON-интроспекция)",
+    "graphqlStudio.load": "Загрузить и проверить схему GraphQL",
+    "graphqlStudio.demo": "Загрузить пример контракта GraphQL",
+    "graphqlStudio.capture": "Прочитать редактор как схему GraphQL",
+    "graphqlStudio.dirty":
+      "В исходнике схемы есть непроверенные изменения. Загрузите и проверьте его перед использованием операций; предыдущая схема и сохранённые операции остаются.",
+    "graphqlStudio.schemaSummary":
+      "Типов: {types}, полей: {fields}, корневых операций: {operations}; исходник: {format}.",
+    "graphqlStudio.workspace": "Операции и экспорт GraphQL",
+    "graphqlStudio.explorer": "Изучить типы и зависимости GraphQL",
+    "graphqlStudio.typeSearch": "Поиск типов и полей GraphQL",
+    "graphqlStudio.typeFilter": "Фильтр вида типа GraphQL",
+    "graphqlStudio.allTypes": "Все виды типов",
+    "graphqlStudio.type.object": "Объект",
+    "graphqlStudio.type.input": "Входной объект",
+    "graphqlStudio.type.interface": "Интерфейс",
+    "graphqlStudio.type.union": "Объединение",
+    "graphqlStudio.type.enum": "Перечисление",
+    "graphqlStudio.type.scalar": "Скаляр",
+    "graphqlStudio.types": "Типы GraphQL",
+    "graphqlStudio.noTypes": "Нет типов, соответствующих фильтрам.",
+    "graphqlStudio.previousTypes": "Предыдущие типы GraphQL",
+    "graphqlStudio.nextTypes": "Следующие типы GraphQL",
+    "graphqlStudio.previousFields": "Предыдущие поля GraphQL",
+    "graphqlStudio.nextFields": "Следующие поля GraphQL",
+    "graphqlStudio.page": "Страница {page}/{total}",
+    "graphqlStudio.oneOf":
+      "Вход OneOf: укажите ровно одно поле с ненулевым значением.",
+    "graphqlStudio.dependencies": "Зависимости типа GraphQL",
+    "graphqlStudio.members": "Участники / реализованные интерфейсы: {names}",
+    "graphqlStudio.enumValues": "Значения перечисления GraphQL (первые 100)",
+    "graphqlStudio.fields": "Поля GraphQL",
+    "graphqlStudio.deprecated": "Устарело",
+    "graphqlStudio.default": "По умолчанию: {value}",
+    "graphqlStudio.required": "обязательно",
+    "graphqlStudio.exportSdl": "Скачать SDL GraphQL",
+    "graphqlStudio.exportIntrospection": "Скачать JSON-интроспекцию GraphQL",
+    "graphqlStudio.exportInventory": "Скачать список типов и операций GraphQL",
+    "graphqlStudio.operationSearch": "Поиск корневых операций GraphQL",
+    "graphqlStudio.operationFilter": "Фильтр вида операции GraphQL",
+    "graphqlStudio.allOperations": "Все виды операций",
+    "graphqlStudio.operation.query": "Запрос",
+    "graphqlStudio.operation.mutation": "Мутация",
+    "graphqlStudio.operation.subscription": "Подписка",
+    "graphqlStudio.rootOperation": "Корневая операция GraphQL",
+    "graphqlStudio.depth": "Глубина создаваемой выборки",
+    "graphqlStudio.optionalArguments":
+      "Включать необязательные аргументы и входные поля",
+    "graphqlStudio.generate": "Создать операцию, переменные и тестовые данные",
+    "graphqlStudio.generatorHelp":
+      "Создание заменяет текущий черновик. Выбирается до восьми актуальных полей на объект; вложенные поля с обязательными аргументами пропускаются, для циклов и предела глубины используется __typename. Примеры значений можно редактировать. Проверьте пользовательские скаляры и созданные входные данные.",
+    "graphqlStudio.draftName": "Название черновика операции GraphQL",
+    "graphqlStudio.operationName":
+      "Имя операции GraphQL (пусто для одной операции)",
+    "graphqlStudio.document": "Документ операции GraphQL",
+    "graphqlStudio.variables": "Переменные GraphQL (JSON-объект)",
+    "graphqlStudio.fixtures": "Корневые тестовые данные GraphQL (JSON-объект)",
+    "graphqlStudio.validate": "Проверить документ и переменные GraphQL",
+    "graphqlStudio.rehearse": "Выполнить GraphQL локально",
+    "graphqlStudio.rehearsalHelp":
+      "Данные задают значения по реальному имени поля; псевдонимы, фрагменты, встроенные директивы, скаляры/перечисления и распространение null обрабатываются по правилам GraphQL. Добавляйте __typename для объектов интерфейсов/объединений. Аргументы проверяются, но данные не реализуют фильтрацию, бизнес-логику, аутентификацию или эффекты мутаций. Семантика пользовательских скаляров/директив не выполняется. Подписки можно проектировать и проверять, но потоковая передача не моделируется.",
+    "graphqlStudio.checkSummary":
+      "Замечаний к запросу: {issues}, примечаний о пользовательских правилах: {warnings}, игнорируемых лишних ключей переменных: {ignored}.",
+    "graphqlStudio.availableOperations": "Имена операций в документе: {names}",
+    "graphqlStudio.anonymous": "без имени",
+    "graphqlStudio.issues": "Диагностика запроса GraphQL",
+    "graphqlStudio.phase.document": "Документ",
+    "graphqlStudio.phase.selection": "Выбор операции",
+    "graphqlStudio.phase.variables": "Переменные",
+    "graphqlStudio.warning.custom-scalar":
+      "Пользовательский скаляр {name}: задайте подходящие значения; правила разбора/сериализации сервера здесь недоступны.",
+    "graphqlStudio.warning.custom-directive":
+      "Пользовательская директива {name}: её поведение не моделируется.",
+    "graphqlStudio.response":
+      "Локальный ответ GraphQL (первые 16 000 символов)",
+    "graphqlStudio.exportRequest": "Скачать HTTP-запрос GraphQL",
+    "graphqlStudio.exportResponse": "Скачать локальный ответ GraphQL",
+    "graphqlStudio.exportReport": "Скачать отчёт проверки GraphQL",
+    "graphqlStudio.reportHelp":
+      "Отчёты не содержат текст запроса, переменные, тестовые данные, значения ответа или сообщения диагностики. Имена операций/типов/директив и места в исходнике остаются. Изменение черновика или схемы сбрасывает результаты проверки.",
+    "graphqlStudio.library": "Библиотека сохранённых операций GraphQL",
+    "graphqlStudio.savedOperation": "Сохранённая операция GraphQL",
+    "graphqlStudio.chooseCase": "Выберите сохранённую операцию",
+    "graphqlStudio.saveNew": "Сохранить как новую операцию GraphQL",
+    "graphqlStudio.updateCase": "Обновить выбранную сохранённую операцию",
+    "graphqlStudio.loadCase":
+      "Загрузить выбранную сохранённую операцию в черновик",
+    "graphqlStudio.removeCase": "Удалить выбранную сохранённую операцию",
+    "graphqlStudio.libraryHelp":
+      "Сохранено операций: {count}/50. Для сохранения нужны корректный документ/переменные и JSON-данные. Загрузка явно заменяет черновик; удаление записи сохраняет текущий черновик. Обновление схемы сохраняет записи, которые следует проверить заново.",
+    "graphqlStudio.httpContract": "HTTP-контракт GraphQL для REST-инструментов",
+    "graphqlStudio.endpoint": "URL HTTP-эндпоинта GraphQL",
+    "graphqlStudio.bridgeFormat": "Формат OpenAPI HTTP-контракта GraphQL",
+    "graphqlStudio.exportBridge": "Скачать OpenAPI HTTP-контракт GraphQL",
+    "graphqlStudio.bridgeHelp":
+      "Экспортирует OpenAPI 3.1 POST-контракт для проверенного запроса или мутации: типизированные переменные, пример запроса и общий ответ data/errors. Выборка ответа, правила пользовательских скаляров и аутентификация не моделируются. Шлюз и обработчики не создаются. Импортируйте файл или объедините его в компоновщике API-шлюза; экспорт не меняет редактор.",
+    "graphqlStudio.exportProject": "Скачать проект студии GraphQL",
+    "graphqlStudio.exportHelp":
+      "Проекты содержат исходник схемы, текущий черновик, переменные, тестовые данные, URL и сохранённые операции. Запросы и ответы содержат значения; списки типов содержат описания и значения по умолчанию. Восстановление заново строит схему и требует новой проверки. Ограничения: 2 МиБ для схемы/результата/файла, 128 КиБ для документа/переменных, 256 КиБ для тестовых данных, 8 МиБ для проекта, 50 операций, а также ограниченная вложенность, число токенов, полей и объём выполнения.",
+    "graphqlStudio.loaded":
+      "Схема GraphQL загружена; текущий черновик и сохранённые операции оставлены.",
+    "graphqlStudio.demoLoaded":
+      "Пример схемы загружен с редактируемой операцией и тестовыми данными.",
+    "graphqlStudio.requestImported":
+      "HTTP-запрос GraphQL импортирован; текущие корневые данные сохранены. Проверьте запрос по загруженной схеме.",
+    "graphqlStudio.restored":
+      "Проект GraphQL восстановлен. Повторите проверку или локальное выполнение перед экспортом проверенных запросов.",
+    "graphqlStudio.generated":
+      "Операция, переменные и тестовые данные созданы. Проверьте их перед использованием.",
+    "graphqlStudio.valid":
+      "Документ и переменные соответствуют загруженной схеме.",
+    "graphqlStudio.invalid":
+      "В запросе GraphQL есть ошибки; проверьте диагностику ниже.",
+    "graphqlStudio.rehearsal.success":
+      "Локальное выполнение GraphQL завершено с данными без ошибок.",
+    "graphqlStudio.rehearsal.errors":
+      "Локальное выполнение GraphQL вернуло ошибки. Проверьте тестовые значения и допустимость null.",
+    "graphqlStudio.rehearsal.invalid":
+      "Проверка запроса не пройдена; тестовые данные не выполнялись.",
+    "graphqlStudio.saved": "Операция GraphQL сохранена.",
+    "graphqlStudio.caseLoaded":
+      "Сохранённая операция загружена в черновик; нужна новая проверка.",
+    "graphqlStudio.caseRemoved":
+      "Выбранная сохранённая операция удалена; текущий черновик оставлен.",
+    "graphqlStudio.downloaded": "Начато скачивание GraphQL.",
+    "graphqlStudio.error.schema":
+      "Не удалось загрузить корректную схему GraphQL. Проверьте SDL или структуру интроспекции и подробности ниже.",
+    "graphqlStudio.error.limit":
+      "Превышены ограничения студии GraphQL. Уменьшите размер данных, вложенность, развёртывание выборки или объём тестового результата.",
+    "graphqlStudio.error.variables":
+      "Переменные должны быть JSON-объектом допустимого размера с поддерживаемыми значениями.",
+    "graphqlStudio.error.fixtures":
+      "Корневые тестовые данные должны быть JSON-объектом допустимого размера с поддерживаемыми значениями.",
+    "graphqlStudio.error.generation":
+      "Не удалось создать операцию в допустимых пределах. Выберите другое поле/глубину или задайте документ и входные значения вручную.",
+    "graphqlStudio.error.request":
+      "Используйте корректные документ и переменные перед сохранением или экспортом. Импортируемый HTTP-запрос должен содержать текст query и переменные-объект.",
+    "graphqlStudio.error.subscription":
+      "Подписки можно проектировать, проверять и сохранять, но локальное выполнение и этот HTTP-экспорт поддерживают только запросы и мутации.",
+    "graphqlStudio.error.endpoint":
+      "Используйте абсолютный HTTP(S) URL без учётных данных, параметров запроса и фрагмента.",
+    "graphqlStudio.error.project":
+      "Некорректный проект GraphQL. Проверьте формат/версию, названия, исходник схемы, черновики, уникальные ID и JSON-значения.",
+    "graphqlStudio.error.case":
+      "Выберите существующую сохранённую операцию GraphQL.",
+    "graphqlStudio.error.file":
+      "Не удалось прочитать выбранный файл GraphQL. Выберите его снова.",
+    "graphqlStudio.error.download":
+      "Браузер заблокировал скачивание GraphQL. Повторите попытку.",
     "localeStudio.catalogHelp":
       "Строки каталога сохраняют исходник, на котором основан перевод. currentSource (JSON) / current_source (CSV) показывает текущий текст. При подтверждении обновлённого перевода в каталоге скопируйте этот текст в source и установите reviewed в true. Столбец текущего текста носит справочный характер; импорт проверяет source по захваченному API.",
     "localeStudio.title": "Студия локализации документации API",
