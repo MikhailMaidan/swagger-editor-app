@@ -26,6 +26,7 @@ import { ApiSandboxPanel } from "@/components/api-sandbox-panel";
 import { ConsumerContractPanel } from "@/components/consumer-contract-panel";
 import { DataRedactionPanel } from "@/components/data-redaction-panel";
 import { ApiTestMatrixPanel } from "@/components/api-test-matrix-panel";
+import { AsyncApiStudioPanel } from "@/components/asyncapi-studio-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1892,6 +1893,11 @@ export function SwaggerWorkspace({
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
         {
+          group: "design",
+          id: "workspace-tool-asyncapi",
+          label: "asyncStudio.title",
+        },
+        {
           group: "testing",
           id: "workspace-tool-matrix",
           label: "matrix.title",
@@ -2112,6 +2118,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "design",
+          id: "workspace-tool-asyncapi",
+          label: "asyncStudio.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-matrix",
@@ -2895,6 +2906,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <ApiTestMatrixPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-asyncapi"
+          tabIndex={-1}
+        >
+          <AsyncApiStudioPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div

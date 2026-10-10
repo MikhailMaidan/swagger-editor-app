@@ -22,6 +22,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Reusable-component registry for OpenAPI 3.0-3.2 and Swagger 2 with transitive reachability, local and external reference diagnostics, cycle detection, dependency search, Mermaid graphs, and JSON reports
 - OpenAPI 3 workflow explorer with response-link resolution, runtime-expression handoffs, broken-target and cycle detection, endpoint navigation, Mermaid diagrams, and JSON reports
 - Callback and webhook contract explorer with reusable-reference resolution, payload examples, receiver responses, source navigation, diagnostics, Markdown sharing, and JSON reports
+- AsyncAPI event studio with independent JSON/YAML contracts, 2.x/3.x channel and message exploration, example-driven 3.1 authoring, JSON message checks, correlation tracing, parameterized addresses, local rehearsal/replay journals, portable projects, and contract/inventory/report exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -102,6 +103,124 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing and rehearsing event contracts
+
+Open **Design → AsyncAPI event studio** to work on message-driven contracts
+alongside the existing OpenAPI editor. The studio accepts JSON/YAML AsyncAPI
+2.0–2.6, 3.0, and 3.1 documents and has its own source editor. Its contracts,
+message inputs, and journal remain in memory until downloaded. No broker
+connections, network requests, automatic storage, or OpenAPI editor changes
+occur. The studio remains available when the OpenAPI editor is invalid.
+
+Import a document or paste it into **AsyncAPI source**, then load it. Loading
+checks supported versions, bounded structure, and local reference resolution
+for inspection; it does not certify full AsyncAPI conformance. External,
+missing, and cyclic references produce review findings without fetching.
+Search operations by channel, address, message key, and operation name, or
+filter by the application's send/receive direction. AsyncAPI 2.x uses the
+opposite perspective: `subscribe` means the application sends, while `publish`
+means it receives, as described in the official
+[AsyncAPI migration guide](https://www.asyncapi.com/docs/migration/migrating-to-v3).
+Multiple 2.x `message.oneOf` alternatives and 3.x channel message maps are
+available as separate rehearsal variants. Explicit 3.x operation message
+references must belong to the selected channel.
+
+To author a new contract, start an empty AsyncAPI 3.1 document and open
+**Add a channel from a JSON example**. Supply a unique channel identifier,
+concrete address, message name, application action, and JSON example. You can
+also capture a request/response JSON example from the current OpenAPI editor.
+The builder adds an operation, a message, its example, and an inferred nested
+schema, preserving all existing contract fields. Inference describes observed
+types and required fields; it does not infer business rules. The builder
+supports 3.x documents; imported 2.x documents retain their original version.
+Use the studio source editor to add constraints, headers, correlation IDs,
+parameters, servers, and additional message variants. Pending source edits
+block checks, authoring, replay, and exports until loaded or discarded. Loading
+or starting a new contract clears the current journal; export a project first
+to keep it. Invalid loads preserve the active contract and its journal.
+
+For example, this contract receives order events on a tenant-specific address:
+
+```yaml
+asyncapi: 3.1.0
+info:
+  title: Order event consumer
+  version: "1.0.0"
+defaultContentType: application/json
+channels:
+  orders:
+    address: orders/{tenant}
+    parameters:
+      tenant:
+        enum: [alpha, beta]
+        default: alpha
+    messages:
+      created:
+        payload:
+          type: object
+          properties:
+            orderId: { type: integer, minimum: 1 }
+          required: [orderId]
+        headers:
+          type: object
+          properties:
+            traceId: { type: string }
+          required: [traceId]
+        correlationId:
+          location: $message.header#/traceId
+        examples:
+          - payload: { orderId: 7 }
+            headers: { traceId: order-7 }
+operations:
+  consumeOrders:
+    action: receive
+    channel:
+      $ref: "#/channels/orders"
+```
+
+Channel/message references, application actions, and correlation expressions
+follow the [AsyncAPI 3.1 specification](https://www.asyncapi.com/docs/reference/specification/v3.1.0).
+The studio supports `$message.header#<JSON Pointer>` and
+`$message.payload#<JSON Pointer>` correlation locations with escaped pointer
+segments and scalar values. Parameter values are strings; omitted values may
+use documented defaults. Address parameters require nonempty values and obey
+documented enum choices. Null/dynamic addresses need a concrete source
+definition before rehearsal. Server details are displayed as documentation;
+they are never contacted.
+
+Choose an operation and message, load a documented example or enter JSON
+payload/application headers, and check without recording or record a local
+attempt. Common checks include types, required properties, additional
+properties, enums, constants, numeric/string/array bounds, patterns, supported
+formats, and composition. A mismatch is invalid, including multiple `oneOf`
+matches. Headers and correlation are checked independently. Partial results
+identify unsupported or bounded work, including traits, reply routing, Avro
+and other schema formats, non-JSON content, unrecognized schema keywords or
+formats, malformed constraints, recursive schemas, and arrays beyond 1,000
+items. This is a bounded advisory checker rather than a complete JSON Schema
+or AsyncAPI validator. Broker bindings, authentication, delivery, ordering,
+acknowledgements, and real send/receive behavior are not simulated.
+
+The local journal records both valid and invalid attempts with sequential IDs,
+resolved addresses, inputs, outcomes, and extracted correlation IDs. Search by
+operation, address, direction, outcome, or correlation, filter results, and
+page through 20 entries at a time. **Replay locally** rechecks an earlier
+envelope and appends a new attempt. **Edit inputs** loads it into the rehearsal
+form; **Undo** removes the last attempt; **Clear** resets the journal. Closing
+the panel preserves active work. Restoring a project recomputes every journal
+check and address instead of trusting saved outcomes.
+
+Download the original-version contract as JSON/YAML, a Markdown operation
+inventory, a project with the contract and journal, a full journal, or a
+rehearsal report. Contract exports preserve unknown fields and local references
+but not YAML comments or formatting. Projects, full journals, and documents
+can contain private values. Rehearsal reports omit payload/header values,
+concrete addresses, parameter values, and correlation IDs; operation/message
+keys, issue field paths, and reference pointers remain visible. Limits are
+2 MiB per document/project/journal/export, 128 KiB per payload/header object,
+100 channels, 200 operations, 400 message variants (100 per channel), and
+200 journal entries.
 
 ## Running data-driven workflow tests
 

@@ -3,6 +3,152 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "asyncStudio.title": "AsyncAPI event studio",
+    "asyncStudio.description":
+      "Design and inspect event-driven contracts, check JSON messages, and rehearse send/receive operations in a local journal. Import AsyncAPI 2.x or 3.x, or build a new 3.1 contract from examples.",
+    "asyncStudio.help":
+      "Everything stays in this tab, with no broker connections or automatic storage. The OpenAPI editor is separate. Documents and projects may contain private examples and server details; projects and full journals include message values. Reports omit payload/header values, concrete addresses, and correlation IDs. Labels and field paths remain visible.",
+    "asyncStudio.importDocument": "Import AsyncAPI document (JSON/YAML)",
+    "asyncStudio.importProject": "Restore event studio project (JSON)",
+    "asyncStudio.loading": "Reading event studio file…",
+    "asyncStudio.contract": "Event contract",
+    "asyncStudio.source": "AsyncAPI source (JSON or YAML)",
+    "asyncStudio.sourceHelp":
+      "Load checks supported versions and structure, then resolves local references for inspection. It is not full AsyncAPI certification. Loading a contract replaces the active contract and clears its journal. Unknown fields are preserved in document exports. External references are reported without fetching.",
+    "asyncStudio.dirty":
+      "Contract edits are pending. Load or discard them before building, checking messages, replaying, or exporting.",
+    "asyncStudio.load": "Load event contract and reset journal",
+    "asyncStudio.discard": "Discard event contract edits",
+    "asyncStudio.create": "Start an empty AsyncAPI 3.1 contract",
+    "asyncStudio.summary":
+      "{title} · AsyncAPI {version} · channels: {channels} · operations: {operations} · messages: {messages}",
+    "asyncStudio.exports": "Contract and rehearsal exports",
+    "asyncStudio.projectName": "Event studio project name",
+    "asyncStudio.export.json": "Download AsyncAPI JSON",
+    "asyncStudio.export.yaml": "Download AsyncAPI YAML",
+    "asyncStudio.export.markdown": "Download event inventory Markdown",
+    "asyncStudio.export.project": "Download event project with message values",
+    "asyncStudio.export.journal": "Download full journal with message values",
+    "asyncStudio.export.report":
+      "Download rehearsal report without message values",
+    "asyncStudio.builder": "Add a channel from a JSON example",
+    "asyncStudio.builderHelp":
+      "Adds a channel, message with inferred schema, example, and send/receive operation. Existing contract fields are kept. Inference describes observed types, not business rules. Use the source editor for constraints, parameterized addresses, headers, correlation IDs, and additional message variants.",
+    "asyncStudio.builderV3":
+      "The additive channel builder supports AsyncAPI 3.x. Imported 2.x contracts can still be edited, checked, rehearsed, and exported in their original version.",
+    "asyncStudio.channelKey": "New channel identifier",
+    "asyncStudio.address": "New channel address (without parameters)",
+    "asyncStudio.messageName": "New message name",
+    "asyncStudio.action": "New operation action",
+    "asyncStudio.send": "Application sends",
+    "asyncStudio.receive": "Application receives",
+    "asyncStudio.seed": "JSON payload example for schema inference",
+    "asyncStudio.captureSeeds": "Read JSON examples from OpenAPI editor",
+    "asyncStudio.seedChoice": "OpenAPI example to reuse",
+    "asyncStudio.useSeed": "Use selected OpenAPI example",
+    "asyncStudio.addChannel": "Add event channel and operation",
+    "asyncStudio.findings":
+      "Contract review findings ({count}; first 100 shown)",
+    "asyncStudio.servers": "Documented servers (no connections)",
+    "asyncStudio.operations": "Channel operations",
+    "asyncStudio.search": "Search event operations",
+    "asyncStudio.direction": "Filter operation direction",
+    "asyncStudio.all": "All",
+    "asyncStudio.noOperations": "No matching event operations.",
+    "asyncStudio.rehearsal": "Local message rehearsal",
+    "asyncStudio.rehearsalHelp":
+      "Checks payload/header schemas and correlation IDs, resolves address parameters, and records a local attempt. Invalid messages are recorded with their errors. Supported checks cover common JSON Schema constraints; unsupported features produce partial results. No real messages are sent, received, delivered, or acknowledged. In 2.x, subscribe means the application sends, and publish means it receives.",
+    "asyncStudio.dynamic": "Dynamic address",
+    "asyncStudio.message": "Message variant to rehearse",
+    "asyncStudio.messageDetails":
+      "Message schema and correlation definition (first 16,000 characters)",
+    "asyncStudio.example": "Documented message example",
+    "asyncStudio.useExample": "Load message example into rehearsal",
+    "asyncStudio.parameters": "Channel parameter values (JSON string object)",
+    "asyncStudio.payload": "Rehearsal payload (JSON)",
+    "asyncStudio.headers": "Application message headers (JSON object)",
+    "asyncStudio.validate": "Check message without recording",
+    "asyncStudio.record": "Record local message rehearsal",
+    "asyncStudio.checkStatus": "Message check: {status}",
+    "asyncStudio.status.valid": "Valid for supported checks",
+    "asyncStudio.status.invalid": "Invalid",
+    "asyncStudio.status.partial": "Partial — review findings",
+    "asyncStudio.journal": "Local event journal ({count}/200)",
+    "asyncStudio.journalHelp":
+      "Replay rechecks a prior envelope and appends a new attempt. Edit loads its values into the rehearsal form. Undo removes the last attempt. Journals remain in memory across closing the panel; download a project to restore them. Limits: 2 MiB per document/project/journal, 128 KiB per payload or header object, 100 channels, 200 operations, and 400 message variants.",
+    "asyncStudio.eventSearch": "Search rehearsal journal",
+    "asyncStudio.eventFilter": "Filter rehearsal outcome",
+    "asyncStudio.noEvents": "No matching journal entries.",
+    "asyncStudio.replayOf": "replay of {sequence}",
+    "asyncStudio.inspectEvent": "Inspect event {sequence}",
+    "asyncStudio.replayEvent": "Replay event {sequence}",
+    "asyncStudio.editEvent": "Edit event {sequence} inputs",
+    "asyncStudio.inspect": "Inspect",
+    "asyncStudio.replay": "Replay locally",
+    "asyncStudio.edit": "Edit inputs",
+    "asyncStudio.selectedEvent": "Event {sequence} details",
+    "asyncStudio.eventPreview":
+      "Selected event values (first 16,000 characters)",
+    "asyncStudio.undo": "Undo last journal entry",
+    "asyncStudio.clear": "Clear local journal",
+    "asyncStudio.previous": "Previous journal entries",
+    "asyncStudio.next": "Next journal entries",
+    "asyncStudio.page": "Page {page}/{total}",
+    "asyncStudio.loaded": "Event contract loaded; journal reset.",
+    "asyncStudio.restored":
+      "Event project restored and journal checks recomputed.",
+    "asyncStudio.created":
+      "Empty AsyncAPI 3.1 contract created; journal reset.",
+    "asyncStudio.built":
+      "Event channel, inferred message schema, and operation added.",
+    "asyncStudio.seedsLoaded":
+      "JSON examples captured from the OpenAPI editor.",
+    "asyncStudio.noSeeds":
+      "No reusable JSON examples found in the current editor.",
+    "asyncStudio.recorded":
+      "Local rehearsal recorded. Review its check outcome.",
+    "asyncStudio.checked": "Message checked without adding a journal entry.",
+    "asyncStudio.replayed":
+      "Prior message rechecked and recorded as a new attempt.",
+    "asyncStudio.downloaded": "Event studio download started.",
+    "asyncStudio.finding.reference": "Unresolved or invalid local reference",
+    "asyncStudio.finding.external-reference":
+      "External reference requires review",
+    "asyncStudio.finding.structure": "Missing or unsupported structure",
+    "asyncStudio.finding.traits": "Trait merging is not evaluated",
+    "asyncStudio.finding.reply": "Reply routing is not rehearsed",
+    "asyncStudio.finding.schema-format": "Schema format is not evaluated",
+    "asyncStudio.finding.schema-keyword":
+      "Schema keyword needs independent review",
+    "asyncStudio.finding.schema-limit":
+      "Schema traversal was bounded or recursive",
+    "asyncStudio.finding.content-type":
+      "Only JSON messages can be checked here",
+    "asyncStudio.finding.correlation": "Unsupported correlation expression",
+    "asyncStudio.finding.address":
+      "Dynamic address needs an explicit concrete definition",
+    "asyncStudio.error.document":
+      "Use a bounded JSON/YAML AsyncAPI document with an info title/version and object maps. Existing work is preserved.",
+    "asyncStudio.error.version":
+      "Supported versions are AsyncAPI 2.0–2.6, 3.0, and 3.1.",
+    "asyncStudio.error.limit":
+      "An input, export, channel, operation, or message count exceeds the event studio limits.",
+    "asyncStudio.error.json":
+      "Use valid bounded JSON with safe numbers. Header values must be in an object.",
+    "asyncStudio.error.selection":
+      "Select an operation and a message belonging to its channel before checking or replaying.",
+    "asyncStudio.error.parameters":
+      "Supply all address parameters as nonempty strings, respecting documented enum values. Dynamic addresses and unresolved braces cannot be rehearsed.",
+    "asyncStudio.error.builder":
+      "Use a unique channel identifier, a concrete address, a message name, and a 3.x contract for the builder.",
+    "asyncStudio.error.project":
+      "Use a valid version 1 event studio project with an ordered, restorable journal.",
+    "asyncStudio.error.journal":
+      "The local journal reached its entry or byte limit. Download it, then undo an entry or clear it before recording more.",
+    "asyncStudio.error.openapi":
+      "Use a valid OpenAPI editor document to capture reusable JSON examples.",
+    "asyncStudio.error.download":
+      "The event studio download could not start. Try again.",
     "matrix.title": "Data-driven workflow tests",
     "matrix.description":
       "Run one reusable API workflow across JSON or CSV test cases with isolated variables, per-case expectations, and response assertions. Rehearse with Mock or execute a controlled Live batch, then export JSON or JUnit results.",
@@ -3799,6 +3945,151 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "asyncStudio.title": "Студия событий AsyncAPI",
+    "asyncStudio.description":
+      "Создавайте и изучайте контракты событий, проверяйте JSON-сообщения и репетируйте отправку/приём в локальном журнале. Импортируйте AsyncAPI 2.x или 3.x либо создайте контракт 3.1 по примерам.",
+    "asyncStudio.help":
+      "Работа остаётся в этой вкладке: без соединений с брокером и автоматического сохранения. Редактор OpenAPI независим. Документы и проекты могут содержать приватные примеры и адреса серверов; проекты и полные журналы содержат значения сообщений. Отчёты исключают значения тела/заголовков, конкретные адреса и идентификаторы корреляции. Названия и пути полей видны.",
+    "asyncStudio.importDocument": "Импорт документа AsyncAPI (JSON/YAML)",
+    "asyncStudio.importProject": "Восстановить проект студии событий (JSON)",
+    "asyncStudio.loading": "Чтение файла студии событий…",
+    "asyncStudio.contract": "Контракт событий",
+    "asyncStudio.source": "Исходник AsyncAPI (JSON или YAML)",
+    "asyncStudio.sourceHelp":
+      "Загрузка проверяет поддерживаемую версию и структуру, разрешает локальные ссылки. Это не полная сертификация AsyncAPI. Загрузка заменяет контракт и очищает журнал. Неизвестные поля сохраняются при экспорте. Внешние ссылки отображаются без загрузки.",
+    "asyncStudio.dirty":
+      "Есть несохранённые изменения контракта. Загрузите или отмените их перед созданием каналов, проверкой, повтором или экспортом.",
+    "asyncStudio.load": "Загрузить контракт событий и сбросить журнал",
+    "asyncStudio.discard": "Отменить изменения контракта событий",
+    "asyncStudio.create": "Начать пустой контракт AsyncAPI 3.1",
+    "asyncStudio.summary":
+      "{title} · AsyncAPI {version} · каналов: {channels} · операций: {operations} · сообщений: {messages}",
+    "asyncStudio.exports": "Экспорт контракта и репетиций",
+    "asyncStudio.projectName": "Название проекта студии событий",
+    "asyncStudio.export.json": "Скачать AsyncAPI JSON",
+    "asyncStudio.export.yaml": "Скачать AsyncAPI YAML",
+    "asyncStudio.export.markdown": "Скачать каталог событий Markdown",
+    "asyncStudio.export.project": "Скачать проект со значениями сообщений",
+    "asyncStudio.export.journal":
+      "Скачать полный журнал со значениями сообщений",
+    "asyncStudio.export.report":
+      "Скачать отчёт репетиций без значений сообщений",
+    "asyncStudio.builder": "Добавить канал по JSON-примеру",
+    "asyncStudio.builderHelp":
+      "Добавляет канал, сообщение с выведенной схемой, пример и операцию отправки/приёма. Поля контракта сохраняются. Вывод описывает наблюдаемые типы, а не бизнес-правила. Ограничения, параметры адресов, заголовки, корреляцию и варианты сообщений задайте в исходнике.",
+    "asyncStudio.builderV3":
+      "Конструктор каналов поддерживает AsyncAPI 3.x. Контракты 2.x можно редактировать, проверять, репетировать и экспортировать в исходной версии.",
+    "asyncStudio.channelKey": "Идентификатор нового канала",
+    "asyncStudio.address": "Адрес нового канала (без параметров)",
+    "asyncStudio.messageName": "Название нового сообщения",
+    "asyncStudio.action": "Действие новой операции",
+    "asyncStudio.send": "Приложение отправляет",
+    "asyncStudio.receive": "Приложение принимает",
+    "asyncStudio.seed": "JSON-пример тела для вывода схемы",
+    "asyncStudio.captureSeeds": "Прочитать JSON-примеры из редактора OpenAPI",
+    "asyncStudio.seedChoice": "Пример OpenAPI для использования",
+    "asyncStudio.useSeed": "Использовать выбранный пример OpenAPI",
+    "asyncStudio.addChannel": "Добавить канал и операцию события",
+    "asyncStudio.findings":
+      "Замечания по контракту ({count}; показаны первые 100)",
+    "asyncStudio.servers": "Описанные серверы (без соединений)",
+    "asyncStudio.operations": "Операции каналов",
+    "asyncStudio.search": "Поиск операций событий",
+    "asyncStudio.direction": "Фильтр направления операции",
+    "asyncStudio.all": "Все",
+    "asyncStudio.noOperations": "Подходящих операций событий нет.",
+    "asyncStudio.rehearsal": "Локальная репетиция сообщения",
+    "asyncStudio.rehearsalHelp":
+      "Проверяет схемы тела/заголовков и корреляцию, подставляет параметры адреса и записывает попытку. Ошибочные сообщения записываются с ошибками. Поддерживаются основные ограничения JSON Schema; остальные возможности дают частичный результат. Настоящая отправка, приём, доставка и подтверждение не выполняются. В 2.x subscribe означает отправку приложением, publish — приём.",
+    "asyncStudio.dynamic": "Динамический адрес",
+    "asyncStudio.message": "Вариант сообщения для репетиции",
+    "asyncStudio.messageDetails":
+      "Схема сообщения и корреляция (первые 16 000 символов)",
+    "asyncStudio.example": "Документированный пример сообщения",
+    "asyncStudio.useExample": "Загрузить пример сообщения для репетиции",
+    "asyncStudio.parameters": "Параметры канала (JSON-объект строк)",
+    "asyncStudio.payload": "Тело репетиции (JSON)",
+    "asyncStudio.headers": "Заголовки сообщения приложения (JSON-объект)",
+    "asyncStudio.validate": "Проверить сообщение без записи",
+    "asyncStudio.record": "Записать локальную репетицию сообщения",
+    "asyncStudio.checkStatus": "Проверка сообщения: {status}",
+    "asyncStudio.status.valid": "Соответствует поддерживаемым проверкам",
+    "asyncStudio.status.invalid": "Не соответствует",
+    "asyncStudio.status.partial": "Частично — изучите замечания",
+    "asyncStudio.journal": "Локальный журнал событий ({count}/200)",
+    "asyncStudio.journalHelp":
+      "Повтор проверяет прошлое сообщение и добавляет попытку. Редактирование загружает значения в форму. Отмена удаляет последнюю попытку. Журнал остаётся в памяти при закрытии панели; скачайте проект для восстановления. Лимиты: 2 МиБ на документ/проект/журнал, 128 КиБ на тело или объект заголовков, 100 каналов, 200 операций, 400 вариантов сообщений.",
+    "asyncStudio.eventSearch": "Поиск в журнале репетиций",
+    "asyncStudio.eventFilter": "Фильтр результата репетиции",
+    "asyncStudio.noEvents": "Подходящих записей журнала нет.",
+    "asyncStudio.replayOf": "повтор записи {sequence}",
+    "asyncStudio.inspectEvent": "Просмотреть событие {sequence}",
+    "asyncStudio.replayEvent": "Повторить событие {sequence}",
+    "asyncStudio.editEvent": "Редактировать данные события {sequence}",
+    "asyncStudio.inspect": "Просмотреть",
+    "asyncStudio.replay": "Повторить локально",
+    "asyncStudio.edit": "Редактировать данные",
+    "asyncStudio.selectedEvent": "Подробности события {sequence}",
+    "asyncStudio.eventPreview":
+      "Значения выбранного события (первые 16 000 символов)",
+    "asyncStudio.undo": "Отменить последнюю запись журнала",
+    "asyncStudio.clear": "Очистить локальный журнал",
+    "asyncStudio.previous": "Предыдущие записи журнала",
+    "asyncStudio.next": "Следующие записи журнала",
+    "asyncStudio.page": "Страница {page}/{total}",
+    "asyncStudio.loaded": "Контракт событий загружен; журнал сброшен.",
+    "asyncStudio.restored":
+      "Проект событий восстановлен, проверки журнала пересчитаны.",
+    "asyncStudio.created":
+      "Создан пустой контракт AsyncAPI 3.1; журнал сброшен.",
+    "asyncStudio.built":
+      "Добавлены канал, выведенная схема сообщения и операция.",
+    "asyncStudio.seedsLoaded": "JSON-примеры прочитаны из редактора OpenAPI.",
+    "asyncStudio.noSeeds": "В редакторе нет подходящих JSON-примеров.",
+    "asyncStudio.recorded":
+      "Локальная репетиция записана. Изучите результат проверки.",
+    "asyncStudio.checked":
+      "Сообщение проверено без добавления записи в журнал.",
+    "asyncStudio.replayed":
+      "Прошлое сообщение проверено и записано как новая попытка.",
+    "asyncStudio.downloaded": "Начато скачивание из студии событий.",
+    "asyncStudio.finding.reference":
+      "Не найдена или некорректна локальная ссылка",
+    "asyncStudio.finding.external-reference": "Внешняя ссылка требует проверки",
+    "asyncStudio.finding.structure":
+      "Отсутствующая или неподдерживаемая структура",
+    "asyncStudio.finding.traits": "Объединение traits не оценивается",
+    "asyncStudio.finding.reply": "Маршрутизация ответа не репетируется",
+    "asyncStudio.finding.schema-format": "Формат схемы не оценивается",
+    "asyncStudio.finding.schema-keyword":
+      "Ключевое слово схемы требует отдельной проверки",
+    "asyncStudio.finding.schema-limit": "Обход схемы ограничен или рекурсивен",
+    "asyncStudio.finding.content-type":
+      "Здесь проверяются только JSON-сообщения",
+    "asyncStudio.finding.correlation": "Неподдерживаемое выражение корреляции",
+    "asyncStudio.finding.address":
+      "Динамическому адресу требуется конкретное определение",
+    "asyncStudio.error.document":
+      "Используйте ограниченный документ AsyncAPI JSON/YAML с info title/version и объектами разделов. Текущая работа сохраняется.",
+    "asyncStudio.error.version": "Поддерживаются AsyncAPI 2.0–2.6, 3.0 и 3.1.",
+    "asyncStudio.error.limit":
+      "Превышен лимит входных данных, экспорта, каналов, операций или сообщений.",
+    "asyncStudio.error.json":
+      "Используйте корректный ограниченный JSON с безопасными числами. Заголовки должны быть объектом.",
+    "asyncStudio.error.selection":
+      "Выберите операцию и сообщение её канала перед проверкой или повтором.",
+    "asyncStudio.error.parameters":
+      "Укажите все параметры адреса непустыми строками из описанных enum. Динамические адреса и неразрешённые скобки репетировать нельзя.",
+    "asyncStudio.error.builder":
+      "Для конструктора нужны уникальный идентификатор канала, конкретный адрес, название сообщения и контракт 3.x.",
+    "asyncStudio.error.project":
+      "Используйте проект студии событий версии 1 с упорядоченным восстанавливаемым журналом.",
+    "asyncStudio.error.journal":
+      "Достигнут лимит записей или размера журнала. Скачайте его, затем отмените запись или очистите журнал.",
+    "asyncStudio.error.openapi":
+      "Для получения JSON-примеров нужен корректный документ в редакторе OpenAPI.",
+    "asyncStudio.error.download":
+      "Не удалось начать скачивание. Попробуйте снова.",
     "matrix.title": "Проверки сценариев API по наборам данных",
     "matrix.description":
       "Запускайте один сценарий API по тестовым случаям JSON/CSV с изолированными переменными, индивидуальными ожиданиями и проверками ответов. Используйте Mock или управляемый пакет Live, затем экспортируйте JSON/JUnit.",
