@@ -27,6 +27,7 @@ import { ConsumerContractPanel } from "@/components/consumer-contract-panel";
 import { DataRedactionPanel } from "@/components/data-redaction-panel";
 import { ApiTestMatrixPanel } from "@/components/api-test-matrix-panel";
 import { AsyncApiStudioPanel } from "@/components/asyncapi-studio-panel";
+import { OpenApiMergePanel } from "@/components/openapi-merge-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1894,6 +1895,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "design",
+          id: "workspace-tool-merge",
+          label: "mergeStudio.title",
+        },
+        {
+          group: "design",
           id: "workspace-tool-asyncapi",
           label: "asyncStudio.title",
         },
@@ -2118,6 +2124,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "design",
+          id: "workspace-tool-merge",
+          label: "mergeStudio.title",
+        },
         {
           group: "design",
           id: "workspace-tool-asyncapi",
@@ -2914,6 +2925,17 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <AsyncApiStudioPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-merge"
+          tabIndex={-1}
+        >
+          <OpenApiMergePanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyDocument}
+          />
         </div>
 
         <div

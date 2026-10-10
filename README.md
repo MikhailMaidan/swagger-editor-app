@@ -15,6 +15,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API gateway composer that combines independent services with route prefixes, component and operation namespaces, inherited security, rewritten local references and links, route-conflict diagnostics, reusable projects, routing inventories, and reversible OpenAPI export/application
 - Traffic-to-OpenAPI studio that discovers an API from HAR captures, groups routes, infers request and response schemas, supports editable path templates and operation selection, and exports or reversibly applies an OpenAPI 3.1 draft
 - API transformation workbench with reusable JSON Patch recipes, ordered step editing, source pointer browsing, guarded atomic previews, JSON/YAML variant exports, and reversible editor application
+- OpenAPI three-way merge studio with Base/Ours/Theirs JSON/YAML versions, independent-change merging, explicit value/deletion/order conflicts, identity-based parameter/tag/server arrays, custom JSON resolutions, contract/reference review, restorable projects, decision reports, and guarded Apply/Undo
 - Live API quality audit with coverage scoring, severity filters, endpoint navigation, JSON export, and localized Markdown sharing
 - Persistent API comparison baselines with semantic breaking-change review and JSON reports
 - Named local schema checkpoints with validity metadata, restore, download, and delete actions
@@ -103,6 +104,107 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Reconciling parallel API edits
+
+Open **Design → OpenAPI three-way merge studio** when two branches changed the
+same API. Use the common starting document as **Base**, your edited document as
+**Ours**, and the other edited document as **Theirs**. Paste or import JSON/YAML
+versions, or capture the current editor into each slot. OpenAPI and Swagger 2
+documents are supported. Source files stay in this tab; analysis makes no
+requests and saves nothing automatically. The panel and captured versions stay
+available while the main editor contains invalid text.
+
+**Analyse and preview three-way merge** compares actual JSON data rather than
+lines or formatting. If one side is unchanged, the other side's change wins.
+Identical changes are kept once. Independent object-field additions and edits
+combine recursively. Unknown fields and extensions are preserved. Deletion
+versus a changed value, different scalar additions/edits, incompatible types,
+and incompatible array edits become explicit conflicts. Removing an entire
+object conflicts with editing one of its children. An absent property is
+different from JSON `null`. The studio never inserts text conflict markers or
+exports a partially resolved API.
+
+For example, starting with `info.title: Shop` and `info.version: '1'`, changing
+the title to `Our Shop` in Ours and the version to `'2'` in Theirs produces both
+changes without a conflict. If both versions change `info.title` differently,
+you must choose Base, Ours, Theirs, or a custom JSON string for that field.
+
+With **Merge supported OpenAPI arrays by identity** enabled, the studio matches:
+
+- Inline parameters by the exact pair of `in` and `name`.
+- Root tag definitions by `name`.
+- Server definitions by `url`, at the root and supported path-item/operation
+  locations, including webhooks and reusable `components.pathItems`.
+
+Parameter identity follows the [OpenAPI specification](https://spec.openapis.org/oas/v3.1.0.html#parameter-object).
+The collection merge is a studio policy, not a specification-defined merge
+algorithm. Every item must have a unique usable identity. Arrays with `$ref`
+entries, duplicates, missing identities, more than 1,000 entries, or unsupported
+locations remain atomic. Operation tag strings, schema arrays such as
+`required`/`enum`/`oneOf`, examples, security requirements, callbacks, and other
+arrays are not inferred as keyed collections. Disable the option to treat all
+arrays atomically.
+
+Changes to different keyed items combine without losing their nested content.
+A one-sided reorder of common items is retained. If neither side reorders
+common entries, Ours supplies the primary order and remaining entries from
+Theirs are appended. Different reorders of common entries produce a separate
+order conflict. A newly inserted first server can change the default target;
+if only one branch changes that default its order is retained, while different
+default choices require an explicit ordering decision. An ordering decision is
+also required when deleting the default server conflicts with another branch's
+edit to it, so restoring its definition can restore its position. Ordering conflicts show
+lists of item identities. Choosing Base/Ours/Theirs changes the ordering while
+retaining independently merged item contents and appending remaining items;
+custom order JSON is disabled.
+
+Search conflicts by location, kind, or decision, filter resolved/unresolved
+items, and page through 20 at a time. Select a conflict to compare all three
+values (each preview shows up to 16,000 characters). Pick a version, or save a
+complete custom JSON value. To delete a field choose a version where it is
+absent; a custom `null` inserts a real null value. Bulk actions resolve only
+remaining conflicts and preserve earlier decisions. Changing a source or array
+strategy clears decisions so they cannot silently apply to different data.
+Changing an active custom value clears that decision until saved again.
+Conflict locations escape object keys like JSON Pointer, but keyed collections
+use `@item`/`@order` markers; these locations are not ordinary JSON Pointers and
+cannot be used directly in a JSON Patch recipe.
+
+Preview again after decisions change. Export/application is enabled only when
+every conflict is resolved and the output is accepted by the existing OpenAPI
+parser. A resolved but invalid or oversized result retains its conflict plan
+for correction. Review changed document locations and the advisory summary of
+added, removed, modified, potentially breaking operations, broken references,
+and external references. These checks reuse the existing operation comparison
+and component registry. They do not certify full OpenAPI conformance, deep
+schema compatibility, or live API behavior. Reference and compatibility
+findings need review even if the structural merge succeeded; external
+references are not fetched.
+
+Download a merged JSON/YAML contract, a merge project, or a JSON/Markdown
+decision report. Project imports recompute conflicts and decisions rather than
+trusting a saved result and require a new preview before application. Projects
+require valid source documents and valid matching decisions, but may retain
+unresolved conflicts or a blocked output. Contract exports normalize formatting
+and do not preserve YAML comments. JSON switches to compact formatting if
+indentation would exceed the output limit; oversized YAML requires a smaller
+document or JSON output.
+
+**Apply merged OpenAPI to editor** checks that the editor still matches the
+content captured at preview time. Later editor edits block application until a
+new preview is made. **Undo last merge application** restores the exact prior
+editor text only if no subsequent editor changes occurred. Existing schema
+saving, request history, other testing tools, and editing flows remain available.
+
+Projects contain all three original sources and custom values. Decision reports
+omit full source/value bodies but include source titles, field locations,
+decisions, and reference findings; identity locations can include parameter
+names, tag names, server URLs, or other private metadata. Review exports before
+sharing. Limits are 2 MiB per source and merged output, 8 MiB per project/report,
+500 conflicts, 64 KiB per custom value, and bounded depth/traversal. Document
+change inventories show the first 200 changes and reference summaries the first
+200 findings; these display limits do not truncate the merged contract.
 
 ## Designing and rehearsing event contracts
 

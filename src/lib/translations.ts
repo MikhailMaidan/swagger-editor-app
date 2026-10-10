@@ -3,6 +3,133 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "mergeStudio.title": "OpenAPI three-way merge studio",
+    "mergeStudio.description":
+      "Reconcile parallel edits to the same API using a shared base and two edited versions. Merge independent changes, inspect conflicts, choose explicit resolutions, and preview a combined contract before exporting or applying it.",
+    "mergeStudio.help":
+      "Work stays in this tab with no requests or automatic storage. Projects contain all three source documents and custom resolutions. Decision reports omit full source/value bodies but include titles and merge locations; keyed locations can contain parameter/tag names and server URLs. Review before sharing. Limits: 2 MiB per source/output, 8 MiB per project/report, 500 conflicts, and 64 KiB per custom value.",
+    "mergeStudio.loading": "Reading merge file…",
+    "mergeStudio.importProject": "Restore three-way merge project (JSON)",
+    "mergeStudio.sources": "Merge versions",
+    "mergeStudio.name": "Merge project name",
+    "mergeStudio.side.base": "Base",
+    "mergeStudio.side.ours": "Ours",
+    "mergeStudio.side.theirs": "Theirs",
+    "mergeStudio.sideHelp.base":
+      "The common version before either branch changed it.",
+    "mergeStudio.sideHelp.ours":
+      "Your edited version. Keyed-array ordering prefers this side when neither branch reorders shared entries.",
+    "mergeStudio.sideHelp.theirs":
+      "The other edited version whose changes should be reconciled with yours.",
+    "mergeStudio.capture.base": "Use editor as Base",
+    "mergeStudio.capture.ours": "Use editor as Ours",
+    "mergeStudio.capture.theirs": "Use editor as Theirs",
+    "mergeStudio.import.base": "Import Base OpenAPI (JSON/YAML)",
+    "mergeStudio.import.ours": "Import Ours OpenAPI (JSON/YAML)",
+    "mergeStudio.import.theirs": "Import Theirs OpenAPI (JSON/YAML)",
+    "mergeStudio.source.base": "Base source (JSON/YAML)",
+    "mergeStudio.source.ours": "Ours source (JSON/YAML)",
+    "mergeStudio.source.theirs": "Theirs source (JSON/YAML)",
+    "mergeStudio.keyedArrays": "Merge supported OpenAPI arrays by identity",
+    "mergeStudio.arrayHelp":
+      "Matches inline parameters by in/name, root tags by name, and servers by URL at root and supported path/operation scopes. Unique identities are required; referenced, duplicate, oversized, or other arrays stay atomic. Examples and schemas are not treated as keyed collections. Conflicting shared-entry orders and different default-server choices require a separate order resolution.",
+    "mergeStudio.preview": "Analyse and preview three-way merge",
+    "mergeStudio.exportProject": "Download merge project with sources",
+    "mergeStudio.summary":
+      "Conflicts resolved: {resolved}/{conflicts} · automatic decisions: {automatic} · keyed arrays: {keyed} · atomic array conflicts: {atomic}",
+    "mergeStudio.needsPreview":
+      "Resolutions changed or a project was restored. Preview again before exporting or applying the merged API or decision report.",
+    "mergeStudio.conflicts": "Merge conflicts",
+    "mergeStudio.search": "Search merge conflicts",
+    "mergeStudio.filter": "Filter conflict resolution",
+    "mergeStudio.filter.all": "All conflicts",
+    "mergeStudio.filter.unresolved": "Unresolved conflicts",
+    "mergeStudio.filter.resolved": "Resolved conflicts",
+    "mergeStudio.bulk.base": "Use Base for remaining conflicts",
+    "mergeStudio.bulk.ours": "Use Ours for remaining conflicts",
+    "mergeStudio.bulk.theirs": "Use Theirs for remaining conflicts",
+    "mergeStudio.clearResolutions": "Clear all conflict resolutions",
+    "mergeStudio.noConflicts": "No matching conflicts.",
+    "mergeStudio.unresolved": "Unresolved",
+    "mergeStudio.kind.value": "Different value edits",
+    "mergeStudio.kind.add-add": "Different additions",
+    "mergeStudio.kind.delete-edit": "Deletion versus edit",
+    "mergeStudio.kind.type": "Incompatible value types",
+    "mergeStudio.kind.array": "Atomic array edits",
+    "mergeStudio.kind.array-order": "Collection ordering",
+    "mergeStudio.choice.base": "Use Base",
+    "mergeStudio.choice.ours": "Use Ours",
+    "mergeStudio.choice.theirs": "Use Theirs",
+    "mergeStudio.choice.custom": "Custom JSON",
+    "mergeStudio.selected": "Conflict at {location}",
+    "mergeStudio.orderHelp":
+      "This conflict contains ordered identity lists, not whole definitions. Choose an ordering from a branch or Base; independently merged item contents are preserved and remaining items are appended. Custom order JSON is disabled. Keyed merge locations use @item and @order markers and are not ordinary JSON Pointers.",
+    "mergeStudio.sidePreview":
+      "{side} conflict value (first 16,000 characters)",
+    "mergeStudio.missing": "Absent in this version (different from JSON null)",
+    "mergeStudio.choose.base": "Choose Base value",
+    "mergeStudio.choose.ours": "Choose Ours value",
+    "mergeStudio.choose.theirs": "Choose Theirs value",
+    "mergeStudio.custom": "Custom conflict value (JSON)",
+    "mergeStudio.customHelp":
+      "Save a complete JSON value for this conflict. JSON null is a real value; to delete a field choose a version where it is absent. Editing an active custom resolution clears it until saved again. Choosing a side preserves all its nested content for this conflict.",
+    "mergeStudio.saveCustom": "Validate and use custom JSON",
+    "mergeStudio.clearSelected": "Clear selected conflict resolution",
+    "mergeStudio.previous": "Previous merge conflicts",
+    "mergeStudio.next": "Next merge conflicts",
+    "mergeStudio.page": "Page {page}/{total}",
+    "mergeStudio.output": "Merged contract review",
+    "mergeStudio.review":
+      "Operations added: {added} · removed: {removed} · modified: {modified} · potentially breaking: {breaking} · broken references: {broken} · external references: {external}",
+    "mergeStudio.reviewHelp":
+      "This advisory review reuses operation comparison and reference checks. It is not full OpenAPI validation, deep schema compatibility analysis, or API testing. Broken/external references and potentially breaking changes need review even after structural conflicts are resolved. External references are never fetched.",
+    "mergeStudio.referenceFindings": "Reference findings (first 50 shown)",
+    "mergeStudio.changeCount": "Changed document locations: {count}",
+    "mergeStudio.truncatedChanges": "first 200 changes shown",
+    "mergeStudio.changes": "Changes compared with Base",
+    "mergeStudio.format": "Merged API output format",
+    "mergeStudio.previewLabel": "Merged API preview (first 16,000 characters)",
+    "mergeStudio.blocked":
+      "Resolve every conflict and preview a valid result before exporting or applying an API.",
+    "mergeStudio.exportApi": "Download merged OpenAPI",
+    "mergeStudio.apply": "Apply merged OpenAPI to editor",
+    "mergeStudio.exportReport": "Download merge decision JSON report",
+    "mergeStudio.exportMarkdown": "Download merge decision Markdown report",
+    "mergeStudio.undo": "Undo last merge application",
+    "mergeStudio.captured":
+      "Current editor captured as a merge version. Previous resolutions cleared.",
+    "mergeStudio.imported":
+      "Merge version imported. Previous resolutions cleared.",
+    "mergeStudio.restored":
+      "Merge project restored and decisions recomputed. Preview again before applying.",
+    "mergeStudio.ready":
+      "All structural conflicts resolved; merged API is ready for review.",
+    "mergeStudio.conflictsFound":
+      "Merge conflicts found. Choose resolutions, then preview again.",
+    "mergeStudio.downloaded": "Merge download started.",
+    "mergeStudio.stale":
+      "The editor changed after preview. Preview again before applying the merge.",
+    "mergeStudio.staleUndo":
+      "The editor changed after merge application. Undo would overwrite later edits.",
+    "mergeStudio.unchanged": "The editor already contains this merged output.",
+    "mergeStudio.applied":
+      "Merged OpenAPI applied. The previous editor content can be restored with Undo.",
+    "mergeStudio.undone":
+      "Previous editor content restored. Preview again before applying another merge.",
+    "mergeStudio.error.source":
+      "Provide three valid, bounded OpenAPI or Swagger 2 JSON/YAML versions. Check the indicated source.",
+    "mergeStudio.error.limit":
+      "A source, output, conflict count, traversal, or export exceeds merge limits. Reduce its size or try JSON output.",
+    "mergeStudio.error.resolution":
+      "A resolution is invalid, duplicated, or no longer matches a current conflict. Reset decisions or restore a matching project.",
+    "mergeStudio.error.custom":
+      "Use valid JSON within the custom-value size limit, with safe numbers and bounded nesting.",
+    "mergeStudio.error.project":
+      "Use a valid version 1 merge project with a name, three sources, array settings, and resolutions.",
+    "mergeStudio.error.result":
+      "The resolved result is not accepted by the OpenAPI parser. Review choices and custom values before applying.",
+    "mergeStudio.error.download":
+      "The merge download could not start. Try again.",
     "asyncStudio.title": "AsyncAPI event studio",
     "asyncStudio.description":
       "Design and inspect event-driven contracts, check JSON messages, and rehearse send/receive operations in a local journal. Import AsyncAPI 2.x or 3.x, or build a new 3.1 contract from examples.",
@@ -3945,6 +4072,135 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "mergeStudio.title": "Студия трёхстороннего слияния OpenAPI",
+    "mergeStudio.description":
+      "Согласуйте параллельные изменения одного API по общей базе и двум изменённым версиям. Объединяйте независимые правки, изучайте конфликты, выбирайте решения и проверяйте контракт перед экспортом или применением.",
+    "mergeStudio.help":
+      "Работа остаётся в этой вкладке без запросов и автоматического сохранения. Проекты содержат все три исходника и пользовательские решения. Отчёты исключают полные исходники/значения, но включают названия и места слияния; идентификаторы могут содержать имена параметров/тегов и URL серверов. Проверьте перед публикацией. Лимиты: 2 МиБ на исходник/результат, 8 МиБ на проект/отчёт, 500 конфликтов и 64 КиБ на пользовательское значение.",
+    "mergeStudio.loading": "Чтение файла слияния…",
+    "mergeStudio.importProject":
+      "Восстановить проект трёхстороннего слияния (JSON)",
+    "mergeStudio.sources": "Версии для слияния",
+    "mergeStudio.name": "Название проекта слияния",
+    "mergeStudio.side.base": "База",
+    "mergeStudio.side.ours": "Наша версия",
+    "mergeStudio.side.theirs": "Их версия",
+    "mergeStudio.sideHelp.base": "Общая версия до изменений в обеих ветках.",
+    "mergeStudio.sideHelp.ours":
+      "Ваша изменённая версия. Её порядок элементов используется, если ни одна ветка не меняла порядок общих элементов.",
+    "mergeStudio.sideHelp.theirs":
+      "Другая изменённая версия, которую нужно согласовать с вашей.",
+    "mergeStudio.capture.base": "Использовать редактор как базу",
+    "mergeStudio.capture.ours": "Использовать редактор как нашу версию",
+    "mergeStudio.capture.theirs": "Использовать редактор как их версию",
+    "mergeStudio.import.base": "Импорт базового OpenAPI (JSON/YAML)",
+    "mergeStudio.import.ours": "Импорт нашего OpenAPI (JSON/YAML)",
+    "mergeStudio.import.theirs": "Импорт их OpenAPI (JSON/YAML)",
+    "mergeStudio.source.base": "Базовый исходник (JSON/YAML)",
+    "mergeStudio.source.ours": "Наш исходник (JSON/YAML)",
+    "mergeStudio.source.theirs": "Их исходник (JSON/YAML)",
+    "mergeStudio.keyedArrays":
+      "Объединять поддерживаемые массивы OpenAPI по идентификаторам",
+    "mergeStudio.arrayHelp":
+      "Сопоставляет встроенные параметры по in/name, корневые теги по имени, серверы по URL в корне и поддерживаемых путях/операциях. Идентификаторы должны быть уникальными; массивы со ссылками, дубликатами, превышенным размером и другие массивы считаются атомарными. Примеры и схемы не считаются такими коллекциями. Различный порядок общих элементов и разные серверы по умолчанию требуют отдельного решения.",
+    "mergeStudio.preview": "Проанализировать и показать слияние",
+    "mergeStudio.exportProject": "Скачать проект слияния с исходниками",
+    "mergeStudio.summary":
+      "Решено конфликтов: {resolved}/{conflicts} · автоматических решений: {automatic} · массивов по идентификаторам: {keyed} · атомарных конфликтов массивов: {atomic}",
+    "mergeStudio.needsPreview":
+      "Решения изменены или проект восстановлен. Повторите предпросмотр перед экспортом, применением API или отчётом.",
+    "mergeStudio.conflicts": "Конфликты слияния",
+    "mergeStudio.search": "Поиск конфликтов слияния",
+    "mergeStudio.filter": "Фильтр решений конфликтов",
+    "mergeStudio.filter.all": "Все конфликты",
+    "mergeStudio.filter.unresolved": "Нерешённые конфликты",
+    "mergeStudio.filter.resolved": "Решённые конфликты",
+    "mergeStudio.bulk.base": "База для оставшихся конфликтов",
+    "mergeStudio.bulk.ours": "Наша версия для оставшихся конфликтов",
+    "mergeStudio.bulk.theirs": "Их версия для оставшихся конфликтов",
+    "mergeStudio.clearResolutions": "Сбросить все решения конфликтов",
+    "mergeStudio.noConflicts": "Подходящих конфликтов нет.",
+    "mergeStudio.unresolved": "Не решён",
+    "mergeStudio.kind.value": "Разные изменения значения",
+    "mergeStudio.kind.add-add": "Разные добавления",
+    "mergeStudio.kind.delete-edit": "Удаление и изменение",
+    "mergeStudio.kind.type": "Несовместимые типы значений",
+    "mergeStudio.kind.array": "Атомарные изменения массива",
+    "mergeStudio.kind.array-order": "Порядок коллекции",
+    "mergeStudio.choice.base": "Использовать базу",
+    "mergeStudio.choice.ours": "Использовать нашу версию",
+    "mergeStudio.choice.theirs": "Использовать их версию",
+    "mergeStudio.choice.custom": "Свой JSON",
+    "mergeStudio.selected": "Конфликт в {location}",
+    "mergeStudio.orderHelp":
+      "Это списки идентификаторов по порядку, а не полные определения. Выберите порядок ветки или базы; независимо объединённые данные элементов сохраняются, остальные добавляются в конец. Свой JSON порядка отключён. Места слияния коллекций содержат @item/@order и не являются обычными JSON Pointer.",
+    "mergeStudio.sidePreview":
+      "Значение конфликта: {side} (первые 16 000 символов)",
+    "mergeStudio.missing": "Отсутствует в этой версии (не JSON null)",
+    "mergeStudio.choose.base": "Выбрать базовое значение",
+    "mergeStudio.choose.ours": "Выбрать наше значение",
+    "mergeStudio.choose.theirs": "Выбрать их значение",
+    "mergeStudio.custom": "Своё значение конфликта (JSON)",
+    "mergeStudio.customHelp":
+      "Сохраните полное JSON-значение конфликта. JSON null — настоящее значение; для удаления выберите версию, где поле отсутствует. Изменение активного собственного решения сбрасывает его до повторного сохранения. Выбор ветки сохраняет всё вложенное содержимое этого конфликта.",
+    "mergeStudio.saveCustom": "Проверить и использовать свой JSON",
+    "mergeStudio.clearSelected": "Сбросить решение выбранного конфликта",
+    "mergeStudio.previous": "Предыдущие конфликты слияния",
+    "mergeStudio.next": "Следующие конфликты слияния",
+    "mergeStudio.page": "Страница {page}/{total}",
+    "mergeStudio.output": "Проверка объединённого контракта",
+    "mergeStudio.review":
+      "Добавлено операций: {added} · удалено: {removed} · изменено: {modified} · потенциально несовместимых: {breaking} · сломанных ссылок: {broken} · внешних ссылок: {external}",
+    "mergeStudio.reviewHelp":
+      "Рекомендательная проверка использует сравнение операций и ссылки. Это не полная проверка OpenAPI, не глубокий анализ совместимости схем и не тестирование API. Сломанные/внешние ссылки и потенциально несовместимые изменения нужно изучить после решения конфликтов. Внешние ссылки не загружаются.",
+    "mergeStudio.referenceFindings": "Замечания по ссылкам (первые 50)",
+    "mergeStudio.changeCount": "Изменённых мест документа: {count}",
+    "mergeStudio.truncatedChanges": "показаны первые 200 изменений",
+    "mergeStudio.changes": "Изменения относительно базы",
+    "mergeStudio.format": "Формат объединённого API",
+    "mergeStudio.previewLabel":
+      "Предпросмотр объединённого API (первые 16 000 символов)",
+    "mergeStudio.blocked":
+      "Решите все конфликты и проверьте результат перед экспортом или применением API.",
+    "mergeStudio.exportApi": "Скачать объединённый OpenAPI",
+    "mergeStudio.apply": "Применить объединённый OpenAPI к редактору",
+    "mergeStudio.exportReport": "Скачать JSON-отчёт решений слияния",
+    "mergeStudio.exportMarkdown": "Скачать Markdown-отчёт решений слияния",
+    "mergeStudio.undo": "Отменить последнее применение слияния",
+    "mergeStudio.captured":
+      "Редактор скопирован как версия слияния. Предыдущие решения сброшены.",
+    "mergeStudio.imported":
+      "Версия слияния импортирована. Предыдущие решения сброшены.",
+    "mergeStudio.restored":
+      "Проект слияния восстановлен, решения пересчитаны. Повторите предпросмотр перед применением.",
+    "mergeStudio.ready":
+      "Структурные конфликты решены; объединённый API готов к проверке.",
+    "mergeStudio.conflictsFound":
+      "Найдены конфликты слияния. Выберите решения и повторите предпросмотр.",
+    "mergeStudio.downloaded": "Начато скачивание слияния.",
+    "mergeStudio.stale":
+      "Редактор изменился после предпросмотра. Повторите его перед применением.",
+    "mergeStudio.staleUndo":
+      "Редактор изменился после применения. Отмена перезаписала бы поздние правки.",
+    "mergeStudio.unchanged": "Редактор уже содержит этот результат слияния.",
+    "mergeStudio.applied":
+      "Слияние OpenAPI применено. Прошлое содержимое редактора можно восстановить отменой.",
+    "mergeStudio.undone":
+      "Прошлое содержимое редактора восстановлено. Повторите предпросмотр перед новым применением.",
+    "mergeStudio.error.source":
+      "Нужны три корректные ограниченные версии OpenAPI или Swagger 2 JSON/YAML. Проверьте указанный исходник.",
+    "mergeStudio.error.limit":
+      "Превышен лимит исходника, результата, конфликтов, обхода или экспорта. Уменьшите размер или попробуйте JSON.",
+    "mergeStudio.error.resolution":
+      "Решение некорректно, повторяется или больше не соответствует конфликту. Сбросьте решения или восстановите подходящий проект.",
+    "mergeStudio.error.custom":
+      "Используйте корректный JSON в пределах лимита, с безопасными числами и ограниченной вложенностью.",
+    "mergeStudio.error.project":
+      "Нужен проект слияния версии 1 с названием, тремя исходниками, настройками массивов и решениями.",
+    "mergeStudio.error.result":
+      "Полученный результат не принимается парсером OpenAPI. Проверьте решения и свои значения перед применением.",
+    "mergeStudio.error.download":
+      "Не удалось начать скачивание слияния. Попробуйте снова.",
     "asyncStudio.title": "Студия событий AsyncAPI",
     "asyncStudio.description":
       "Создавайте и изучайте контракты событий, проверяйте JSON-сообщения и репетируйте отправку/приём в локальном журнале. Импортируйте AsyncAPI 2.x или 3.x либо создайте контракт 3.1 по примерам.",
