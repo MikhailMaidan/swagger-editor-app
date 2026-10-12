@@ -27,6 +27,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - AsyncAPI event studio with independent JSON/YAML contracts, 2.x/3.x channel and message exploration, example-driven 3.1 authoring, JSON message checks, correlation tracing, parameterized addresses, local rehearsal/replay journals, portable projects, and contract/inventory/report exports
 - GraphQL contract studio with SDL/introspection imports, type/dependency exploration, typed query/mutation/subscription generation, document and variable validation, bounded offline fixture execution, saved operation libraries, portable projects, request/response/report exports, and OpenAPI 3.1 HTTP contracts for existing REST tools
 - Protocol Buffers and gRPC studio with local multi-file proto2/proto3 projects, dependency/type/field exploration, precise JSON validation, base64/hex binary encoding and decoding, uncompressed gRPC frame inspection, all four RPC streaming modes, reusable offline exchange rehearsals, portable projects, and advisory contract compatibility reviews
+- Payload mapping studio for reusable JSON API adapters with ordered stages, field projection, aligned array mapping, type/string conversions, constants and missing-value policies, intermediate previews, optional OpenAPI input/output checks, saved regression cases, portable projects, value-free reports, and dependency-free JavaScript mapper exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -107,6 +108,129 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Building JSON API adapters with payload mappings
+
+Open **Design → Payload mapping studio** to translate JSON between services,
+normalize legacy payloads, or construct an API's destination envelope.
+**Load customer mapping demo** maps an array of string-based customer records
+into typed destination records, supplies a missing-country default, and adds
+a second envelope stage. A saved regression case includes the expected result.
+Everything runs locally; the studio never rewrites the OpenAPI editor, sends
+API requests, or stores its work automatically. Download a project before
+leaving the page. Work survives closing the panel and invalid editor text.
+
+Each stage starts with an empty object, an empty array, or a copy of its input.
+Stages run in the chosen order, consuming the previous stage's output. All rules
+within one stage read that stage's original input. Add, edit, reorder, disable,
+or remove stages/rules using the form controls. Rule search also searches source
+and target paths; Escape clears it. Disabling a stage retains its configuration.
+An enabled empty stage produces its selected empty shape or preserves its input.
+
+Source and destination paths use [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901)
+escaping: `/` separates fields, `~0` represents `~`, and `~1` represents `/`.
+An empty pointer selects the whole document, and `/` selects an empty property
+name. The studio extends pointers with a single `*` segment for an array. For
+example, `/users/*/display_name` → `/customers/*/name` maps each row into the same
+destination position. Source and target must both contain one wildcard or neither;
+literal properties named `*`, nested wildcards, and wildcard constants are not
+supported. A root-array stage can map `/*/id` → `/*/key`.
+
+Array mapping preserves row order and length. Empty input arrays produce empty
+destination arrays. Omitted object fields retain an empty row; omitted scalar
+rows retain null placeholders. Rules writing to the same destination array must
+use equal-length source arrays: this is positional mapping, not a key-based join.
+Numeric destination segments create arrays when their parent is newly created;
+explicit numeric properties on an existing object remain object fields. Sparse
+writes, incompatible target shapes, and overlapping enabled rule destinations
+fail atomically. The original input and recipe remain available after failures.
+`__proto__` and `constructor` are treated as ordinary own JSON fields.
+
+Conversions include copying JSON, JSON constants, string/number/integer/boolean
+conversion, trimming, upper/lower casing, Unicode character/item/key counts,
+joining primitive arrays, and splitting strings with a literal separator. Numeric
+conversion accepts finite decimal numbers and safe integers; it rejects empty
+strings, hexadecimal, Infinity, and integers that would lose precision. Boolean
+conversion accepts booleans, `"true"`/`"false"`, or `1`/`0`. Null is preserved by
+copying; it is not coerced to a string, number, or boolean. Splitting requires a
+nonempty separator. There is no script evaluation, template execution, or custom
+resolver code.
+
+Missing values can fail the run, omit a write, or use an editable JSON default.
+Null is an existing value, so it does not activate a missing default. For wildcard
+rules, defaults apply to missing fields within each existing row. A missing
+source collection can be omitted, but cannot be synthesized by a field default.
+Constants/defaults must contain valid JSON. Rule counters show mapped writes,
+omissions, and default applications. The input pointer inventory shows types and
+paths without values, up to 300 entries and the first three rows of each array.
+
+**Run payload mapping** produces the final output and intermediate stage outputs.
+Select a stage to inspect or download its JSON. Previews show the first 16,000
+characters; downloads include complete results within the size limit. Edits clear
+previous execution and regression results so they cannot be confused with the
+current recipe. Output JSON downloads contain values; the separate run/case
+reports contain counters, statuses, locations, and validation keywords without
+fixtures, mapped values, constants, or diagnostic parameter values. Case reports
+include user-provided case names and identifiers.
+
+Optional OpenAPI checks use an independently loaded JSON/YAML snapshot. Capture
+the editor explicitly, paste/load a snapshot, or import a file. Choose input and
+output schemas from OpenAPI components, Swagger 2 definitions, or operation JSON
+request/response bodies. Reusable local request bodies/responses are resolved.
+Direction-aware checks honor request readOnly and response writeOnly semantics.
+Contract failures retain the mapped preview for diagnosis; they mark regression
+cases failed. Editing a snapshot disables execution and project downloads until
+it is loaded or cleared, preventing exports from silently omitting draft edits.
+Malformed snapshots retain the last contract and draft.
+
+These are advisory checks using the existing example validator, not full JSON
+Schema certification. Unresolved/external references, unsupported conditional,
+dependent, scope/anchor, tuple, unevaluated constraints, or unsupported formats produce partial results;
+no external references are fetched. Pattern checks run only a conservative subset
+of anchored regular expressions with at most one repetition and no groups,
+alternation, or outside-character-class escapes. Complex patterns are skipped
+and marked partial to keep local checks responsive; the original snapshot is
+preserved. Supported checks still report known violations.
+
+Save up to 30 named cases from the active input, optionally capturing its current
+final output as an expectation. Edit saved inputs/expectations, explicitly load
+an input into the rehearsal, or remove a case. Capturing a new expectation requires
+that the current input matches the selected case. **Run all mapping cases** executes
+them independently against the current recipe and contract. Expected outputs use
+structural JSON equality: object-key order is ignored, array order and values are
+significant. Failures in one case do not stop others. Partial/warning contract
+checks remain distinguishable from passed and failed cases. Select a case result
+to inspect its actual output, then export a value-free regression report.
+
+Recipes contain stages, rules, and constants/defaults without sample payloads or
+OpenAPI snapshots. Projects additionally contain the active input, contract
+snapshot/bindings, and saved cases. Project restore rebuilds the contract and
+discards claimed/imported results. Both formats validate before replacement;
+file-read failures retain current work. Recipe imports retain existing cases and
+the contract, which can be rerun against the new rules.
+
+**Download JavaScript mapper** exports a standalone `.mjs` ES module containing
+the validated recipe and the same self-contained mapping runtime used by the
+studio. It needs no application or third-party imports and makes no network calls:
+
+```js
+import { mapPayload, recipe, runPayloadMapping } from "./adapter-mapper.mjs";
+const output = mapPayload(input);
+const { stages, steps } = runPayloadMapping(recipe, input);
+```
+
+The exported mapper performs transformations and enforces runtime bounds. OpenAPI
+checks and saved-case orchestration remain studio features. Its structured errors
+carry a code, stage/rule IDs, and the failing pointer without payload values.
+The generated module is tested in an isolated JavaScript context for parity with
+the studio, including failures, root arrays, and script-looking literal values.
+
+Limits: 12 stages, 200 rules total, 30 cases, 256 KiB per input/literal/output,
+10,000 JSON nodes, 32 nesting/pointer segments, one wildcard per path, 50,000
+processing steps, 1 MiB total intermediate-output text per execution, 1 MiB per
+OpenAPI snapshot, 1,000 contract bindings, and 2 MiB per project/download or
+aggregate case inputs/expectations. Every case is bounded independently; batch
+results keep final outputs and counters without retaining intermediate payloads.
 
 ## Exploring Protocol Buffers and gRPC contracts
 

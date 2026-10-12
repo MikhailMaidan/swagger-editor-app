@@ -31,6 +31,7 @@ import { OpenApiMergePanel } from "@/components/openapi-merge-panel";
 import { DocumentationLocalizationPanel } from "@/components/documentation-localization-panel";
 import { GraphqlStudioPanel } from "@/components/graphql-studio-panel";
 import { ProtobufStudioPanel } from "@/components/protobuf-studio-panel";
+import { PayloadMappingPanel } from "@/components/payload-mapping-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1898,6 +1899,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "design",
+          id: "workspace-tool-mapping",
+          label: "mappingStudio.title",
+        },
+        {
+          group: "design",
           id: "workspace-tool-protobuf",
           label: "protoStudio.title",
         },
@@ -2142,6 +2148,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "design",
+          id: "workspace-tool-mapping",
+          label: "mappingStudio.title",
+        },
         {
           group: "design",
           id: "workspace-tool-protobuf",
@@ -2980,6 +2991,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-mapping"
+          tabIndex={-1}
+        >
+          <PayloadMappingPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
