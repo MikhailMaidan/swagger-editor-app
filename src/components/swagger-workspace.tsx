@@ -32,6 +32,7 @@ import { DocumentationLocalizationPanel } from "@/components/documentation-local
 import { GraphqlStudioPanel } from "@/components/graphql-studio-panel";
 import { ProtobufStudioPanel } from "@/components/protobuf-studio-panel";
 import { PayloadMappingPanel } from "@/components/payload-mapping-panel";
+import { ApiDesignerPanel } from "@/components/api-designer-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1899,6 +1900,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "design",
+          id: "workspace-tool-designer",
+          label: "designer.title",
+        },
+        {
+          group: "design",
           id: "workspace-tool-mapping",
           label: "mappingStudio.title",
         },
@@ -2148,6 +2154,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "design",
+          id: "workspace-tool-designer",
+          label: "designer.title",
+        },
         {
           group: "design",
           id: "workspace-tool-mapping",
@@ -2988,6 +2999,17 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <DocumentationLocalizationPanel
+            getSchemaText={toolHandlers.getSchemaText}
+            onApply={toolHandlers.applyDocument}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-designer"
+          tabIndex={-1}
+        >
+          <ApiDesignerPanel
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />

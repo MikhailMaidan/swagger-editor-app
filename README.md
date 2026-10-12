@@ -10,6 +10,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 ## Features
 
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
+- API design studio with form-based operation/parameter/payload/model/auth authoring, schema templates, independent OpenAPI 3.0–3.2 drafts, field-preserving updates, local undo/redo, JSON/YAML exports, portable projects, reference/change review, and guarded editor Apply/Undo
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
 - Multi-file OpenAPI workbench with folder imports, local file editing, cross-file reference resolution, source diagnostics, circular-reference preservation, JSON/YAML bundles, restorable projects, and reversible editor application
 - API gateway composer that combines independent services with route prefixes, component and operation namespaces, inherited security, rewritten local references and links, route-conflict diagnostics, reusable projects, routing inventories, and reversible OpenAPI export/application
@@ -108,6 +109,126 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing REST APIs with forms
+
+Open **Design → API design studio** to author OpenAPI without editing the entire
+document by hand. Start a new OpenAPI 3.1 draft, load the task-board demo, import
+JSON/YAML, or explicitly capture the current editor. Captures and form saves
+update an independent design draft; they never modify the main editor until you
+prepare, review, and apply an update. Work survives closing the panel or invalid
+main-editor text. Download a portable project before leaving the page.
+
+The designer accepts OpenAPI 3.0, 3.1, and 3.2. Existing Swagger 2 workflows stay
+available; use the upgrade tool before loading a Swagger 2 contract here. Source
+imports validate before replacing work. The source textarea represents an import
+source, while forms edit the active structured draft. After modifying source,
+load it or discard those edits before continuing/exporting. JSON/YAML downloads
+normalize formatting and do not retain source comments. Editor undo restores
+the exact original text, including comments and formatting.
+
+Choose an operation/model and a **Design form**. Forms cover API title/version/
+description, appending servers, operation metadata, parameters, request/response
+payloads, reusable model schemas, individual model properties, and operation
+authentication. **Save form to design draft** commits the selected form. Unsaved
+edits disable context changes, imports, history navigation, and exports until
+saved or explicitly discarded, so switching forms cannot silently lose work.
+
+For a new operation, choose **New operation**, enter a path and method, and save.
+The studio adds a default 200 response and missing required string path parameters.
+Existing inherited inline/reusable path parameters are retained. Equivalent
+templated routes such as `/tasks/{id}` and `/tasks/{taskId}` are rejected, as are
+duplicate method/path slots or operation IDs. Established paths, methods and
+operation identifiers stay fixed to preserve links and existing operations.
+New identifiers can be assigned where absent. Operation search supports Escape
+to clear the query.
+
+Metadata saves update summary, description, tags, deprecation, and the applicable
+identifier only. Request/response schemas, examples, auth, callbacks, links,
+servers, vendor extensions, unknown fields, path-level parameters, and sibling
+methods remain in place. Appended concrete HTTP(S)/relative servers preserve
+existing server order, defaults, variables and metadata; credentials, templated
+new URLs, and absolute query/fragment URLs are rejected. Advanced/templated
+server changes remain available in the existing raw editor.
+
+The parameter form creates inline query/path/header/cookie parameters or updates
+an existing inline schema parameter. Existing names/locations stay fixed, path
+parameters remain required, and duplicate identities are rejected, including
+duplicates of locally referenced reusable parameters. Parameter metadata such
+as style, explode, examples, deprecation, and extensions is retained. Referenced
+and content-based parameters remain read-only in this form. Path-level
+parameters are displayed as a retained count rather than rewritten.
+
+For payloads, choose request/response, status, and media type **before** editing
+description, requiredness, or schema. Save to update that media type while
+retaining examples, encoding, headers, links, extensions, other media types,
+and other statuses. A response requires a description and a 100–599, 1XX–5XX,
+or `default` status. Referenced bodies/responses/media types are not silently
+detached or overwritten; edit their definitions in the existing tools. No HTTP
+requests or response simulation occur in the designer.
+
+Create reusable models under `components.schemas`. The whole-model form explicitly
+saves/replaces its JSON schema. To make a focused edit, select **Model properties**:
+add/update one property schema and its required flag while retaining all other
+properties, required names, composition keywords, XML metadata, examples,
+constraints and extensions. Names of existing models/properties stay fixed.
+Property editing is available for inline object models; referenced, primitive,
+and boolean models can be inspected/edited through their complete schema JSON.
+Prototype-related names are handled as ordinary own JSON fields.
+
+Each schema editor offers primitive/object/array/model-reference templates,
+nullable choices, optional enum JSON, and format labels. **Build schema draft**
+explicitly replaces only that form's schema text; saving remains a separate step.
+Arrays can use a reusable model for items. Templates use `nullable` for 3.0 and
+type unions/nullable alternatives for 3.1+. Nullable 3.0 model references use
+an `anyOf` with an explicit nullable, null-only branch. Boolean schemas require
+3.1 or later. Nested objects, compositions, constraints, and references can also
+be authored directly in the focused schema JSON textarea.
+
+Authentication changes use a separate form. Choose API inheritance, explicit
+public access (`security: []`), or custom requirement JSON referencing declared
+security schemes. AND/OR requirements and optional anonymous `{}` alternatives
+are retained in JSON. Scope arrays must contain strings; non-OAuth/OIDC schemes
+require empty arrays in OpenAPI 3.0. These changes leave the API's inherited
+security and other operations intact. The studio does not handle tokens or
+perform authentication.
+
+**Undo draft change** and **Redo draft change** navigate up to 20 local snapshots;
+history is also limited by a 4 MiB past-snapshot budget. A new edit clears redo,
+and no-op saves do not add history. Undo repairs operation/model selection when
+an entity disappears. Draft history is independent of **Undo API design editor
+update**, which reverses the last application to the main editor.
+
+When ready, select JSON/YAML and **Prepare API design editor preview**. Review
+changed JSON pointers and operation/model/reference counts, then **Apply API
+design to editor**. Apply checks that both draft and editor still match the
+prepared snapshot exactly. Draft or format changes invalidate the preview;
+external editor edits block stale application. Editor undo only succeeds while
+the editor still equals the last applied output. Invalid editor text may be
+explicitly replaced after a fresh preview, with a visible explanation. Applying
+a new draft can replace prior routes; capturing the existing editor first makes
+it convenient to retain and extend them.
+
+Downloads include complete contracts or portable design projects containing the
+saved draft and project name. Project import ignores claimed previews/editor
+undo metadata and requires a fresh review before application. Reports include
+change kinds/pointers and aggregate reference counts without examples, before/
+after bodies, or schema values. The preview shows the first 16,000 characters;
+the change list shows up to 200 entries, matching the existing change reporter.
+
+Parsing and reference review are advisory, not full OpenAPI/JSON Schema
+certification. Structural JSON edits and field-preserving saves follow the
+[OpenAPI Operation Object](https://spec.openapis.org/oas/v3.1.0.html#operation-object)
+and [OpenAPI 3.0 parameter/schema rules](https://spec.openapis.org/oas/v3.0.4.html#parameter-object).
+Custom constraints, extension semantics, external references and advanced
+operations should still be checked with the existing quality/reference tools
+and your normal contract validation. References are never fetched automatically.
+
+Limits are 1 MiB per contract/editor snapshot, 64 KiB per schema/security JSON,
+2 MiB per project, 2,000 editable top-level operations, 1,000 reusable models,
+100 inline parameters per operation, 30 servers, 20 security alternatives,
+and bounded JSON depth/nodes inherited from the existing transformation parser.
+No new dependencies or remote services are required.
 
 ## Building JSON API adapters with payload mappings
 
