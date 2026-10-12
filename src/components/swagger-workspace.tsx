@@ -30,6 +30,7 @@ import { AsyncApiStudioPanel } from "@/components/asyncapi-studio-panel";
 import { OpenApiMergePanel } from "@/components/openapi-merge-panel";
 import { DocumentationLocalizationPanel } from "@/components/documentation-localization-panel";
 import { GraphqlStudioPanel } from "@/components/graphql-studio-panel";
+import { ProtobufStudioPanel } from "@/components/protobuf-studio-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1897,6 +1898,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "design",
+          id: "workspace-tool-protobuf",
+          label: "protoStudio.title",
+        },
+        {
+          group: "design",
           id: "workspace-tool-graphql",
           label: "graphqlStudio.title",
         },
@@ -2136,6 +2142,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "design",
+          id: "workspace-tool-protobuf",
+          label: "protoStudio.title",
+        },
         {
           group: "design",
           id: "workspace-tool-graphql",
@@ -2969,6 +2980,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-protobuf"
+          tabIndex={-1}
+        >
+          <ProtobufStudioPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div

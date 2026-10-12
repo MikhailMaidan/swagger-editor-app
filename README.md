@@ -26,6 +26,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Callback and webhook contract explorer with reusable-reference resolution, payload examples, receiver responses, source navigation, diagnostics, Markdown sharing, and JSON reports
 - AsyncAPI event studio with independent JSON/YAML contracts, 2.x/3.x channel and message exploration, example-driven 3.1 authoring, JSON message checks, correlation tracing, parameterized addresses, local rehearsal/replay journals, portable projects, and contract/inventory/report exports
 - GraphQL contract studio with SDL/introspection imports, type/dependency exploration, typed query/mutation/subscription generation, document and variable validation, bounded offline fixture execution, saved operation libraries, portable projects, request/response/report exports, and OpenAPI 3.1 HTTP contracts for existing REST tools
+- Protocol Buffers and gRPC studio with local multi-file proto2/proto3 projects, dependency/type/field exploration, precise JSON validation, base64/hex binary encoding and decoding, uncompressed gRPC frame inspection, all four RPC streaming modes, reusable offline exchange rehearsals, portable projects, and advisory contract compatibility reviews
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -106,6 +107,107 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Exploring Protocol Buffers and gRPC contracts
+
+Open **Design → Protocol Buffers and gRPC studio** for an independent workspace
+for `.proto` APIs. **Load demo Protobuf contract** includes a shop model and
+unary, client-streaming, server-streaming, and bidirectional RPCs. The studio
+does not change the OpenAPI editor or contact a server; work survives closing
+the panel and invalid OpenAPI edits. Download a project before leaving the page
+to preserve its files, active RPC draft, and saved exchanges.
+
+Import multiple `.proto` files or a project folder, or add relative file paths such as
+`shop/models.proto` and paste their contents. Imports merge by path and replace
+matching files. Folder imports retain subdirectories relative to the selected
+folder and ignore non-`.proto` files. The selected source file can be edited or downloaded separately;
+**Read editor into selected .proto file** explicitly copies the editor's text
+into that file. Choose an entry file and **Load and validate Protobuf contract**.
+Only the entry and transitively imported files are compiled. Changes disable
+contract actions until successfully loaded, retaining the last contract and
+saved exchanges if parsing fails. Entry-file imports resolve relative to their
+origin, with project-root fallback, and cannot leave the local project. No
+imports are fetched. Missing strong imports block loading; missing weak imports
+are listed, but referenced types must still resolve. Cyclic file/message
+dependencies are supported.
+
+Parsing and binary conversion use the maintained, pinned
+[protobuf.js library](https://github.com/protobufjs/protobuf.js). Bundled Google
+types include Any, Duration, Empty, FieldMask, Struct/Value/ListValue, Timestamp,
+and wrappers. Other imports must be provided locally. This workflow supports
+proto2/proto3; Editions, legacy groups, and `__proto__` identifiers are rejected.
+It is a bounded reflection workbench, not a replacement for protoc build checks.
+
+Search the type inventory by name, description, field, or enum value and filter
+messages/enums. Inspect field numbers, declared types, required/repeated/map
+metadata, explicit/implicit presence, oneof groups, reserved names/ranges, and clickable dependencies. Type
+pages show 20 entries, field pages show 30; enum and dependency details show the
+first 100. Inventory downloads contain full supported metadata. Reflection JSON
+exports use protobuf.js's representation, **not** a protoc FileDescriptorSet.
+Original source files remain available in project exports.
+
+The message codec generates editable JSON samples, validates payloads, and
+encodes/decodes base64 or hexadecimal bytes. JSON uses field names exactly as
+written in `.proto`, 64-bit integers as decimal strings (safe numeric inputs are
+also accepted), enum names or int32 numbers, and canonical padded base64 bytes.
+Numeric unknown proto3 enum values are retained; proto2 closed enums reject
+unknown numeric JSON inputs and discard unknown enum values on the wire.
+Validation catches unknown fields,
+nulls, missing proto2 required fields, scalar ranges, map keys, and competing
+oneof members before conversion. Omit unset fields rather than using null.
+Google well-known types use their ordinary message fields, such as
+`{"seconds":"1700000000","nanos":0}` for Timestamp; this is not full ProtoJSON
+with RFC 3339 timestamps or expanded Any values. Maps reject prototype-related
+keys. Non-finite floating-point values cannot be represented in this JSON editor.
+
+For example, the demo `shop.GetProductRequest` can encode
+`{"product_id":"9007199254740993"}` without losing integer precision. Results
+include decoded JSON, byte length, base64, and hex. Proto3 implicit-default
+fields may disappear during binary normalization; explicit presence is handled
+by the library. Unknown wire fields are discarded, so decode/re-encode is not a
+lossless archival operation. Invalid UTF-8 strings and malformed known-field
+wire encodings are rejected. Samples stop recursive optional edges and select
+one oneof member; recursive required messages require a manual payload.
+
+**Decode gRPC message frames** reads complete, uncompressed message sequences
+with the compression byte and four-byte big-endian length described in the
+[gRPC HTTP/2 protocol](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md).
+Compressed messages, incomplete frames, gRPC-Web trailers, and HTTP/2 headers or
+trailers are not accepted. Raw protobuf length-delimited messages are a different
+format. Select the message type for the frame direction before decoding.
+
+Choose an RPC and **Generate RPC exchange draft** to bind a named draft to that
+method. Changing the method picker alone does not replace the active draft.
+Request and response editors contain JSON arrays. Unary sides require exactly
+one message; streaming sides accept 1–100. **Run offline RPC rehearsal** validates,
+encodes, decodes, and frames both sides independently. It does not execute
+server logic, authentication, transport, message scheduling, or request/response
+correlation. Download the complete exchange with base64 frames, or a report
+containing method/type names and byte/message counts without payload values.
+Save, explicitly load, update, or remove up to 50 named exchanges. Project import
+rebuilds the contract, preserves editable drafts that may need fixes, and never
+trusts imported check/response results.
+
+**Pin current Protobuf baseline**, then edit/import and load a candidate and
+compare. Advisory findings cover removed types/RPCs, changed request/response or
+streaming signatures, moved tags, changed declared field types/cardinality/map
+keys/required/presence/oneof metadata, removed fields, and enum/field JSON renames.
+Optional removals still warn about lost data; reserving their tag is distinguished
+from leaving it reusable. The conservative review follows the concerns in the
+[Protocol Buffers evolution guide](https://protobuf.dev/programming-guides/proto3/#updating),
+but is not a full compatibility certification: wire-compatible type changes may
+still be reported as risks, and custom options, extension semantics, defaults,
+and previously deleted tag history require separate review. The baseline stays
+in memory and is not included in project exports. Compatibility reports contain
+all findings; the UI shows the first 100.
+
+Limits keep work bounded: 40 files, 512 KiB per source, 1 MiB total source,
+1,000 types, 5,000 fields and 5,000 enum entries, 500 RPCs, 24 nesting levels, 128 KiB per
+JSON payload/message array, 256 KiB per binary/frame sequence, 100 frames, 5,000
+validation/wire processing steps, and 2 MiB per portable project or download.
+Generated samples have a shared 1,000-step budget. Result previews show the
+first 16,000 characters; downloads include full results within these limits.
+File reads and project restores are atomic and leave work available on failure.
 
 ## Designing and rehearsing GraphQL contracts
 
