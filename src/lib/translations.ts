@@ -3,6 +3,219 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "jwtStudio.title": "JWT and signing-key studio",
+    "jwtStudio.description":
+      "Decode compact JWTs, verify signatures and claim policies, generate signing keys and test tokens, and maintain reusable verification cases entirely in this tab.",
+    "jwtStudio.help":
+      "Decoding alone does not verify a signature. Verification checks the supplied keys and your saved policy; it does not grant access or establish an issuer's trustworthiness. Tokens, keys and work stay in tab memory. No keys are fetched from token headers, and nothing is added to login credentials or request history.",
+    "jwtStudio.project": "JWT verification project",
+    "jwtStudio.projectName": "JWT project name",
+    "jwtStudio.newProject": "New JWT project",
+    "jwtStudio.demo": "Load JWT verification demo",
+    "jwtStudio.demoLoaded":
+      "RSA demo loaded with five verification cases and a fixed clock for reproducible checks.",
+    "jwtStudio.importProject": "Restore JWT project (JSON)",
+    "jwtStudio.projectLoaded":
+      "JWT project restored. Imported results were discarded; verify again with the supplied keys and policy.",
+    "jwtStudio.busy":
+      "Working locally… case checks completed: {count}/{total}.",
+    "jwtStudio.cancel": "Cancel JWT work",
+    "jwtStudio.cancelled":
+      "Work cancelled. Native cryptography already running may finish, but cancelled results are not applied; batch checks retain completed cases.",
+    "jwtStudio.tokenSection": "Inspect and verify a token",
+    "jwtStudio.token": "Compact JWT",
+    "jwtStudio.verificationKey": "Trusted verification key",
+    "jwtStudio.autoKey": "Match supplied keys by algorithm and kid",
+    "jwtStudio.decode": "Decode JWT without verification",
+    "jwtStudio.verify": "Verify JWT signature and claims",
+    "jwtStudio.decoded":
+      "Token decoded. Its signature has not been verified by decoding.",
+    "jwtStudio.decodedOnly":
+      "Decoded content is untrusted; consult the separate signature and policy result.",
+    "jwtStudio.decodedSizes":
+      "Decoded header: {header} bytes; claims: {claims} bytes; signature: {signature} bytes.",
+    "jwtStudio.decodedHeader": "Decoded JWT header",
+    "jwtStudio.decodedClaims": "Decoded JWT claims",
+    "jwtStudio.dateOutsideRange": "Outside the displayable UTC date range",
+    "jwtStudio.copyToken": "Copy compact JWT",
+    "jwtStudio.copyHeader": "Copy Authorization header",
+    "jwtStudio.downloadToken": "Download compact JWT",
+    "jwtStudio.copied": "Copied to clipboard.",
+    "jwtStudio.copyFailed": "Could not copy to clipboard.",
+    "jwtStudio.verificationResult": "JWT verification result",
+    "jwtStudio.verificationSummary":
+      "Token {status}; signature {signature}; claims {claims}.",
+    "jwtStudio.checkedAt":
+      "Checked at Unix second {time}; algorithm {algorithm}.",
+    "jwtStudio.outcome.accepted": "accepted by policy",
+    "jwtStudio.outcome.rejected": "rejected",
+    "jwtStudio.check.valid": "valid",
+    "jwtStudio.check.invalid": "invalid",
+    "jwtStudio.check.not-checked": "not checked",
+    "jwtStudio.downloadReport": "Download value-free JWT verification report",
+    "jwtStudio.policy": "JWT verification policy",
+    "jwtStudio.policyHelp":
+      "Algorithms are explicitly allowed and bound to supplied key types. Issuer, audience, subject and token type use exact matches; blank values skip those requirements. Expiration is required by default. Empty clock uses current time; fixed Unix seconds make regression cases reproducible. Save policy edits before verification or exports.",
+    "jwtStudio.allowedAlgorithms": "Allowed JWT algorithms",
+    "jwtStudio.issuer": "Expected issuer (iss)",
+    "jwtStudio.audience": "Expected audience (aud)",
+    "jwtStudio.subject": "Expected subject (sub)",
+    "jwtStudio.type": "Expected token type (typ)",
+    "jwtStudio.tolerance": "Clock tolerance (seconds, 0–300)",
+    "jwtStudio.maxAge": "Maximum token age (seconds, 0 disables)",
+    "jwtStudio.now": "Verification time (Unix seconds, blank uses now)",
+    "jwtStudio.requireExpiration": "Require expiration claim (exp)",
+    "jwtStudio.checkIssuedAt": "Reject future issued-at claims (iat)",
+    "jwtStudio.policyDirty":
+      "Policy has unsaved edits. Save or discard them before changing other project contexts, verifying or exporting.",
+    "jwtStudio.savePolicy": "Save JWT verification policy",
+    "jwtStudio.discardPolicy": "Discard policy edits",
+    "jwtStudio.policySaved":
+      "Verification policy saved; previous results cleared.",
+    "jwtStudio.keys": "Local signing and verification keys",
+    "jwtStudio.keysHelp":
+      "Generate HS256, RS256, PS256 or ES256 keys, or import JWK/JWKS, SPKI/PKCS8 PEM, or a 32–128 byte HS256 secret. Private asymmetric imports also create a public verification entry. Public keys do not sign; HMAC secrets both sign and verify. Import candidates are not saved until Add keys. Signing material is hidden until explicitly revealed.",
+    "jwtStudio.keyName": "Key label",
+    "jwtStudio.keyKid": "Key identifier (kid)",
+    "jwtStudio.keyAlgorithm": "Generation / JWK fallback algorithm",
+    "jwtStudio.keyFormat": "Key import format",
+    "jwtStudio.keySource": "Key import material",
+    "jwtStudio.addKeys": "Add imported JWT keys",
+    "jwtStudio.discardKey": "Discard key import material",
+    "jwtStudio.generate": "Generate JWT signing keys",
+    "jwtStudio.importKeyFile": "Read key file (JWK/JWKS/PEM/text)",
+    "jwtStudio.keyFileLoaded":
+      "Key file loaded into the import form. Select its format and add keys to validate it.",
+    "jwtStudio.keysAdded":
+      "Keys validated and added locally. Verification still uses the saved algorithm policy.",
+    "jwtStudio.selectedKey": "Selected JWT key",
+    "jwtStudio.noKeys": "No key selected",
+    "jwtStudio.keyKind.secret": "shared secret",
+    "jwtStudio.keyKind.private": "private signing key",
+    "jwtStudio.keyKind.public": "public verification key",
+    "jwtStudio.reveal": "Reveal selected signing material",
+    "jwtStudio.keyPreview": "Selected JWK material",
+    "jwtStudio.keyHidden":
+      "Signing material hidden. Ordinary project exports omit it.",
+    "jwtStudio.thumbprint": "Calculate public JWK thumbprint",
+    "jwtStudio.thumbprintValue": "SHA-256 JWK thumbprint: {value}",
+    "jwtStudio.removeKey": "Remove selected JWT key",
+    "jwtStudio.downloadKey": "Download selected JWK",
+    "jwtStudio.publicPem": "Download public PEM",
+    "jwtStudio.privatePem": "Download private PEM",
+    "jwtStudio.forgetSigning": "Forget signing keys and import material",
+    "jwtStudio.signing": "Create a signed test JWT",
+    "jwtStudio.signingHelp":
+      "Header alg must match the selected key; kid is filled when absent and must match when both are supplied. Build buttons explicitly replace their JSON drafts. Signing does not enforce claim policy, so expired or negative test tokens can be created. Builder drafts remain in tab memory; projects save the current compact token and verification cases.",
+    "jwtStudio.signingKey": "JWT signing key",
+    "jwtStudio.noSigningKey": "No signing key available",
+    "jwtStudio.buildHeader": "Build header for signing key",
+    "jwtStudio.buildClaims": "Build one-hour claims from policy",
+    "jwtStudio.signHeader": "JOSE header JSON to sign",
+    "jwtStudio.signClaims": "JWT claims JSON to sign",
+    "jwtStudio.sign": "Sign JWT locally",
+    "jwtStudio.useDecoded": "Copy decoded token into signing drafts",
+    "jwtStudio.signed":
+      "JWT signed locally and placed in the token inspector; verify its saved policy separately.",
+    "jwtStudio.cases": "JWT verification regression cases",
+    "jwtStudio.casesHelp":
+      "Save tokens with an expected accepted/rejected outcome and optional explicit verification key. Every run uses the saved policy and a common clock snapshot. A matching expected rejection is a passing case; inspect findings to confirm the reason. Incomplete/cancelled reports show completed counts.",
+    "jwtStudio.selectedCase": "Selected JWT verification case",
+    "jwtStudio.newCase": "New verification case",
+    "jwtStudio.caseName": "Verification case name",
+    "jwtStudio.caseToken": "Verification case token",
+    "jwtStudio.caseExpected": "Expected verification outcome",
+    "jwtStudio.caseKey": "Case verification key",
+    "jwtStudio.missingCaseKey":
+      "Saved key is unavailable; reimport it or select another key",
+    "jwtStudio.caseDirty":
+      "Case has unsaved edits. Save or discard them before switching context, verifying or exporting the project.",
+    "jwtStudio.currentToCase": "Use current token in case",
+    "jwtStudio.saveCase": "Save JWT verification case",
+    "jwtStudio.discardCase": "Discard verification case edits",
+    "jwtStudio.removeCase": "Remove JWT verification case",
+    "jwtStudio.loadCase": "Load case token into inspector",
+    "jwtStudio.caseSaved": "Verification case saved.",
+    "jwtStudio.runCases": "Run JWT verification cases",
+    "jwtStudio.downloadCases": "Download value-free JWT case report",
+    "jwtStudio.casesSummary":
+      "Completed {completed}/{total} cases: {passed} passed, {failed} failed.",
+    "jwtStudio.caseSearch": "Search JWT verification cases",
+    "jwtStudio.caseStatus.passed": "case passed",
+    "jwtStudio.caseStatus.failed": "case failed",
+    "jwtStudio.exports": "Portable JWT projects and key exports",
+    "jwtStudio.exportHelp":
+      "Projects contain token values, policy, keys and saved cases. Ordinary exports keep only public verification keys. Select signing-key export explicitly to include private/HMAC material or download a private PEM. Selected-JWK downloads use public material by default. Reports omit token/claim values, policy literals and all key material. Nothing is saved to browser storage.",
+    "jwtStudio.includeSigning":
+      "Include private and shared-secret signing keys in exports",
+    "jwtStudio.omittedKeys":
+      "Signing/shared-secret key entries omitted from ordinary project exports: {count}.",
+    "jwtStudio.downloadProject": "Download JWT verification project",
+    "jwtStudio.downloadJwks": "Download public verification JWKS",
+    "jwtStudio.downloaded": "Download started.",
+    "jwtStudio.downloadFailed": "Download was blocked. Try again.",
+    "jwtStudio.error.format":
+      "Use a compact JWT with exactly three dot-separated segments and no surrounding whitespace; encrypted/nested forms are unsupported.",
+    "jwtStudio.error.encoding":
+      "Use canonical unpadded base64url and valid UTF-8 token JSON.",
+    "jwtStudio.error.json":
+      "Use bounded JSON objects with finite numbers and safe integers for headers and claims.",
+    "jwtStudio.error.limit":
+      "A JWT, key, case, project or processing limit was exceeded.",
+    "jwtStudio.error.algorithm":
+      "Use an allowed supported algorithm matching the selected signing key and token header.",
+    "jwtStudio.error.key":
+      "Use a valid matching JWK/JWKS or unencrypted SPKI/PKCS8 key; RSA requires 2048–4096 bits, EC requires P-256, and HS256 requires 32–128 secret bytes.",
+    "jwtStudio.error.key-usage":
+      "This key's type or declared usage does not support that operation.",
+    "jwtStudio.error.missing-key":
+      "No supplied verification key matches the algorithm and key selection.",
+    "jwtStudio.error.ambiguous-key":
+      "Multiple supplied verification keys match. Select one trusted key explicitly.",
+    "jwtStudio.error.header":
+      "The token header contains invalid fields or unsupported critical/unencoded-payload extensions.",
+    "jwtStudio.error.crypto":
+      "Native Web Crypto is unavailable or could not complete the operation. Use a supported secure browser context.",
+    "jwtStudio.error.policy":
+      "Use a valid policy with supported algorithms, bounded clock tolerance/age and a finite verification time.",
+    "jwtStudio.error.project":
+      "Use a valid RSSwag JWT project with unique key/case identities. Existing work was retained.",
+    "jwtStudio.error.case":
+      "Use a valid verification case with a name, token and expected accepted/rejected outcome.",
+    "jwtStudio.finding.format": "Unsupported or malformed compact JWT.",
+    "jwtStudio.finding.encoding": "Invalid base64url or UTF-8 encoding.",
+    "jwtStudio.finding.json": "Invalid header or claims JSON.",
+    "jwtStudio.finding.limit": "A token/key processing limit was exceeded.",
+    "jwtStudio.finding.algorithm":
+      "Algorithm is unsupported or not allowed by policy.",
+    "jwtStudio.finding.key":
+      "Supplied verification key is invalid or incompatible.",
+    "jwtStudio.finding.key-usage":
+      "Supplied key usage does not permit verification.",
+    "jwtStudio.finding.missing-key": "No matching supplied verification key.",
+    "jwtStudio.finding.ambiguous-key":
+      "Multiple supplied keys match; choose one explicitly.",
+    "jwtStudio.finding.header":
+      "Invalid or unsupported protected-header extension.",
+    "jwtStudio.finding.crypto":
+      "Cryptographic verification could not complete.",
+    "jwtStudio.finding.policy": "Verification policy is invalid.",
+    "jwtStudio.finding.project": "Project input is invalid.",
+    "jwtStudio.finding.case": "Case input is invalid.",
+    "jwtStudio.finding.signature": "Signature verification failed.",
+    "jwtStudio.finding.claim-type": "Registered claim has the wrong JSON type.",
+    "jwtStudio.finding.expired": "Token has expired.",
+    "jwtStudio.finding.not-active": "Token is not active yet.",
+    "jwtStudio.finding.issued-future": "Token was issued in the future.",
+    "jwtStudio.finding.expiration-required":
+      "Policy requires an expiration claim.",
+    "jwtStudio.finding.issued-at-required":
+      "Maximum-age policy requires an issued-at claim.",
+    "jwtStudio.finding.too-old": "Token exceeds the maximum permitted age.",
+    "jwtStudio.finding.issuer": "Issuer does not match policy.",
+    "jwtStudio.finding.audience": "Audience does not match policy.",
+    "jwtStudio.finding.subject": "Subject does not match policy.",
+    "jwtStudio.finding.type": "Token type does not match policy.",
     "wsStudio.title": "WebSocket session studio",
     "wsStudio.description":
       "Explore bidirectional APIs with live text, JSON and binary messages, reusable conversations, offline replay, captures and searchable transcripts.",
@@ -5051,6 +5264,220 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "jwtStudio.title": "Студия JWT и ключей подписи",
+    "jwtStudio.description":
+      "Декодируйте JWT, проверяйте подписи и политики утверждений, создавайте ключи и тестовые токены и сохраняйте повторяемые проверки полностью в этой вкладке.",
+    "jwtStudio.help":
+      "Декодирование не проверяет подпись. Проверка использует предоставленные ключи и сохранённую политику; она не предоставляет доступ и не устанавливает доверие к издателю. Работа хранится в памяти вкладки. Ключи из URL заголовков не загружаются; данные не добавляются в авторизацию приложения и историю запросов.",
+    "jwtStudio.project": "Проект проверки JWT",
+    "jwtStudio.projectName": "Название проекта JWT",
+    "jwtStudio.newProject": "Новый проект JWT",
+    "jwtStudio.demo": "Загрузить демо проверки JWT",
+    "jwtStudio.demoLoaded":
+      "Демо RSA загружено: пять проверок и фиксированное время для повторяемых результатов.",
+    "jwtStudio.importProject": "Восстановить проект JWT (JSON)",
+    "jwtStudio.projectLoaded":
+      "Проект JWT восстановлен. Импортированные результаты удалены; повторите проверку с предоставленными ключами и политикой.",
+    "jwtStudio.busy":
+      "Локальная обработка… завершено проверок: {count}/{total}.",
+    "jwtStudio.cancel": "Отменить обработку JWT",
+    "jwtStudio.cancelled":
+      "Обработка отменена. Уже выполняемая криптографическая операция может завершиться, но её отменённый результат не применяется; пакетные проверки сохраняют завершённые случаи.",
+    "jwtStudio.tokenSection": "Просмотр и проверка токена",
+    "jwtStudio.token": "Компактный JWT",
+    "jwtStudio.verificationKey": "Доверенный ключ проверки",
+    "jwtStudio.autoKey": "Подобрать предоставленный ключ по алгоритму и kid",
+    "jwtStudio.decode": "Декодировать JWT без проверки",
+    "jwtStudio.verify": "Проверить подпись и утверждения JWT",
+    "jwtStudio.decoded":
+      "Токен декодирован. Декодирование не проверяет подпись.",
+    "jwtStudio.decodedOnly":
+      "Декодированное содержимое недоверенное; смотрите отдельный результат проверки подписи и политики.",
+    "jwtStudio.decodedSizes":
+      "Заголовок: {header} байт; утверждения: {claims} байт; подпись: {signature} байт.",
+    "jwtStudio.decodedHeader": "Декодированный заголовок JWT",
+    "jwtStudio.decodedClaims": "Декодированные утверждения JWT",
+    "jwtStudio.dateOutsideRange": "Вне отображаемого диапазона дат UTC",
+    "jwtStudio.copyToken": "Копировать компактный JWT",
+    "jwtStudio.copyHeader": "Копировать заголовок Authorization",
+    "jwtStudio.downloadToken": "Скачать компактный JWT",
+    "jwtStudio.copied": "Скопировано в буфер обмена.",
+    "jwtStudio.copyFailed": "Не удалось скопировать в буфер обмена.",
+    "jwtStudio.verificationResult": "Результат проверки JWT",
+    "jwtStudio.verificationSummary":
+      "Токен {status}; подпись {signature}; утверждения {claims}.",
+    "jwtStudio.checkedAt":
+      "Проверка на Unix-секунде {time}; алгоритм {algorithm}.",
+    "jwtStudio.outcome.accepted": "принят политикой",
+    "jwtStudio.outcome.rejected": "отклонён",
+    "jwtStudio.check.valid": "корректна",
+    "jwtStudio.check.invalid": "некорректна",
+    "jwtStudio.check.not-checked": "не проверялись",
+    "jwtStudio.downloadReport": "Скачать отчёт проверки JWT без значений",
+    "jwtStudio.policy": "Политика проверки JWT",
+    "jwtStudio.policyHelp":
+      "Алгоритмы разрешаются явно и привязаны к типам предоставленных ключей. Издатель, аудитория, субъект и тип токена сравниваются точно; пустые значения отключают требования. По умолчанию обязателен срок действия. Пустое время означает текущее; фиксированные Unix-секунды обеспечивают повторяемость. Сохраните политику перед проверкой или экспортом.",
+    "jwtStudio.allowedAlgorithms": "Разрешённые алгоритмы JWT",
+    "jwtStudio.issuer": "Ожидаемый издатель (iss)",
+    "jwtStudio.audience": "Ожидаемая аудитория (aud)",
+    "jwtStudio.subject": "Ожидаемый субъект (sub)",
+    "jwtStudio.type": "Ожидаемый тип токена (typ)",
+    "jwtStudio.tolerance": "Допуск времени (секунды, 0–300)",
+    "jwtStudio.maxAge": "Максимальный возраст токена (секунды, 0 отключает)",
+    "jwtStudio.now": "Время проверки (Unix-секунды, пусто — сейчас)",
+    "jwtStudio.requireExpiration": "Требовать срок действия (exp)",
+    "jwtStudio.checkIssuedAt": "Отклонять будущее время выпуска (iat)",
+    "jwtStudio.policyDirty":
+      "В политике есть несохранённые правки. Сохраните или отмените их перед переходом, проверкой или экспортом.",
+    "jwtStudio.savePolicy": "Сохранить политику проверки JWT",
+    "jwtStudio.discardPolicy": "Отменить правки политики",
+    "jwtStudio.policySaved":
+      "Политика проверки сохранена; прежние результаты очищены.",
+    "jwtStudio.keys": "Локальные ключи подписи и проверки",
+    "jwtStudio.keysHelp":
+      "Создавайте ключи HS256, RS256, PS256 и ES256 либо импортируйте JWK/JWKS, SPKI/PKCS8 PEM или секрет HS256 длиной 32–128 байт. Импорт закрытого асимметричного ключа добавляет открытый ключ проверки. Открытые ключи не подписывают; HMAC-секреты подписывают и проверяют. Импорт сохраняется кнопкой добавления. Материал подписи скрыт до явного раскрытия.",
+    "jwtStudio.keyName": "Метка ключа",
+    "jwtStudio.keyKid": "Идентификатор ключа (kid)",
+    "jwtStudio.keyAlgorithm": "Алгоритм генерации / JWK без alg",
+    "jwtStudio.keyFormat": "Формат импорта ключа",
+    "jwtStudio.keySource": "Материал импортируемого ключа",
+    "jwtStudio.addKeys": "Добавить импортированные ключи JWT",
+    "jwtStudio.discardKey": "Удалить материал импорта ключа",
+    "jwtStudio.generate": "Создать ключи подписи JWT",
+    "jwtStudio.importKeyFile": "Прочитать файл ключа (JWK/JWKS/PEM/текст)",
+    "jwtStudio.keyFileLoaded":
+      "Файл ключа загружен в форму. Выберите формат и добавьте ключи для проверки.",
+    "jwtStudio.keysAdded":
+      "Ключи проверены и добавлены локально. Проверка токена использует сохранённую политику алгоритмов.",
+    "jwtStudio.selectedKey": "Выбранный ключ JWT",
+    "jwtStudio.noKeys": "Ключ не выбран",
+    "jwtStudio.keyKind.secret": "общий секрет",
+    "jwtStudio.keyKind.private": "закрытый ключ подписи",
+    "jwtStudio.keyKind.public": "открытый ключ проверки",
+    "jwtStudio.reveal": "Показать выбранный материал подписи",
+    "jwtStudio.keyPreview": "Материал выбранного JWK",
+    "jwtStudio.keyHidden":
+      "Материал подписи скрыт. Обычный экспорт проекта не включает его.",
+    "jwtStudio.thumbprint": "Вычислить отпечаток открытого JWK",
+    "jwtStudio.thumbprintValue": "Отпечаток SHA-256 JWK: {value}",
+    "jwtStudio.removeKey": "Удалить выбранный ключ JWT",
+    "jwtStudio.downloadKey": "Скачать выбранный JWK",
+    "jwtStudio.publicPem": "Скачать открытый PEM",
+    "jwtStudio.privatePem": "Скачать закрытый PEM",
+    "jwtStudio.forgetSigning": "Удалить ключи подписи и материал импорта",
+    "jwtStudio.signing": "Создание подписанного тестового JWT",
+    "jwtStudio.signingHelp":
+      "alg заголовка должен соответствовать ключу; отсутствующий kid заполняется автоматически, а заданные значения должны совпадать. Кнопки создания явно заменяют JSON-черновики. Подпись не проверяет политику утверждений, позволяя создавать просроченные и негативные примеры. Черновики хранятся в памяти вкладки; проект сохраняет текущий токен и проверки.",
+    "jwtStudio.signingKey": "Ключ подписи JWT",
+    "jwtStudio.noSigningKey": "Ключ подписи недоступен",
+    "jwtStudio.buildHeader": "Создать заголовок для ключа подписи",
+    "jwtStudio.buildClaims": "Создать утверждения на час по политике",
+    "jwtStudio.signHeader": "JSON заголовка JOSE для подписи",
+    "jwtStudio.signClaims": "JSON утверждений JWT для подписи",
+    "jwtStudio.sign": "Подписать JWT локально",
+    "jwtStudio.useDecoded":
+      "Скопировать декодированный токен в черновики подписи",
+    "jwtStudio.signed":
+      "JWT подписан локально и помещён в поле токена; отдельно проверьте сохранённую политику.",
+    "jwtStudio.cases": "Регрессионные проверки JWT",
+    "jwtStudio.casesHelp":
+      "Сохраняйте токены с ожидаемым принятием/отклонением и необязательным ключом проверки. Запуск использует сохранённую политику и общий снимок времени. Ожидаемое отклонение означает успешный тест; проверьте причину в результатах. Неполный или отменённый отчёт показывает число завершённых случаев.",
+    "jwtStudio.selectedCase": "Выбранная проверка JWT",
+    "jwtStudio.newCase": "Новая проверка",
+    "jwtStudio.caseName": "Название проверочного случая",
+    "jwtStudio.caseToken": "Токен проверочного случая",
+    "jwtStudio.caseExpected": "Ожидаемый результат проверки",
+    "jwtStudio.caseKey": "Ключ проверочного случая",
+    "jwtStudio.missingCaseKey":
+      "Сохранённый ключ недоступен; импортируйте его или выберите другой",
+    "jwtStudio.caseDirty":
+      "В случае есть несохранённые правки. Сохраните или отмените их перед переходом, проверкой или экспортом.",
+    "jwtStudio.currentToCase": "Использовать текущий токен в случае",
+    "jwtStudio.saveCase": "Сохранить проверку JWT",
+    "jwtStudio.discardCase": "Отменить правки проверочного случая",
+    "jwtStudio.removeCase": "Удалить проверку JWT",
+    "jwtStudio.loadCase": "Загрузить токен случая для просмотра",
+    "jwtStudio.caseSaved": "Проверочный случай сохранён.",
+    "jwtStudio.runCases": "Запустить проверки JWT",
+    "jwtStudio.downloadCases": "Скачать отчёт проверок JWT без значений",
+    "jwtStudio.casesSummary":
+      "Завершено {completed}/{total} случаев: успешно {passed}, ошибок {failed}.",
+    "jwtStudio.caseSearch": "Поиск проверок JWT",
+    "jwtStudio.caseStatus.passed": "проверка пройдена",
+    "jwtStudio.caseStatus.failed": "ошибка проверки",
+    "jwtStudio.exports": "Переносимые проекты JWT и экспорт ключей",
+    "jwtStudio.exportHelp":
+      "Проекты содержат токены, политику, ключи и проверки. Обычный экспорт сохраняет только открытые ключи проверки. Для включения закрытых/HMAC-ключей или закрытого PEM явно разрешите экспорт ключей подписи. Выбранный JWK по умолчанию экспортируется как открытый. Отчёты не содержат токенов, значений утверждений, политики и материала ключей. Хранилище браузера не используется.",
+    "jwtStudio.includeSigning":
+      "Включить закрытые ключи и общие секреты подписи в экспорт",
+    "jwtStudio.omittedKeys":
+      "В обычный экспорт проекта не включены ключи подписи/секреты: {count}.",
+    "jwtStudio.downloadProject": "Скачать проект проверки JWT",
+    "jwtStudio.downloadJwks": "Скачать открытые ключи проверки JWKS",
+    "jwtStudio.downloaded": "Загрузка началась.",
+    "jwtStudio.downloadFailed": "Загрузка заблокирована. Повторите попытку.",
+    "jwtStudio.error.format":
+      "Укажите компактный JWT из трёх частей через точки без внешних пробелов; зашифрованные и вложенные формы не поддерживаются.",
+    "jwtStudio.error.encoding":
+      "Используйте канонический base64url без заполнения и корректный UTF-8 для JSON токена.",
+    "jwtStudio.error.json":
+      "Используйте ограниченные JSON-объекты с конечными числами и безопасными целыми для заголовка и утверждений.",
+    "jwtStudio.error.limit":
+      "Превышен лимит JWT, ключа, случая, проекта или обработки.",
+    "jwtStudio.error.algorithm":
+      "Используйте разрешённый поддерживаемый алгоритм, соответствующий ключу подписи и заголовку токена.",
+    "jwtStudio.error.key":
+      "Укажите корректный совместимый JWK/JWKS или незашифрованный ключ SPKI/PKCS8; RSA требует 2048–4096 бит, EC — P-256, HS256 — 32–128 байт секрета.",
+    "jwtStudio.error.key-usage":
+      "Тип или объявленное назначение ключа не поддерживает эту операцию.",
+    "jwtStudio.error.missing-key":
+      "Нет предоставленного ключа проверки, соответствующего алгоритму и выбору ключа.",
+    "jwtStudio.error.ambiguous-key":
+      "Подходят несколько ключей проверки. Явно выберите доверенный ключ.",
+    "jwtStudio.error.header":
+      "Заголовок токена содержит некорректные поля или неподдерживаемые критические расширения/неупакованные данные.",
+    "jwtStudio.error.crypto":
+      "Web Crypto недоступен или операция не выполнена. Используйте поддерживаемый защищённый контекст браузера.",
+    "jwtStudio.error.policy":
+      "Укажите корректную политику с поддерживаемыми алгоритмами, ограниченным допуском/возрастом и конечным временем проверки.",
+    "jwtStudio.error.project":
+      "Используйте корректный проект RSSwag JWT с уникальными идентификаторами ключей/случаев. Прежняя работа сохранена.",
+    "jwtStudio.error.case":
+      "Укажите корректный случай с названием, токеном и ожидаемым принятием/отклонением.",
+    "jwtStudio.finding.format":
+      "Неподдерживаемый или некорректный компактный JWT.",
+    "jwtStudio.finding.encoding": "Некорректная кодировка base64url или UTF-8.",
+    "jwtStudio.finding.json": "Некорректный JSON заголовка или утверждений.",
+    "jwtStudio.finding.limit": "Превышен лимит обработки токена/ключа.",
+    "jwtStudio.finding.algorithm":
+      "Алгоритм не поддерживается или не разрешён политикой.",
+    "jwtStudio.finding.key": "Ключ проверки некорректен или несовместим.",
+    "jwtStudio.finding.key-usage": "Назначение ключа не разрешает проверку.",
+    "jwtStudio.finding.missing-key":
+      "Нет подходящего предоставленного ключа проверки.",
+    "jwtStudio.finding.ambiguous-key":
+      "Подходят несколько ключей; выберите один явно.",
+    "jwtStudio.finding.header":
+      "Некорректное или неподдерживаемое расширение защищённого заголовка.",
+    "jwtStudio.finding.crypto": "Криптографическая проверка не завершена.",
+    "jwtStudio.finding.policy": "Некорректная политика проверки.",
+    "jwtStudio.finding.project": "Некорректные данные проекта.",
+    "jwtStudio.finding.case": "Некорректные данные случая.",
+    "jwtStudio.finding.signature": "Проверка подписи не пройдена.",
+    "jwtStudio.finding.claim-type":
+      "Зарегистрированное утверждение имеет неверный JSON-тип.",
+    "jwtStudio.finding.expired": "Срок действия токена истёк.",
+    "jwtStudio.finding.not-active": "Токен ещё не активен.",
+    "jwtStudio.finding.issued-future": "Токен выпущен в будущем.",
+    "jwtStudio.finding.expiration-required": "Политика требует срок действия.",
+    "jwtStudio.finding.issued-at-required":
+      "Ограничение возраста требует время выпуска.",
+    "jwtStudio.finding.too-old":
+      "Превышен максимально допустимый возраст токена.",
+    "jwtStudio.finding.issuer": "Издатель не соответствует политике.",
+    "jwtStudio.finding.audience": "Аудитория не соответствует политике.",
+    "jwtStudio.finding.subject": "Субъект не соответствует политике.",
+    "jwtStudio.finding.type": "Тип токена не соответствует политике.",
     "wsStudio.title": "Студия сессий WebSocket",
     "wsStudio.description":
       "Исследуйте двунаправленные API: текстовые, JSON и бинарные сообщения, переиспользуемые диалоги, локальное воспроизведение, захват переменных и поиск по журналу.",

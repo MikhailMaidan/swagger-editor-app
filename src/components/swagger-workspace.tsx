@@ -34,6 +34,7 @@ import { ProtobufStudioPanel } from "@/components/protobuf-studio-panel";
 import { PayloadMappingPanel } from "@/components/payload-mapping-panel";
 import { ApiDesignerPanel } from "@/components/api-designer-panel";
 import { WebSocketStudioPanel } from "@/components/websocket-studio-panel";
+import { JwtStudioPanel } from "@/components/jwt-studio-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1900,6 +1901,11 @@ export function SwaggerWorkspace({
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
         {
+          group: "quality",
+          id: "workspace-tool-jwt",
+          label: "jwtStudio.title",
+        },
+        {
           group: "testing",
           id: "workspace-tool-websocket",
           label: "wsStudio.title",
@@ -2160,6 +2166,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "quality",
+          id: "workspace-tool-jwt",
+          label: "jwtStudio.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-websocket",
@@ -3013,6 +3024,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-jwt"
+          tabIndex={-1}
+        >
+          <JwtStudioPanel />
         </div>
 
         <div

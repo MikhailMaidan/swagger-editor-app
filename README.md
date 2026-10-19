@@ -30,6 +30,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Protocol Buffers and gRPC studio with local multi-file proto2/proto3 projects, dependency/type/field exploration, precise JSON validation, base64/hex binary encoding and decoding, uncompressed gRPC frame inspection, all four RPC streaming modes, reusable offline exchange rehearsals, portable projects, and advisory contract compatibility reviews
 - Payload mapping studio for reusable JSON API adapters with ordered stages, field projection, aligned array mapping, type/string conversions, constants and missing-value policies, intermediate previews, optional OpenAPI input/output checks, saved regression cases, portable projects, value-free reports, and dependency-free JavaScript mapper exports
 - WebSocket session studio with explicit browser connections, text/JSON/binary messages, searchable bounded transcripts, reusable send/expect/pause conversations, JSON Pointer assertions and captures, typed variables, offline fixture replay, transcript-to-test recording, portable projects, and value-free run reports
+- Offline JWT and signing-key studio with token inspection, HS256/RS256/PS256/ES256 signing and verification, JWK/JWKS and PEM imports, local key generation, claim policies, reproducible regression cases, public-key project exports, and value-free reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -110,6 +111,104 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Inspecting and testing JWT authentication
+
+Open **Quality → JWT and signing-key studio**. The studio operates independently
+of the OpenAPI editor, including when its text is invalid. Work stays in tab
+memory; closing the panel preserves it, while reloading the page clears it.
+It does not read login credentials, configure request authentication, fetch keys,
+send tokens to a server, or add anything to request history or browser storage.
+
+**Load JWT verification demo** creates a fresh RSA key pair, a signed token and
+five saved cases: valid, expired, wrong audience, not yet active, and tampered.
+Its fixed clock makes the checks reproducible. Use **Verify JWT signature and
+claims**, then **Run JWT verification cases**; all five cases should pass,
+including the expected rejections.
+
+Paste a three-segment compact token into **Compact JWT** to inspect your own
+token. **Decode JWT without verification** displays its header, claims, byte
+counts and UTC timestamps. Decoded claims are explicitly untrusted; decoding
+alone never produces an accepted verification result. Encrypted tokens, detached
+payloads and unsupported critical or unencoded-payload extensions are rejected.
+Unsigned tokens can be inspected but cannot pass signature verification.
+
+Verification supports HS256, RS256, PS256 and ES256 using the browser's native
+[Web Crypto API](https://www.w3.org/TR/webcrypto/). Each supplied key is bound to
+one algorithm, and the saved policy must explicitly allow that algorithm.
+Automatic selection matches supplied verification keys by algorithm and `kid`;
+missing or ambiguous matches reject the token. You can select a trusted supplied
+key explicitly instead. Token-header URLs and embedded keys are never treated as
+trusted key sources. These checks follow the algorithm and key-selection
+guidance in [JWT Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html).
+
+Set expected issuer, audience, subject and token type in **JWT verification
+policy**; values use exact matches, and blank fields disable those requirements.
+Expiration is required by default. The studio also validates registered claim
+types, not-before and issued-at times, optional maximum age, and up to 300 seconds
+of clock tolerance. Leave verification time blank for the current clock, or enter
+Unix seconds for reproducible cases. Fractional NumericDate values are supported
+as defined in [RFC 7519](https://www.rfc-editor.org/rfc/rfc7519.html).
+Save or discard edits before verification, signing, changing project contexts,
+or exporting. Signature and claim-policy results are shown separately: a valid
+signature can still fail the policy. Acceptance describes only the supplied
+keys and policy; it does not establish issuer trust or grant API access.
+
+Generate a key locally, paste JWK/JWKS, read a key file, import unencrypted
+SPKI public or PKCS8 private PEM, or provide a 32–128 byte HS256 secret in UTF-8
+or base64url form. Choose a fallback algorithm for JWKs without `alg` and for
+PEM imports. **Add imported JWT keys** validates candidates before adding them
+atomically; failed imports preserve existing work. Asymmetric private imports
+also create a public verification entry. RSA keys must be 2048–4096 bits and
+ES256 keys must use P-256. Shared secrets both sign and verify; asymmetric
+private entries sign and public entries verify.
+
+Signing material is hidden until **Reveal selected signing material** is checked.
+Public JWK thumbprints use [RFC 7638](https://www.rfc-editor.org/rfc/rfc7638.html).
+**Forget signing keys and import material** removes private keys, shared secrets
+and pending key input while retaining public verification keys. It clears the
+export opt-in as well. Previously copied or downloaded material is unaffected.
+
+Use **Create a signed test JWT** to select a signing key and edit header and
+claims JSON. The build buttons explicitly populate the header from the key and
+one-hour claims from the saved policy. Signing requires a matching algorithm and
+key identifier, but deliberately permits expired or otherwise invalid claims
+for negative tests. It places the signed token in the inspector; verification
+remains a separate action. Signing drafts remain in memory and are not part of
+project exports.
+
+Save reusable cases with a name, compact token, expected accepted/rejected
+outcome and optional explicit verification key. **Use current token in case**
+copies the inspector token into the draft. Save or discard before switching
+cases. Runs share a clock snapshot; expected rejections count as passing cases,
+with findings available to check the reason. Search by multiple terms and clear
+the search with Escape. Cancellation retains completed cases and marks exported
+reports incomplete; native cryptographic work already in progress may finish
+before cancellation takes effect. Cancelled single-operation results and late
+file reads cannot overwrite subsequent work.
+
+**Download JWT verification project** saves the current token, saved policy,
+keys and cases. Ordinary project exports include only public verification keys;
+private keys and HS256 secrets require the explicit **Include private and
+shared-secret signing keys in exports** choice. Selected JWK downloads default
+to public material, and private PEM downloads require the same opt-in. Public
+JWKS downloads always contain only public verification entries. Public-only
+projects can rerun asymmetric verification cases; shared-secret cases need their
+key reimported. Restoring a project validates keys and discards imported results.
+
+Projects and token downloads contain token values. Verification and case reports
+omit token/claim values, expected-policy literals and all key material; case
+names and internal key/case identifiers remain. Reports can be exported after
+individual verification or a completed/partial case run. Clipboard actions copy
+either the exact compact token or an `Authorization: Bearer …` header and show
+failure feedback when blocked.
+
+Limits are 32 KiB per compact token, 4 KiB decoded header, 16 KiB decoded claims,
+1 MiB per project, and 30 key entries and 30 cases per project. JSON processing
+also enforces finite numbers, safe integers, and bounded depth/node counts.
+Key files are limited to 256 KiB; PEM material to 16 KiB. Native cryptography
+requires a supported secure browser context. The entire studio is available in
+English and Russian, and existing request-authentication tools remain available.
 
 ## Testing bidirectional APIs with WebSocket sessions
 

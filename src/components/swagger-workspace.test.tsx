@@ -3711,11 +3711,15 @@ paths: {}`;
     );
     expect(screen.getByText("Draft saved locally.")).toBeVisible();
 
-    const savedEvent = new Event("beforeunload", {
-      cancelable: true,
-    }) as BeforeUnloadEvent;
+    // Saving updates the status before the passive effect removes the leave
+    // guard. Wait for that cleanup, using a fresh cancelable event each time.
+    await waitFor(() => {
+      const savedEvent = new Event("beforeunload", {
+        cancelable: true,
+      }) as BeforeUnloadEvent;
 
-    expect(window.dispatchEvent(savedEvent)).toBe(true);
+      expect(window.dispatchEvent(savedEvent)).toBe(true);
+    });
   });
 
   it("reports a failed guest draft save without disrupting editing", async () => {
