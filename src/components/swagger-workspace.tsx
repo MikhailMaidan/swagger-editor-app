@@ -33,6 +33,7 @@ import { GraphqlStudioPanel } from "@/components/graphql-studio-panel";
 import { ProtobufStudioPanel } from "@/components/protobuf-studio-panel";
 import { PayloadMappingPanel } from "@/components/payload-mapping-panel";
 import { ApiDesignerPanel } from "@/components/api-designer-panel";
+import { WebSocketStudioPanel } from "@/components/websocket-studio-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1899,6 +1900,11 @@ export function SwaggerWorkspace({
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
         {
+          group: "testing",
+          id: "workspace-tool-websocket",
+          label: "wsStudio.title",
+        },
+        {
           group: "design",
           id: "workspace-tool-designer",
           label: "designer.title",
@@ -2154,6 +2160,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-websocket",
+          label: "wsStudio.title",
+        },
         {
           group: "design",
           id: "workspace-tool-designer",
@@ -3002,6 +3013,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-websocket"
+          tabIndex={-1}
+        >
+          <WebSocketStudioPanel />
         </div>
 
         <div

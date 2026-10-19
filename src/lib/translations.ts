@@ -3,6 +3,178 @@ export const LANGUAGE_COOKIE = "rsswagger-language";
 
 export const translations = {
   en: {
+    "wsStudio.title": "WebSocket session studio",
+    "wsStudio.description":
+      "Explore bidirectional APIs with live text, JSON and binary messages, reusable conversations, offline replay, captures and searchable transcripts.",
+    "wsStudio.help":
+      "Connections start only with Connect or Run live conversation. Work stays in this tab, including while the panel is closed; disconnect to stop an interactive session. Download a project before leaving. This studio works independently of the OpenAPI editor.",
+    "wsStudio.loading": "Reading WebSocket file…",
+    "wsStudio.project": "WebSocket project",
+    "wsStudio.projectName": "WebSocket project name",
+    "wsStudio.newProject": "New WebSocket project",
+    "wsStudio.demo": "Load realtime conversation demo",
+    "wsStudio.demoLoaded":
+      "Demo loaded. Replay it offline or configure your own compatible WebSocket endpoint.",
+    "wsStudio.importProject": "Restore WebSocket project (JSON)",
+    "wsStudio.importTranscript": "Import WebSocket transcript (JSON)",
+    "wsStudio.projectLoaded":
+      "WebSocket project restored without connections or imported run results.",
+    "wsStudio.transcriptLoaded":
+      "Transcript loaded without sending messages or opening a connection.",
+    "wsStudio.exportProject": "Download WebSocket project",
+    "wsStudio.connection": "Live WebSocket connection",
+    "wsStudio.connectionHelp":
+      "Use an explicit ws:// or wss:// URL and optional comma-separated subprotocols. The browser manages cookies and connection permissions; custom HTTP headers and protocol Ping/Pong controls are unavailable. HTTPS pages generally require wss://. There are no automatic reconnects or resends.",
+    "wsStudio.url": "WebSocket URL",
+    "wsStudio.protocols": "WebSocket subprotocols (comma-separated)",
+    "wsStudio.connectTimeout": "Connection timeout (ms)",
+    "wsStudio.connectionStatus":
+      "Connection: {status}; negotiated protocol: {protocol}",
+    "wsStudio.state.closed": "closed",
+    "wsStudio.state.connecting": "connecting",
+    "wsStudio.state.open": "open",
+    "wsStudio.state.closing": "closing",
+    "wsStudio.cleanClose": "clean close",
+    "wsStudio.uncleanClose": "unclean close",
+    "wsStudio.connect": "Connect WebSocket",
+    "wsStudio.disconnect": "Disconnect WebSocket",
+    "wsStudio.composerFormat": "Outgoing message format",
+    "wsStudio.composer": "Outgoing WebSocket message",
+    "wsStudio.send": "Send WebSocket message",
+    "wsStudio.sent":
+      "Message queued for transmission. This does not confirm server processing.",
+    "wsStudio.format.json": "JSON",
+    "wsStudio.format.text": "Text",
+    "wsStudio.format.binary": "Binary (base64)",
+    "wsStudio.format.any": "Any format",
+    "wsStudio.conversations": "Reusable WebSocket conversations",
+    "wsStudio.conversationHelp":
+      "Order send, expect and pause steps. JSON Pointer checks use the existing assertion operators; captures become variables for later steps. Whole JSON string placeholders such as {{taskId}} retain the captured value's type. Text substitutions accept scalar values. Save or discard pending edits before switching context or running.",
+    "wsStudio.selectedConversation": "Selected WebSocket conversation",
+    "wsStudio.conversationName": "Conversation name",
+    "wsStudio.addConversation": "Add conversation",
+    "wsStudio.duplicateConversation": "Duplicate conversation",
+    "wsStudio.removeConversation": "Remove conversation",
+    "wsStudio.selectedStep": "Selected conversation step",
+    "wsStudio.newStep": "New conversation step",
+    "wsStudio.type.send": "Send",
+    "wsStudio.type.expect": "Expect",
+    "wsStudio.type.pause": "Pause",
+    "wsStudio.add.send": "Add send step",
+    "wsStudio.add.expect": "Add expect step",
+    "wsStudio.add.pause": "Add pause step",
+    "wsStudio.move.up": "Move step up",
+    "wsStudio.move.down": "Move step down",
+    "wsStudio.removeStep": "Remove conversation step",
+    "wsStudio.stepName": "Conversation step name",
+    "wsStudio.stepFormat": "Step message format",
+    "wsStudio.stepPayload": "Step message payload",
+    "wsStudio.template": "Substitute conversation variables in this step",
+    "wsStudio.pauseMs": "Pause duration (ms)",
+    "wsStudio.receiveTimeout": "Receive deadline (ms)",
+    "wsStudio.matchMode": "Receive matching policy",
+    "wsStudio.match.next": "Check next message",
+    "wsStudio.match.matching": "Skip unrelated messages until a match",
+    "wsStudio.textMode": "Text / base64 comparison",
+    "wsStudio.text.any": "No text comparison",
+    "wsStudio.text.equals": "Equals",
+    "wsStudio.text.contains": "Contains",
+    "wsStudio.expectedText": "Expected text / base64",
+    "wsStudio.checks": "Message JSON Pointer checks (JSON array)",
+    "wsStudio.checksHelp":
+      'Example: [{"name":"Event type","target":"body","path":"/type","operator":"equals","expected":"\\\"task\\\""}]. Operators: exists, absent, equals (JSON), contains, type, length, gte, lte. An empty pointer checks the entire JSON message; escape / as ~1 and ~ as ~0.',
+    "wsStudio.captures": "Captured variables (JSON array)",
+    "wsStudio.capturesHelp":
+      'Example: [{"name":"taskId","pointer":"/task/id"}]. Capture requires a JSON message and an existing own field. Names contain letters, numbers and underscores and cannot start with a number. Later captures can replace earlier variables.',
+    "wsStudio.dirtyStep":
+      "This step has unsaved edits. Save or discard them before navigating, importing, exporting the project or running.",
+    "wsStudio.saveStep": "Save conversation step",
+    "wsStudio.discardStep": "Discard step edits",
+    "wsStudio.stepSaved": "Conversation step saved.",
+    "wsStudio.discarded": "Step edits discarded.",
+    "wsStudio.replaySettings": "Variables and offline replay",
+    "wsStudio.variables": "Initial conversation variables (JSON object)",
+    "wsStudio.fixtures": "Incoming replay messages (JSON array)",
+    "wsStudio.fixturesHelp":
+      'Fixtures use {"format":"json","data":"..."}, text, or canonical binary base64. Replay consumes them in order and records outgoing messages locally. Pauses advance replay time without waiting. Fixtures do not simulate a server or prove live timing and behavior.',
+    "wsStudio.dirtySettings":
+      "Variables or fixtures have unsaved edits. Save or discard them before editing steps, navigating, exporting the project or running.",
+    "wsStudio.saveSettings": "Save replay settings",
+    "wsStudio.discardSettings": "Discard replay settings edits",
+    "wsStudio.settingsSaved": "Variables and replay messages saved.",
+    "wsStudio.execution": "Run WebSocket conversation",
+    "wsStudio.executionHelp":
+      "Offline replay uses saved incoming messages. A live run opens a fresh connection, executes the selected conversation and closes it afterward. Disconnect any interactive session first. The first failing step stops the run; remaining steps are skipped. A matching receive shares one deadline across all skipped messages.",
+    "wsStudio.replay": "Replay conversation offline",
+    "wsStudio.runLive": "Run live WebSocket conversation",
+    "wsStudio.cancel": "Cancel WebSocket conversation",
+    "wsStudio.running": "Conversation running…",
+    "wsStudio.exportReport": "Download value-free conversation report",
+    "wsStudio.runSummary": "{mode}: {status} · {duration} ms",
+    "wsStudio.receivedCount": "received {received}, skipped {skipped}",
+    "wsStudio.mode.live": "Live conversation",
+    "wsStudio.mode.replay": "Offline replay",
+    "wsStudio.result.passed": "passed",
+    "wsStudio.result.failed": "failed",
+    "wsStudio.result.cancelled": "cancelled",
+    "wsStudio.result.skipped": "skipped",
+    "wsStudio.transcript": "WebSocket message transcript",
+    "wsStudio.transcriptHelp":
+      "The latest session/replay replaces the previous transcript. Retention is limited to 200 messages and 256 KiB of encoded payload text; the list displays the latest 50 matches. Project and transcript files include your configured URL, variables or message values as applicable. Reports contain step outcomes and counts without URLs, payloads or captured values.",
+    "wsStudio.search": "Search WebSocket messages",
+    "wsStudio.direction": "Message direction filter",
+    "wsStudio.direction.all": "Both directions",
+    "wsStudio.direction.send": "Sent",
+    "wsStudio.direction.receive": "Received",
+    "wsStudio.formatFilter": "Message format filter",
+    "wsStudio.messageCount":
+      "{count} matching retained messages; {dropped} older messages dropped.",
+    "wsStudio.selectMessage": "Select WebSocket message {sequence}",
+    "wsStudio.messagePreview":
+      "Selected message preview (first 16,000 characters)",
+    "wsStudio.composeSelected": "Copy selected message to composer",
+    "wsStudio.recordConversation": "Create conversation from transcript",
+    "wsStudio.recorded":
+      "Transcript saved as an editable conversation with exact message checks and incoming replay fixtures. Review dynamic fields before live reuse.",
+    "wsStudio.useFixtures": "Use received messages as replay fixtures",
+    "wsStudio.fixturesSaved": "Received messages saved as replay fixtures.",
+    "wsStudio.exportTranscript": "Download WebSocket transcript",
+    "wsStudio.exportNdjson": "Download WebSocket messages (NDJSON)",
+    "wsStudio.clearTranscript": "Clear WebSocket transcript",
+    "wsStudio.downloaded": "Download started.",
+    "wsStudio.downloadFailed": "Download was blocked. Try again.",
+    "wsStudio.error.project":
+      "Use a valid RSSwag WebSocket project with at least one conversation; the previous work was retained.",
+    "wsStudio.error.connection":
+      "The WebSocket connection could not be used. Check the URL, server, origin permissions, subprotocols and browser connection restrictions.",
+    "wsStudio.error.url":
+      "Use an explicit ws:// or wss:// URL without embedded credentials, whitespace or a fragment.",
+    "wsStudio.error.protocol":
+      "Use up to 10 distinct valid WebSocket subprotocol tokens.",
+    "wsStudio.error.message":
+      "Use a supported text, JSON or binary message/transcript.",
+    "wsStudio.error.json":
+      "Use bounded JSON with finite numbers and safe integers; JSON checks and captures require a JSON message.",
+    "wsStudio.error.binary": "Use canonical padded base64 for binary messages.",
+    "wsStudio.error.limit":
+      "A WebSocket message, project, transcript, conversation or processing limit was exceeded.",
+    "wsStudio.error.step":
+      "Save a valid conversation step and include at least one step before running.",
+    "wsStudio.error.check":
+      "Use valid body JSON Pointer assertion rules with supported operators and expected values.",
+    "wsStudio.error.variable":
+      "Use declared/captured variables and valid names; only exact JSON placeholders accept object/array values.",
+    "wsStudio.error.pointer":
+      "Use a valid JSON Pointer to an existing own field; inherited object fields are unavailable.",
+    "wsStudio.error.closed": "The WebSocket connection is closed.",
+    "wsStudio.error.timeout": "The connection or receive deadline expired.",
+    "wsStudio.error.buffer":
+      "The WebSocket send buffer or incoming conversation queue is full.",
+    "wsStudio.error.cancelled": "The WebSocket operation was cancelled.",
+    "wsStudio.error.exhausted":
+      "No incoming replay messages remain for this expect step.",
+    "wsStudio.error.mismatch":
+      "The next message did not satisfy this step's format or checks.",
     "designer.title": "API design studio",
     "designer.description":
       "Create and edit REST contracts with forms for operations, parameters, payloads, reusable models and authentication; keep a reversible draft and review changes before updating the editor.",
@@ -4879,6 +5051,181 @@ export const translations = {
     "workspace.snippetLanguageMenuLabel": "Code languages for {method} {path}",
   },
   ru: {
+    "wsStudio.title": "Студия сессий WebSocket",
+    "wsStudio.description":
+      "Исследуйте двунаправленные API: текстовые, JSON и бинарные сообщения, переиспользуемые диалоги, локальное воспроизведение, захват переменных и поиск по журналу.",
+    "wsStudio.help":
+      "Подключение начинается только кнопками подключения или запуска живого диалога. Работа хранится в этой вкладке и продолжается при закрытой панели; отключитесь для завершения интерактивной сессии. Скачайте проект перед уходом. Студия независима от редактора OpenAPI.",
+    "wsStudio.loading": "Чтение файла WebSocket…",
+    "wsStudio.project": "Проект WebSocket",
+    "wsStudio.projectName": "Название проекта WebSocket",
+    "wsStudio.newProject": "Новый проект WebSocket",
+    "wsStudio.demo": "Загрузить демо диалога реального времени",
+    "wsStudio.demoLoaded":
+      "Демо загружено. Воспроизведите его локально или укажите собственный совместимый адрес WebSocket.",
+    "wsStudio.importProject": "Восстановить проект WebSocket (JSON)",
+    "wsStudio.importTranscript": "Импорт журнала WebSocket (JSON)",
+    "wsStudio.projectLoaded":
+      "Проект WebSocket восстановлен без подключений и импортированных результатов запуска.",
+    "wsStudio.transcriptLoaded":
+      "Журнал загружен без отправки сообщений и подключения.",
+    "wsStudio.exportProject": "Скачать проект WebSocket",
+    "wsStudio.connection": "Живое подключение WebSocket",
+    "wsStudio.connectionHelp":
+      "Укажите полный ws:// или wss:// URL и необязательные подпротоколы через запятую. Cookie и разрешениями управляет браузер; произвольные HTTP-заголовки и управление Ping/Pong недоступны. HTTPS-страницам обычно нужен wss://. Автоматических переподключений и повторных отправок нет.",
+    "wsStudio.url": "URL WebSocket",
+    "wsStudio.protocols": "Подпротоколы WebSocket (через запятую)",
+    "wsStudio.connectTimeout": "Таймаут подключения (мс)",
+    "wsStudio.connectionStatus":
+      "Подключение: {status}; согласованный протокол: {protocol}",
+    "wsStudio.state.closed": "закрыто",
+    "wsStudio.state.connecting": "подключение",
+    "wsStudio.state.open": "открыто",
+    "wsStudio.state.closing": "закрывается",
+    "wsStudio.cleanClose": "корректное закрытие",
+    "wsStudio.uncleanClose": "некорректное закрытие",
+    "wsStudio.connect": "Подключить WebSocket",
+    "wsStudio.disconnect": "Отключить WebSocket",
+    "wsStudio.composerFormat": "Формат исходящего сообщения",
+    "wsStudio.composer": "Исходящее сообщение WebSocket",
+    "wsStudio.send": "Отправить сообщение WebSocket",
+    "wsStudio.sent":
+      "Сообщение поставлено в очередь отправки. Это не подтверждает обработку сервером.",
+    "wsStudio.format.json": "JSON",
+    "wsStudio.format.text": "Текст",
+    "wsStudio.format.binary": "Бинарное (base64)",
+    "wsStudio.format.any": "Любой формат",
+    "wsStudio.conversations": "Переиспользуемые диалоги WebSocket",
+    "wsStudio.conversationHelp":
+      "Упорядочьте шаги отправки, ожидания и паузы. Проверки JSON Pointer используют существующие операторы утверждений; захваченные значения становятся переменными следующих шагов. Полные JSON-подстановки вроде {{taskId}} сохраняют тип значения. Текстовые подстановки принимают скалярные значения. Сохраните или отмените правки перед переходом или запуском.",
+    "wsStudio.selectedConversation": "Выбранный диалог WebSocket",
+    "wsStudio.conversationName": "Название диалога",
+    "wsStudio.addConversation": "Добавить диалог",
+    "wsStudio.duplicateConversation": "Дублировать диалог",
+    "wsStudio.removeConversation": "Удалить диалог",
+    "wsStudio.selectedStep": "Выбранный шаг диалога",
+    "wsStudio.newStep": "Новый шаг диалога",
+    "wsStudio.type.send": "Отправка",
+    "wsStudio.type.expect": "Ожидание",
+    "wsStudio.type.pause": "Пауза",
+    "wsStudio.add.send": "Добавить шаг отправки",
+    "wsStudio.add.expect": "Добавить шаг ожидания",
+    "wsStudio.add.pause": "Добавить паузу",
+    "wsStudio.move.up": "Переместить шаг вверх",
+    "wsStudio.move.down": "Переместить шаг вниз",
+    "wsStudio.removeStep": "Удалить шаг диалога",
+    "wsStudio.stepName": "Название шага диалога",
+    "wsStudio.stepFormat": "Формат сообщения шага",
+    "wsStudio.stepPayload": "Данные сообщения шага",
+    "wsStudio.template": "Подставлять переменные диалога в этом шаге",
+    "wsStudio.pauseMs": "Длительность паузы (мс)",
+    "wsStudio.receiveTimeout": "Срок ожидания сообщения (мс)",
+    "wsStudio.matchMode": "Политика сопоставления сообщений",
+    "wsStudio.match.next": "Проверить следующее сообщение",
+    "wsStudio.match.matching": "Пропускать посторонние сообщения до совпадения",
+    "wsStudio.textMode": "Сравнение текста / base64",
+    "wsStudio.text.any": "Без сравнения текста",
+    "wsStudio.text.equals": "Равно",
+    "wsStudio.text.contains": "Содержит",
+    "wsStudio.expectedText": "Ожидаемый текст / base64",
+    "wsStudio.checks": "Проверки JSON Pointer сообщения (JSON-массив)",
+    "wsStudio.checksHelp":
+      'Пример: [{"name":"Тип события","target":"body","path":"/type","operator":"equals","expected":"\\\"task\\\""}]. Операторы: exists, absent, equals (JSON), contains, type, length, gte, lte. Пустой указатель проверяет всё JSON-сообщение; заменяйте / на ~1 и ~ на ~0.',
+    "wsStudio.captures": "Захватываемые переменные (JSON-массив)",
+    "wsStudio.capturesHelp":
+      'Пример: [{"name":"taskId","pointer":"/task/id"}]. Захват требует JSON-сообщения и существующего собственного поля. Имена содержат буквы, цифры и подчёркивания и не начинаются с цифры. Последующий захват может заменить прежнюю переменную.',
+    "wsStudio.dirtyStep":
+      "В шаге есть несохранённые правки. Сохраните или отмените их перед переходом, импортом, экспортом проекта или запуском.",
+    "wsStudio.saveStep": "Сохранить шаг диалога",
+    "wsStudio.discardStep": "Отменить правки шага",
+    "wsStudio.stepSaved": "Шаг диалога сохранён.",
+    "wsStudio.discarded": "Правки шага отменены.",
+    "wsStudio.replaySettings": "Переменные и локальное воспроизведение",
+    "wsStudio.variables": "Начальные переменные диалога (JSON-объект)",
+    "wsStudio.fixtures": "Входящие сообщения воспроизведения (JSON-массив)",
+    "wsStudio.fixturesHelp":
+      'Сообщения задаются как {"format":"json","data":"..."}, текст или канонический бинарный base64. Воспроизведение читает их по порядку и локально записывает исходящие сообщения. Паузы изменяют время без ожидания. Это не симуляция сервера и не доказательство его поведения или задержек.',
+    "wsStudio.dirtySettings":
+      "В переменных или сообщениях есть несохранённые правки. Сохраните или отмените их перед редактированием шагов, переходом, экспортом проекта или запуском.",
+    "wsStudio.saveSettings": "Сохранить настройки воспроизведения",
+    "wsStudio.discardSettings": "Отменить правки настроек воспроизведения",
+    "wsStudio.settingsSaved":
+      "Переменные и сообщения воспроизведения сохранены.",
+    "wsStudio.execution": "Запуск диалога WebSocket",
+    "wsStudio.executionHelp":
+      "Локальное воспроизведение использует сохранённые сообщения. Живой запуск открывает новое подключение, выполняет выбранный диалог и закрывает соединение. Сначала отключите интерактивную сессию. После первой ошибки оставшиеся шаги пропускаются. Все пропускаемые сообщения используют единый срок ожидания.",
+    "wsStudio.replay": "Воспроизвести диалог локально",
+    "wsStudio.runLive": "Запустить живой диалог WebSocket",
+    "wsStudio.cancel": "Отменить диалог WebSocket",
+    "wsStudio.running": "Диалог выполняется…",
+    "wsStudio.exportReport": "Скачать отчёт диалога без значений",
+    "wsStudio.runSummary": "{mode}: {status} · {duration} мс",
+    "wsStudio.receivedCount": "получено {received}, пропущено {skipped}",
+    "wsStudio.mode.live": "Живой диалог",
+    "wsStudio.mode.replay": "Локальное воспроизведение",
+    "wsStudio.result.passed": "пройдено",
+    "wsStudio.result.failed": "ошибка",
+    "wsStudio.result.cancelled": "отменено",
+    "wsStudio.result.skipped": "пропущено",
+    "wsStudio.transcript": "Журнал сообщений WebSocket",
+    "wsStudio.transcriptHelp":
+      "Новая сессия или воспроизведение заменяет прежний журнал. Сохраняются до 200 сообщений и 256 КиБ текста данных; список показывает последние 50 совпадений. Файлы проекта и журнала содержат настроенный URL, переменные или значения сообщений. Отчёты содержат результаты шагов и счётчики без URL, данных сообщений и захваченных значений.",
+    "wsStudio.search": "Поиск сообщений WebSocket",
+    "wsStudio.direction": "Фильтр направления сообщений",
+    "wsStudio.direction.all": "Оба направления",
+    "wsStudio.direction.send": "Отправлено",
+    "wsStudio.direction.receive": "Получено",
+    "wsStudio.formatFilter": "Фильтр формата сообщений",
+    "wsStudio.messageCount":
+      "Совпадений среди сохранённых сообщений: {count}; удалено прежних сообщений: {dropped}.",
+    "wsStudio.selectMessage": "Выбрать сообщение WebSocket {sequence}",
+    "wsStudio.messagePreview": "Просмотр сообщения (первые 16 000 символов)",
+    "wsStudio.composeSelected": "Скопировать выбранное сообщение для отправки",
+    "wsStudio.recordConversation": "Создать диалог из журнала",
+    "wsStudio.recorded":
+      "Журнал сохранён как редактируемый диалог с точными проверками сообщений и входящими данными воспроизведения. Проверьте динамические поля перед живым запуском.",
+    "wsStudio.useFixtures":
+      "Использовать полученные сообщения для воспроизведения",
+    "wsStudio.fixturesSaved":
+      "Полученные сообщения сохранены для воспроизведения.",
+    "wsStudio.exportTranscript": "Скачать журнал WebSocket",
+    "wsStudio.exportNdjson": "Скачать сообщения WebSocket (NDJSON)",
+    "wsStudio.clearTranscript": "Очистить журнал WebSocket",
+    "wsStudio.downloaded": "Загрузка началась.",
+    "wsStudio.downloadFailed": "Загрузка заблокирована. Повторите попытку.",
+    "wsStudio.error.project":
+      "Используйте корректный проект RSSwag WebSocket хотя бы с одним диалогом; прежняя работа сохранена.",
+    "wsStudio.error.connection":
+      "Не удалось использовать подключение WebSocket. Проверьте URL, сервер, разрешения origin, подпротоколы и ограничения браузера.",
+    "wsStudio.error.url":
+      "Укажите полный ws:// или wss:// URL без встроенных учётных данных, пробелов и фрагмента.",
+    "wsStudio.error.protocol":
+      "Укажите до 10 различных корректных токенов подпротоколов WebSocket.",
+    "wsStudio.error.message":
+      "Используйте поддерживаемое текстовое, JSON или бинарное сообщение/журнал.",
+    "wsStudio.error.json":
+      "Используйте ограниченный JSON с конечными числами и безопасными целыми; проверки и захват требуют JSON-сообщения.",
+    "wsStudio.error.binary":
+      "Используйте канонический base64 с заполнением для бинарных сообщений.",
+    "wsStudio.error.limit":
+      "Превышен лимит сообщения, проекта, журнала, диалога или обработки WebSocket.",
+    "wsStudio.error.step":
+      "Сохраните корректный шаг диалога и добавьте хотя бы один шаг перед запуском.",
+    "wsStudio.error.check":
+      "Используйте корректные проверки body JSON Pointer с поддерживаемыми операторами и ожидаемыми значениями.",
+    "wsStudio.error.variable":
+      "Используйте объявленные или захваченные переменные с корректными именами; объекты и массивы доступны только для полных JSON-подстановок.",
+    "wsStudio.error.pointer":
+      "Используйте корректный JSON Pointer к существующему собственному полю; унаследованные поля недоступны.",
+    "wsStudio.error.closed": "Подключение WebSocket закрыто.",
+    "wsStudio.error.timeout": "Истёк срок подключения или ожидания сообщения.",
+    "wsStudio.error.buffer":
+      "Буфер отправки WebSocket или очередь входящих сообщений диалога заполнены.",
+    "wsStudio.error.cancelled": "Операция WebSocket отменена.",
+    "wsStudio.error.exhausted":
+      "Для этого шага ожидания больше нет входящих сообщений воспроизведения.",
+    "wsStudio.error.mismatch":
+      "Следующее сообщение не соответствует формату или проверкам шага.",
     "designer.title": "Студия проектирования API",
     "designer.description":
       "Создавайте и редактируйте REST-контракты через формы операций, параметров, данных, моделей и авторизации; сохраняйте обратимый черновик и проверяйте изменения перед обновлением редактора.",

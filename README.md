@@ -29,6 +29,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - GraphQL contract studio with SDL/introspection imports, type/dependency exploration, typed query/mutation/subscription generation, document and variable validation, bounded offline fixture execution, saved operation libraries, portable projects, request/response/report exports, and OpenAPI 3.1 HTTP contracts for existing REST tools
 - Protocol Buffers and gRPC studio with local multi-file proto2/proto3 projects, dependency/type/field exploration, precise JSON validation, base64/hex binary encoding and decoding, uncompressed gRPC frame inspection, all four RPC streaming modes, reusable offline exchange rehearsals, portable projects, and advisory contract compatibility reviews
 - Payload mapping studio for reusable JSON API adapters with ordered stages, field projection, aligned array mapping, type/string conversions, constants and missing-value policies, intermediate previews, optional OpenAPI input/output checks, saved regression cases, portable projects, value-free reports, and dependency-free JavaScript mapper exports
+- WebSocket session studio with explicit browser connections, text/JSON/binary messages, searchable bounded transcripts, reusable send/expect/pause conversations, JSON Pointer assertions and captures, typed variables, offline fixture replay, transcript-to-test recording, portable projects, and value-free run reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -109,6 +110,129 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Testing bidirectional APIs with WebSocket sessions
+
+Open **Testing → WebSocket session studio**. It works independently of the
+OpenAPI editor, including when the editor contains invalid text. Existing REST,
+AsyncAPI, GraphQL, gRPC, and other tools remain available. The studio creates no
+connection on opening, importing, loading a demo, or replaying offline.
+
+Use **Load realtime conversation demo**, then **Replay conversation offline**
+to try a complete welcome/subscribe/task/ack conversation. The demo skips an
+unrelated heartbeat, captures a numeric task identifier, and preserves that type
+in the acknowledgement. The example URL is a placeholder; configure your own
+compatible endpoint before using live connections.
+
+For interactive use, enter an explicit `ws://` or `wss://` URL, optional distinct
+subprotocols separated by commas, and a connection timeout. **Connect WebSocket**
+opens a single browser connection. Choose JSON, text, or canonical padded base64
+for binary messages, then **Send WebSocket message**. JSON is checked before
+sending; text preserves its literal content. A queued send does not confirm
+server receipt or processing. Received text is classified as JSON when it passes
+the bounded JSON parser; other text remains available verbatim. Binary messages
+are represented as base64 and sent/received as bytes.
+
+The connection status shows the negotiated subprotocol and available server-close
+code, reason, and clean/unclean status. **Disconnect WebSocket** requests a normal
+close. Closing the panel retains the connection and transcript; disconnect
+explicitly to stop an interactive session. Leaving/unmounting the workspace
+cancels work, requests socket closure, and removes listeners and timers. There
+are no automatic reconnects or resends.
+
+This uses the browser's native
+[WebSocket interface](https://websockets.spec.whatwg.org/#the-websocket-interface).
+Browser cookie, origin, certificate, mixed-content, and connection restrictions
+apply; HTTPS pages generally need `wss://`. Arbitrary HTTP handshake headers,
+handshake response inspection, raw transport frames, and
+[protocol Ping/Pong controls](https://websockets.spec.whatwg.org/#ping-and-pong-frames)
+are unavailable. Application heartbeat messages can be authored as normal
+messages. Application-specific protocols require their own compatible message
+sequences. The studio adds no server-side WebSocket proxy or remote service.
+
+Create named conversations containing **Send**, **Expect**, and **Pause** steps.
+Save each step before selecting another, switching conversations, running, or
+exporting the project. Conversations support duplication, removal, and step
+reordering. Save/discard guards keep incomplete step edits, variables, and replay
+fixtures visible. Invalid imports and form saves retain previous saved work.
+
+Expect steps select a message format and one receive policy: check the next
+message immediately, or skip unrelated messages until a match. All skipped
+messages share the step's original deadline. Optional exact/substring text
+comparisons operate on text or binary base64. A text-format expectation also
+accepts a JSON text message. JSON checks use the existing body assertion format:
+
+```json
+[
+  {
+    "name": "Task event",
+    "target": "body",
+    "path": "/type",
+    "operator": "equals",
+    "expected": "\"task\""
+  }
+]
+```
+
+Operators are `exists`, `absent`, `equals`, `contains`, `type`, `length`, `gte`,
+and `lte`. `equals` uses JSON structural equality rather than object-key order.
+An empty JSON Pointer checks the complete message; escape `/` as `~1` and `~`
+as `~0`. These are explicit assertions, not full JSON Schema certification.
+
+Capture fields from a matching JSON message with, for example,
+`[{"name":"taskId","pointer":"/task/id"}]`. Captures require existing own
+fields and become variables for later steps. Initial variables use a JSON
+object such as `{"room":"tasks"}`. Exact JSON string placeholders like
+`{"id":"{{taskId}}"}` retain a captured number, null, array, or object's type;
+embedded/text substitutions accept scalar values. Substitution happens once
+and does not change JSON property names. Binary payloads stay literal base64.
+The step's **Substitute conversation variables** checkbox also controls
+expectation text and check literals. Disable it to compare literal `{{...}}`
+content. Later captures can replace earlier variables; each run starts fresh.
+
+**Replay conversation offline** consumes saved incoming fixtures in order,
+records outgoing messages locally, and advances pauses without wall-clock waits.
+Fixtures use objects such as `{"format":"json","data":"{\"type\":\"welcome\"}"}`
+or `text`/`binary` equivalents. Replay does not simulate server logic, verify
+outgoing messages against a server, or prove live timing and behavior.
+**Run live WebSocket conversation** opens a fresh connection, buffers initial
+messages, executes the selected conversation, and requests closure afterward.
+Disconnect any interactive session first. The first failure stops execution;
+remaining steps are marked skipped. Cancellation stops pending connection,
+receive, and pause waits. Messages already sent cannot be undone.
+
+The transcript supports multiword search, Escape to clear search, direction and
+format filters, message selection, and copying a selected payload into the
+composer without sending it. It retains the latest 200 messages within a
+256 KiB encoded-payload-text budget, reports dropped messages, and displays
+the latest 50 matching entries. Previews show the first 16,000 characters.
+A new session/replay replaces the previous transcript. Full retained values can
+be downloaded as JSON or NDJSON; import the JSON transcript to inspect it later.
+
+**Create conversation from transcript** records up to 40 retained messages as
+send/expect steps and saves received messages as replay fixtures. Recorded steps
+disable variable substitution to preserve literal content. JSON messages up to
+4 KiB receive structural equality checks; larger JSON, text, and binary messages
+use exact text/base64 comparison. Review dynamic identifiers and timings before
+live reuse. **Use received messages as replay fixtures** updates only the saved
+incoming fixture list.
+
+Download a portable project before leaving: tab memory is the only storage.
+Projects include connection configuration, initial variables, conversations, and
+fixtures. Imports discard claimed connections and run results and never open a
+socket. Projects/transcripts contain their configured URL, variables, or message
+values as applicable. Run reports contain step names, outcomes, durations,
+receive/skip counts, message sequence numbers, and error codes without URLs,
+payloads, expected literals, or captured variable values. Only explicit file
+downloads export this data; the studio uses no browser storage or REST history.
+
+Limits include 64 KiB per message, 1 MiB per project, 10 conversations,
+40 steps per conversation, 20 JSON checks/captures per expect step, 30 current
+variables, 200 replay messages, 30-second connection/receive deadlines,
+10-second pauses, and a 120-second aggregate wait budget per conversation.
+Outgoing buffering is limited to 512 KiB, and live conversations have a bounded
+incoming queue. JSON uses the existing depth/node limits, finite numbers, and
+safe integer checks. No dependencies are added.
 
 ## Designing REST APIs with forms
 
