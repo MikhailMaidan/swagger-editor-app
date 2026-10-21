@@ -31,6 +31,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Payload mapping studio for reusable JSON API adapters with ordered stages, field projection, aligned array mapping, type/string conversions, constants and missing-value policies, intermediate previews, optional OpenAPI input/output checks, saved regression cases, portable projects, value-free reports, and dependency-free JavaScript mapper exports
 - WebSocket session studio with explicit browser connections, text/JSON/binary messages, searchable bounded transcripts, reusable send/expect/pause conversations, JSON Pointer assertions and captures, typed variables, offline fixture replay, transcript-to-test recording, portable projects, and value-free run reports
 - Offline JWT and signing-key studio with token inspection, HS256/RS256/PS256/ES256 signing and verification, JWK/JWKS and PEM imports, local key generation, claim policies, reproducible regression cases, public-key project exports, and value-free reports
+- API resilience lab with deterministic virtual-clock fault scenarios, bounded retries and seeded jitter, timeouts and overall deadlines, concurrency/queue limits, circuit-breaker recovery probes, policy comparisons, acceptance budgets, regression matrices, interactive attempt timelines, HAR arrival imports, and portable projects/reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -111,6 +112,151 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Comparing API resilience policies
+
+Open **Testing → API resilience lab** to model how an API client behaves during
+an outage, throttling, or slow upstream responses. The lab uses a virtual clock:
+simulated seconds do not require real waiting, and no HTTP requests are sent.
+It does not deploy policies, inject faults into a live service, or alter existing
+request authentication, history, mock behavior, or OpenAPI text. It remains
+available when the editor contains invalid text. Work stays in tab memory;
+closing the panel preserves the project and results, while reloading clears them.
+
+**Load resilience comparison demo** adds three scenarios (temporary outage,
+rate limiting, and a slow service with a request burst) and three policies
+(no retries, bounded retries, and retries with a circuit breaker). Choose a
+scenario and **Compare policies for selected scenario**, or **Run resilience
+regression matrix** to evaluate every saved scenario/policy pair. Some demo
+policies intentionally fail the budgets: lower upstream pressure can come at the
+cost of more rejected requests. These results describe the configured model,
+not production measurements or a guarantee of real service availability.
+
+Each scenario contains a fixed jitter seed, logical request arrivals, timed
+fault windows, a default response, and acceptance budgets. Use the schedule
+builder to replace the draft's arrivals with 1–200 requests at a chosen interval
+and HTTP method, or edit the JSON array directly:
+
+```json
+[
+  { "id": "request-1", "name": "First request", "method": "GET", "atMs": 0 },
+  { "id": "request-2", "name": "Second request", "method": "GET", "atMs": 200 }
+]
+```
+
+Fault windows cannot overlap. Their start is included and end excluded; a fault
+is selected at the instant an upstream attempt starts, so an attempt already
+running keeps its original response. Outside the windows, the default response
+applies. For example, this window returns 503 for attempts starting during the
+first 700 virtual milliseconds:
+
+```json
+[
+  {
+    "startMs": 0,
+    "endMs": 700,
+    "fault": {
+      "kind": "http",
+      "status": 503,
+      "latencyMs": 40,
+      "retryAfterMs": null
+    }
+  }
+]
+```
+
+Use `kind: "network"` for a network error; its status and retry delay are ignored
+and normalized to 200/null. Latency is still the time until that error occurs.
+HTTP 2xx/3xx completes successfully; 4xx/5xx is an HTTP failure. The simulator
+does not follow redirects, model response bodies, or create network connections.
+
+Policies control maximum attempts (including the first), per-attempt timeout,
+overall deadline, retry methods/statuses, network/timeout retry switches, fixed
+or capped exponential backoff, and optional full jitter. A fixed seed produces
+repeatable delays. Jitter is addressed by request position and attempt number,
+so policy comparisons use the same random samples even when completion order
+changes. Retry delays are whole milliseconds. POST/PATCH retries are excluded
+by default and can be enabled explicitly; this is a simulation choice, not
+proof that repeating a real operation is safe. The tradeoffs of retries,
+timeouts and jitter are discussed in
+[AWS's engineering guidance](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/).
+
+When enabled, the server retry delay is a minimum wait, combined with backoff
+using the larger value. It is not reduced by the configured maximum backoff.
+Enter `retryAfterMs` as an already-resolved millisecond delay; the lab does not
+parse HTTP header date strings. The wire-level header accepts delay seconds or
+an HTTP date, as described in
+[HTTP Retry-After semantics](https://www.rfc-editor.org/rfc/rfc9110.html#section-10.2.3).
+
+Concurrency limits apply to active upstream attempts. Backoff releases the
+slot, and ready attempts enter a bounded FIFO queue. A full queue rejects the
+logical request. Overall deadlines start at request arrival and include every
+queue wait, attempt and backoff. Responses must arrive strictly before the
+timeout and deadline; an overall deadline wins a tie. At the same virtual time,
+deadline events run before completions, which run before new arrivals/retries.
+A request cannot start another attempt at its deadline. A retry delay extending
+beyond the deadline ends at the deadline without another upstream attempt.
+
+The optional circuit breaker models one shared upstream. It opens after the
+configured number of consecutive network errors, timeouts, in-flight deadline
+expirations, 429 responses or 5xx responses. Other responses reset that streak,
+including ordinary 4xx responses. Queue expiration alone does not count as an
+upstream failure. Open circuits reject ready requests without retrying them.
+After the open duration, the next eligible request enters half-open recovery;
+one probe is allowed at a time. A failed probe reopens the circuit, and the
+configured number of successful probes closes it. Late outcomes from attempts
+started before an opening cannot reset the new circuit state. Probes are driven
+by request arrivals, not a background health-check timer. This is a bounded
+model of the
+[circuit-breaker pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker).
+
+Save or discard scenario/policy edits before switching contexts, running, or
+exporting. Invalid JSON and numeric text remain editable, while saved
+definitions are retained. Scenarios and policies can be added, duplicated and
+removed independently, with at least one of each retained. Any definition edit
+clears previous results so an older simulation cannot appear to validate it.
+
+The comparison table reports success rate, upstream attempt count, attempt
+amplification and p95 latency. Select a row to see concurrency and queue peaks,
+retries, timeouts, deadline failures and circuit activity. Acceptance budgets
+check minimum success rate, maximum p95 (0 disables that check), maximum
+attempts per logical request, and maximum combined circuit/queue rejections.
+Limits are inclusive and checked before display rounding. Latency percentiles
+use nearest rank over **all** logical request durations, including failures and
+fast rejections; they are not success-only upstream latency. Amplification also
+includes rejected logical requests in its denominator.
+
+Timeline bars span arrival to completion. Search requests with multiple terms,
+filter by outcome, clear search with Escape, and page through 20 requests at a
+time. Select a request to inspect its attempts, accumulated queue/backoff time,
+and event log alongside circuit transitions. Attempt/event previews show up to
+100 rows; JSON reports contain the full completed timelines. CSV exports contain
+all upstream attempts for the selected simulation, regardless of UI filters, and
+protect spreadsheet formula prefixes.
+
+**Import HAR arrival schedule** creates a new scenario using only relative
+`startedDateTime` timestamps and HTTP methods. Timestamps must include a time
+zone, and the schedule may span at most 120 seconds. URLs, headers, credentials,
+bodies, recorded responses and other HAR data are discarded. The imported
+scenario starts with a healthy default response; configure outage windows to
+test the observed traffic pattern. HAR responses are not inferred as a fault
+model or treated as a forecast of future behavior.
+
+Projects contain definitions only. Restoring validates the complete project
+and discards imported results. Reports contain completed simulations and their
+coverage counts, numerical metrics, identifiers, user-provided names and event
+timelines; no payloads, credentials or endpoint URLs are collected by the model.
+Names and identifiers are still user data. Download reports as JSON, copy them,
+or export the selected attempt timeline as CSV. Cancellation yields between
+simulation chunks, retains completed scenario/policy pairs and marks unfinished
+coverage incomplete. Cancelled file reads cannot overwrite subsequent work.
+
+Limits are 12 scenarios, 6 policies, 200 requests per scenario, 50 fault windows,
+8 attempts per request, 20 concurrent attempts, and 200 waiting attempts.
+Arrival times and overall deadlines are limited to 120000 ms each; fault windows
+can extend to 240000 ms. Projects are limited to 1 MiB, HAR captures to 2 MiB,
+and exported JSON reports to 32 MiB. JSON processing also bounds depth and node
+counts. The interface and feedback are available in English and Russian.
 
 ## Inspecting and testing JWT authentication
 

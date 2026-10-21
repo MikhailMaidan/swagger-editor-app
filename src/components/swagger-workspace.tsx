@@ -35,6 +35,7 @@ import { PayloadMappingPanel } from "@/components/payload-mapping-panel";
 import { ApiDesignerPanel } from "@/components/api-designer-panel";
 import { WebSocketStudioPanel } from "@/components/websocket-studio-panel";
 import { JwtStudioPanel } from "@/components/jwt-studio-panel";
+import { ApiResiliencePanel } from "@/components/api-resilience-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1901,6 +1902,11 @@ export function SwaggerWorkspace({
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
         {
+          group: "testing",
+          id: "workspace-tool-resilience",
+          label: "resilience.title",
+        },
+        {
           group: "quality",
           id: "workspace-tool-jwt",
           label: "jwtStudio.title",
@@ -2166,6 +2172,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-resilience",
+          label: "resilience.title",
+        },
         {
           group: "quality",
           id: "workspace-tool-jwt",
@@ -3024,6 +3035,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-resilience"
+          tabIndex={-1}
+        >
+          <ApiResiliencePanel />
         </div>
 
         <div
