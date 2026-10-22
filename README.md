@@ -32,6 +32,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - WebSocket session studio with explicit browser connections, text/JSON/binary messages, searchable bounded transcripts, reusable send/expect/pause conversations, JSON Pointer assertions and captures, typed variables, offline fixture replay, transcript-to-test recording, portable projects, and value-free run reports
 - Offline JWT and signing-key studio with token inspection, HS256/RS256/PS256/ES256 signing and verification, JWK/JWKS and PEM imports, local key generation, claim policies, reproducible regression cases, public-key project exports, and value-free reports
 - API resilience lab with deterministic virtual-clock fault scenarios, bounded retries and seeded jitter, timeouts and overall deadlines, concurrency/queue limits, circuit-breaker recovery probes, policy comparisons, acceptance budgets, regression matrices, interactive attempt timelines, HAR arrival imports, and portable projects/reports
+- Streaming HTTP studio with live GET/POST SSE and NDJSON, incremental UTF-8/framing parsers, explicit session headers, bounded SSE resume/reconnection, heartbeat and timeout tracking, searchable record inspection, binary wire fixtures, replay regression cases and byte-boundary sweeps, transcript-to-test recording, and portable projects/reports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -112,6 +113,151 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Inspecting SSE and NDJSON HTTP streams
+
+Open **Testing → Streaming HTTP studio**. It adds streaming HTTP inspection
+alongside the existing REST, WebSocket, GraphQL, gRPC, JWT and resilience tools.
+The studio remains available when the OpenAPI editor contains invalid text and
+does not modify its contents. Work stays in tab memory: closing the panel keeps
+it and any active connection. Use **Disconnect HTTP stream** to stop traffic;
+leaving the workspace disposes the stream. Reloading the page clears the work.
+
+**Load streaming framing demo** loads five offline cases covering Unicode and
+SSE heartbeats/multiline data, NDJSON objects and primitives, malformed JSON,
+incomplete SSE at EOF, and a text completion sentinel. **Replay selected stream
+fixture** puts the decoded records in the inspector. **Run saved stream replay
+cases** checks each saved case at its chosen chunk size. **Run byte-boundary
+regression sweep** checks every case with 1, 2, 3, 7, 64 and 4096-byte chunks.
+All 30 demo variants should pass, including expected parser rejections. Opening
+the studio, loading a demo, importing data, and replaying never open a connection.
+
+For a live connection, enter an absolute HTTP(S) URL, choose SSE or NDJSON, select
+GET or POST, configure limits, and **Save streaming connection settings** before
+**Connect HTTP stream**. GET cannot have a request body. POST supports an exact
+editable request body and defaults to `Content-Type: application/json` unless
+you supply another explicit content type. POST is never automatically resent.
+This is a browser Fetch client, without a server proxy. CORS, mixed-content and
+browser network permissions still apply, including for local development APIs.
+
+Enter explicit Authorization or other custom headers in **Session-only stream
+headers**. These remain in memory and are excluded from project and report
+exports. Ambient cookies are omitted, redirects are rejected, and responses are
+not cached. Accept and Last-Event-ID are controlled by the studio; transport,
+Cookie, Origin and similar browser-owned headers cannot be supplied. Custom
+headers and resume cursors may require a server CORS preflight configuration;
+the browser enforces those rules through the
+[Fetch API](https://fetch.spec.whatwg.org/).
+
+The default content-type check requires `text/event-stream` for SSE or
+`application/x-ndjson`, `application/ndjson` or `application/jsonl` for NDJSON.
+Disable that check explicitly only when you want to apply the chosen parser to
+a response with different metadata. SSE requires HTTP 200; NDJSON accepts a
+successful response. HTTP 204 terminates without reconnection. Other HTTP and
+content-type failures stop without reading response payloads into the inspector.
+
+SSE parsing supports LF, CRLF and CR line endings, one leading BOM, comments,
+multiline data, named events, and persistent IDs within a response. Empty blocks
+can update the resume cursor without producing records; NUL-containing IDs are
+ignored. Incomplete events are discarded at EOF. Malformed UTF-8 uses replacement
+characters. This follows the framing rules in the
+[HTML SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation).
+
+Automatic reconnection is opt-in and restricted to GET SSE, with at most five
+reconnects. It occurs after EOF or network failures, using a committed
+Last-Event-ID cursor and a valid digit-only `retry` hint when available. Each
+new response starts with a fresh event-ID buffer. HTTP, parsing, timeout and
+configured stopping conditions are terminal. A server retry hint above 30000 ms
+stops reconnection rather than shortening the server delay. Resume IDs are
+encoded as UTF-8 header bytes; unsafe HTTP control characters or surrounding
+whitespace stop resume instead of silently altering the cursor. **Use current
+SSE cursor for next connection** explicitly copies the cursor into the settings
+draft; save it before the next manual connection. Replay does not simulate
+network reconnections or automatically deduplicate server events.
+
+NDJSON accepts JSON objects, arrays and primitive values separated by LF or
+CRLF, with strict UTF-8 and bounded finite/safe numbers. It rejects bare CR,
+record BOMs and malformed JSON, preserving complete valid records preceding an
+error regardless of transport chunk boundaries. Empty lines are ignored by
+default, and a final record without a newline is accepted as a convenience.
+The corresponding settings can reject empty lines and require the final
+newline. The strict newline form is described by the
+[NDJSON specification](https://github.com/ndjson/ndjson-spec#3-functional-specification).
+
+Handshake, idle and total-duration limits are independent. Any incoming bytes,
+including partial records and SSE comments, reset the idle timer. Optional exact
+stop-data text supports streams ending with markers such as `[DONE]`. A record
+limit or stop marker retains that final record and suppresses later records in
+the same transport chunk. Disconnect cancels pending handshakes, reads and
+reconnect waits; cancelled late responses are disposed. Session status shows
+connections, raw received bytes, record count, heartbeats, cursor and termination
+reason, with elapsed and first-record timing after completion.
+
+The inspector retains at most 200 records and 256 KiB, dropping the oldest
+records with a visible count. Session counters still describe the entire run.
+Search across data, IDs and event types with multiple terms, filter by event
+type, clear search with Escape, and select a record. The text preview shows the
+first 16000 characters; copying and transcript exports preserve full retained
+values. **Download stream records (NDJSON)** exports one record envelope per
+line, including its format, event, ID, payload, sequence, time and connection.
+
+Save replay cases with their raw wire input, framing, chunk size, parser
+settings, expected error, record-count bounds and optional checks. UTF-8 input
+is convenient for text fixtures. Select **Base64** to supply exact bytes,
+including malformed UTF-8; use canonical padded Base64 without whitespace.
+Cases can be added, duplicated and removed independently, with at least one
+retained. Save or discard invalid drafts before changing contexts, connecting,
+replaying, or exporting; failed saves/imports preserve existing work.
+
+Checks select a zero-based index, the last record, every record, or some record
+after an optional event-type filter. They support exact/substring text matching
+and the existing body-only JSON Pointer assertions. Empty selections fail even
+for `every`; an expected parser rejection passes only if record bounds and all
+checks also pass. For example:
+
+```json
+[
+  {
+    "name": "Counter remains nonnegative",
+    "select": "every",
+    "index": 0,
+    "event": "",
+    "textMode": "any",
+    "text": "",
+    "json": [
+      {
+        "name": "Counter",
+        "target": "body",
+        "path": "/counter",
+        "operator": "gte",
+        "expected": "0"
+      }
+    ]
+  }
+]
+```
+
+**Create replay case from retained records** reconstructs application records
+without original heartbeat/retry control lines, byte splits or response
+boundaries. It records only the retained subset when older records were dropped.
+An imported transcript can also become a replay case without connecting.
+Regression cancellation keeps completed variants, omits unfinished variants,
+and marks the coverage incomplete. Single replays yield between byte chunks
+and discard cancelled output.
+
+Projects contain saved connection settings (including URL and POST body), wire
+fixtures and checks, but no session headers, transcripts or imported results.
+Restoring a project clears session headers and results. Transcripts contain
+record payloads and event IDs. Value-free session/replay reports omit URLs,
+headers, request bodies, payloads, event IDs and expected check literals; case
+and check names and internal identifiers remain user data. No stream data is
+added to application login state, request history or browser storage.
+
+Limits are 1 MiB per project/transcript, 10 replay cases, 256 KiB decoded wire
+bytes per case, 64 KiB per record/line, 1000 records and 2 MiB received bytes per
+session/parser, 30 session headers, and 120 seconds per live session. Replay
+checks are bounded to 20 checks with 20 JSON rules each. JSON processing bounds
+nesting and node counts. The interface and feedback support English and Russian.
 
 ## Comparing API resilience policies
 
