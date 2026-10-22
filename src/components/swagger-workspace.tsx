@@ -37,6 +37,7 @@ import { WebSocketStudioPanel } from "@/components/websocket-studio-panel";
 import { JwtStudioPanel } from "@/components/jwt-studio-panel";
 import { ApiResiliencePanel } from "@/components/api-resilience-panel";
 import { StreamingHttpPanel } from "@/components/streaming-http-panel";
+import { ApiCollectionPanel } from "@/components/api-collection-panel";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -1904,6 +1905,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-collection",
+          label: "collection.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-streaming",
           label: "streamStudio.title",
         },
@@ -2178,6 +2184,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-collection",
+          label: "collection.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-streaming",
@@ -3046,6 +3057,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-collection"
+          tabIndex={-1}
+        >
+          <ApiCollectionPanel />
         </div>
 
         <div

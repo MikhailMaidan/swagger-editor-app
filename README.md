@@ -33,6 +33,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Offline JWT and signing-key studio with token inspection, HS256/RS256/PS256/ES256 signing and verification, JWK/JWKS and PEM imports, local key generation, claim policies, reproducible regression cases, public-key project exports, and value-free reports
 - API resilience lab with deterministic virtual-clock fault scenarios, bounded retries and seeded jitter, timeouts and overall deadlines, concurrency/queue limits, circuit-breaker recovery probes, policy comparisons, acceptance budgets, regression matrices, interactive attempt timelines, HAR arrival imports, and portable projects/reports
 - Streaming HTTP studio with live GET/POST SSE and NDJSON, incremental UTF-8/framing parsers, explicit session headers, bounded SSE resume/reconnection, heartbeat and timeout tracking, searchable record inspection, binary wire fixtures, replay regression cases and byte-boundary sweeps, transcript-to-test recording, and portable projects/reports
+- API collection studio with five pagination strategies, bounded sequential live GET traversal, editable offline page fixtures, plan regression suites, loop/origin safeguards, atomic page collection, typed identity deduplication, per-record acceptance checks, captured-page replay, searchable datasets, and JSON/NDJSON/CSV exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -113,6 +114,96 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Collecting paginated APIs
+
+Open **Testing → API collection studio**. This independent tool walks paginated
+JSON APIs and assembles their records into a dataset. It remains available when
+the OpenAPI editor is invalid and never changes the editor, existing request
+environments, authentication, or request history. Plans, fixtures, results, and
+explicit live headers stay in tab memory. Closing the panel preserves the work;
+leaving the workspace cancels requests, and reloading clears it. Export a project
+to retain its definitions and fixtures.
+
+Start with **Load five-pattern pagination demo**, then **Run all offline
+collection plans**. All five plans should pass, each collecting three unique
+records from three pages with one duplicate. The demos cover:
+
+| Strategy | Continuation | Completion |
+| --- | --- | --- |
+| HTTP Link | One `rel=next` target, resolved against the current URL | No applicable next relation |
+| JSON next URL | A relative or absolute URL at the configured JSON Pointer | Missing, null, or empty continuation |
+| JSON cursor | A string or number at the configured pointer, encoded into a query parameter | Missing, null, or empty cursor |
+| Page number | Initial page plus one for each continuation | Empty page, or short page when enabled |
+| Offset | Initial offset plus the configured page size | Empty page, or short page when enabled |
+
+Set the **Items JSON Pointer** to the response array, such as `/items`, `/data`,
+or an empty pointer for a root array. Configure the exact query parameter names
+and page size used by the API. Page-size parameters are optional. Link/URL/cursor
+plans permit empty intermediate pages while a continuation exists. Relative
+links follow the [HTTP Web Linking model](https://www.rfc-editor.org/rfc/rfc8288.html);
+links with an `anchor` context are ignored, and ambiguous next targets fail.
+
+Choose a duplicate policy: keep all records, retain the first identity, replace
+its value with the last occurrence while retaining its position, or fail on a
+duplicate. Identity pointers are relative to each item; identities must exist
+and be JSON scalars. Number `1` and string `"1"` are different identities. Set
+expected collected-count and duplicate budgets, and optionally add up to 20
+body assertions applied to every collected record:
+
+```json
+[
+  { "name": "ID exists", "target": "body", "path": "/id", "operator": "exists", "expected": "" },
+  { "name": "Active record", "target": "body", "path": "/active", "operator": "equals", "expected": "true" }
+]
+```
+
+An empty dataset fails a record assertion. A run passes only when pagination
+finishes and all acceptance checks pass. Numeric and assertion drafts must be
+saved before running; invalid saves retain the pending edits. Each project can
+hold ten plans, which can be replayed together as an offline regression suite.
+
+For offline runs, add or edit page fixtures with request URLs, HTTP statuses,
+Content-Type, optional Link headers, and exact response bodies. URLs match after
+normalizing query-key order and removing fragments; query values and repeated
+parameter ordering remain significant. Missing fixtures fail locally and never
+fall back to network requests. Malformed bodies and error statuses can be saved
+to reproduce failing responses. **Record pages as offline fixtures** copies
+completed response bodies and navigation headers from a run, updating fixtures
+with matching URLs. Other response headers, including cookies, are discarded.
+
+For live collection, save an HTTP(S) initial URL and use **Collect selected plan
+live**. Requests run sequentially with the configured inter-page delay, per-page
+timeout, and overall deadline. Authentication uses explicit session headers; browser
+[ambient credentials are omitted](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)
+and [redirects are rejected](https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect).
+Every continuation must stay on the initial scheme, host, and port. Browser CORS
+must allow the API, the configured request headers, and expose `Link` when that
+strategy is used. A response must have a successful 2xx status and JSON media
+type. There are no automatic retries; error statuses stop the run.
+
+Traversal detects repeated normalized URLs and enforces at most 100 pages,
+5,000 received records (including duplicates), 512 KiB per response, 2 MiB total
+response bytes, and 120 seconds. A page commits atomically: invalid identities,
+malformed JSON, and overflowing pages never leave half a page in the dataset.
+Cancellation or failure preserves earlier completed pages. An interrupted or
+limited run fails its completion check, while its partial dataset is available
+for export. Requests and stalled reads are cancelled on workspace unmount.
+
+Inspect the page journal, acceptance checks, and searchable records. The record
+selector shows the first 100 matches, and its preview shows 16,000 characters.
+Downloads and clipboard include the entire collected dataset regardless of the
+search filter. JSON, NDJSON, and spreadsheet-safe CSV exports are bounded to
+8 MiB; CSV supports up to 200 top-level columns and serializes nested values as
+JSON. Projects support 40 fixtures within a 2 MiB portable JSON file. Imports are
+validated atomically and discard unknown metadata and imported results.
+
+Projects, fixtures, datasets, and request URLs can contain sensitive values.
+Session headers are never exported or saved to browser storage. Collection
+reports omit request URLs, response headers/bodies, record values, and assertion
+literals, but retain plan names and IDs as user-provided metadata. Review files
+before sharing. This tool reads API pages; it does not provide snapshot isolation
+if a remote dataset changes between requests.
 
 ## Inspecting SSE and NDJSON HTTP streams
 
