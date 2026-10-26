@@ -34,6 +34,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API resilience lab with deterministic virtual-clock fault scenarios, bounded retries and seeded jitter, timeouts and overall deadlines, concurrency/queue limits, circuit-breaker recovery probes, policy comparisons, acceptance budgets, regression matrices, interactive attempt timelines, HAR arrival imports, and portable projects/reports
 - Streaming HTTP studio with live GET/POST SSE and NDJSON, incremental UTF-8/framing parsers, explicit session headers, bounded SSE resume/reconnection, heartbeat and timeout tracking, searchable record inspection, binary wire fixtures, replay regression cases and byte-boundary sweeps, transcript-to-test recording, and portable projects/reports
 - API collection studio with five pagination strategies, bounded sequential live GET traversal, editable offline page fixtures, plan regression suites, loop/origin safeguards, atomic page collection, typed identity deduplication, per-record acceptance checks, captured-page replay, searchable datasets, and JSON/NDJSON/CSV exports
+- SOAP contract studio with WSDL 1.1 service/binding/operation discovery, inline XML Schema request/response templates, SOAP 1.1/1.2 HTTP bindings, namespace-aware message and fault inspection, reusable XML path assertions, offline regression suites, explicit cancellable live POST requests, captured-response cases, portable projects, and XML/cURL/inventory/report exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -114,6 +115,125 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Working with SOAP services
+
+Open **Design → SOAP contract studio** to work with WSDL-based services alongside
+the existing REST, GraphQL, gRPC, WebSocket, streaming, and collection tools. The
+studio remains available when the OpenAPI editor is invalid and never changes
+its contents, request history, saved environments, or login credentials. Work
+stays in tab memory: closing the panel preserves it and any active task, leaving
+the workspace cancels requests, and reloading clears the work. Export a project
+to retain its contract, active request draft, namespace bindings, and cases.
+
+**Load SOAP customer demo**, then **Run all SOAP response cases**. All five cases
+should pass: SOAP 1.1 and 1.2 success responses, faults for both versions, and an
+intentional malformed-XML rejection. The demo includes a named complex type,
+an enumeration, a required attribute, and an optional field. Loading, importing,
+generating, inspecting, and replaying do not send network traffic.
+
+Paste a [WSDL 1.1](https://www.w3.org/TR/2001/NOTE-wsdl-20010315) document or use
+**Import WSDL file into draft**, then **Create SOAP project from WSDL (replaces
+studio work)**. This explicit action replaces only the SOAP studio project.
+Malformed contracts leave the current project and draft intact. Service ports,
+binding versions, operation names/actions, message references, and inline global
+elements are available in the operation inventory. External WSDL/XSD imports,
+includes, and redefinitions are reported and never fetched. Reference resolution
+uses namespace URIs and local names rather than fixed prefix spellings.
+
+Select an operation to generate a pending request draft; save or discard it
+before another operation is selected. **Generate SOAP request template** can
+include optional fields. Templates support locally resolved inline or named
+simple/complex types, sequence/all groups, element references, up to three
+required repeated occurrences, simple enumerations, fixed/default values,
+unqualified attributes, and common simple/complex type extensions. Local element
+qualification follows the containing schema. Required recursive definitions,
+unsupported structures such as choices, and unresolved types stop generation
+instead of silently inventing a complete request. You can edit raw XML manually
+when the document/literal binding is supported.
+
+Templates are examples, not XSD validation: all facets, business constraints,
+identity constraints, and required-field/type checks are not enforced. **Check
+SOAP request envelope** verifies its version, structure, and input wrapper
+against the selected operation. The reader supports request/response
+document/literal SOAP bindings with one selected element message part; it does
+not implement RPC/encoded styles, declared SOAP binding headers, WSDL 2,
+attachments/MTOM, WS-Security generation or verification, or external schema
+resolution. Contract QName references and assertion paths use ASCII XML names.
+Manually authored SOAP XML headers are preserved in message/project exports.
+
+For live execution, save an absolute HTTP(S) endpoint, action, request XML, and
+timeout, then **Send live SOAP request**. This performs a POST and may change the
+remote service. Browser CORS must allow the endpoint and request headers. The
+studio sends explicit session HTTP headers, omits browser credentials/cookies,
+disables redirects and caching, and has no automatic retries. Request XML must
+match the operation's SOAP version and input wrapper before traffic starts.
+[SOAP 1.1](https://www.w3.org/TR/2000/NOTE-SOAP-20000508/) uses `text/xml` with a
+quoted `SOAPAction`; [SOAP 1.2](https://www.w3.org/TR/soap12-part2/) uses
+`application/soap+xml` with an action parameter when provided. These binding
+headers are controlled by the studio. SOAP 1.2 WSDL actions are required by
+default unless `soapActionRequired` is explicitly false; a required action must
+be present in the contract and the saved request. UTF-8 response bodies are bounded and read
+incrementally. HTTP 500 fault bodies remain available for inspection. Wrong
+response media types, network failures, size limits, deadlines, and cancellation
+produce localized feedback. **Cancel SOAP task** stops an active live request.
+
+The inspector shows the original XML, a namespace-aware payload tree, and
+decoded SOAP faults. SOAP 1.2 fault details include nested code/subcode values,
+multiple translated reasons, role, and detail text. Tree names use `{URI}local`
+notation, attributes retain their own namespace identities, and scalar text
+stays a string. XML is never inserted as executable HTML. The inspector expects
+one payload element inside Body, with an optional Header before Body; it is not
+a general SOAP/XSD conformance validator.
+
+Add editable response cases or **Save live SOAP response as case**. A case
+records its operation, HTTP status, exact response XML, expected
+success/fault/invalid outcome, and up to 20 assertions. Bind prefixes to namespace
+URIs in **Assertion namespace prefixes (JSON object)**, for example
+`{"c":"urn:rsswag:customers"}`. A response may use different prefixes without
+breaking the checks:
+
+```json
+[
+  { "name": "Customer ID", "path": "/c:GetCustomerResponse/c:customer/c:id", "operator": "equals", "expected": "0", "trim": true },
+  { "name": "Active attribute", "path": "/c:GetCustomerResponse/c:customer/@active", "operator": "equals", "expected": "false", "trim": true }
+]
+```
+
+Paths start at the payload element and support named child steps, one-based
+per-parent sibling indexes such as `c:item[2]`, and a final attribute step such
+as `@id`. Unprefixed names match no namespace. This is a bounded path grammar;
+wildcards, descendant axes, arbitrary predicates, functions, and XPath execution
+are unsupported. Operators are `exists`, `absent`, `equals`, `contains`, and
+`count`; the last uses a nonnegative integer string. Equality/contains require a
+nonempty selection and apply to every selected text value. `trim` removes outer
+whitespace. Intentionally invalid-envelope cases must have an empty rules array.
+
+Offline replay checks the SOAP version, expected outcome, documented output
+wrapper for success messages, HTTP 2xx for successful payloads, and path rules.
+Faults can use HTTP error statuses. **Run all SOAP response cases** runs the saved
+suite without executing service logic. Cancellation preserves finished results
+and marks partial suite coverage. Results distinguish outcome, wrapper, HTTP,
+and path-check failures. Draft changes must be saved or discarded before
+switching, importing, running, or exporting; invalid saves retain pending work.
+
+Download original request/response XML, a POSIX-shell cURL command, the operation
+inventory, a portable project, or a regression report. cURL and project exports
+exclude HTTP session headers. Projects and messages can still contain endpoint
+query values, SOAP XML credentials, payloads, and expected assertion values.
+Reports omit endpoint URLs, message/fault values, and assertion literals, but
+retain case names and operation IDs, including their namespace metadata. Review
+all exports before sharing. Unsupported or unknown imported metadata and
+results are discarded; failed project imports leave the existing work intact.
+
+Limits are 512 KiB per XML document, 10,000 elements, 100 attributes per element,
+depth 48, 100 discovered operations, 20 saved cases, and 2 MiB per project. Live
+requests have a 100–30,000 ms deadline. Templates additionally cap recursive
+expansion depth and generated element count. Inspector previews show the first
+16,000 characters; message exports preserve the complete source. DTD/entity
+declarations and processing instructions are rejected; declaration-like text in
+CDATA/comments remains ordinary data. No contract, key, or schema URL is fetched
+automatically.
 
 ## Collecting paginated APIs
 
