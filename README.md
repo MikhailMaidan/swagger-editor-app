@@ -39,6 +39,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - HTTP cache studio with a fixed virtual clock, private/shared policy comparisons, Cache-Control and age analysis, Vary variants, conditional GET and 304 renewal, bounded stale-on-error fallback, write invalidation, LRU capacity, editable origin fixtures, HAR imports, acceptance budgets, portable projects, and reports without response values
 - CORS policy studio with exact-origin policy authoring, browser-mode and credential rehearsals, request-header safelist checks, explicit preflight and actual-response fixtures, bounded preflight-cache simulation, script-visible response inspection, policy comparisons, acceptance budgets, portable projects, reports without captured values, and executable dependency-free Fetch middleware exports
 - JSON-RPC and OpenRPC studio with method exploration, call/batch building, typed response-ID correlation, notification handling, bounded contract checks, editable static mocks, reusable regression cases, explicit live HTTP execution, portable projects, reports without response values, and standalone Fetch mock-handler exports
+- Webhook signature and replay studio with GitHub/Stripe/Standard Webhooks HMAC-SHA256, exact UTF-8/binary payloads, session-only key slots, rotation fixtures, timestamp policies, chronological receiver simulations, bounded replay stores, reusable delivery expectations, HAR/raw-payload imports, portable projects, value-free reports and dependency-free server verification exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -119,6 +120,119 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Verifying webhook signatures and replay policies
+
+Open **Testing → Webhook signature and replay studio**, choose **Load webhook
+security demo**, then **Rehearse all webhook deliveries**. Twelve synthetic
+deliveries cover valid signatures, changed bodies and signed IDs, stale/future
+timestamps, old/new key rotation, binary bodies and duplicate deliveries. The
+demo uses public test secrets. This studio is entirely offline; it never sends
+webhooks, opens a listener or changes the OpenAPI editor, and remains available
+when the editor contains invalid input.
+
+The supported signing profiles are
+[GitHub HMAC-SHA256](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries),
+[Stripe v1 HMAC-SHA256](https://github.com/stripe/stripe-node/blob/master/src/Webhooks.ts)
+and [Standard Webhooks v1 HMAC-SHA256](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md).
+Verification uses Web Crypto's HMAC verification operation. Unknown signature
+versions never authenticate a delivery. Standard Webhooks asymmetric `v1a`
+signatures and Svix-prefixed header aliases are outside this implementation.
+These are bounded signing-format profiles, rather than complete provider SDKs
+or business-event validators.
+
+Choose a key slot and paste its secret, or **Generate local test secret**.
+GitHub and Stripe use the entire literal UTF-8 secret; Stripe's `whsec_` prefix
+is part of that secret. Standard Webhooks decodes the Base64 portion after its
+optional `whsec_` prefix. Its decoded key must be 24–64 bytes. Generated secrets
+are for fixtures and do not configure a provider. Profiles explicitly allow
+key slots, and disabled or unavailable slots cannot authenticate deliveries.
+The signing control normally uses the selected permitted key, falling back to
+the first available permitted key; enable the rotation option to include every
+active permitted key for Stripe/Standard Webhooks. GitHub signs with one key.
+
+Enter an exact UTF-8 payload or **Import original payload file as Base64**.
+Original file imports retain binary bytes, CRLF, BOM and non-UTF-8 data. Changing
+the representation selector does not convert the current text. The signature
+covers the raw bytes without JSON parsing, formatting or decompression. Edit
+the fixture signing timestamp and Standard Webhooks message ID, then **Sign
+webhook delivery draft**. This updates the headers draft. Save the edits before
+sequence replay or export. **Inspect webhook signature and freshness** can
+check unsaved drafts, and marks older inspections stale when drafts or secrets
+change. It does not consume an identity from a replay store.
+
+Receiver profiles independently configure maximum timestamp age, future clock
+skew and whether fresh authenticated time is required. Zero age/skew means an
+exact boundary, rather than disabling checks. Timestamp headers must contain
+canonical integer Unix seconds; duplicate Stripe timestamps are rejected.
+Future-time checks are an explicit studio policy and can be stricter than a
+provider SDK. Signature validity and freshness are reported separately.
+GitHub signs only the body: its delivery/event headers cannot establish a
+trusted event identity or freshness, and requiring signed time rejects that
+profile's deliveries.
+GitHub signatures have no authenticated expiry; duplicate suppression there is
+limited to the configured body-identity retention window.
+
+Each sequence run creates empty replay stores per profile, orders deliveries
+by arrival offset and preserves source order for equal offsets. Only signatures
+accepted by the profile's freshness requirements can reserve an identity.
+Standard Webhooks can deduplicate by authenticated message ID. Any profile can
+instead deduplicate by the SHA-256 digest of exact authenticated body bytes,
+or explicitly disable replay checks. Body deduplication ignores unsigned
+delivery headers, re-signing and key rotation, but identical bodies can also be
+different legitimate business events. Retention is configurable; expired
+identities are removed before the next arrival, and full stores reject new
+identities without evicting live entries. This models bounded acceptance and
+does not guarantee exactly-once business processing or persistence.
+
+Save a project to retain receiver policies, key-slot metadata, raw captured
+deliveries and expected accepted/rejected/duplicate/capacity outcomes. Imports
+clear session secrets and previous results, ignoring injected secret/result
+properties. Session secret values are never included in the studio's exports.
+Projects and signed fixtures can still contain private bodies, captured headers
+and signatures. Reports omit these values, signed message IDs, absolute times
+and replay fingerprints; user-defined IDs/names, selected slot IDs, verdicts
+and counts remain. **Forget all webhook session secrets** also cancels pending
+operations and clears previous results.
+
+HAR imports append POST text captures to the selected receiver profile without
+retaining request URLs. Ambiguous headers, form parameters, compressed captures
+and mismatched declared byte lengths are skipped. Captures can alter payload
+bytes, so prefer original payload files when verifying actual deliveries.
+Imported arrivals start at offset zero and their expectations need review.
+
+**Download standalone webhook verifier** exports a dependency-free `.mjs`
+module for the selected saved profile, without session secrets or payloads:
+
+```js
+import { createWebhookVerifier } from "./webhook-verifier.mjs";
+
+const verify = createWebhookVerifier({
+  secrets: { "standard-key": process.env.WEBHOOK_SECRET },
+  timeoutMs: 5000,
+});
+
+// A verification-only diagnostic endpoint, not an event processor.
+export async function POST(request) {
+  const result = await verify(request); // Read original bytes before body parsing.
+  if (!result.accepted) return new Response("Rejected", { status: 401 });
+  return Response.json({ verified: true, bytes: result.body.length });
+}
+```
+
+The verifier accepts Fetch `Request` objects, bounds raw reads and crypto waits,
+responds to cancellation, and returns body bytes only after acceptance. It does
+not parse or process business events, enforce routes/tenant authorization,
+decompress bodies, or implement a replay store. Add a durable atomic idempotency
+reservation with your application's retry/recovery rules before business
+effects. Deploy through your preferred Fetch-compatible adapter in an
+environment with Web Crypto. Runtime secret IDs must match the exported slots.
+
+Limits: 8 key slots, 8 profiles, 40 deliveries, 256 KiB per decoded body, 32 KiB
+of captured headers, 16 signatures per delivery, 2 MiB per project, 4 MiB per
+HAR input, and 500 replay entries per profile. Virtual clock starts range from
+0 through 2100-01-01; arrival offsets are 0–86,400 seconds. Exported request
+timeouts are configurable from 100 to 30,000 ms. Work stays in tab memory.
 
 ## Exploring and testing JSON-RPC APIs
 
