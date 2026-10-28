@@ -36,6 +36,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API collection studio with five pagination strategies, bounded sequential live GET traversal, editable offline page fixtures, plan regression suites, loop/origin safeguards, atomic page collection, typed identity deduplication, per-record acceptance checks, captured-page replay, searchable datasets, and JSON/NDJSON/CSV exports
 - SOAP contract studio with WSDL 1.1 service/binding/operation discovery, inline XML Schema request/response templates, SOAP 1.1/1.2 HTTP bindings, namespace-aware message and fault inspection, reusable XML path assertions, offline regression suites, explicit cancellable live POST requests, captured-response cases, portable projects, and XML/cURL/inventory/report exports
 - OAuth authorization studio with portable public-client profiles, issuer-checked metadata discovery, S256 PKCE popup/manual callbacks, issuer-bound redirect URIs, device authorization with bounded polling and slowdown handling, session-only Bearer/refresh tokens, explicit refresh/revocation, guarded API-auth handoff, offline lifecycle demonstrations, and reports without credentials
+- HTTP cache studio with a fixed virtual clock, private/shared policy comparisons, Cache-Control and age analysis, Vary variants, conditional GET and 304 renewal, bounded stale-on-error fallback, write invalidation, LRU capacity, editable origin fixtures, HAR imports, acceptance budgets, portable projects, and reports without response values
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -116,6 +117,97 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Testing HTTP cache behavior
+
+Open **Testing → HTTP cache studio** and choose **Load HTTP cache lifecycle
+demo**, then **Run all cache scenarios and policies**. Ten independent
+policy/scenario combinations exercise freshness and renewal, language variants,
+cache-only misses, origin outages, successful write invalidation, private data,
+and different shared-cache lifetimes. The studio is available even when the
+OpenAPI editor contains an invalid document, and does not modify that document.
+
+Each scenario supplies an ordered request timeline and optional origin fixtures.
+Edit a request's URL, method, headers, schedule, expected decision/status and
+origin response, network failure or absent fixture. A cache hit does not consume
+the supplied origin fixture. An absent fixture fails if a modeled origin request
+is necessary; it never triggers network traffic. **Save cache edits** validates
+the project atomically. Invalid edits remain available for correction. Save or
+discard edits before changing selection, running, importing or exporting.
+
+Policies choose a private or shared cache, entry capacity, cached-body limit,
+optional Last-Modified heuristic and stale-if-error support. Add a copy of a
+policy and enable its **Override origin Cache-Control** setting to compare a
+candidate server policy against the same request sequence. The replacement
+applies to every origin fixture, including 304 responses; an empty replacement
+removes Cache-Control directives. Each scenario/policy pair starts empty and
+does not share representations with other pairs or the real browser cache.
+
+The model follows the relevant rules in
+[HTTP Caching (RFC 9111)](https://www.rfc-editor.org/rfc/rfc9111.html):
+
+- Freshness prefers shared `s-maxage`, then `max-age`, then `Expires`. Age accounts
+  for Date, upstream Age, response delay and resident time. Optional heuristic
+  freshness uses 10% of time since Last-Modified, capped at one day.
+- URL and exact `Vary` request values select representations. Missing and empty
+  request fields differ. Invalid or wildcard Vary prevents storage. Changing the
+  Vary field set removes obsolete variants for that URL.
+- Private responses stay out of shared caches. Authorized shared requests need
+  explicit permission. Request no-cache, max-age, min-fresh, max-stale and
+  only-if-cached affect reuse. This model conservatively bypasses lookup and
+  storage for request no-store; existing entries remain.
+- ETag and Last-Modified generate conditional requests. A usable 304 merges
+  metadata while retaining the stored body/status. Successful unsafe methods
+  invalidate target entries and same-origin Location/Content-Location entries.
+
+[RFC 5861 stale-if-error](https://www.rfc-editor.org/rfc/rfc5861.html) can supply
+a stale representation after network errors or 500/502/503/504, within the
+allowed window at response completion. The model conservatively respects
+no-cache, must-revalidate and shared proxy-revalidate/s-maxage restrictions.
+
+**Import HAR as cache project** creates a new project from up to 100 supported
+HAR entries. It retains request and response headers, URLs and decoded text
+bodies, including possible credentials. UTF-8 base64 content is decoded; binary
+content is rejected. Missing bodies are modeled as empty text and counted in
+import feedback. Inspect missing bodies before evaluating bandwidth budgets.
+Unsupported methods are skipped. Client conditional headers remain intact and
+therefore bypass automatic cache lookup; remove them in the editor when you
+want the model to generate its own validators. A capture that starts with a
+bare 304 cannot reconstruct an earlier cached body.
+
+Compare origin request counts, body bytes, hit percentages, successful
+revalidations, origin wait, errors, evictions and invalidations. Hit percentage
+counts fresh/stale cache hits, including stale fallback; a 304 is recorded
+separately because it contacts the origin. Origin wait includes modeled fixture
+delays; body-byte metrics count decoded UTF-8 text rather than wire compression
+or headers. Date fields use the modern IMF-fixdate HTTP format with GMT; invalid
+dates are ignored. Click a timeline request to inspect its decision reasons, generated
+conditions, effective headers/body and freshness. Expand **Stored cache entries**
+to inspect the final representations and their Vary keys. Search supports
+multiple terms; Escape clears the search while retaining the decision filter.
+
+Set per-scenario minimum hit percentage and maximum origin requests, origin body
+bytes and errors. Optional per-request expectations also determine pass/fail.
+**Download cache decision report** excludes URLs, headers, validators, bodies
+and override literals; names and IDs remain. Project and effective-response
+downloads contain their actual data. Projects live only in tab memory; export
+and import JSON to resume later. No credentials are copied into API auth,
+request history or browser storage.
+
+This is a bounded, sequential educational model: scheduled requests wait for
+previous modeled origin responses to finish. It caches complete GET text
+representations, bypasses HEAD, ranges and client preconditions, and does not
+simulate background stale-while-revalidate, HEAD freshening, partial-content
+assembly, cache hierarchies, request collapsing, network partitions or CDN
+vendor extensions. Unknown and extension HTTP status codes pass through without
+storage, even with explicit freshness directives. Qualified private/no-cache directives are conservatively
+handled as unqualified directives. Duplicate/malformed Cache-Control prevents
+storage; a non-cacheable replacement discards its selected older entry.
+
+Limits: 5 policies, 10 scenarios, 100 requests per scenario, 100 stored entries,
+128 KiB per response body, 32 KiB of headers and 2 MiB per project/HAR import.
+Schedule offsets cover seven days, and each origin delay is at most 60 seconds.
+Replay is deterministic and sends no HTTP requests.
 
 ## Obtaining API tokens with OAuth
 
@@ -338,8 +430,20 @@ breaking the checks:
 
 ```json
 [
-  { "name": "Customer ID", "path": "/c:GetCustomerResponse/c:customer/c:id", "operator": "equals", "expected": "0", "trim": true },
-  { "name": "Active attribute", "path": "/c:GetCustomerResponse/c:customer/@active", "operator": "equals", "expected": "false", "trim": true }
+  {
+    "name": "Customer ID",
+    "path": "/c:GetCustomerResponse/c:customer/c:id",
+    "operator": "equals",
+    "expected": "0",
+    "trim": true
+  },
+  {
+    "name": "Active attribute",
+    "path": "/c:GetCustomerResponse/c:customer/@active",
+    "operator": "equals",
+    "expected": "false",
+    "trim": true
+  }
 ]
 ```
 
@@ -392,13 +496,13 @@ Start with **Load five-pattern pagination demo**, then **Run all offline
 collection plans**. All five plans should pass, each collecting three unique
 records from three pages with one duplicate. The demos cover:
 
-| Strategy | Continuation | Completion |
-| --- | --- | --- |
-| HTTP Link | One `rel=next` target, resolved against the current URL | No applicable next relation |
-| JSON next URL | A relative or absolute URL at the configured JSON Pointer | Missing, null, or empty continuation |
-| JSON cursor | A string or number at the configured pointer, encoded into a query parameter | Missing, null, or empty cursor |
-| Page number | Initial page plus one for each continuation | Empty page, or short page when enabled |
-| Offset | Initial offset plus the configured page size | Empty page, or short page when enabled |
+| Strategy      | Continuation                                                                 | Completion                             |
+| ------------- | ---------------------------------------------------------------------------- | -------------------------------------- |
+| HTTP Link     | One `rel=next` target, resolved against the current URL                      | No applicable next relation            |
+| JSON next URL | A relative or absolute URL at the configured JSON Pointer                    | Missing, null, or empty continuation   |
+| JSON cursor   | A string or number at the configured pointer, encoded into a query parameter | Missing, null, or empty cursor         |
+| Page number   | Initial page plus one for each continuation                                  | Empty page, or short page when enabled |
+| Offset        | Initial offset plus the configured page size                                 | Empty page, or short page when enabled |
 
 Set the **Items JSON Pointer** to the response array, such as `/items`, `/data`,
 or an empty pointer for a root array. Configure the exact query parameter names
@@ -416,8 +520,20 @@ body assertions applied to every collected record:
 
 ```json
 [
-  { "name": "ID exists", "target": "body", "path": "/id", "operator": "exists", "expected": "" },
-  { "name": "Active record", "target": "body", "path": "/active", "operator": "equals", "expected": "true" }
+  {
+    "name": "ID exists",
+    "target": "body",
+    "path": "/id",
+    "operator": "exists",
+    "expected": ""
+  },
+  {
+    "name": "Active record",
+    "target": "body",
+    "path": "/active",
+    "operator": "equals",
+    "expected": "true"
+  }
 ]
 ```
 
