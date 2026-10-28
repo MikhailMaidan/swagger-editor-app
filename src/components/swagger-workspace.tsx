@@ -48,6 +48,7 @@ import { ApiCollectionPanel } from "@/components/api-collection-panel";
 import { SoapStudioPanel } from "@/components/soap-studio-panel";
 import { OAuthStudioPanel } from "@/components/oauth-studio-panel";
 import { HttpCachePanel } from "@/components/http-cache-panel";
+import { CorsStudioPanel } from "@/components/cors-studio-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1940,6 +1941,7 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        { group: "testing", id: "workspace-tool-cors", label: "cors.title" },
         { group: "testing", id: "workspace-tool-cache", label: "cache.title" },
         { group: "testing", id: "workspace-tool-oauth", label: "oauth.title" },
         {
@@ -2228,6 +2230,7 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        { group: "testing", id: "workspace-tool-cors", label: "cors.title" },
         { group: "testing", id: "workspace-tool-cache", label: "cache.title" },
         { group: "testing", id: "workspace-tool-oauth", label: "oauth.title" },
         {
@@ -3108,6 +3111,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-cors"
+          tabIndex={-1}
+        >
+          <CorsStudioPanel />
         </div>
 
         <div

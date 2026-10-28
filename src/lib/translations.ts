@@ -4,6 +4,7 @@ import { collectionTranslations } from "./collection-translations";
 import { soapTranslations } from "./soap-translations";
 import { oauthTranslations } from "./oauth-translations";
 import { cacheTranslations } from "./cache-translations";
+import { corsTranslations } from "./cors-translations";
 
 export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
 export const LANGUAGE_COOKIE = "rsswagger-language";
@@ -16,6 +17,7 @@ export const translations = {
     ...soapTranslations.en,
     ...oauthTranslations.en,
     ...cacheTranslations.en,
+    ...corsTranslations.en,
     "jwtStudio.title": "JWT and signing-key studio",
     "jwtStudio.description":
       "Decode compact JWTs, verify signatures and claim policies, generate signing keys and test tokens, and maintain reusable verification cases entirely in this tab.",
@@ -5283,6 +5285,7 @@ export const translations = {
     ...soapTranslations.ru,
     ...oauthTranslations.ru,
     ...cacheTranslations.ru,
+    ...corsTranslations.ru,
     "jwtStudio.title": "Студия JWT и ключей подписи",
     "jwtStudio.description":
       "Декодируйте JWT, проверяйте подписи и политики утверждений, создавайте ключи и тестовые токены и сохраняйте повторяемые проверки полностью в этой вкладке.",

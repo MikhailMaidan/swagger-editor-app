@@ -37,6 +37,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - SOAP contract studio with WSDL 1.1 service/binding/operation discovery, inline XML Schema request/response templates, SOAP 1.1/1.2 HTTP bindings, namespace-aware message and fault inspection, reusable XML path assertions, offline regression suites, explicit cancellable live POST requests, captured-response cases, portable projects, and XML/cURL/inventory/report exports
 - OAuth authorization studio with portable public-client profiles, issuer-checked metadata discovery, S256 PKCE popup/manual callbacks, issuer-bound redirect URIs, device authorization with bounded polling and slowdown handling, session-only Bearer/refresh tokens, explicit refresh/revocation, guarded API-auth handoff, offline lifecycle demonstrations, and reports without credentials
 - HTTP cache studio with a fixed virtual clock, private/shared policy comparisons, Cache-Control and age analysis, Vary variants, conditional GET and 304 renewal, bounded stale-on-error fallback, write invalidation, LRU capacity, editable origin fixtures, HAR imports, acceptance budgets, portable projects, and reports without response values
+- CORS policy studio with exact-origin policy authoring, browser-mode and credential rehearsals, request-header safelist checks, explicit preflight and actual-response fixtures, bounded preflight-cache simulation, script-visible response inspection, policy comparisons, acceptance budgets, portable projects, reports without captured values, and executable dependency-free Fetch middleware exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -117,6 +118,114 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing and testing browser CORS policies
+
+Open **Testing → CORS policy studio**, choose **Load browser CORS lifecycle
+demo**, then **Rehearse all CORS scenarios and policies**. The ten combinations
+cover simple requests and browser modes, preflight reuse and expiration,
+credentialed responses, captured-header failures, HTTP error visibility and
+explicit Authorization permission. The studio is independent of the OpenAPI
+editor and remains available when that editor contains an invalid document.
+
+Edit named policies with exact allowed HTTP(S) origins, preflight methods,
+allowed request header names, exposed response header names, credential
+permission and Max-Age. Origins are normalized to their serialized form; paths,
+queries, userinfo and fragments are rejected. `*` must be the sole origin when
+used. The literal `null` explicitly permits opaque origins. An empty origin list
+grants no cross-origin access. Copy policies to compare alternatives against the
+same browser request sequence.
+
+Each request case records a caller origin, exact target URL, method, Fetch mode,
+ambient credential mode, application headers, relative schedule and browser
+partition label. Supply separate preflight and actual-response fixtures, HTTP
+statuses and delays. Status zero models a network failure; bodies for zero,
+204, 205, 304 and preflights must be empty. **Save CORS edits** validates the
+whole change atomically and retains invalid text for correction. Save or discard
+edits before switching cases/policies, running or exporting.
+
+By default, each fixture generates CORS metadata from the replay policy while
+retaining application headers and merging Vary. This replaces any supplied
+Access-Control fields. Disable that fixture's generation checkbox to inspect
+captured response headers exactly, including absent or malformed permissions.
+Browser-controlled application headers such as Cookie, Origin, Host and Sec-*
+are reported as unsupported inputs; they are not silently dropped. Set the
+ambient credential mode instead of typing Cookie. Explicit Authorization is an
+application header and remains present even with credential mode omit.
+
+The simulator implements the core HTTP CORS algorithms from the
+[WHATWG Fetch Standard](https://fetch.spec.whatwg.org/#http-cors-protocol): exact
+origin/credential checks, safelisted request methods and byte values, generated
+OPTIONS checks, case-sensitive method grants, case-insensitive header grants,
+explicit Authorization permission, and script-visible response filtering.
+Credential mode include does not itself force preflight; wildcard origin and
+wildcard permission/exposure semantics change for credentialed requests.
+Preflights carry no Cookie or Authorization values. Set-Cookie is hidden from
+scripts even when explicitly named in exposed headers. Same-origin responses
+remain readable, and successful CORS checks also allow reading HTTP error
+statuses. Cross-origin no-cors responses are modeled as opaque.
+
+Successful preflights create method/header grants keyed by partition, caller
+origin, exact URL and credential permission. Each policy/scenario starts with an
+empty cache. The configurable Max-Age cap models an imposed browser limit; it
+is not a claim about any particular browser version. Zero disables caching.
+The cache uses a default five-second lifetime when Max-Age is absent/invalid,
+expires grants at the exact boundary, and evicts its oldest grants at capacity.
+Credentialed grants can satisfy non-credentialed requests, while the reverse
+requires a new preflight. Failed CORS exchanges clear matching grants. Changing
+partition labels isolates otherwise identical requests. Scheduled requests wait
+for previous modeled responses; their configured delays determine network wait.
+
+Compare readable, blocked, opaque and unsupported outcomes, actual request
+attempts, preflight requests, cache reuse and modeled wait. Click a timeline row
+to inspect generated request/preflight headers, server response metadata and
+the status/body/headers visible to the script. Search supports multiple terms;
+Escape clears it while retaining the outcome filter. Cache grants can be
+inspected separately. Optional outcome, preflight and script-status expectations
+plus blocked-request/preflight/wait budgets define pass/fail. A passed test may
+intentionally expect a CORS refusal.
+
+**Download Fetch CORS middleware** exports a standalone `.mjs` module containing
+only the selected public policy and a `withCors` wrapper. It answers preflights,
+merges Vary and replaces old CORS metadata on ordinary application responses,
+preserving their HTTP status, headers and body stream. Additional handler
+arguments and its invocation context are forwarded. It requires standard Fetch
+Request/Response/Headers APIs; no dependency or server is installed by the studio.
+For example, in a Fetch-compatible server or worker:
+
+```js
+import { withCors } from "./cors-middleware.mjs";
+
+export default {
+  fetch: withCors(async (request, env, context) => {
+    return Response.json({ ok: true });
+  }),
+};
+```
+
+Mount a separate exported wrapper per route group when policies differ.
+Credential/wildcard findings must be resolved before middleware export; broken
+policies remain editable and can still be rehearsed. The exported policy and
+its arrays are immutable. Handler failures remain application failures.
+
+CORS is not server authorization. Ordinary requests from disallowed origins
+still reach the wrapped application; the browser refuses response access.
+Allowed-method lists govern preflights and do not prohibit simple GET/HEAD/POST
+requests. Keep normal authentication, authorization and application method checks.
+
+**Export CORS project** retains the editable fixtures, including possible private
+values. **Download CORS decision report** omits URLs, origins, partition labels,
+header names/values and bodies; project/case/policy names and IDs remain. No work
+is persisted into browser storage, API credentials or request history. Near-limit
+projects export compact JSON when indentation would exceed the import limit.
+
+This is a bounded HTTP CORS model, not a full browser network stack. It excludes
+redirect chains, cookie storage/third-party-cookie restrictions, CSP, mixed
+content, CORP/ORB, service workers and browser-specific extensions. Strict input
+checks expose inputs browsers would otherwise filter. Limits are 5 policies,
+10 scenarios, 100 requests per scenario, 256 grants, 64 KiB per response body,
+32 KiB of header data, 2 MiB per project, seven days of schedule offsets and
+60 seconds per modeled response delay. Rehearsal performs no network I/O.
 
 ## Testing HTTP cache behavior
 
