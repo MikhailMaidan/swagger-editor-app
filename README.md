@@ -38,6 +38,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - OAuth authorization studio with portable public-client profiles, issuer-checked metadata discovery, S256 PKCE popup/manual callbacks, issuer-bound redirect URIs, device authorization with bounded polling and slowdown handling, session-only Bearer/refresh tokens, explicit refresh/revocation, guarded API-auth handoff, offline lifecycle demonstrations, and reports without credentials
 - HTTP cache studio with a fixed virtual clock, private/shared policy comparisons, Cache-Control and age analysis, Vary variants, conditional GET and 304 renewal, bounded stale-on-error fallback, write invalidation, LRU capacity, editable origin fixtures, HAR imports, acceptance budgets, portable projects, and reports without response values
 - CORS policy studio with exact-origin policy authoring, browser-mode and credential rehearsals, request-header safelist checks, explicit preflight and actual-response fixtures, bounded preflight-cache simulation, script-visible response inspection, policy comparisons, acceptance budgets, portable projects, reports without captured values, and executable dependency-free Fetch middleware exports
+- JSON-RPC and OpenRPC studio with method exploration, call/batch building, typed response-ID correlation, notification handling, bounded contract checks, editable static mocks, reusable regression cases, explicit live HTTP execution, portable projects, reports without response values, and standalone Fetch mock-handler exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -118,6 +119,104 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Exploring and testing JSON-RPC APIs
+
+Open **Testing → JSON-RPC and OpenRPC studio**, choose **Load JSON-RPC lifecycle
+demo**, and **Run all RPC regression cases**. Seven offline examples cover
+successful calls, responses arriving out of order, numeric and string IDs,
+notifications, application errors, unknown methods, duplicate responses and ID
+confusion. No request is sent by loading the demo or running regression cases.
+The studio works independently of the OpenAPI editor, including invalid input.
+
+Import an [OpenRPC 1.x](https://spec.open-rpc.org/) JSON contract or edit the full
+source. Unknown metadata is retained in contract/project exports. The explorer
+resolves local method, content-descriptor and schema references; unresolved,
+cyclic and external references are reported without fetching them. Select a
+method, generate named or positional parameter samples, edit the values, and
+replace or append to the request draft. Numeric builder IDs advance after each
+call. Samples cover common shapes and may need editing to satisfy constraints.
+Importing a contract retains the current HTTP endpoint; adopting a contract's
+first absolute HTTP server URL is an explicit action.
+
+The [JSON-RPC 2.0](https://www.jsonrpc.org/specification) inspector distinguishes
+numeric, string and explicit `null` IDs, correlates batch results by typed ID
+rather than position, and diagnoses missing, unknown and duplicate responses.
+Calls require unique IDs within the frame. Numeric IDs must be safe integers;
+fractional or unsafe numeric IDs are outside this client's supported profile.
+Omitting the ID creates a notification; an explicit `null` ID is a call and
+produces a warning. Notifications require an empty response entity, rather than
+an empty JSON array. An empty response does not confirm application handling.
+Falsy results such as `0`, `false`, `null` and empty strings remain inspectable.
+
+Contract checks support common type, object, array, required-property, enum,
+constant and size/numeric constraints, with a shared work budget. Unsupported
+patterns, formats, compositions and other keywords produce a **partial check**;
+unresolved schemas remain unchecked. This is a bounded advisory subset, not a
+full OpenRPC meta-schema or JSON Schema validator. Regression cases can require
+all supported checks to complete. Partial and unknown checks cannot satisfy
+that requirement. Error payloads are checked for their JSON-RPC envelope, not
+against method result schemas.
+
+Edit static result/error fixtures by method and **Save RPC edits**, then
+**Rehearse current RPC request offline**. Fixtures ignore parameter values and
+never execute application code or fall back to live traffic. Unmatched calls
+return `-32601`; notifications produce no response. Inspect pasted exchanges,
+or save a received response and capture the snapshot as a regression case.
+Recording exact result values as assertions is optional. Assertions use
+zero-based request indexes, so response reordering does not change their
+meaning. Cases can use current mock fixtures or a saved response, expect an
+invalid exchange or an RPC error code, and check exact result values with object
+key order ignored. Reports retain decisions and counts, while omitting URLs,
+RPC ID values, parameters, results, error messages/data, schema instance paths
+and assertion literals. Case IDs, case names and method names remain visible.
+
+**Send live JSON-RPC POST** explicitly sends the saved frame using session-only
+HTTP headers. Browser CORS must allow the API and any custom headers. Ambient
+cookies, redirects, retries and HTTP caching are disabled. The live client
+requires a JSON media type for nonempty responses, enforces UTF-8 and byte/time
+limits, and keeps HTTP error response bodies for separate protocol inspection.
+Cancel stops waiting and discards late results; the server may already have
+processed the request. Headers are omitted from every export and cleared when
+the endpoint origin changes or a project loads. Same-origin path changes retain
+them. There is no automatic token handoff from other tools.
+
+Use **Download standalone RPC mock handler** to export a dependency-free `.mjs`
+module containing the saved method fixtures:
+
+```js
+import { createJsonRpcMockHandler } from "./rpc-mock-handler.mjs";
+
+const rpc = createJsonRpcMockHandler({ timeoutMs: 5000 });
+const response = await rpc(
+  new Request("https://local.example/rpc", {
+    method: "POST",
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "math.add",
+      params: [1, 2],
+      id: 1,
+    }),
+  }),
+);
+```
+
+The export also provides a default `{ fetch }` worker-style handler. It checks
+wire envelopes, handles parse/invalid/unknown-method errors, suppresses
+notification responses and bounds request reads; it does not validate OpenRPC
+schemas or implement parameter-dependent methods. Deploy it through your
+preferred Fetch adapter. Add server-side authorization and CORS separately as
+needed. Request/response, contract, project, POSIX cURL and mock-handler exports
+can contain private values. The cURL export omits session headers. Work stays in
+tab memory; export a project to retain it across reloads. Imports discard prior
+inspection/regression results and cannot import executable code.
+
+Limits: 100 methods, 40 parameters per method, 30 requests per batch, 50 method
+fixtures, 30 regression cases, 256 KiB per request/response, 1 MiB per contract
+and 2 MiB per project. Schema checks share 10,000 steps per exchange, depth is
+bounded, and each check retains at most 50 issues. Live timeouts range from
+100 to 30,000 ms. Streaming RPC, WebSocket transport, remote references,
+parameter-dependent mocks and automatic retries are outside this studio's scope.
 
 ## Designing and testing browser CORS policies
 
