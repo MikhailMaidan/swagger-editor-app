@@ -35,6 +35,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Streaming HTTP studio with live GET/POST SSE and NDJSON, incremental UTF-8/framing parsers, explicit session headers, bounded SSE resume/reconnection, heartbeat and timeout tracking, searchable record inspection, binary wire fixtures, replay regression cases and byte-boundary sweeps, transcript-to-test recording, and portable projects/reports
 - API collection studio with five pagination strategies, bounded sequential live GET traversal, editable offline page fixtures, plan regression suites, loop/origin safeguards, atomic page collection, typed identity deduplication, per-record acceptance checks, captured-page replay, searchable datasets, and JSON/NDJSON/CSV exports
 - SOAP contract studio with WSDL 1.1 service/binding/operation discovery, inline XML Schema request/response templates, SOAP 1.1/1.2 HTTP bindings, namespace-aware message and fault inspection, reusable XML path assertions, offline regression suites, explicit cancellable live POST requests, captured-response cases, portable projects, and XML/cURL/inventory/report exports
+- OAuth authorization studio with portable public-client profiles, issuer-checked metadata discovery, S256 PKCE popup/manual callbacks, issuer-bound redirect URIs, device authorization with bounded polling and slowdown handling, session-only Bearer/refresh tokens, explicit refresh/revocation, guarded API-auth handoff, offline lifecycle demonstrations, and reports without credentials
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -115,6 +116,148 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Obtaining API tokens with OAuth
+
+Open **Testing → OAuth authorization studio**. It obtains API access tokens for
+public clients alongside the existing manual API authentication controls. It
+does not sign you into RSSwag, change your app account, or validate OpenID
+Connect identities. Existing REST, streaming, SOAP, GraphQL, gRPC, and other
+tools remain available. The studio also works when the OpenAPI editor is invalid;
+token handoff requires a compatible scheme in a valid current document.
+
+Start with **Run offline OAuth lifecycle demo**. Synthetic responses and a
+virtual clock exercise device authorization pending, `slow_down`, successful
+token issuance, and refresh-token rotation without network traffic. The token
+view masks values by default, and the protocol journal shows the sequence.
+Synthetic tokens cannot be copied as live access tokens or applied to API
+authentication. The demonstration preserves your saved public-client profiles.
+
+Configure a public-client profile with its exact issuer, client ID, requested
+space-separated scopes, authorization/token endpoints, optional device and
+revocation endpoints, and HTTP timeout. Resource and provider-specific audience
+parameters are optional. Ten profiles can be saved in a portable public project.
+Changes must be saved or discarded before switching or running. Saving or
+changing the selected profile clears its current token session and matching
+credentials previously applied by this studio.
+
+**Fetch authorization-server metadata** uses the
+[RFC 8414 discovery path](https://www.rfc-editor.org/rfc/rfc8414.html), including
+issuer path segments. An optional metadata URL can select another discovery
+path, such as an OpenID configuration path, on the same issuer origin. It must
+return the exact configured issuer string, including any trailing slash.
+Advertised client-auth methods must include `none` and advertised PKCE methods
+must include `S256`. You can also paste a metadata JSON object. Returned
+endpoints become pending edits for review and omitted endpoints are cleared,
+so stale device/revocation URLs are not retained. Review and save before use.
+Metadata never causes an authorization or token request automatically.
+
+For authorization code with [S256 PKCE](https://www.rfc-editor.org/rfc/rfc7636.html):
+
+1. Register the **exact displayed redirect URI**, including its issuer-bound
+   `as` query parameter, with that provider's public client. Keep the default
+   callback issuer check enabled when supported. Each issuer gets a distinct
+   URI; use exact registration instead of wildcard redirect matching.
+2. Save the profile, then choose **Authorize with PKCE popup**, or **Prepare
+   PKCE authorization link** to open/copy the URL yourself. A fresh 256-bit
+   state and verifier are generated with browser cryptography. The verifier
+   stays in memory; only its SHA-256 challenge enters the authorization URL.
+3. Complete the provider's normal browser consent/login flow. The popup has
+   its opener removed before navigation. The standalone callback page clears
+   its query string, has no external assets, and delivers through a
+   state-bound same-origin `BroadcastChannel`. It uses no browser storage.
+4. If automatic delivery is unavailable, use **Copy callback URL** on that
+   page and paste the original URL into **Session-only callback URL**, then
+   **Validate callback and exchange code**. The studio clears the pasted URL
+   after submission. If clipboard access is denied, the callback page selects
+   a read-only URL field for manual copying. A blocked popup leaves the prepared authorization link
+   available for manual use.
+
+The callback must match the original origin/path, issuer-bound query, state,
+and any required `iss` value. Duplicate security parameters, implicit token
+responses/fragments, mismatched issuers, expired state, and replayed codes fail
+before exchange. State is valid for five minutes. Codes are consumed once and
+are not automatically retried after an exchange failure. The callback page
+does not reflect query credentials into its HTML, loads no third-party assets,
+and sends `no-store`, `no-referrer`, and restrictive CSP headers.
+
+The [OAuth security BCP](https://www.rfc-editor.org/rfc/rfc9700.html) recommends
+issuer identification for clients using multiple authorization servers. The
+studio checks a returned [`iss`](https://www.rfc-editor.org/rfc/rfc9207.html)
+even when the requirement is disabled. For a legacy provider that does not
+return `iss`, you may explicitly disable the requirement; keep the
+issuer-specific redirect registration exact and use trusted provider/client
+configuration. An issuer requirement advertised in metadata is retained when
+that metadata is applied. Provider endpoint configuration remains a trust
+decision; importing a profile does not authenticate a provider.
+
+For the [device authorization grant](https://www.rfc-editor.org/rfc/rfc8628.html),
+choose **Request device authorization**, verify the displayed user code on the
+provider's verification page, then **Poll device authorization**. The private
+device code is never displayed or exported. Polling waits before its first and
+every subsequent request, uses the supplied interval or the five-second
+default, and adds five seconds for each `slow_down`. Denial and terminal errors
+stop the run. Network failures/timeouts stop polling and increase its delay for
+manual resumption. Cancellation preserves a still-valid grant, and a cancelled
+in-flight poll still reserves its interval before another attempt. Grant expiry
+and a five-minute polling budget bound the run; each final request is capped to
+the remaining budget. `verification_uri_complete` is ignored: the user code is
+verified explicitly on the standard verification page.
+
+Successful token responses must contain a supported Bearer access token. Values
+are masked until **Reveal session token values** is selected. The view shows
+granted scopes and remaining lifetime, or explicitly reports an unknown expiry.
+Expired tokens cannot be handed off. **Refresh OAuth access token** is explicit;
+there is no background refresh. A new refresh token replaces the old value;
+omitting it retains the existing refresh token and omitting scope retains the
+previously granted scope. Failed refreshes preserve the previous session values.
+ID tokens and unknown response fields are ignored, and DPoP/sender-constrained
+tokens are rejected.
+
+**Revoke access token** or **Revoke refresh token** posts a
+[revocation form](https://www.rfc-editor.org/rfc/rfc7009.html) and clears the
+local tokens after a successful response. **Forget OAuth session credentials**
+clears local session work without sending revocation traffic. Refresh and
+revocation can change server state; cancelling a request cannot undo work
+already performed by the server.
+
+To use a token, select an OAuth, OpenID Connect, or HTTP Bearer scheme under
+**API authentication target**, then **Use live token for selected API scheme**.
+Only that existing session credential is replaced. No API call is sent by
+handoff. Refresh does not update an already-applied credential automatically;
+apply again when ready. Forget, successful revocation, and profile changes
+remove owned credentials only while their token and credential settings still
+match. Unrelated, disabled, or manually edited credentials are preserved. You
+can still use the existing authentication manager to paste or clear credentials
+directly; its prior behavior is unchanged.
+
+Live metadata, device, token, refresh, and revocation requests use browser Fetch
+with CORS, omitted ambient cookies, no caching, and rejected redirects. The
+provider's interactive authorization page uses normal browser navigation and
+its own login session. Use HTTPS; HTTP is allowed only for loopback development
+hosts (`localhost`, `127.0.0.1`, and `[::1]`). Public-client requests send a client
+ID without a client secret. Confidential clients, client-credentials/password/
+implicit grants, arbitrary custom token-request headers, `form_post` callbacks,
+OIDC login/ID-token verification, and DPoP are not implemented. Provider CORS and
+public-client registration must permit the selected flow.
+
+Profiles export only public configuration, not tokens, state, codes, device
+grants, callback URLs, or verifiers. Unknown imported credential/session fields
+are discarded. Profile names, client IDs, URLs/query values, scopes, and
+resource/audience values are still user-provided metadata: review them before
+sharing. Session reports omit credential values, authorization URLs, callback
+URLs, provider error descriptions, and endpoint URLs; profile IDs/names and
+known protocol event/error codes remain. Explicit clipboard actions copy a
+prepared authorization URL or a usable live access token. No credentials are
+written to local/session storage or RSSwag login cookies.
+
+Work stays in tab memory. Closing the panel preserves the session and active
+flow; leaving the workspace disposes requests, channels, and popup monitors.
+Reloading loses token/PKCE state, so start a new flow afterward. Limits are ten
+profiles, 128 KiB per project, 64 KiB per response or encoded request form,
+100–30,000 ms per request, device grants up to 15 minutes, a five-minute polling
+budget, and the latest 200 protocol events. OAuth flows never run merely because
+the studio was opened, a profile imported, or a schema changed.
 
 ## Working with SOAP services
 

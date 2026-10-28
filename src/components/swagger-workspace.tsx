@@ -7,7 +7,14 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   SyntheticEvent,
 } from "react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ApiEventExplorer } from "@/components/api-event-explorer";
 import { ApiWorkflowExplorer } from "@/components/api-workflow-explorer";
 import { ComponentRegistryPanel } from "@/components/component-registry-panel";
@@ -39,6 +46,11 @@ import { ApiResiliencePanel } from "@/components/api-resilience-panel";
 import { StreamingHttpPanel } from "@/components/streaming-http-panel";
 import { ApiCollectionPanel } from "@/components/api-collection-panel";
 import { SoapStudioPanel } from "@/components/soap-studio-panel";
+import { OAuthStudioPanel } from "@/components/oauth-studio-panel";
+import {
+  applyOAuthRequestToken,
+  removeOAuthRequestToken,
+} from "@/lib/oauth-request-auth";
 import { ApiTransformPanel } from "@/components/api-transform-panel";
 import { NodeMockServerPanel } from "@/components/node-mock-server-panel";
 import { SmokeTestExportPanel } from "@/components/smoke-test-export-panel";
@@ -403,6 +415,7 @@ export function SwaggerWorkspace({
     {},
   );
   const requestAuthScopeRef = useRef("");
+  const oauthOwnedTokens = useRef(new Map<string, string>());
   const [requestPresets, setRequestPresets] = useState<RequestPreset[]>([]);
   const debouncedSchemaText = useDebouncedValue(
     schemaText,
@@ -452,6 +465,27 @@ export function SwaggerWorkspace({
   const securitySchemes = parseResult.ok
     ? parseResult.value.securitySchemes
     : EMPTY_SECURITY_SCHEMES;
+  const handleOAuthApplyToken = useCallback(
+    (name: string, token: string) => {
+      if (!applyOAuthRequestToken({}, securitySchemes, name, token))
+        return false;
+      oauthOwnedTokens.current.set(name, token);
+      setRequestAuthValues(
+        (current) =>
+          applyOAuthRequestToken(current, securitySchemes, name, token) ??
+          current,
+      );
+      return true;
+    },
+    [securitySchemes],
+  );
+  const handleOAuthForgetToken = useCallback((name: string, token: string) => {
+    if (oauthOwnedTokens.current.get(name) !== token) return;
+    oauthOwnedTokens.current.delete(name);
+    setRequestAuthValues((current) =>
+      removeOAuthRequestToken(current, name, token),
+    );
+  }, []);
   const serverUrls = parseResult.ok ? parseResult.value.serverUrls : [];
   const requestAuthScope = parseResult.ok
     ? `${parseResult.value.title}\u0000${serverUrls.join("\u0000")}`
@@ -507,6 +541,7 @@ export function SwaggerWorkspace({
     if (requestAuthScopeRef.current !== requestAuthScope) {
       requestAuthScopeRef.current = requestAuthScope;
       setRequestAuthValues({});
+      oauthOwnedTokens.current.clear();
     }
   }, [requestAuthScope]);
   const endpointStats = useMemo(
@@ -1904,6 +1939,7 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        { group: "testing", id: "workspace-tool-oauth", label: "oauth.title" },
         {
           group: "design",
           id: "workspace-tool-soap",
@@ -2190,6 +2226,7 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        { group: "testing", id: "workspace-tool-oauth", label: "oauth.title" },
         {
           group: "design",
           id: "workspace-tool-soap",
@@ -3067,6 +3104,18 @@ export function SwaggerWorkspace({
           <DocumentationLocalizationPanel
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
+          />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-oauth"
+          tabIndex={-1}
+        >
+          <OAuthStudioPanel
+            schemes={securitySchemes}
+            onApplyToken={handleOAuthApplyToken}
+            onForgetToken={handleOAuthForgetToken}
           />
         </div>
 
