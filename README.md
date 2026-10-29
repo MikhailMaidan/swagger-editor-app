@@ -41,6 +41,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - JSON-RPC and OpenRPC studio with method exploration, call/batch building, typed response-ID correlation, notification handling, bounded contract checks, editable static mocks, reusable regression cases, explicit live HTTP execution, portable projects, reports without response values, and standalone Fetch mock-handler exports
 - Webhook signature and replay studio with GitHub/Stripe/Standard Webhooks HMAC-SHA256, exact UTF-8/binary payloads, session-only key slots, rotation fixtures, timestamp policies, chronological receiver simulations, bounded replay stores, reusable delivery expectations, HAR/raw-payload imports, portable projects, value-free reports and dependency-free server verification exports
 - Distributed trace and latency studio with OTLP JSON imports, exact nanosecond timing, searchable span waterfalls, parent/link navigation, service dependencies and percentiles, overlap-aware exclusive timing, capture diagnostics, reusable latency/error/coverage budgets, W3C trace-context generation, portable projects, reports and standalone offline HTML viewers
+- Rate-limit and quota studio with exact token-bucket/fixed-window/sliding-log models, weighted traffic, atomic global/client/route rules, bounded state, retry guidance, interactive admission inspection, policy/scenario comparisons, acceptance budgets, HAR arrivals, portable projects, reports without client/route identities and standalone Fetch middleware exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -121,6 +122,139 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing API rate limits and quotas
+
+Open **Testing → Rate-limit and quota studio**, choose **Load quota comparison
+demo**, then **Run all quota scenarios and policies**. Sixteen comparisons cover
+boundary bursts, weighted demand, impossible costs, independent clients, exact
+refill, bounded cardinality and idle recovery. The demo includes token-bucket,
+fixed-window, exact sliding-log and combined global/client policies. Rehearsals
+are entirely offline: they send no traffic, change no server configuration and
+remain available when the OpenAPI editor is invalid.
+
+Create policies containing enabled rules, each with an algorithm, key scope,
+capacity and optional exact method/route selectors. Scopes can be global,
+per-client, per-method/route or per-client/method/route. Route names are explicit
+labels and can be application route templates; the studio does not infer route
+matching or authentication. All matching rules must permit a request before any
+quota is charged. A rejected request neither consumes partial quota nor reserves
+new client state. Disabled or nonmatching rules leave an explicit `unmatched`
+admission, detected separately by the coverage budget.
+
+The three [rate-limiting algorithms](https://redis.io/tutorials/howtos/ratelimiting/)
+use these specific model semantics:
+
+- Fixed windows align to integer multiples of the window length from epoch zero,
+  include their start and exclude their end. Adjacent windows can admit a burst
+  near a boundary.
+- Sliding logs count accepted weighted demand in `(now - windowMs, now]`.
+  Equal-millisecond entries are coalesced, and expired cost is removed before
+  evaluating a new request. This is an exact rolling log, rather than a sliding
+  counter approximation.
+- Token buckets start full and refill continuously at `refillTokens/refillMs`.
+  Fractional credit uses integer `BigInt` arithmetic, so denials and partial
+  spends do not lose fractional tokens. Idle refill stops at bucket capacity.
+
+Each rule holds a bounded number of scoped keys. Fixed-window entries expire at
+their boundary; token entries can be removed once fully replenished; sliding
+entries expire once all accepted cost has left the window. Active quota debt is
+never evicted to admit a new identity. Full key stores or a sliding log with 128
+distinct active timestamps produce a state-capacity refusal. This is immediate
+admission control, without queues, scheduled retries or fair-share guarantees.
+Quota is charged at admission, even when an application handler later fails.
+
+Traffic schedules contain `id`, `name`, `atMs`, `client`, `route`, `method`,
+positive integer `cost` and an `expect` object. Expectations map policy IDs to
+`allowed`, `limited`, `capacity` or `unmatched`; absent entries are unchecked.
+Runs order arrivals by offset, preserving source order for ties, and start with
+empty independent state for every policy/scenario pair. Use the generator for
+simultaneous or spaced traffic with weighted costs and round-robin clients.
+Editing/generation stays in a draft until **Save quota edits**. Invalid edits
+remain visible and do not replace saved work. Deleting a policy also removes
+only its expectation entries.
+
+Compare the selected scenario or run the whole matrix. Select a comparison to
+inspect its chronological admission strip, rule decisions, post-decision
+remaining quota and per-client admitted demand. Filters and 100-request pages
+help inspect larger schedules. A rule's `wouldAllow` is distinct from `charged`:
+other rules can refuse the overall request. Capacity refusals take precedence
+in the overall outcome when multiple kinds of blocking rule coexist.
+
+Retry guidance takes the largest wait required by blocking rules, assuming no
+intervening demand. It is a lower bound, not a reservation or scheduled retry.
+A cost exceeding any matching rule's capacity has no finite retry; the tool
+does not invent a misleading wait. Scenario budgets independently constrain
+minimum admissions, quota refusals, capacity refusals, unmatched admissions and
+maximum retry wait. A blank retry budget disables that check, while zero is a
+real threshold. A finite retry budget fails if any refusal has no finite wait.
+Runs yield between comparisons and can be cancelled without publishing partial
+results.
+
+HAR imports create a new scenario containing relative integer-millisecond
+arrivals, uppercase methods and URL paths. Every imported request initially has
+client `har-client`, cost one and unchecked expectations. Origins, query strings,
+fragments, headers, bodies, absolute dates and observed responses are discarded.
+The configured clock origin is retained; fixed-window phase can therefore differ
+from the original capture. Review route templates, client grouping, weights and
+expectations before comparing. Invalid entries and arrivals more than one day
+after the earliest valid timestamp are skipped; more than 300 usable requests
+are refused atomically.
+
+Projects retain editable client/route labels and may contain private information.
+Imports ignore supplied runtime state/results and start fresh. Reports omit
+client/route values and internal scope keys, while retaining client indexes,
+counts, costs, relative timing, checks and user-defined names/IDs. Per-request
+rule decisions are optional; summary reports omit them by default. Metadata
+chosen by the user can itself contain private values. Work stays in tab memory;
+export a project before reloading.
+
+**Download Fetch quota middleware** exports a dependency-free `.mjs` module for
+the selected saved policy. Supply a trusted synchronous classifier and an
+application handler. For example, this diagnostic endpoint takes a previously
+resolved identity through its application context:
+
+```js
+import { createRateLimitMiddleware } from "./rate-limit-middleware.mjs";
+
+const limited = createRateLimitMiddleware({
+  identify(request, context) {
+    return { client: context.tenantId, route: "/orders", cost: 1 };
+  },
+  handler(request, decision) {
+    return Response.json({ accepted: true, outcome: decision.outcome });
+  },
+});
+
+const response = await limited(new Request("https://local.example/orders"), {
+  tenantId: "trusted-demo-tenant",
+});
+```
+
+The middleware checks and charges every rule synchronously before asynchronous
+application work can start. It returns
+[HTTP 429](https://www.rfc-editor.org/rfc/rfc6585.html#section-4) for quota refusals
+and 503 for bounded-state exhaustion. Finite
+[Retry-After](https://www.rfc-editor.org/rfc/rfc9110.html#section-10.2.3) values
+round waits up to whole seconds; impossible costs omit that header. Refusals use
+`Cache-Control: no-store`, cancel unread rejected bodies and return no entity
+for HEAD. Admitted request bodies are forwarded unchanged. Clocks moving
+backwards are refused, and asynchronous classifiers are unsupported. Perform
+asynchronous authentication first, then pass trusted identities/route context;
+do not trust arbitrary client headers or raw paths as authorization.
+
+Exported state is local to one middleware instance and resets on restart. Use a
+shared atomic store to enforce one quota across replicas, and add application
+authorization, CORS and durable accounting separately. The export neither
+buffers bodies nor refunds admissions after handler failures. A lower-level
+`createRateLimiter()` factory exposes `take(identity, nowMs)` and explicit
+`reset()` for integration/testing.
+
+Limits: 5 policies, 8 rules each, 8 scenarios, 300 requests per scenario, 128 keys
+per rule, 128 distinct rolling timestamps per key, 10,000 units per request/rule,
+2 MiB per project, 5 MiB/5,000 entries per HAR input and 16 MiB per report.
+Offsets/window/refill periods are bounded to one day. Virtual origins range from
+0 through 2100-01-01; valid processing clocks extend through the following day.
 
 ## Exploring distributed traces and latency budgets
 

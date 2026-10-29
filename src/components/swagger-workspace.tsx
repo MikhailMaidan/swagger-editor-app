@@ -52,6 +52,7 @@ import { CorsStudioPanel } from "@/components/cors-studio-panel";
 import { RpcStudioPanel } from "@/components/rpc-studio-panel";
 import { WebhookStudioPanel } from "@/components/webhook-studio-panel";
 import { TraceStudioPanel } from "@/components/trace-studio-panel";
+import { RateLimitPanel } from "@/components/rate-limit-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1944,6 +1945,11 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        {
+          group: "testing",
+          id: "workspace-tool-rate-limits",
+          label: "rate.title",
+        },
         { group: "quality", id: "workspace-tool-traces", label: "trace.title" },
         { group: "testing", id: "workspace-tool-webhook", label: "hook.title" },
         { group: "testing", id: "workspace-tool-json-rpc", label: "rpc.title" },
@@ -2236,6 +2242,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-rate-limits",
+          label: "rate.title",
+        },
         { group: "quality", id: "workspace-tool-traces", label: "trace.title" },
         { group: "testing", id: "workspace-tool-webhook", label: "hook.title" },
         { group: "testing", id: "workspace-tool-json-rpc", label: "rpc.title" },
@@ -3120,6 +3131,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-rate-limits"
+          tabIndex={-1}
+        >
+          <RateLimitPanel />
         </div>
 
         <div
