@@ -51,6 +51,7 @@ import { HttpCachePanel } from "@/components/http-cache-panel";
 import { CorsStudioPanel } from "@/components/cors-studio-panel";
 import { RpcStudioPanel } from "@/components/rpc-studio-panel";
 import { WebhookStudioPanel } from "@/components/webhook-studio-panel";
+import { TraceStudioPanel } from "@/components/trace-studio-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1943,6 +1944,7 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        { group: "quality", id: "workspace-tool-traces", label: "trace.title" },
         { group: "testing", id: "workspace-tool-webhook", label: "hook.title" },
         { group: "testing", id: "workspace-tool-json-rpc", label: "rpc.title" },
         { group: "testing", id: "workspace-tool-cors", label: "cors.title" },
@@ -2234,6 +2236,7 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        { group: "quality", id: "workspace-tool-traces", label: "trace.title" },
         { group: "testing", id: "workspace-tool-webhook", label: "hook.title" },
         { group: "testing", id: "workspace-tool-json-rpc", label: "rpc.title" },
         { group: "testing", id: "workspace-tool-cors", label: "cors.title" },
@@ -3117,6 +3120,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-traces"
+          tabIndex={-1}
+        >
+          <TraceStudioPanel />
         </div>
 
         <div

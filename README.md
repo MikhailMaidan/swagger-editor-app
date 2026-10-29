@@ -40,6 +40,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - CORS policy studio with exact-origin policy authoring, browser-mode and credential rehearsals, request-header safelist checks, explicit preflight and actual-response fixtures, bounded preflight-cache simulation, script-visible response inspection, policy comparisons, acceptance budgets, portable projects, reports without captured values, and executable dependency-free Fetch middleware exports
 - JSON-RPC and OpenRPC studio with method exploration, call/batch building, typed response-ID correlation, notification handling, bounded contract checks, editable static mocks, reusable regression cases, explicit live HTTP execution, portable projects, reports without response values, and standalone Fetch mock-handler exports
 - Webhook signature and replay studio with GitHub/Stripe/Standard Webhooks HMAC-SHA256, exact UTF-8/binary payloads, session-only key slots, rotation fixtures, timestamp policies, chronological receiver simulations, bounded replay stores, reusable delivery expectations, HAR/raw-payload imports, portable projects, value-free reports and dependency-free server verification exports
+- Distributed trace and latency studio with OTLP JSON imports, exact nanosecond timing, searchable span waterfalls, parent/link navigation, service dependencies and percentiles, overlap-aware exclusive timing, capture diagnostics, reusable latency/error/coverage budgets, W3C trace-context generation, portable projects, reports and standalone offline HTML viewers
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -120,6 +121,101 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Exploring distributed traces and latency budgets
+
+Open **Quality → Distributed trace and latency studio**, choose **Load
+distributed trace demo**, then **Evaluate all trace budgets**. Twelve spans
+across five services and three traces demonstrate overlapping downstream calls,
+an explicit error, events, a cross-trace link and a missing parent. All seven
+demo budgets pass at exact boundaries. The studio is offline and independent of
+the OpenAPI editor, including invalid input.
+
+Import an [OpenTelemetry OTLP/HTTP JSON](https://opentelemetry.io/docs/specs/otlp/)
+trace export or edit the source draft. The supported structure is
+`resourceSpans[].scopeSpans[].spans[]`, with hexadecimal trace/span IDs,
+numeric kind/status enums, typed `AnyValue` attributes, events and links.
+Large nanosecond timestamps and int64 attributes must be decimal strings;
+unsafe numeric timestamps/integers are rejected. Finite double attributes can
+use JSON numbers. IDs normalize to lowercase for analysis while the original
+source remains unchanged. Unknown fields are retained in source/project exports
+and ignored by the analyzer. This is a bounded trace reader, not a complete
+Protobuf schema validator or telemetry collector. Binary Protobuf, Jaeger,
+live ingestion and automatic instrumentation are not implemented.
+
+**Save and analyze trace edits** validates the entire project before adopting
+the draft. Invalid imports/edits retain the saved capture and their text for
+correction. Opening, importing, filtering and running budgets never fetch schema
+URLs or contact a collector. Work stays in tab memory; export a project before
+reloading. Imports discard previous analysis results and view filters.
+
+Select a trace and inspect its waterfall. Search matches words across operation,
+service, namespace, instrumentation scope and IDs; service/error filters and
+100-span pages keep large captures navigable. Select a span to inspect its typed
+attributes, events and links, jump to its captured parent, or follow a captured
+link across traces. Service grouping includes both `service.namespace` and
+`service.name`, defaulting to `unknown_service` when no string name exists.
+Cross-service edges count captured parent/child relationships. Links retain
+their own meaning and do not create fictitious call edges.
+
+Timestamps stay decimal strings and arithmetic uses `BigInt`, including budget
+comparisons. Elapsed time is the observed earliest start through latest end;
+adding overlapping spans would double-count work. A span's exclusive time is
+its duration minus the union of clipped direct-child intervals. Children
+overlapping each other are counted once, and children outside their parent
+contribute only their intersection. Missing parents, cycles, timing skew,
+out-of-span events, unresolved links and reported dropped data receive explicit
+diagnostics. Cyclic spans have unavailable exclusive time and cannot satisfy an
+exclusive-time budget. These are observed timing estimates, not CPU time or a
+guarantee that a partial capture contains all downstream work. Service sums can
+overlap; P95 uses nearest-rank span duration. Errors count explicit OTLP ERROR
+status, rather than inferring failure from HTTP attributes or child spans.
+
+Add reusable budgets with optional exact service, operation and trace selectors
+combined by AND. Metrics include maximum span duration, maximum exclusive time,
+matched elapsed windows per trace, explicit errors, diagnostics and span counts.
+Elapsed budgets take the maximum observed window among traces after applying
+selectors. Duration thresholds accept six decimal places of milliseconds, down
+to one nanosecond, and are inclusive. Counts are integers. Minimum matched-span
+coverage defaults to one, so a vanished operation cannot silently pass a latency
+check. Reports explain exceeded thresholds, missing coverage and unavailable
+timing. Changing source/budget drafts blocks evaluation and exports until saved
+or discarded; saving clears older budget results.
+
+The [W3C Trace Context](https://www.w3.org/TR/trace-context/) workbench inspects
+strict version-00 `traceparent` and bounded `tracestate` headers. New traces use
+secure random nonzero IDs and clear vendor state. Child generation retains the
+trace ID, creates a new span ID and sets sampled from the visible control. It
+clears unknown flag bits. Vendor updates move an entry to the left and remove
+whole rightmost entries when necessary to fit 32 entries/512 ASCII bytes. A
+valid parent remains inspectable when tracestate is invalid, but child
+generation requires that state to be corrected or cleared. Future traceparent
+versions are outside this workbench's supported profile. **Use selected span
+as trace context** creates headers from that span's IDs/sample flag with empty
+vendor state. Headers are never applied automatically to existing API requests.
+
+Raw OTLP, selected-span JSON, selected-trace OTLP slices and projects can contain
+private attributes, events, IDs, absolute timestamps and status messages. Slices
+retain matching resource/scope metadata and unknown fields; selected-span JSON
+is the normalized inspection view. Context exports include raw header values.
+The analysis report omits those values and retains relative timings, service
+names/namespaces, diagnostic codes and budget metadata. User-defined names may
+themselves contain sensitive information.
+
+**Download offline HTML waterfall** exports every span in the selected trace,
+independent of active view filters. Open the file locally to search operations,
+filter services/errors, inspect timing details and print the waterfall without
+network or storage access. It includes operation/service labels, relative
+timings, parent indexes and diagnostic codes, while excluding raw IDs, absolute
+times, attributes, events and status messages. Untrusted labels are rendered as
+text. The application UI is English/Russian; standalone viewer labels are English.
+
+Limits: 1,000 spans, 100 resource/scope groups per container, 64 attributes per
+list, 50 events/links per span, 30 budgets and 2 MiB per OTLP input or project.
+JSON is bounded to 100,000 nodes/depth 64 and typed attributes to 12,000 values
+with bounded depth. Graph analysis handles parent chains and cycles iteratively.
+Source and project byte limits apply separately; serialization overhead and
+budgets also count toward the project limit.
 
 ## Verifying webhook signatures and replay policies
 
