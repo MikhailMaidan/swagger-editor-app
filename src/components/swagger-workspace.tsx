@@ -54,6 +54,7 @@ import { WebhookStudioPanel } from "@/components/webhook-studio-panel";
 import { TraceStudioPanel } from "@/components/trace-studio-panel";
 import { RateLimitPanel } from "@/components/rate-limit-panel";
 import { AuthorizationPanel } from "@/components/authorization-panel";
+import { IdempotencyPanel } from "@/components/idempotency-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1948,6 +1949,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-idempotency",
+          label: "idem.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-authorization",
           label: "authz.title",
         },
@@ -2248,6 +2254,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-idempotency",
+          label: "idem.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-authorization",
@@ -3142,6 +3153,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-idempotency"
+          tabIndex={-1}
+        >
+          <IdempotencyPanel />
         </div>
 
         <div

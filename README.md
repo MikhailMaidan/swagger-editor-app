@@ -43,6 +43,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Distributed trace and latency studio with OTLP JSON imports, exact nanosecond timing, searchable span waterfalls, parent/link navigation, service dependencies and percentiles, overlap-aware exclusive timing, capture diagnostics, reusable latency/error/coverage budgets, W3C trace-context generation, portable projects, reports and standalone offline HTML viewers
 - Rate-limit and quota studio with exact token-bucket/fixed-window/sliding-log models, weighted traffic, atomic global/client/route rules, bounded state, retry guidance, interactive admission inspection, policy/scenario comparisons, acceptance budgets, HAR arrivals, portable projects, reports without client/route identities and standalone Fetch middleware exports
 - Authorization policy studio with role/attribute rules, deny-overrides decisions, tenant/ownership/context checks, typed JSON Pointer conditions, rule-by-rule explanations, regression expectations, policy-change comparisons, Cartesian access matrices, OpenAPI action labels, portable projects, reports without attribute values and dependency-free Fetch authorization guards
+- Idempotency and duplicate-write studio with exact-body fingerprints, trusted client/route key scopes, in-flight rejection or bounded joins, completion-based retention, conflicting-key checks, unreplayable-result reservations, bounded stores/waiters, virtual-clock response timelines, regression budgets, traffic generation, portable projects/reports and standalone Fetch middleware exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -123,6 +124,144 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Rehearsing idempotency and duplicate writes
+
+Open **Testing → Idempotency and duplicate-write studio**, load the
+**duplicate-write demo**, then run **all write scenarios and policies**. Twenty
+comparisons cover concurrent orders, response replay, conflicting payloads,
+retention boundaries, handler failures, HTTP errors, oversized results,
+waiter deadlines and capacity, client/route separation, missing keys and full
+stores. All simulations are offline and remain available with invalid OpenAPI.
+Authentication, REST execution, server configuration and history are unchanged.
+
+Each policy defines a trusted client key namespace, retention after completion,
+entry and waiter limits, request/response byte limits, in-flight rejection or
+bounded waiting, missing-key rejection or bypass, and whether completed non-2xx
+responses can be replayed. The default key scope is client/method/route/key.
+Client-wide scope shares the key across routes, while the fingerprint still
+includes method and route, so reusing it for another operation conflicts.
+POST, PUT, PATCH and DELETE are protected; other methods bypass protection.
+
+SHA-256 fingerprints cover a framed tuple of exact method, route label and
+content type, followed by exact body bytes. Studio strings are encoded as UTF-8;
+JSON whitespace and content-type changes are significant. Other headers are not
+fingerprinted. Supply stable, trusted route labels and client identities that
+isolate users whose responses must not be shared.
+
+The first admitted request reserves its key before application work. Matching
+duplicates either receive an in-flight refusal or wait in bounded slots.
+Different fingerprints conflict. A completed cached result is replayed without
+another handler execution. Retention starts at completion, includes its start
+and excludes its end, and does not refresh on replay. Pending work never expires
+or gets evicted. Full stores refuse new keys instead of forgetting active work.
+Expired completed entries are swept on a subsequent store operation; expiry is
+logical rather than an independent deletion timer.
+
+Handler exceptions, oversized/unreadable responses and uncached non-2xx results
+retain an **unreplayable** reservation until expiry. This protects against
+silently executing a write again when its side effect may already have happened.
+An original HTTP response is still returned when available, including an
+oversized response, but later matching requests are refused. A failure in the
+export's completion clock keeps an unresolved reservation without automatic
+expiry. A hung handler likewise keeps its key. Expiration, instance restarts and
+separate replicas can permit execution again; this is not an exactly-once or
+distributed transaction guarantee.
+
+Scenarios contain ordered arrival fixtures with `id`, `name`, `atMs`,
+`durationMs`, `client`, `route`, `method`, `key`, `contentType`, `body`,
+`reply: {status, body, failure}` and `expect`. The duration includes completion
+of the fixture response. An empty key is missing. Expectations map policy IDs to
+outcome codes; absent entries are counted as unchecked. Only an arrival that
+actually invokes the handler supplies a response fixture; replayed and joined
+duplicates receive the original result. This makes differing duplicate reply
+fixtures useful for detecting an accidental second execution.
+
+Events are chronological and preserve source order for tied arrivals. At the
+same virtual millisecond, completions precede waiter deadlines, which precede
+new arrivals. Each policy/scenario pair starts with fresh state. Budgets limit
+actual handler calls (including bypass), refused arrivals and duplicate wait
+time. A failed handler still counts as an execution. Zero is a real budget.
+
+Edit policies and scenario JSON, then save or discard before changing saved
+selections, running, importing or exporting. Invalid drafts do not replace
+saved work. Policies/scenarios can be added, duplicated and deleted while
+retaining at least one. Duplicating a policy copies its expectations; deletion
+removes only that policy's expectation entries. The traffic generator replaces
+only the arrival draft with repeated keys and unchecked expectations, requiring
+an explicit save. Empty arrival lists are supported.
+
+Compare one scenario or the whole matrix, with progress and cancellation.
+Results show handler calls, avoided executions, refusals and checked arrivals.
+The interactive timeline and outcome table support search, outcome filtering
+and 100-arrival pages. Select an arrival to inspect its original or replayed
+response, completion time and reservation token. Retained-state inspection
+shows lifecycle metadata at the last store clock without raw keys or digests.
+Cancelled operations publish no partial results.
+
+Projects contain editable bodies, client identities, key values and routes and
+may contain private data. Imported results/state are ignored. Reports omit
+those captured values, response bodies, content types and fingerprints;
+user-defined names/IDs, timing, status, counts, budgets and reservation tokens
+remain. Per-arrival decisions are optional and summary reports omit them by
+default. Work stays in tab memory; export a project before reloading.
+
+**Download Fetch idempotency middleware** exports a dependency-free `.mjs`
+module for the selected saved policy, without scenario fixtures:
+
+```js
+import { createIdempotencyMiddleware } from "./idempotency-middleware.mjs";
+
+const protectedOrders = createIdempotencyMiddleware({
+  async identify(request, context) {
+    return {
+      client: context.authenticatedUser.id,
+      route: "/orders",
+      key: request.headers.get("idempotency-key") ?? "",
+    };
+  },
+  async handler(request, admission, context) {
+    const order = await context.orders.create(await request.json());
+    return Response.json(order, { status: 201 });
+  },
+});
+
+// Authenticate and resolve application context before invoking the middleware.
+const response = await protectedOrders(request, applicationContext);
+```
+
+The export uses modern Fetch, Web Crypto and performance clock APIs (for
+example Node.js 22). It reads bounded write bodies and reconstructs admitted
+requests with the same bytes, method, URL, headers and signal. Successful
+replays return `Idempotency-Replayed: true` and `Cache-Control: no-store`.
+Replayed headers are limited to `content-type`, `content-language`, `location`,
+`etag` and `x-request-id`; cookies, content encoding and content length are
+not copied. Original handler responses are returned directly.
+Responses with a non-identity `Content-Encoding` are returned to the original
+caller and leave an unreplayable reservation, so filtering replay headers cannot
+silently change how their bytes are interpreted.
+
+Refusals use generic bodies without request values: missing/invalid identity
+returns 400, key conflicts or pending/expired waits 409, large request bodies
+413, body-read timeout 408, and storage/waiter/unreplayable/clock failures 503.
+Finite retention guidance is rounded up in `Retry-After`. Body I/O has a
+configurable `ioTimeoutMs` (default 5,000; maximum 60,000), independent of handler
+execution and duplicate wait deadlines. Response buffering delays the first
+response until capture succeeds, reaches its size bound or times out; use this
+for bounded write endpoints. Bypassed requests go straight to the handler.
+
+State is in memory per middleware instance, and sharing one instance is required
+for deduplication within a process. Use shared atomic storage for replicas and
+durable business reconciliation where needed. The export does not perform
+authentication, durable accounting or retries. Low-level
+`createIdempotencyStore()` and `fingerprint(identity, bytes)` exports support
+integration/testing; store clocks must be nondecreasing integer milliseconds.
+
+Limits: 5 policies, 8 scenarios, 200 arrivals per scenario, 128 retained entries,
+32 waiting duplicates per key, 1–8,192 request/cached-response bytes, 16,384-byte
+fixture bodies, 8 KiB retained response-header metadata, 2 MiB projects and
+16 MiB reports. Retention and arrival offsets are at most one day; duplicate
+waits and fixture durations are at most 60 seconds.
 
 ## Designing and testing authorization policies
 
