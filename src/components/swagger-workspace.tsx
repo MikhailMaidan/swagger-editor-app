@@ -55,6 +55,7 @@ import { TraceStudioPanel } from "@/components/trace-studio-panel";
 import { RateLimitPanel } from "@/components/rate-limit-panel";
 import { AuthorizationPanel } from "@/components/authorization-panel";
 import { IdempotencyPanel } from "@/components/idempotency-panel";
+import { JourneyPanel } from "@/components/journey-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1949,6 +1950,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-journeys",
+          label: "journey.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-idempotency",
           label: "idem.title",
         },
@@ -2254,6 +2260,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-journeys",
+          label: "journey.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-idempotency",
@@ -3153,6 +3164,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-journeys"
+          tabIndex={-1}
+        >
+          <JourneyPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div

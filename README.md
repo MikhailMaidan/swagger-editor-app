@@ -44,6 +44,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Rate-limit and quota studio with exact token-bucket/fixed-window/sliding-log models, weighted traffic, atomic global/client/route rules, bounded state, retry guidance, interactive admission inspection, policy/scenario comparisons, acceptance budgets, HAR arrivals, portable projects, reports without client/route identities and standalone Fetch middleware exports
 - Authorization policy studio with role/attribute rules, deny-overrides decisions, tenant/ownership/context checks, typed JSON Pointer conditions, rule-by-rule explanations, regression expectations, policy-change comparisons, Cartesian access matrices, OpenAPI action labels, portable projects, reports without attribute values and dependency-free Fetch authorization guards
 - Idempotency and duplicate-write studio with exact-body fingerprints, trusted client/route key scopes, in-flight rejection or bounded joins, completion-based retention, conflicting-key checks, unreplayable-result reservations, bounded stores/waiters, virtual-clock response timelines, regression budgets, traffic generation, portable projects/reports and standalone Fetch middleware exports
+- API journey and state-machine studio with visual state/transition authoring, structural diagnostics, sequential trace conformance, OpenAPI action catalogs, HAR trace imports, shortest state/transition/status coverage paths, bidirectional behavioral inclusion checks with shortest counterexamples, reusable regression traces, portable projects/reports, standalone SVG diagrams and dependency-free runtime monitor exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -124,6 +125,150 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Modeling API journeys and stateful behavior
+
+Open **Testing → API journey and state-machine studio**, load the
+**order-journey demo**, then run **all journey traces and models**. Thirty
+expectations compare an order lifecycle with a version that permits cancellation
+after payment and a version that changes payment statuses and completion rules.
+The demo includes successful orders, incomplete prefixes, valid error responses,
+out-of-order events, read loops and an intentionally unreachable review state.
+Everything runs offline and remains available with invalid OpenAPI. Existing
+REST requests, authentication, history and editor contents are unchanged.
+
+A model has an initial state, named states and enabled transitions. Each
+transition matches an **exact action label and integer HTTP status** and moves
+from one state to another. For example:
+
+```json
+{
+  "id": "cancel-created",
+  "name": "Cancel an unpaid order",
+  "enabled": true,
+  "from": "created",
+  "to": "cancelled",
+  "action": "POST /orders/{id}/cancel",
+  "statuses": [200, 204]
+}
+```
+
+Action labels are symbolic strings. OpenAPI can supply `METHOD /path template`
+labels, but does not define the model's state changes or infer workflow order.
+The model does not match URLs or interpret authentication/payload schemas during
+trace evaluation. Non-2xx statuses are ordinary declared events: a modeled 409
+self-loop can be a valid prefix, rather than a rejected journey.
+
+Use the graph or selectors to edit states/transitions. Graph elements support
+click, Enter and Space. Green marks the initial state; double borders mark
+states in which a trace may finish; dashed transitions are disabled. Completed
+states can still have outgoing transitions. Trace results highlight their
+matched transitions and last known state when their model is selected.
+SVG downloads contain a standalone diagram of the saved definitions.
+
+Structural analysis reports missing initial/source/target states, overlapping
+enabled action/status edges, unreachable states, nonfinishing dead ends and
+models without a completion state. Only missing references and overlaps block
+execution/proofs. Warnings do not invalidate a deterministic model. Analysis
+shows up to 100 findings with the full count. Deleting a state retains its
+transition and initial references for repair. New/duplicated transitions start
+disabled, allowing edits without immediately changing executable behavior.
+
+Saved traces contain `{action,status}` events and expected outcomes keyed by
+model ID. A trace is `accepted` when all events match and its last state permits
+completion, `incomplete` when all events match but completion is unavailable,
+or `rejected` at its first unmatched event. Later events are not evaluated after
+rejection. Invalid graphs always fail. Empty traces can be accepted when the
+initial state permits completion. Missing expectations are counted as unchecked.
+Run one trace against every model or run the whole regression matrix, with
+progress, search, detailed observations and cancellation.
+
+Save or discard edits before switching stored selections, running, importing or
+exporting. Invalid drafts do not replace saved work. Models, states, transitions
+and traces can be added, duplicated and removed within their limits; at least
+one model and one state per model remain. Model duplication copies its trace
+expectations; deletion removes only that model's expectation entries. An empty
+trace library is allowed. Project imports ignore supplied results/runtime state.
+
+HAR import appends a new trace in capture entry order, without claiming to infer
+concurrent causality. It maps paths to exact enabled model labels first, then
+to unambiguous single-segment `{parameter}` templates. Unknown actions remain
+`METHOD /actual/path`, so an undocumented event cannot silently disappear into
+a passing trace. Ambiguous templates reject the import atomically. Invalid or
+missing-status entries are counted as skipped; origins, URL queries/fragments,
+credentials, headers, bodies and timings are discarded. Review the sequence and
+any skipped entries before checking conformance. More than 200 usable events
+are refused atomically.
+
+**Compare journey behavior** checks both directions between a baseline and
+candidate. It preserves two observable properties: every legal prefix and the
+ability to finish at that prefix. Breadth-first search explores reachable pairs
+of states, ignoring state names/IDs as behavioral identities. Results distinguish
+equivalent behavior, compatible expansion, restriction, changes in both
+directions, invalid models and inconclusive bounded searches.
+
+Counterexamples are shortest by event count and identify either a missing
+transition or lost completion. The checker finishes a breadth-first layer before
+returning an edge counterexample, so a shorter completion change is not hidden.
+Each direction has a configurable pair budget; exhaustion never becomes a
+compatibility claim. The default 2,000-pair budget covers all reachable pairs
+within the 40-state-per-model limit. Empty counterexamples are meaningful when
+initial completion differs. Save a counterexample as a regression trace with
+explicit expectations for both models. Witnesses longer than the 200-event
+saved-trace limit remain inspectable but cannot be added to the trace library.
+
+**Generate journey coverage suite** builds shortest routes to reachable states,
+transitions or transition/status pairs. Cases explicitly expect accepted
+completions or valid incomplete prefixes. Disabled/unreachable behavior is not
+counted as covered. Capped generation reports partial coverage with covered and
+total objectives. Export the whole generated suite, or save individual cases
+as independent regression traces. Saving a case retains the generated suite so
+multiple paths can be added. Expectations for other models remain unchecked.
+
+These are finite sequential action/status contracts. They do not prove payload,
+security, timing, business invariants or correctness of parallel request order.
+Models and generated suites contain your route/action labels. Reports omit
+action values, retaining chosen names/IDs, state/transition IDs, statuses,
+outcomes and coverage counts. Chosen metadata can itself contain private values.
+Detailed observations are optional. Work stays in tab memory; export before
+reloading.
+
+**Download standalone journey monitor** exports dependency-free `.mjs` code for
+the selected valid saved model, without saved trace fixtures:
+
+```js
+import { createJourneyMonitor } from "./journey-monitor.mjs";
+
+// Create one instance per sequential workflow, not one shared by every user.
+const orderJourney = createJourneyMonitor();
+const observation = orderJourney.observe({
+  action: "POST /orders",
+  status: 201,
+});
+if (!observation.allowed) {
+  console.error("Journey violation", observation);
+}
+const snapshot = orderJourney.snapshot();
+```
+
+Observe already completed events in the order your application chooses. The
+monitor sends no requests and cannot roll back side effects. A rejected
+observation is recorded without advancing state; later observations may recover.
+This differs from checking a complete captured trace, which stops at its first
+rejection. Invalid input throws before changing state/history. `snapshot()`
+returns copies of the last known state, its `canFinish` flag, total observations,
+cumulative `rejected` observations, dropped-history count and latest 200 journal
+entries. Cumulative rejections remain visible after old entries are dropped;
+`canFinish` describes the current state, not whole-history validity. `reset()`
+clears state, counters and history. Runtime journals retain action labels.
+Concurrency, durable storage, workflow identity and authentication remain
+application responsibilities.
+
+Limits: 5 models, 40 states and 120 transitions per model, 20 exact statuses per
+transition, 30 saved traces, 200 events per saved trace, 500 generated cases,
+2,000 explored state pairs per comparison direction, 2 MiB projects and 16 MiB
+reports/suites. Labels are bounded to 256 UTF-8 bytes, names to 120 and IDs to 80.
+HAR inputs are limited to 5 MiB and 5,000 entries.
 
 ## Rehearsing idempotency and duplicate writes
 

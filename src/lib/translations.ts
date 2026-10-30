@@ -11,6 +11,7 @@ import { traceTranslations } from "./trace-translations";
 import { rateTranslations } from "./rate-translations";
 import { authzTranslations } from "./authz-translations";
 import { idempotencyTranslations } from "./idempotency-translations";
+import { journeyTranslations } from "./journey-translations";
 
 export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
 export const LANGUAGE_COOKIE = "rsswagger-language";
@@ -30,6 +31,7 @@ export const translations = {
     ...rateTranslations.en,
     ...authzTranslations.en,
     ...idempotencyTranslations.en,
+    ...journeyTranslations.en,
     "jwtStudio.title": "JWT and signing-key studio",
     "jwtStudio.description":
       "Decode compact JWTs, verify signatures and claim policies, generate signing keys and test tokens, and maintain reusable verification cases entirely in this tab.",
@@ -5304,6 +5306,7 @@ export const translations = {
     ...rateTranslations.ru,
     ...authzTranslations.ru,
     ...idempotencyTranslations.ru,
+    ...journeyTranslations.ru,
     "jwtStudio.title": "Студия JWT и ключей подписи",
     "jwtStudio.description":
       "Декодируйте JWT, проверяйте подписи и политики утверждений, создавайте ключи и тестовые токены и сохраняйте повторяемые проверки полностью в этой вкладке.",
