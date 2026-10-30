@@ -42,6 +42,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Webhook signature and replay studio with GitHub/Stripe/Standard Webhooks HMAC-SHA256, exact UTF-8/binary payloads, session-only key slots, rotation fixtures, timestamp policies, chronological receiver simulations, bounded replay stores, reusable delivery expectations, HAR/raw-payload imports, portable projects, value-free reports and dependency-free server verification exports
 - Distributed trace and latency studio with OTLP JSON imports, exact nanosecond timing, searchable span waterfalls, parent/link navigation, service dependencies and percentiles, overlap-aware exclusive timing, capture diagnostics, reusable latency/error/coverage budgets, W3C trace-context generation, portable projects, reports and standalone offline HTML viewers
 - Rate-limit and quota studio with exact token-bucket/fixed-window/sliding-log models, weighted traffic, atomic global/client/route rules, bounded state, retry guidance, interactive admission inspection, policy/scenario comparisons, acceptance budgets, HAR arrivals, portable projects, reports without client/route identities and standalone Fetch middleware exports
+- Authorization policy studio with role/attribute rules, deny-overrides decisions, tenant/ownership/context checks, typed JSON Pointer conditions, rule-by-rule explanations, regression expectations, policy-change comparisons, Cartesian access matrices, OpenAPI action labels, portable projects, reports without attribute values and dependency-free Fetch authorization guards
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -122,6 +123,115 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing and testing authorization policies
+
+Open **Testing → Authorization policy studio**, load the **tenant-access demo**,
+then run **all access cases and policies**. Its 36 expectations compare a role-only
+baseline against tenant isolation and tenant/ownership policies. Cases include
+cross-tenant reads, suspended users, anonymous access, missing attributes,
+owner updates, MFA context, unknown actions and role type mismatches. The studio
+runs entirely offline and remains available with invalid OpenAPI. It does not
+change authentication, server configuration, REST requests or request history.
+
+Policies contain enabled allow/deny rules with exact action labels. Only a whole
+`*` selector matches every action; `documents:*` is an ordinary exact label.
+All matching deny rules override grants regardless of order. Without a matching
+grant, access is denied. A policy with no rules therefore denies every action.
+All-mode rules require every condition; an empty All rule is explicitly
+unconditional. Any-mode rules require at least one condition and one match.
+
+The condition builder appends typed checks to the editable condition array.
+Operands refer to `subject`, `resource` or `context` via JSON Pointer, or contain
+a literal JSON value. For example, tenant equality is:
+
+```json
+{
+  "operator": "equal",
+  "left": { "source": "subject", "pointer": "/tenantId" },
+  "right": { "source": "resource", "pointer": "/tenantId" }
+}
+```
+
+Supported operators are `exists`, `absent`, `equal`, `notEqual`, `in`, `contains`,
+`startsWith`, `greater`, `greaterOrEqual`, `less` and `lessOrEqual`. Existence
+operators inspect only the left operand. Null is a present value. A missing
+operand fails every comparison, including `notEqual`. Equality ignores object
+key order but preserves array order and JSON types. Membership operates on
+arrays; numeric comparisons accept only numbers. There is no type coercion,
+regular expression execution, scripting or implicit wildcard traversal.
+Pointers read own fields, use `~0`/`~1` escapes, and support canonical array
+indexes; an empty pointer selects the root.
+
+Author individual cases with an action, a subject object (or `null` for an
+anonymous subject), resource/context objects and expected decisions keyed by
+policy ID. Expectations are `allow` or `deny`; absent expectations are visibly
+counted as unchecked. Save or discard drafts before switching selections,
+running, importing or exporting. Invalid edits stay visible without replacing
+saved work. Policies, rules and cases can be added, duplicated and removed.
+Duplicating a policy copies its expectations; deleting it removes only its
+expectation entries. Empty case lists can be saved and exported.
+
+Generate every combination of subject, resource and action arrays to explore
+cross-tenant and cross-role access. Generation appends independent cases with
+unchecked expectations and fails atomically when the resulting project would
+exceed its limits. The OpenAPI button fills the generator's action array with
+`METHOD /path template` labels from the current editor. It neither changes the
+editor nor infers permissions from authentication/security schemes.
+
+Compare one case or run the full matrix, with cancellation and progress.
+The first saved policy is the comparison baseline; **Use selected policy as
+comparison baseline** moves a policy to that position. Results count new grants
+and new denials relative to it, independently of expected outcomes. These are
+changes to review, not automatic judgments about policy correctness. Search,
+decision filters, changed-only filtering and 100-case pages help inspect larger
+matrices. Select a case to see each rule, action match, condition outcome,
+missing operand and unsupported type. Cancelled runs publish no partial results.
+
+Project exports include fixture attributes and policy literals and may contain
+private data. Runtime state and imported results are ignored. Reports omit
+subject/resource/context values and action labels; user-chosen names and IDs,
+counts and policy metadata remain. Detailed case IDs and decision traces are
+optional. Work stays in tab memory, so export before reloading.
+
+**Download Fetch authorization guard** creates a standalone `.mjs` module for
+the selected saved policy, without case fixtures or external dependencies:
+
+```js
+import { createAuthorizationGuard } from "./authorization-guard.mjs";
+
+const guarded = createAuthorizationGuard({
+  async classify(request, applicationContext) {
+    // Resolve trusted identities and resource attributes in your application.
+    return {
+      action: "documents:read",
+      subject: applicationContext.authenticatedUser,
+      resource: applicationContext.document,
+      context: { mfa: applicationContext.mfaVerified },
+    };
+  },
+  handler(request, decision, applicationContext) {
+    return Response.json(applicationContext.document);
+  },
+});
+```
+
+Call `guarded(request, applicationContext)` after resolving the authenticated
+identity and requested resource. Classification can be asynchronous. The guard
+returns a generic HTTP 403 for denied access, or 503 when classification fails
+or returns invalid/oversized attributes. Refusals use `Cache-Control: no-store`,
+contain no decision trace, cancel unread rejected bodies and have no body for
+HEAD. The guard itself does not read admitted request bodies. Application
+handler failures propagate after admission. `evaluateAuthorization(input)` is
+also exported for direct evaluation. No identity provider, JWT validation,
+resource lookup, centralized policy distribution or audit persistence is added
+by this export; those remain application responsibilities.
+
+Limits: 5 policies, 40 rules per policy, 16 conditions and 100 exact action
+selectors per rule, 200 cases, 64 KiB of combined attributes per case, 4 KiB per
+literal, 256 UTF-8 bytes per action/pointer, 2 MiB per project and 16 MiB per
+report. Attribute trees are bounded to 24 levels and 10,000 nodes. The exported
+guard applies the same input bounds and decision semantics as the studio.
 
 ## Designing API rate limits and quotas
 

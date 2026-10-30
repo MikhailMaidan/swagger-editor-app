@@ -53,6 +53,7 @@ import { RpcStudioPanel } from "@/components/rpc-studio-panel";
 import { WebhookStudioPanel } from "@/components/webhook-studio-panel";
 import { TraceStudioPanel } from "@/components/trace-studio-panel";
 import { RateLimitPanel } from "@/components/rate-limit-panel";
+import { AuthorizationPanel } from "@/components/authorization-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1947,6 +1948,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-authorization",
+          label: "authz.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-rate-limits",
           label: "rate.title",
         },
@@ -2242,6 +2248,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-authorization",
+          label: "authz.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-rate-limits",
@@ -3131,6 +3142,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-authorization"
+          tabIndex={-1}
+        >
+          <AuthorizationPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
