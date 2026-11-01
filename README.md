@@ -45,6 +45,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Authorization policy studio with role/attribute rules, deny-overrides decisions, tenant/ownership/context checks, typed JSON Pointer conditions, rule-by-rule explanations, regression expectations, policy-change comparisons, Cartesian access matrices, OpenAPI action labels, portable projects, reports without attribute values and dependency-free Fetch authorization guards
 - Idempotency and duplicate-write studio with exact-body fingerprints, trusted client/route key scopes, in-flight rejection or bounded joins, completion-based retention, conflicting-key checks, unreplayable-result reservations, bounded stores/waiters, virtual-clock response timelines, regression budgets, traffic generation, portable projects/reports and standalone Fetch middleware exports
 - API journey and state-machine studio with visual state/transition authoring, structural diagnostics, sequential trace conformance, OpenAPI action catalogs, HAR trace imports, shortest state/transition/status coverage paths, bidirectional behavioral inclusion checks with shortest counterexamples, reusable regression traces, portable projects/reports, standalone SVG diagrams and dependency-free runtime monitor exports
+- HTTP content negotiation studio with editable response representations, media-range/parameter precedence, language filtering, content-coding preferences, explainable quality ranking, policy-change comparisons, regression expectations, Cartesian preference matrices, HAR imports, portable projects/reports and standalone server selector exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -125,6 +126,141 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing HTTP content negotiation
+
+Open **Testing → Content negotiation and representation studio**, load the
+**representation comparison demo**, then run all cases. The demo evaluates 12
+client requests against three policies (36 checked decisions): strict language
+filtering, language-agnostic selection, and media-first ranking. It covers
+Russian responses, compressed-only clients, media parameters, exclusions,
+unsupported types, malformed quality values and competing preferences.
+The studio also works when the main OpenAPI editor is invalid.
+
+A policy offers ordered, named representations. Each has a concrete
+`Content-Type`, optional single `Content-Language`, one content coding
+(`identity`, `gzip`, `br`, `deflate` or `zstd`), an enabled flag and a server
+weight from 1 to 1000. Add, duplicate, edit, reorder and remove variants and
+policies. New/duplicated variants start disabled. Final ties preserve variant
+order. Policy duplication preserves variant IDs and copies its case expectations;
+policy deletion removes only that policy's expectations. Deleting a variant
+removes only expectations that selected it in that policy. One policy and one
+variant per policy must remain; the case library can be empty.
+
+Each request case contains three preference fields:
+
+```json
+{
+  "accept": "application/json;version=2, text/html;q=0.8",
+  "language": "ru, en;q=0.5",
+  "encoding": "gzip, identity;q=0"
+}
+```
+
+`null` means absent; `""` means explicitly empty. The form's **Omit** controls
+preserve that distinction. Missing preferences impose no restriction. Empty
+Accept or a filtered empty Accept-Language matches no typed/language-tagged
+offer. A language-neutral offer remains usable regardless of language ranges.
+Missing Accept-Encoding allows all codings; an empty field allows only identity.
+Identity has implicit quality 1 unless explicitly weighted or excluded by
+`*;q=0`. Exact coding entries override the wildcard.
+
+Media precedence and coding defaults follow
+[RFC 9110 §12.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5).
+For each representation, Accept uses the most specific matching media range
+before its quality: `application/json;q=0,*/*;q=1` excludes JSON. Parameters
+must match; charset values ignore case, other parameter values retain case.
+Quoted commas, semicolons and escaped quotes are preserved. `application/*+json`
+has no special suffix-matching behavior. Languages use
+[RFC 4647 basic filtering](https://www.rfc-editor.org/rfc/rfc4647.html#section-3.3.1)
+with a hyphen boundary: `en` matches `en-US`, while `en-US` does not match `en`.
+
+The studio explicitly defines its server policy: the most specific language
+range wins; equally specific duplicate ranges use the highest quality. Product
+ranking multiplies three integer qualities (0–1000) by server weight.
+Media-first compares media quality first, then the product. No rounding enters
+selection. Language-ignore policies neither parse nor consult Accept-Language.
+These combination, precedence and tie rules are choices of this selector,
+rather than a claim that HTTP mandates one universal ranking algorithm.
+
+The decision is **200** when an offer is selected, **406** when all offers are
+excluded, or **400** when a consulted field is malformed. Errors reject the
+entire field. Empty comma-list members are ignored. Quality syntax permits
+0–1 with up to three decimal places. Unknown coding tokens can appear in
+requests; offers use the five listed codings. Language identifiers are checked
+against the basic language-range syntax without registry validation. Each
+decision includes Vary for Accept/Accept-Encoding and, when filtered,
+Accept-Language, including on errors/refusals.
+
+Inspect the decision table, quality bars, exclusion reasons, matching ranges
+and emitted representation headers. Expectations map policy IDs to
+`{"status":200,"variantId":"json-ru"}` or
+`{"status":406,"variantId":null}` (400 also uses null). Missing entries remain
+unchecked. Save an inspected decision as an expectation, then rerun to verify
+it. Malformed field strings can deliberately be saved as 400 regression cases.
+Names and searches support independent result inspection.
+
+Policy comparisons evaluate the saved case library and flag changes to status,
+variant ID, emitted Content-Type/Content-Language/Content-Encoding, or Vary.
+Stable IDs do not hide changed metadata. Align variant IDs across policies
+when comparing equivalent offers. These are example-based comparisons, not
+proofs for every possible preference string. The Cartesian generator appends
+every combination of three editable string/null lists without erasing existing
+cases; repeated values are deduplicated and expectations initially stay empty.
+
+HAR import retains only request Accept, Accept-Language and Accept-Encoding,
+joining duplicate field lines with commas. It preserves absent/empty fields,
+skips unusable header arrays, reports the skipped count, and imports unchecked
+cases. Captured URLs, other headers, credentials, bodies, timings and responses
+are discarded. Captured status alone cannot identify a selected representation.
+OpenAPI integration supplies a datalist of concrete response media types;
+it does not change the editor or infer language/coding variants.
+
+Save or discard edits before switching selections, running, importing or
+exporting. Invalid drafts/imports leave saved definitions and results intact.
+Cancellation publishes no partial matrix and retains previous complete results.
+Projects contain definitions and cases, ignoring injected results/runtime state
+on import. All work lives in tab memory until exported.
+
+The standalone `.mjs` export contains the selected policy, without captured cases:
+
+```js
+import {
+  selectRequest,
+  describeVariant,
+  mergeNegotiationVary,
+} from "./negotiation-selector.mjs";
+
+const decision = selectRequest(request); // Fetch Request on the server
+const headers = mergeNegotiationVary({ Vary: "Origin" }, decision);
+if (decision.status !== 200) {
+  return new Response(null, { status: decision.status, headers });
+}
+const variant = describeVariant(decision.variantId);
+const body = await renderVariant(variant); // Caller supplies correctly encoded bytes.
+for (const [name, value] of Object.entries(decision.headers)) {
+  if (name !== "Vary") headers.set(name, value);
+}
+return new Response(body, { headers });
+```
+
+`selectRepresentation({accept,language,encoding})` also accepts explicit
+string/null fields. `describeVariant` returns a copy.
+`mergeNegotiationVary` preserves existing fields and `Vary: *`. The selector
+does not send requests, generate bodies, compress, translate, transcode,
+authenticate or route. The application must actually render the selected
+representation and handle methods/status semantics. Use the Fetch adapter on
+the server; browsers may manage Accept-Encoding themselves.
+
+Limits: 5 policies, 64 variants per policy, 200 cases, 12 values per generated
+dimension, 64 nonempty ranges per field, 32 parameters per member, 8 KiB per
+field, and 2 MiB per project. HAR: 5 MiB and 5,000 entries. Reports: 16 MiB.
+Excess cases/limits refuse the entire append/import. Projects and selector
+exports retain potentially private representation/preference values. Reports
+omit raw preferences, matched ranges and representation metadata; names/IDs,
+status, selected variant IDs, change flags and optional numeric candidate
+scores remain. No existing REST execution, authentication, history or editor
+functionality is replaced.
 
 ## Modeling API journeys and stateful behavior
 

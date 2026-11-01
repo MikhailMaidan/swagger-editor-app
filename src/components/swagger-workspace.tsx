@@ -56,6 +56,7 @@ import { RateLimitPanel } from "@/components/rate-limit-panel";
 import { AuthorizationPanel } from "@/components/authorization-panel";
 import { IdempotencyPanel } from "@/components/idempotency-panel";
 import { JourneyPanel } from "@/components/journey-panel";
+import { NegotiationPanel } from "@/components/negotiation-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1950,6 +1951,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-negotiation",
+          label: "neg.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-journeys",
           label: "journey.title",
         },
@@ -2260,6 +2266,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-negotiation",
+          label: "neg.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-journeys",
@@ -3164,6 +3175,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-negotiation"
+          tabIndex={-1}
+        >
+          <NegotiationPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
