@@ -46,6 +46,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - Idempotency and duplicate-write studio with exact-body fingerprints, trusted client/route key scopes, in-flight rejection or bounded joins, completion-based retention, conflicting-key checks, unreplayable-result reservations, bounded stores/waiters, virtual-clock response timelines, regression budgets, traffic generation, portable projects/reports and standalone Fetch middleware exports
 - API journey and state-machine studio with visual state/transition authoring, structural diagnostics, sequential trace conformance, OpenAPI action catalogs, HAR trace imports, shortest state/transition/status coverage paths, bidirectional behavioral inclusion checks with shortest counterexamples, reusable regression traces, portable projects/reports, standalone SVG diagrams and dependency-free runtime monitor exports
 - HTTP content negotiation studio with editable response representations, media-range/parameter precedence, language filtering, content-coding preferences, explainable quality ranking, policy-change comparisons, regression expectations, Cartesian preference matrices, HAR imports, portable projects/reports and standalone server selector exports
+- Resumable download and byte-range studio with binary resource revisions, exact GET/HEAD and multipart range responses, strong If-Range validators, strict packet inspection, interrupted/corrupt transfer rehearsals, version-safe reassembly, portable resume checkpoints, final SHA-256 verification, byte-coverage views and standalone Fetch server/client toolkit exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -126,6 +127,173 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Rehearsing resumable binary downloads
+
+Open **Testing → Resumable download and byte-range studio**, load the
+**interrupted-download demo**, then run all scenarios. Eight expectations cover
+normal downloads, dropped/truncated chunks, a resource revision change,
+undetected-per-chunk corruption, an exhausted attempt budget, a server ignoring
+Range, incorrect range/validator responses, and a zero-byte file. Rehearsals
+remain available with an invalid OpenAPI document. The studio sends no traffic
+and changes no editor contents, authentication, request history or stored data.
+
+Create independent resource revisions from local binary files or the
+base64/hex/UTF-8 byte editor. Every byte, including NUL, non-UTF-8 values and a
+UTF-8 BOM, is preserved in binary/base64/hex form. Switching to UTF-8 refuses
+invalid text rather than replacing bytes. File imports append a revision.
+Each resource has a name, a concrete ASCII Content-Type (with simple unquoted
+parameters), optional exact IMF-fixdate Last-Modified, range support flag and
+an explicit strong-date assertion. SHA-256 and the strong `"sha256-…"` ETag are
+computed from the bytes; imported digests/runtime outputs are not trusted.
+
+Add, duplicate and remove resources/scenarios independently. A referenced
+resource cannot be deleted until its scenarios are rebound or removed. One
+resource remains; an empty scenario library is allowed. Save/discard guards
+protect edited bytes and invalid JSON/numeric drafts before selection changes,
+runs, imports or exports. Definitions/imports update atomically.
+
+The offline probe handles GET/HEAD, Range and If-Range for the selected saved
+resource. Range rules use
+[RFC 9110 §14](https://www.rfc-editor.org/rfc/rfc9110.html#section-14), with
+explicit tool bounds. It handles inclusive closed/open/suffix intervals, clamps
+large decimal values using BigInt, skips unsatisfiable members and returns 416
+when a valid nonempty-resource set has none left. Invalid/unknown/excessive
+ranges fall back to full 200; empty resources ignore Range. Overlap/adjacency
+is coalesced, with groups ordered by their earliest original position. HEAD
+returns full metadata without a body.
+
+[If-Range](https://www.rfc-editor.org/rfc/rfc9110.html#section-13.1.5) uses exact
+strong ETag comparison. Weak tags/mismatches force a full response. Date
+validators need exact date equality and the strong-date assertion, which is
+off by default. Enable it only when that timestamp is a reliable strong
+validator for your resource. The exported range responder processes a selected
+representation after routing, authentication and ordinary HTTP preconditions.
+
+Multi-range responses use byte-preserving multipart/byteranges framing with a
+collision-checked boundary. Inspect emitted headers, wire-body length and each
+part's Content-Range. Export a complete response packet or download the raw
+wire body and individual part bytes as `.bin` files. The preview shows only
+the first 256 bytes; downloads retain the complete data.
+
+Captured response packets use this portable format:
+
+```json
+{
+  "kind": "rsswag-range-response",
+  "version": 1,
+  "method": "GET",
+  "status": 206,
+  "headers": {
+    "Content-Type": "application/octet-stream",
+    "Content-Length": "3",
+    "Content-Range": "bytes 0-2/10"
+  },
+  "base64": "AAH/"
+}
+```
+
+Packet imports are independent of resource definitions. The strict inspector
+supports identity-coded 200/206/416 and 200 HEAD. It checks duplicate headers,
+Content-Length, inclusive interval lengths, bounds and consistent multipart
+totals. Its multipart profile uses CRLF, ASCII alphanumeric/underscore/hyphen
+boundaries up to 70 characters, one Content-Type/Content-Range per part, and no
+preamble, epilogue or extra part headers. This bounded profile is not a general
+MIME parser. A 416 may retain its error body; it never supplies resource parts.
+Encoded bodies are refused because the client must operate on exact bytes.
+
+Transfer scenarios choose an initial revision, optional replacement revision
+and attempt at which the server switches. They also set chunk size, maximum
+GET attempts and an editable fault schedule:
+
+```json
+[
+  { "at": 2, "kind": "drop" },
+  { "at": 3, "kind": "truncate" },
+  { "at": 5, "kind": "wrong-validator" }
+]
+```
+
+Other faults are `corrupt`, `wrong-range` and `ignore-range`. Attempts are
+one-based and unique. Replays issue sequential single-range requests only for
+missing intervals, carrying the current If-Range ETag. Every rejected response
+leaves received bytes unchanged. A changed full representation discards earlier
+fragments before accepting its bytes. A server ignoring Range can complete with
+a full response. A completed transfer does not observe later version changes;
+the studio checks consistency, not global freshness.
+
+Final SHA-256 verifies the assembled bytes against the ETag. Corruption may
+pass per-chunk metadata checks and fail only at completion. Outcomes are
+`complete`, `exhausted` or `integrity-failed`; only complete verified bytes can
+be downloaded. A digest advertised by the same origin detects inconsistency,
+and does not authenticate that origin. Inspect received coverage, wire-byte
+counts, rejected attempts, restarts and the searchable attempt journal.
+
+Optional expectations use
+`{"outcome":"complete","maxRejected":2,"maxRestarts":1}`. Counts are upper
+bounds; `null` leaves a case unchecked. Record an inspected result as an
+expectation and rerun. Selected runs retain checkpoint/output bytes. Full suites
+start clean, ignore the imported checkpoint and retain summaries only, so
+large resources are not duplicated across all results. Cancellation publishes
+no partial matrix and preserves the previous complete results.
+
+Run the demo's **Attempt budget leaves a checkpoint** scenario individually,
+export its checkpoint, then import it and run **Uninterrupted download** to
+request only the missing intervals. Checkpoints retain total size, strong ETag
+and canonical base64 intervals. Imports reject overlaps and invalid bounds.
+Another initial ETag/size resets old fragments and counts a restart. Imported
+bytes remain untrusted until final SHA-256 verification; even a complete
+checkpoint is rehashed before its bytes can be downloaded. Source edits retain
+the imported checkpoint for deliberate version-change tests; a fresh project
+clears it. Nothing is persisted automatically.
+
+The dependency-free `.mjs` toolkit includes both server and client helpers:
+
+```js
+import {
+  createByteRangeResponder,
+  downloadBytes,
+} from "./transfer-toolkit.mjs";
+
+// Server: read bytes using your application, then route/authenticate/evaluate
+// ordinary HTTP preconditions before invoking this selected-resource responder.
+const respond = await createByteRangeResponder(bytes, {
+  contentType: "application/octet-stream",
+});
+const response = respond(request); // Fetch Response, including multipart ranges.
+
+// Node.js 22+: this explicit call sends HEAD and sequential GET requests.
+const result = await downloadBytes("https://example.test/download", {
+  chunkSize: 65536,
+  maxAttempts: 100,
+  checkpoint: previousCheckpoint, // Optional JSON checkpoint.
+  signal,
+  onProgress: ({ covered, total }) => console.log(covered, total),
+});
+if (result.outcome === "complete") consumeVerifiedBytes(result.bytes);
+else saveCheckpoint(result.checkpoint);
+```
+
+The toolkit also exports `parseByteRanges`, `inspectRangeResponse` and
+`normalizeCheckpoint`. Metadata defaults come from the selected saved resource;
+payloads, cases, URLs and checkpoints are not embedded. The responder snapshots
+supplied bytes. The client requires a successful HEAD with Content-Length and
+a strong SHA-256 ETag using this toolkit's format. It refuses redirects and URL
+userinfo, requests identity coding, disables Fetch caching, omits ambient
+credentials, bounds response streams and retries within its attempt budget.
+Explicit additional request headers and an injected Fetch function are optional.
+Ordinary conditional headers are removed so the download owns Range/If-Range.
+AbortSignal and a five-minute default overall deadline (configurable up to ten
+minutes) bound standard Fetch operations. Callers provide routing, origin trust,
+authentication, storage and any deployment-specific response headers.
+
+Limits: 3 resources and 4 MiB of decoded bytes combined, 12 scenarios, 200 GET
+attempts, 100 faults, chunks up to 1 MiB, 16 requested ranges/parts, 80 decimal
+digits per range number, 4 KiB range fields, 32 response headers, 6 MiB JSON
+imports/projects and 16 MiB reports. Projects/checkpoints/packets contain
+potentially private bytes and metadata. Reports omit bytes, headers, ETags,
+digests and resource IDs; scenario names/IDs, counts, offsets and optional
+attempt decisions remain. English and Russian controls/help are included.
 
 ## Designing HTTP content negotiation
 

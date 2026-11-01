@@ -57,6 +57,7 @@ import { AuthorizationPanel } from "@/components/authorization-panel";
 import { IdempotencyPanel } from "@/components/idempotency-panel";
 import { JourneyPanel } from "@/components/journey-panel";
 import { NegotiationPanel } from "@/components/negotiation-panel";
+import { TransferPanel } from "@/components/transfer-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1951,6 +1952,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-transfers",
+          label: "transfer.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-negotiation",
           label: "neg.title",
         },
@@ -2266,6 +2272,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-transfers",
+          label: "transfer.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-negotiation",
@@ -3175,6 +3186,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-transfers"
+          tabIndex={-1}
+        >
+          <TransferPanel />
         </div>
 
         <div
