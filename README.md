@@ -9,6 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
+- API SLO and error-budget studio with availability/latency objectives, weighted rolling budgets, coverage confidence, paired burn-rate alerts, interactive replay, sampled incidents, HAR/NDJSON traffic imports, regression comparisons, portable projects/reports, a standalone monitor toolkit, and Prometheus alert exports
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - API design studio with form-based operation/parameter/payload/model/auth authoring, schema templates, independent OpenAPI 3.0–3.2 drafts, field-preserving updates, local undo/redo, JSON/YAML exports, portable projects, reference/change review, and guarded editor Apply/Undo
 - Remote OpenAPI import from public URLs with redirect, timeout, and size safeguards
@@ -128,6 +129,192 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing API SLOs and error-budget alerts
+
+Open **API SLO and error-budget studio** from the testing tools. This independent
+studio evaluates request completion metrics locally and remains available when
+the OpenAPI editor contains invalid text. It does not send requests, modify the
+editor, change credentials/history, or persist traffic to browser storage.
+
+**Load SLO burn-rate comparison demo**, then **Run all SLO objectives and
+scenarios** to compare three objectives across six cases: healthy traffic, a
+recovered spike, ongoing failure, excluded maintenance, unknown capture coverage,
+and sparse traffic. The eighteen expectations include real firing/recovery
+samples, rather than treating successful execution as a passing regression.
+
+Each objective defines:
+
+- Availability (good HTTP status), latency (duration at or below a threshold), or
+  combined status-and-latency success.
+- A target percent with up to four decimal places, a rolling window in
+  milliseconds, and inclusive good-status ranges.
+- Optional exact service, route-label and method scopes. Empty service/route
+  scopes and `*` method match any value. The OpenAPI route catalog supplies
+  suggestions; it does not match concrete URLs to path templates.
+- Whether complete telemetry coverage is required for a definitive outcome.
+- Up to four paired burn rules, each with long/short windows, a burn threshold,
+  minimum weighted volumes, and a sampled hold duration.
+
+Save or discard draft changes before switching definitions, running, importing
+or exporting. Objective duplication copies its expectations; deletion removes
+only expectations referring to that objective. Scenarios can be edited,
+duplicated, removed or added independently, including an empty case library.
+
+Completion events use this shape (also accepted one object per NDJSON line):
+
+```json
+{
+  "id": "request-1",
+  "name": "Checkout response",
+  "atMs": 1793577600000,
+  "service": "store",
+  "route": "/orders",
+  "method": "POST",
+  "status": 201,
+  "latencyMs": 84.5,
+  "weight": 1,
+  "excluded": false
+}
+```
+
+`atMs` is the integer epoch-millisecond completion time. `weight` represents
+request units sharing that event's outcome; it is not a latency weight.
+Explicitly excluded events and events outside the objective's scope contribute
+to neither good nor total units. Offline replay accepts any input order.
+Duplicate event IDs are rejected within a scenario.
+
+For every evaluation at `t`, the window is `(t - width, t]`. A completion exactly
+at the start is excluded and one at the end is included. Future completions are
+ignored. The allocated bad-unit budget is `total * (1 - target)`, remaining budget
+subtracts observed bad units, and burn is observed bad ratio divided by the
+allowed bad ratio. Target equality is met. Targets are stored as integer parts
+per million; burn threshold decisions use exact integer comparisons, including
+large weights. A 100% target allocates zero errors: any bad units have infinite
+burn, with no invented relative budget percentage. No eligible traffic produces
+**No data**, never an implicitly healthy result.
+
+These are **request-based objectives**, not time-weighted uptime or downtime
+minutes. A capture's start/end timestamps alone do not establish complete
+telemetry. The optional `{ "fromMs": ..., "toMs": ... }` coverage declaration is
+an operator assertion. A window is complete only if it lies entirely inside that
+interval. Required partial/unknown coverage produces **Coverage unknown**;
+disabling the requirement evaluates observed traffic and still displays its
+confidence. Alert windows check coverage independently of the objective window.
+
+A burn rule has this shape:
+
+```json
+{
+  "id": "fast-burn",
+  "name": "Fast burn",
+  "longMs": 30000,
+  "shortMs": 10000,
+  "burnMilli": 2000,
+  "minLongUnits": 5,
+  "minShortUnits": 2,
+  "forMs": 4000
+}
+```
+
+`burnMilli: 2000` means 2× burn. Both windows must meet the threshold and their
+minimum weighted volumes. The short window cannot exceed the long window, which
+cannot exceed the objective window. A qualifying sample starts a pending hold;
+it fires once sampled elapsed time reaches `forMs`. No traffic, insufficient
+volume, required missing coverage or a false condition resets the hold. Behavior
+between samples is unknown. This follows the paired-window approach described
+in [Google's SRE workbook](https://sre.google/workbook/alerting-on-slos/), with
+explicit request-count and capture-confidence rules for this local simulator.
+
+The budget chart and clickable alert timeline share an evaluation slider. Arrow
+keys move between alert cells. Inspect the signed budget, confidence, rule
+windows, and first 100 captured samples for the selected point. The chart clamps
+negative budgets to its zero line and leaves undefined relative budgets as gaps;
+the numeric inspector retains signed values. Sampled incidents group consecutive
+firing evaluations: starts are first firing samples, ends are first non-firing
+samples, and open incidents remain open at the final sample. These intervals do
+not claim a continuously measured outage.
+
+Scenarios define their evaluation start/end/spacing and optional expectations by
+objective ID: `target` (`met`, `missed`, `no-data`, `unknown`), `maxFiringPoints`
+(the sum of firing point/rule pairs) and `maxIncidents`. Missing expectations are
+**Unchecked**. Record an inspected result as a starting expectation and rerun to
+verify it. Compare all objectives for one scenario or the whole project; search
+the comparison table and select any completed timeline. Cancellation preserves
+the previous complete results.
+
+HAR import reads HTTP(S) method, pathname, response status, total duration and
+start time, deriving rounded completion times. It discards origin, credentials,
+queries, headers and bodies, assigns `har-service`, and reports skipped invalid
+entries. NDJSON imports validate all events atomically. Both default to unknown
+coverage. The configurable deterministic generator appends a synthetic capture
+with a failure interval and explicit coverage without replacing saved cases.
+
+Export options include:
+
+- A versioned source-only project with definitions, events, coverage and
+  expectations, without derived runs or monitor state.
+- A report with final metrics and sampled incidents, optionally all timeline
+  points, and a spreadsheet-safe selected-timeline CSV. These omit captured event
+  identities and service/route/method values; user-defined objective/scenario/rule
+  names and IDs, timestamps and numeric metrics remain.
+- An independent ES module for the selected objective, exporting `classifyEvent`,
+  `evaluateTimeline` and `createSloMonitor`, with no dependencies or I/O. It retains
+  objective metadata/scopes but contains no captured events or case fixtures.
+- Prometheus alert YAML for your own classified weighted counters and coverage
+  gauge. Nothing is deployed automatically.
+
+Example use of the downloaded module:
+
+```js
+import { classifyEvent, createSloMonitor } from "./slo-toolkit.mjs";
+
+const monitor = createSloMonitor(); // unknown coverage until explicitly declared
+const completion = {
+  id: "request-1",
+  name: "Checkout response",
+  atMs: 1793577600000,
+  service: "store",
+  route: "/orders",
+  method: "POST",
+  status: 201,
+  latencyMs: 84.5,
+  weight: 1,
+  excluded: false,
+};
+console.log(classifyEvent(completion)); // good | bad | excluded | scope
+monitor.record(completion);
+console.log(monitor.evaluate(completion.atMs));
+console.log(monitor.snapshot());
+monitor.reset(); // clears retained data, sampled holds, clocks and coverage
+```
+
+The bounded monitor retains at most 5,000 events. It defensively copies inputs
+and outputs, deduplicates identical retained IDs and rejects conflicting retries.
+Once a time has been evaluated, new completions at or before it are refused;
+evaluation clocks cannot decrease. Events older than all policy windows are
+evicted during evaluation. Capacity errors do not drop retained data. Use
+`assumeCompleteFromMs` at creation, or `reset(startMs)`, only with reliable
+completeness evidence; an ordinary reset deliberately forgets that claim. Large
+production streams can use the classifier with external counters instead of
+the bounded in-memory monitor.
+
+Prometheus rules expect `rsswag_slo_events_total{slo_id,result="good"|"bad"}`,
+incremented by event weight after classification. Excluded/scope events are not
+counted. Required coverage also needs `rsswag_slo_coverage_start_seconds{slo_id}`
+reset on collection gaps/restarts. The rules combine both burns, volume gates,
+coverage gates and the configured [`for` hold](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/).
+Prometheus [`increase`](https://prometheus.io/docs/prometheus/latest/querying/functions/#increase)
+extrapolates sampled counters; scrape gaps and evaluation cadence mean its results
+are not exact timestamped-replay parity. The standalone evaluator/monitor is
+tested for parity with the studio's sampled event semantics.
+
+Limits: five objectives, four rules per objective, eight scenarios, 5,000 events
+per scenario, 240 evaluation points, and 90-day windows/timeline spans. Weights
+are 1–1,000,000 and latency is 0–86,400,000 ms. Projects and NDJSON are bounded to
+2 MiB; HAR to 5 MiB and 5,000 entries; UI report downloads to 16 MiB. All times
+are UTC epoch milliseconds, with ISO UTC labels in the inspector. Projects and
+traffic labels can contain private values; review them before sharing.
 
 ## Designing local-first API synchronization
 

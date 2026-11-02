@@ -59,6 +59,7 @@ import { JourneyPanel } from "@/components/journey-panel";
 import { NegotiationPanel } from "@/components/negotiation-panel";
 import { TransferPanel } from "@/components/transfer-panel";
 import { SyncPanel } from "@/components/sync-panel";
+import { SloPanel } from "@/components/slo-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1953,6 +1954,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-slo",
+          label: "slo.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-sync",
           label: "sync.title",
         },
@@ -2278,6 +2284,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-slo",
+          label: "slo.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-sync",
@@ -3205,6 +3216,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <SyncPanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-slo"
+          tabIndex={-1}
+        >
+          <SloPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
