@@ -47,6 +47,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 - API journey and state-machine studio with visual state/transition authoring, structural diagnostics, sequential trace conformance, OpenAPI action catalogs, HAR trace imports, shortest state/transition/status coverage paths, bidirectional behavioral inclusion checks with shortest counterexamples, reusable regression traces, portable projects/reports, standalone SVG diagrams and dependency-free runtime monitor exports
 - HTTP content negotiation studio with editable response representations, media-range/parameter precedence, language filtering, content-coding preferences, explainable quality ranking, policy-change comparisons, regression expectations, Cartesian preference matrices, HAR imports, portable projects/reports and standalone server selector exports
 - Resumable download and byte-range studio with binary resource revisions, exact GET/HEAD and multipart range responses, strong If-Range validators, strict packet inspection, interrupted/corrupt transfer rehearsals, version-safe reassembly, portable resume checkpoints, final SHA-256 verification, byte-coverage views and standalone Fetch server/client toolkit exports
+- Local-first synchronization and CRDT studio with independent replicas, positive/negative counters, observed-remove sets, multi-value registers, immutable snapshot queues, directed partitions, duplicate/stale deliveries, convergence/conflict inspection, merge-law checks, recorded regression scenarios, portable projects/wire states and standalone replica/Fetch/OpenAPI synchronization exports
 - API security posture dashboard with strict, optional, and public access analysis, scheme usage, actionable findings, operation filtering, and shareable reports
 - Postman Collection 2.1 and environment exports with filtered-view scope, tag folders, request examples, authentication placeholders, and saved responses
 - Postman migration studio with local collection/environment imports, scoped static variables, searchable request selection, editable paths, schema inference, authentication migration, conversion diagnostics, JSON/YAML exports, and reversible editor application
@@ -127,6 +128,174 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing local-first API synchronization
+
+Open **Testing → Local-first synchronization and CRDT studio**, load the
+**offline synchronization demo**, then run all scenarios. Nine expectations
+cover independent increments, add/remove races, concurrent register values,
+observed conflict resolution, duplicate/stale delivery, partitions and healing,
+blocked messages, and matching visible values with different causal metadata.
+The studio remains available with invalid OpenAPI and sends no traffic.
+
+A document definition contains stable actor IDs, named fields and initial
+directed links. Fields support three state-based merge strategies:
+
+- **Counter:** independent per-actor positive/negative components merge by
+  maximum; the visible value is their summed difference. Repeated snapshots do
+  not count increments twice.
+- **Set:** additions carry causal dots. Removal discards only additions already
+  observed by that replica; a concurrent new addition survives. Repeated adds
+  replace the observed dots for that value. Removed dots remain represented
+  by compact per-actor causal context, preventing stale-state resurrection.
+- **Register:** concurrent distinct portable JSON values remain visible.
+  A write after observing them resolves the observed conflict. Clear removes
+  observed values, while assigning `null` stores an actual value. Equivalent
+  JSON values are deduplicated in the view; causal dots remain in the wire state.
+
+The state-based approach and convergence properties are described in
+[Shapiro et al., Conflict-free Replicated Data Types](https://perso.lip6.fr/Marc.Shapiro/papers/2011/CRDTs_SSS-2011.pdf).
+The causal-context/dot-store merge follows the approach presented by
+[Almeida et al., Delta State Replicated Data Types](https://arxiv.org/abs/1603.01529).
+This implementation exchanges **complete state snapshots**; it does not expose
+delta messages or a delta anti-entropy protocol. Causal contexts must not be
+trimmed or reset during a document's lifetime.
+
+Each actor needs one durable writer. Forking an actor or reusing its ID after
+losing state can lose updates and reuse dots. Detectable conflicting payloads
+for the same dot are refused, but structural validation cannot prove the origin
+or history of an imported snapshot. Authenticate peers and protect actor
+ownership separately. Fields merge independently; cross-field business rules,
+transactions, membership changes and garbage collection need application logic.
+The playground reset starts a new local experiment and removes its entire
+recording/queue; exported active clients must preserve their history.
+
+Use the playground to change the selected actor's counter, assign/clear a
+register, or add/remove a JSON string set member. Each replica card displays
+its own values and explicit register conflicts. **Queue sender snapshot**
+captures immutable state. Later edits do not change that queued message.
+Deliver snapshots in any order, duplicate them under new IDs, or drop them.
+A disabled directed link blocks delivery without consuming the message.
+
+The topology and directed checkbox matrix show the currently enabled links.
+**Run one network round** delivers full snapshots captured at the start of the
+round across enabled links. It does not drain the explicit queue. Indirect
+paths may require additional rounds; partitions can prevent convergence until
+links are healed and messages are delivered again. A failed capacity/equivocation
+check rolls back the whole action, including every merge in a network round.
+
+**Complete states converged** compares canonical wire state, including causal
+metadata. **Visible values match** compares projections only. These predicates
+can differ. Final conflict counts count registers with more than one distinct
+visible value across all replicas. The merge-law inspector checks idempotence,
+commutativity and associativity for three selected snapshots. A capacity or
+equivocation refusal is explicitly bounded/inconclusive. These sample checks
+are not proofs for every history or a guarantee of future network delivery.
+
+The definition editor accepts actor `{id,name}` arrays, field
+`{id,name,type}` arrays and initial `{from,to}` links. Names and array ordering
+do not affect wire compatibility; document ID, actor membership and field
+IDs/types do. Saving validates the retained scenarios/recording, replays the
+recording, and publishes the whole update atomically. Incompatible references
+or snapshots leave the previous definition/runtime intact. Save/discard guards
+protect draft definition and scenario edits.
+
+Every playground action is recorded, including blocked/missing/capacity
+decisions. Save that recording as an independent regression scenario. Action
+examples:
+
+```json
+[
+  { "type": "increment", "actor": "alpha", "field": "count", "amount": 3 },
+  { "type": "assign", "actor": "beta", "field": "status", "value": "draft" },
+  { "type": "send", "from": "alpha", "to": "beta" },
+  { "type": "duplicate", "message": "message-1" },
+  { "type": "deliver", "message": "message-2" },
+  { "type": "round" }
+]
+```
+
+Other actions include `clear`, `add`, `remove`, `drop`, `link` with an `enabled`
+flag, and `merge` with a validated wire state. Message IDs start at `message-1`
+and advance only on accepted sends/duplicates. Queueing and network-round
+delivery counters are separate from action counts. Scenarios start with empty
+replicas and the saved initial links. Expectations use
+`{"converged":true,"maxRejected":0,"maxConflicts":0}`; counts are final upper
+bounds, and `null` leaves the scenario unchecked. A resolved earlier conflict
+does not count as a final conflict.
+
+Selected runs retain complete replica state for inspection and an explicit
+**Replace playground with inspected scenario result** action. Whole suites
+retain only summaries and journals. Running tests does not replace the current
+playground automatically. Cancellation publishes no partial run/replay and
+retains previous work. The scenario library may be empty.
+
+Export a wire snapshot from the selected actor or merge an imported compatible
+snapshot into it. Imports validate the schema, known actors, component bounds,
+causal context and unique dots, then record that merge action. Projects contain
+the definition, recording and scenarios. Import reconstructs runtime by replay;
+injected runtime/results are ignored. Queue state and causal history are
+therefore restored from the recorded actions. Invalid/oversized imports do not
+replace saved work. All activity stays in tab memory until exported.
+
+The dependency-free `.mjs` toolkit includes local replicas and Fetch transport:
+
+```js
+import {
+  createReplica,
+  createSyncResponder,
+  synchronizeReplica,
+} from "./synchronization-toolkit.mjs";
+
+const local = createReplica("alpha", restoredSnapshot); // Omit only for a new actor.
+local.apply({ type: "increment", field: "count", amount: 3 });
+local.apply({ type: "assign", field: "status", value: { stage: "draft" } });
+saveSnapshot(local.snapshot()); // Preserve before abandoning this writer.
+
+// Explicit network call; local edits made while waiting are preserved by merge.
+await synchronizeReplica(local, "https://example.test/sync", { signal });
+
+// Server: route/authenticate first. The adapter must atomically merge/commit.
+const respond = createSyncResponder({
+  read: () => storage.read(),
+  transact: (update) => storage.atomicUpdate(update),
+});
+return respond(request);
+```
+
+`createReplica` binds local operations to its actor and returns copied snapshots
+and views. It has no history-reset operation. `mergeStates`, `projectState`
+and `normalizeState` are also exported. The responder supports GET and POST,
+returns validated state, and calls `transact(updater)` for each merge. The
+adapter must serialize updates, roll back updater failures and return the
+committed state; separate reads/writes are insufficient. Known wire errors
+produce 400, capacity/equivocation 409, size limits 413 and media/coding errors 415. Unexpected storage errors return a value-free 500.
+
+`synchronizeReplica` sends a bounded JSON POST only when explicitly called.
+It refuses redirects/userinfo, omits ambient credentials, disables Fetch
+caching, and defaults to a 20-second deadline (up to 120 seconds). Custom
+headers, Fetch and AbortSignal are supported. The reply merges into the
+**current** local state after the await, preserving edits made in flight.
+Malformed/oversized replies and cancellation leave local state intact.
+The toolkit includes the selected definition without captured values, queued
+messages or scenario fixtures. It does not implement authorization, actor
+provenance, distributed storage or membership migration.
+
+The standalone OpenAPI 3.1 contract describes GET/POST `/sync` and the selected
+state structure for use with the existing editor/client tools. Runtime checks
+also enforce causal invariants, UTF-8 byte limits and JSON depth/node limits
+that the schema describes but cannot fully encode. No endpoint is deployed
+and no editor document is replaced by these exports.
+
+Limits: 8 actors, 12 fields, 12 scenarios, 300 actions per recording/scenario,
+64 queued messages/2 MiB, 64 set dots per field, 8 register dots, 256 KiB per
+wire state, 2 MiB per project, and 16 MiB reports. Register values allow 2 KiB,
+depth 16 and 1024 nodes; set strings allow 120 UTF-8 bytes. Counter components
+are bounded to one billion and local changes to one million in either
+direction. Causal clocks are bounded to one million. No metadata is silently
+evicted to make a merge fit. Projects/snapshots contain potentially private
+values/identities; reports omit them, retaining scenario names/IDs, metrics
+and optional action decisions. English/Russian controls and guidance are included.
 
 ## Rehearsing resumable binary downloads
 

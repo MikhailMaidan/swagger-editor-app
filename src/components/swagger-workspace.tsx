@@ -58,6 +58,7 @@ import { IdempotencyPanel } from "@/components/idempotency-panel";
 import { JourneyPanel } from "@/components/journey-panel";
 import { NegotiationPanel } from "@/components/negotiation-panel";
 import { TransferPanel } from "@/components/transfer-panel";
+import { SyncPanel } from "@/components/sync-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1952,6 +1953,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-sync",
+          label: "sync.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-transfers",
           label: "transfer.title",
         },
@@ -2272,6 +2278,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-sync",
+          label: "sync.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-transfers",
@@ -3186,6 +3197,14 @@ export function SwaggerWorkspace({
             getSchemaText={toolHandlers.getSchemaText}
             onApply={toolHandlers.applyDocument}
           />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-sync"
+          tabIndex={-1}
+        >
+          <SyncPanel />
         </div>
 
         <div
