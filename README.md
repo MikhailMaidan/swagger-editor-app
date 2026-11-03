@@ -9,6 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
+- Feature-flag and progressive-rollout studio with typed configuration variants, audience segments, ordered targeting rules, prerequisite graphs, activation windows, stable SHA-256 percentage/variant bucketing, recorded decision expectations, candidate comparisons, interactive cohort planning, context NDJSON imports, portable reports/projects, and a standalone evaluator SDK
 - Background-job queue and worker studio with delayed jobs, FIFO/priority scheduling, serial groups, worker leases and heartbeats, exact virtual-clock expiry, retry backoff, dead-letter recovery, interactive lifecycle timelines, recorded regression scenarios, NDJSON traffic imports, portable reports, and standalone queue/Fetch/OpenAPI exports
 - API SLO and error-budget studio with availability/latency objectives, weighted rolling budgets, coverage confidence, paired burn-rate alerts, interactive replay, sampled incidents, HAR/NDJSON traffic imports, regression comparisons, portable projects/reports, a standalone monitor toolkit, and Prometheus alert exports
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
@@ -130,6 +131,168 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Designing feature flags and progressive rollouts
+
+Open **Feature flags and progressive-rollout studio** in the testing tools.
+Design typed API configuration and feature experiments, evaluate subject
+contexts, compare candidate definitions, and inspect cohort stability without
+contacting a feature service. The studio remains available when the OpenAPI
+editor contains invalid text and does not modify existing REST tools.
+
+Load the targeting and rollout demo, then run all context regressions. Four flags
+across eight cases provide 32 expectations covering prerequisites, staff preview,
+paid audiences, exclusions, activation boundaries, gradual admission and typed
+configuration. The candidate increases checkout admission to 100%, so its impact
+can be compared with the saved baseline.
+
+A project contains an environment salt, named audience segments, flag definitions,
+saved context cases, an optional candidate definition, and cohort planner
+settings. Flags support boolean, string, number and JSON values. Each variant
+has an ID, name, integer `weightPpm` and typed value. Variant weights sum to
+1,000,000, including optional zero-weight variants. A separate off value is
+returned when the flag does not serve an assignment.
+
+Decision order is explicit:
+
+1. The flag must be enabled and within its `[startMs, endMs)` activation window.
+2. Global excluded audiences take precedence; all included audiences must match.
+3. Every prerequisite must serve its required variant.
+4. Ordered targeting rules check audiences, conditions and their own percentage.
+   The first matching rule returns its variant. A percentage miss falls through.
+5. The default percentage gate admits or excludes the subject.
+6. An independent weighted bucket selects the variant for admitted subjects.
+
+Rules bypass only the default rollout percentage, never enabled, schedule,
+global audience or prerequisite gates. A prerequisite requires a served exact
+variant even when its off value equals an active value. A false- or null-valued
+variant still counts as a served assignment. Cycles, duplicate IDs and dangling
+flag/segment/variant references are rejected before saving.
+
+Segments require all their conditions. Conditions use JSON Pointers into the
+context attributes and typed operators: `exists`, `absent`, `equal`, `notEqual`,
+`in`, `contains`, `startsWith`, `greater`, `greaterOrEqual`, `less` and
+`lessOrEqual`. Missing differs from `null`; `notEqual` fails on missing data.
+Numbers are not coerced from strings, arrays retain order, object key order
+does not affect equality, and inherited properties are never resolved.
+
+Contexts have an exact subject key, JSON attribute object and explicit UTC
+epoch-millisecond evaluation time:
+
+```json
+{
+  "key": "account-42",
+  "attributes": { "plan": "pro", "staff": false, "blocked": false },
+  "nowMs": 2000
+}
+```
+
+Subject keys identify cohorts; context case IDs/names identify regression
+fixtures. Cases may intentionally share a subject key to test different times or
+attributes. Targeting contexts are a common feature-flag concept, described in
+the [OpenFeature evaluation-context specification](https://openfeature.dev/specification/sections/evaluation-context/).
+RSSwag uses the independent model documented here and does not implement an
+OpenFeature provider or its context-merging lifecycle.
+
+Bucketing computes SHA-256 over UTF-8 JSON for:
+
+```js
+["rsswag-flags-v1", environmentSalt, flagId, flagSalt, domain, subjectKey];
+```
+
+The first four digest bytes form an unsigned big-endian integer. Its bucket is
+`floor(integer * 1000000 / 4294967296)`. Admission uses domain `rollout`, weighted
+allocation uses `allocation`, and targeting rules use `rule:<rule-id>`. A bucket
+must be strictly below the percentage or cumulative weight boundary. Hashing
+does not include attributes, names or wall-clock time. Keys and salts use their
+exact bytes, without case folding or Unicode normalization.
+
+Increasing only the default rollout percentage preserves already admitted
+subjects and their variants. Changing keys, salts, flag IDs, weights/order,
+targeting, schedules or dependencies can change decisions. New duplicate flags
+receive their own ID and start unchecked. Remove dependencies before deleting a
+prerequisite flag; use **Clear expectations for selected flag** before changing
+variant IDs referenced by saved expectations.
+
+Save or discard source drafts before selecting another flag/case, evaluating,
+importing or exporting. Edits are validated atomically. An expectation maps a
+flag ID to `{ "served": true, "variantId": "on", "reason": "rule" }`; `reason`
+is optional, and an off expectation uses `served: false, variantId: null`.
+Missing expectations are unchecked. Inspect a decision to see its typed value,
+gates, prerequisite results, segment checks and ordered-rule trace, then record
+it as an expectation and rerun. The matrix supports search, served/off/verdict
+filters and 50-row pages; Escape clears search.
+
+The prerequisite graph supports mouse/keyboard flag selection. The cohort planner
+creates deterministic keys `prefix-1`, `prefix-2`, etc., from configurable
+`count`, `prefix`, `attributes`, `nowMs` and strictly increasing integer-ppm
+`stages`. `100000` ppm is 10%. It varies only the selected flag's default
+percentage. Targeting may serve subjects at 0%; other gates may exclude them at
+100%. Stage summaries show admission, new entrants, exits and changed variants
+among retained subjects. Interactive cells and selectors inspect individual
+subjects without modifying saved cases. The first stage counts every served
+subject as an entrant.
+
+Cohort counts describe a finite synthetic population, not guaranteed percentage
+counts, experiment significance or conversion outcomes. Generate these subjects
+as unchecked saved cases when useful, subject to the case limit. Candidate
+comparison evaluates the selected flag over saved contexts and distinguishes
+assignment changes, returned-value changes and reason-only changes. Both
+definitions must contain the selected flag. Candidate and planner source settings
+are included in project exports.
+
+NDJSON import accepts one object per line with `id`, `name`, `key`, `attributes`
+and `nowMs`. It appends unchecked cases atomically; IDs must be unique, and
+current cases are preserved. Cancellation keeps prior complete outputs and
+ignores delayed file reads. Collapsing the panel retains its work.
+
+Exports include source-only versioned projects, decision CSV, compact regression
+reports, candidate comparison reports and cohort assignment reports. Regression
+reports may include the selected value-free trace. Reports/CSV omit subject keys,
+attributes and returned/configured values; case/flag/rule/segment names or IDs,
+reasons, buckets and counts remain. These metadata can still be private.
+Projects retain contexts, attributes, configured values, targeting constants and
+the candidate; review them before sharing.
+
+The standalone ES module contains the saved baseline definition, including
+targeting constants, salts and configured values, without subject contexts,
+cases, candidate definitions or planner fixtures:
+
+```js
+import { createFlagClient } from "./flags-toolkit.mjs";
+
+const client = createFlagClient();
+const context = {
+  key: "account-42",
+  attributes: { plan: "pro", staff: false },
+  nowMs: 2000,
+};
+const decision = await client.evaluate("checkout", context);
+console.log(
+  decision.served,
+  decision.variantId,
+  decision.value,
+  decision.reason,
+);
+const allDecisions = await client.evaluateAll(context);
+```
+
+The SDK uses Web Crypto SHA-256 and no network, timers or persistent storage.
+It snapshots contexts before asynchronous evaluation and returns defensive
+decision/value copies. Invalid contexts and unavailable cryptography raise
+explicit errors rather than silently serving a fallback. Native exported-module
+tests verify decision/trace parity with the studio over all demo cases and seeded
+mixed contexts. Browser hashing needs a secure context with Web Crypto support.
+Feature flags govern product behavior; use the separate authorization tools for
+access-control decisions.
+
+Limits: 16 flags/segments, 8 variants/rules/prerequisites per flag, 16 conditions
+per rule/segment, 200 cases, 500 synthetic subjects, 8 increasing stages, JSON
+depth 12/512 nodes, 2 KiB configured/condition values, 8 KiB context attributes,
+256 KiB normalized definitions, 2 MiB projects/NDJSON and 16 MiB UI downloads.
+Time is explicit UTC epoch milliseconds, from zero through 4,102,531,200,000.
+All work remains in tab memory; editor contents, authentication, history and
+persistent storage remain unchanged. English and Russian interfaces are included.
 
 ## Rehearsing background jobs and worker queues
 

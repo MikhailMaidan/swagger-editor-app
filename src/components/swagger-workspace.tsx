@@ -61,6 +61,7 @@ import { TransferPanel } from "@/components/transfer-panel";
 import { SyncPanel } from "@/components/sync-panel";
 import { SloPanel } from "@/components/slo-panel";
 import { QueuePanel } from "@/components/queue-panel";
+import { FlagPanel } from "@/components/flag-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1955,6 +1956,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-flags",
+          label: "flag.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-queue",
           label: "queue.title",
         },
@@ -2290,6 +2296,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-flags",
+          label: "flag.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-queue",
@@ -3243,6 +3254,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <QueuePanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-flags"
+          tabIndex={-1}
+        >
+          <FlagPanel />
         </div>
 
         <div
