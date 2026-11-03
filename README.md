@@ -9,6 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
+- Background-job queue and worker studio with delayed jobs, FIFO/priority scheduling, serial groups, worker leases and heartbeats, exact virtual-clock expiry, retry backoff, dead-letter recovery, interactive lifecycle timelines, recorded regression scenarios, NDJSON traffic imports, portable reports, and standalone queue/Fetch/OpenAPI exports
 - API SLO and error-budget studio with availability/latency objectives, weighted rolling budgets, coverage confidence, paired burn-rate alerts, interactive replay, sampled incidents, HAR/NDJSON traffic imports, regression comparisons, portable projects/reports, a standalone monitor toolkit, and Prometheus alert exports
 - JSON and YAML OpenAPI editing, large-file import confirmation, import feedback, validation, and conversion
 - API design studio with form-based operation/parameter/payload/model/auth authoring, schema templates, independent OpenAPI 3.0–3.2 drafts, field-preserving updates, local undo/redo, JSON/YAML exports, portable projects, reference/change review, and guarded editor Apply/Undo
@@ -129,6 +130,166 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Rehearsing background jobs and worker queues
+
+Open **Background-job queue and worker studio** from the testing tools. It models
+asynchronous API jobs locally, independently of the editor and existing REST
+tools. It never connects to a broker or runs job payloads. Load the delivery and
+recovery demo, then run all queue scenarios: ten regressions exercise successful
+delivery, worker crashes, stale acknowledgements, poison jobs, redrive, priority,
+delays, heartbeats, serial groups, retention and cancellation.
+
+The policy controls FIFO or priority scheduling, serial groups, retained
+capacity, leases per worker, visibility timeout, retention, maximum delivery
+attempts, and capped exponential retry backoff. Save or discard policy/scenario
+drafts before changing context, running, importing or exporting. Invalid drafts
+preserve saved work. Saving a changed policy resets the playground so existing
+leases cannot silently acquire different semantics; editing a scenario preserves
+the playground.
+
+Use the playground to enqueue jobs, poll as a worker, acknowledge or reject
+deliveries, extend leases, cancel jobs, advance time, redrive dead letters and
+purge terminal records. The JSON command composer exposes the same operations.
+Jobs have this shape (also accepted as one object per NDJSON line):
+
+```json
+{
+  "id": "email-1",
+  "name": "Send checkout email",
+  "group": "account-42",
+  "priority": 10,
+  "delayMs": 0,
+  "payload": { "orderId": "order-7" }
+}
+```
+
+Time starts at zero and moves only through explicit `advance` commands. A job is
+eligible when `availableMs <= now`. FIFO orders eligible jobs by enqueue
+sequence; priority chooses the highest eligible priority with FIFO ties. Leased
+jobs are never preempted. Low priorities can starve. In serial-group mode, the
+oldest active job in each nonempty group blocks later jobs in that group, even
+while delayed or retrying. Empty groups and other groups remain independent.
+The ready count includes group-blocked jobs, so an empty poll can coexist with
+ready jobs.
+
+Polling increments cycle attempts and lifetime deliveries and issues a receipt
+containing the instance ID and a monotonically increasing delivery number.
+Acknowledgement, negative acknowledgement and heartbeat require both the current
+worker and receipt. Old receipts cannot finish a newer delivery. A heartbeat
+sets the deadline to `now + visibilityMs`, capped by retention. At the exact
+deadline, expiration has already taken effect. Advancing over several deadlines
+processes events chronologically; retry delays start at the actual failure time,
+not the final time of the jump.
+
+Nack or lease expiry schedules `min(maxBackoffMs, backoffMs * 2^(attempt - 1))`.
+The final failed attempt moves a job to dead letters. Retention wins a tie with
+lease expiry and expires queued or leased jobs. Redrive applies only to dead
+letters: it refreshes retention, resets cycle attempts and places the job at the
+back with new future receipts. Lifetime deliveries remain monotonic. Moving a
+group head to dead letters, or redriving it, can change group order. Cancelling a
+leased job does not undo external effects already performed by a worker.
+
+Visibility leases and dead-letter recovery are common queue concepts; see the
+primary explanations of [visibility timeouts](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html)
+and [dead-letter queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html).
+RSSwag implements the explicit model above, without vendor protocol compatibility
+or an exactly-once guarantee for external effects.
+
+Retained IDs deduplicate identical normalized job input, including completed
+jobs. Conflicting reuse is rejected without overwriting the original. Terminal
+jobs still occupy capacity until purge. Purge forgets their deduplication
+history, allowing reuse of an ID, but does not reset delivery numbers. Reset
+starts a new playground instance so its prior receipts remain stale.
+
+The job table supports status filters, name/ID search and Escape to clear search.
+Inspect a selected job's private payload, lease and counters, or the event
+journal. Timeline bars show queue occupancy and lifecycle counts after each
+command. Click a bar, use arrow keys or move the regression slider to inspect
+its metrics. Bars represent command samples, not uniformly spaced time
+intervals. The journal retains the latest 2,000 events and reports omissions;
+aggregate counters retain the complete run totals.
+
+Record a playground history as a new regression scenario to save its commands
+and observed count/rejection/retry expectation. Recording converts local receipts
+to the isolated `replay` namespace while preserving stale foreign receipts.
+Replay cases use `replay:1`, `replay:2`, etc. Each case starts with an empty queue
+and is isolated from the playground and other cases. Expectations contain:
+
+```json
+{
+  "counts": { "done": 1, "dead": 0, "leased": 0 },
+  "maxRejected": 0,
+  "maxRetries": 1
+}
+```
+
+Listed final counts must match exactly; rejection/retry counts are upper bounds.
+Unlisted final counts are unconstrained, and a `null` expectation is unchecked.
+Cases can be duplicated, edited or deleted, including an empty library. NDJSON
+import appends an unchecked enqueue case atomically; it does not execute jobs.
+The deterministic generator appends bounded enqueue/advance traffic with
+configurable count, spacing and groups. Cancellation keeps previous complete
+results and ignores late file reads.
+
+Project exports contain policy and saved source scenarios, including their
+payloads. **Record the playground before exporting to preserve it**: unrecorded
+playground state and derived results are excluded. Reports contain final numeric
+summaries and optionally sampled timelines and journals; CSV exports the selected
+scenario timeline with spreadsheet-safe cells. Reports/CSV omit payloads,
+job/group/worker IDs and receipts. Scenario names/IDs, reasons, times and numeric
+metrics remain, so names should still be reviewed before sharing.
+
+The standalone ES module contains only policy metadata and exports:
+
+```js
+import { createQueue, createQueueHandler } from "./queue-toolkit.mjs";
+
+const queue = createQueue("unique-instance-42");
+queue.apply({
+  type: "enqueue",
+  job: {
+    id: "job-1",
+    name: "Email",
+    group: "",
+    priority: 0,
+    delayMs: 0,
+    payload: { task: "email" },
+  },
+});
+const { jobs } = queue.apply({ type: "poll", worker: "worker-a", limit: 1 });
+queue.apply({
+  type: "ack",
+  job: jobs[0].id,
+  worker: "worker-a",
+  receipt: jobs[0].lease.receipt,
+});
+console.log(queue.summary());
+
+const handle = createQueueHandler(queue); // mount behind your own auth/routing
+```
+
+`GET /queue/status` returns a value-free summary. `POST /queue/commands` accepts
+JSON commands and returns accepted decisions (200), rejected transitions (409),
+invalid input (400), size/count bounds (413), or unsupported content type (415).
+Bodies are bounded to 16 KiB before applying a command. Delivery responses can
+contain private payloads. The matching OpenAPI 3.1 contract exports independently
+without applying it to the editor. No server is started or deployed.
+
+The module has no dependencies, timers, network or persistence. It is a bounded
+in-memory demonstration, not a durable broker: supply authentication,
+authorization, durable transactions and effect-level deduplication for real
+deployments. Receipts fence local deliveries and are not credentials. Use a new
+unique instance ID after losing state. The exported engine is tested against the
+studio for every demo transition and seeded mixed-operation histories.
+
+Limits: 100 retained jobs, 16 leases per worker, 400 commands per queue/case,
+12 scenarios, 2 MiB projects/NDJSON, 100 imported jobs, and 4 KiB JSON payloads
+(depth 12, 512 nodes). Retention/delay/advance spans are at most 90 days,
+visibility/backoff at most one day, attempts at most ten, and virtual timestamps
+at most 1,000,000,000,000 ms. UI downloads are bounded to 16 MiB. No editor,
+authentication, history or persistent storage is changed. All controls and
+feedback are available in English and Russian.
 
 ## Designing API SLOs and error-budget alerts
 

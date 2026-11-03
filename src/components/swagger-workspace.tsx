@@ -60,6 +60,7 @@ import { NegotiationPanel } from "@/components/negotiation-panel";
 import { TransferPanel } from "@/components/transfer-panel";
 import { SyncPanel } from "@/components/sync-panel";
 import { SloPanel } from "@/components/slo-panel";
+import { QueuePanel } from "@/components/queue-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1954,6 +1955,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-queue",
+          label: "queue.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-slo",
           label: "slo.title",
         },
@@ -2284,6 +2290,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-queue",
+          label: "queue.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-slo",
@@ -3224,6 +3235,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <SloPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-queue"
+          tabIndex={-1}
+        >
+          <QueuePanel />
         </div>
 
         <div
