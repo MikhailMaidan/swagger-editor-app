@@ -9,6 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
+- API saga and compensation studio with dependency graphs, bounded parallel steps, typed input/output bindings, deterministic retry/deadline schedules, in-flight draining, reverse-completion compensation, uncertain-outcome reconciliation, manual compensation recovery, recorded regression cases, policy comparisons, portable projects/reports, and standalone simulator/Node regression exports
 - Event-sourced API and projection studio with atomic append batches, optimistic stream revisions, legacy-event upcasters, declarative read models, independent checkpoints, visible projection failures/skips/rebuilds, historical-prefix previews and forks, replayable event logs, regression scenarios, portable projects/reports, and standalone runtime/Fetch/OpenAPI exports
 - Feature-flag and progressive-rollout studio with typed configuration variants, audience segments, ordered targeting rules, prerequisite graphs, activation windows, stable SHA-256 percentage/variant bucketing, recorded decision expectations, candidate comparisons, interactive cohort planning, context NDJSON imports, portable reports/projects, and a standalone evaluator SDK
 - Background-job queue and worker studio with delayed jobs, FIFO/priority scheduling, serial groups, worker leases and heartbeats, exact virtual-clock expiry, retry backoff, dead-letter recovery, interactive lifecycle timelines, recorded regression scenarios, NDJSON traffic imports, portable reports, and standalone queue/Fetch/OpenAPI exports
@@ -132,6 +133,212 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## API saga and compensation studio
+
+Open **API saga and compensation studio** in the testing tools to rehearse a
+transaction that touches several services. The studio works independently of the
+OpenAPI editor, including while its document is invalid. Its operation labels
+describe local attempt fixtures: no HTTP requests, database writes, real timers,
+or authentication changes occur. Work stays in tab memory until downloaded.
+
+**Load checkout saga demo** supplies nine checked cases: successful parallel
+checkout, transient failure/retry, shipping failure and rollback, an uncertain
+payment timeout, reconciliation of a committed payment, manual recovery of a
+failed compensation, cancellation with calls in flight, uncertain compensation,
+and a missing input binding. The graph shows dependencies and current forward /
+compensation statuses. Select its native buttons or the step picker to inspect a
+step's definition, resolved inputs, confirmed output, and recovery state.
+
+Use **Start saga**, **Advance to next saga event**, or an absolute clock target to
+inspect intermediate work. **Run saga until it stops** drains the remaining
+schedule to success, rollback, attention, or reconciliation. The attempt timeline
+shows forward and compensation calls against the virtual clock; the decision
+journal has an event slider and selectable rows. Regression suites run in
+isolated machines and do not advance the playground. **Replay selected scenario
+into playground** replays that case's saved commands before further exploration.
+
+### Workflow authoring and scheduling
+
+Expand **Saga project source (JSON)** to edit a complete source project. Apply
+valid source atomically; malformed edits retain the saved project and results.
+Pending edits block execution, case switching, and downloads until applied or
+discarded. The step builder stages changes into that same source for review;
+staging explicitly aligns every case's fixtures and clears its old expectations.
+Adding/removing steps follows this staging flow. Removing a dependency still
+used by another step is rejected. The full source editor also supports changing
+individual compensation timeouts/retries, scenario inputs, attempt sequences,
+commands, and expectations.
+
+A workflow has a name, `concurrency` (1–8), `deadlineMs` (1–600,000), and 1–20
+steps. Each step has a unique ID, name, `dependsOn` IDs, an `effect` (`read` or
+`write`), a `forward` action, and optional `compensate` action. Read steps must use
+`compensate: null`. A successful write without compensation remains `retained`
+when the transaction rolls back and makes the final result require attention.
+Cycles, unknown dependencies, duplicate IDs, and references to non-ancestor
+outputs are rejected.
+
+Each action defines an operation label, input bindings, `timeoutMs` (1–60,000),
+`attempts` (1–5), and constant `backoffMs` (0–60,000). Example action:
+
+```json
+{
+  "operation": "POST /payments",
+  "input": {
+    "orderId": { "from": "step", "stepId": "order", "pointer": "/id" },
+    "customer": { "from": "input", "pointer": "/customer" },
+    "currency": { "from": "literal", "value": "EUR" }
+  },
+  "timeoutMs": 1000,
+  "attempts": 2,
+  "backoffMs": 50
+}
+```
+
+Bindings preserve JSON types and use RFC 6901 pointers, including the empty
+pointer for the whole value. Null is a present value; a missing binding fails
+before any call is started. Forward actions can read transitive ancestors'
+confirmed outputs. Compensation can also read its own forward output. Inputs are
+resolved once and reused across retries; no templates, scripts, or expressions
+are evaluated. Confirmed forward outputs remain available after compensation.
+
+Ready steps launch in definition order up to the concurrency limit. Retry waits
+release their worker slots, and due retries compete in the same definition order.
+At a shared timestamp, all already-started calls complete in definition order
+before further calls launch. A fixture ending exactly at its timeout completes
+normally. Completions at the global forward deadline are processed first; any
+unfinished forward work then fails the deadline. Active calls at that point become
+uncertain, and unstarted/retry-waiting calls are cancelled. Compensation uses its
+own attempt bounds rather than the expired forward deadline.
+
+### Failures, compensation, and reconciliation
+
+A known forward failure retries within its budget. Once exhausted, new forward
+work stops, scheduled forward retries are cancelled, and calls already in flight
+are allowed to finish. Their successful writes participate in rollback. A timeout
+or fixture outcome of `unknown` is never automatically retried because a side
+effect might already have occurred. Once active calls drain, any uncertain
+outcome blocks compensation until explicitly reconciled.
+
+Select the step and recovery phase. **Reconcile as committed** means the selected
+operation took effect; for a forward operation, supply its confirmed JSON output
+so undo bindings can resolve. **Reconcile as aborted** means no effect occurred.
+The studio records your rehearsal decision; it cannot discover a real service's
+result. Forward reconciliation keeps the transaction on its rollback path.
+
+Confirmed writes compensate sequentially in reverse successful-completion order.
+Known undo failures retry within their own budgets, then remain visible while
+other undo operations continue. This is an explicit best-effort model: a real
+workflow may need additional business constraints before undoing upstream work.
+An uncertain compensation blocks further undo until its outcome is reconciled.
+Use **Retry failed compensation** after an `attention` result for up to three
+additional recovery cycles per step. Its per-cycle attempt count resets, but its
+cumulative calls and fixture position continue. Successful read operations never
+require compensation. The final `rolled-back` status describes the configured
+compensations; it does not establish that external business state was restored.
+
+### Scenarios, comparisons, and privacy
+
+Each of up to 12 scenarios contains JSON `input`, per-step `fixtures`, ordered
+`commands`, and optional `expect`. Every workflow step needs a nonempty `forward`
+fixture list; compensatable steps also need a nonempty `compensate` list. Each
+list has up to five attempts:
+
+```json
+{
+  "stepId": "payment",
+  "forward": [
+    { "outcome": "failure", "durationMs": 20, "output": null },
+    { "outcome": "success", "durationMs": 80, "output": { "id": "pay-1" } }
+  ],
+  "compensate": [{ "outcome": "success", "durationMs": 30, "output": null }]
+}
+```
+
+The last fixture repeats if there are more calls than fixtures. Durations are
+0–60,000 ms; success outputs, inputs, and literal values are finite JSON values
+bounded to 4 KiB, 12 levels, and 512 nodes each. Failure/unknown fixture output is
+discarded. Scenarios support up to 200 commands:
+
+```json
+[
+  { "type": "run" },
+  {
+    "type": "reconcile",
+    "stepId": "payment",
+    "phase": "forward",
+    "outcome": "committed",
+    "output": { "id": "confirmed-payment" }
+  },
+  { "type": "run" }
+]
+```
+
+Other commands are `start`, `next`, `advance` with an absolute `to`, `abort`, and
+`retry-compensation` with a `stepId`. Invalid commands leave the machine unchanged.
+Accepted commands, bounded call counts, a 60,000,000 ms clock, and a 4,000-event
+journal keep execution finite. Cancellation interrupts asynchronous scenario
+replays between commands/cases; no partial suite is published. Late imports and
+unmount completions are ignored.
+
+Expectations check exact final `status`, maximum virtual duration, retry count,
+uncertain operations, and uncompensated writes. Optional `steps` assert exact
+forward/compensation statuses; optional `outputs` check a JSON pointer against a
+typed `value` or `missing: true`. Only successful forward steps expose outputs to
+these checks. Unchecked scenarios remain distinct from passing cases. **Record
+playground as checked scenario** saves its original inputs/fixtures, accepted
+commands, summary budgets, and step statuses. Output-value assertions are added
+explicitly in source, rather than copied implicitly from private results.
+
+**Compare saga scheduling policies** replays the same source against candidate
+concurrency and deadline values without modifying it. It shows timing, outcome,
+expectation verdicts, and command errors per case. Recovery commands that become
+invalid under a candidate are reported as failed cases; they do not hide the
+remaining comparison results.
+
+Projects are versioned `rsswag-saga-project` JSON, limited to 2 MiB and containing
+source only; restored result/snapshot fields are ignored. Projects, private
+snapshot downloads, and exported Node runners include fixture values and should
+be handled accordingly. JSON reports and spreadsheet-safe CSV summaries omit
+inputs, outputs, bindings, fixtures, and source. Optional detailed reports add
+only value-free command summaries and decision journals. Reports retain scenario
+and step identifiers, statuses, counts, and reason codes.
+
+### Standalone exports
+
+**Download standalone saga simulator** produces a dependency-free ESM simulator
+with the configured definition:
+
+```js
+import { createConfiguredSaga } from "./saga-simulator.mjs";
+const saga = createConfiguredSaga(input, fixtures);
+saga.apply({ type: "start" });
+saga.apply({ type: "run" });
+console.log(saga.summary()); // counts/statuses without input/output values
+const privateSnapshot = saga.snapshot();
+const replayableSource = saga.source();
+```
+
+`createSaga(definition, input, fixtures)` also accepts a different validated
+definition. Snapshots and source are defensive copies, and arbitrary snapshots
+cannot be restored as trusted execution state. Replay accepted source commands
+to reconstruct a run. The export performs no networking, timers, or storage I/O;
+it is a rehearsal engine rather than a durable coordinator or an exactly-once
+delivery guarantee.
+
+**Download Node saga regression runner** embeds the saved scenarios, executes them
+with the same engine, writes a value-free JSON report to stdout, and exits 0 only
+when every case has expectations and passes. Run it with
+`node saga-regressions.mjs`. Browser and exported runtimes are tested for parity,
+including seeded schedules. The portable source is generated at development time
+from the TypeScript model and scheduler; regenerate with
+`node scripts/build-saga-toolkit.mjs`, or verify synchronization with its `--check`
+option. No runtime code generation is used by the app.
+
+Background: [AWS saga patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html)
+and the [Azure compensating transaction pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction).
+Scheduling, reconciliation, limits, and best-effort rollback described above are
+the studio's explicit model, rather than a claim to implement a cloud service.
 
 ## Exploring event-sourced APIs and read models
 
