@@ -9,6 +9,7 @@ Next.js, React, TypeScript, and Tailwind CSS.
 
 ## Features
 
+- Event-sourced API and projection studio with atomic append batches, optimistic stream revisions, legacy-event upcasters, declarative read models, independent checkpoints, visible projection failures/skips/rebuilds, historical-prefix previews and forks, replayable event logs, regression scenarios, portable projects/reports, and standalone runtime/Fetch/OpenAPI exports
 - Feature-flag and progressive-rollout studio with typed configuration variants, audience segments, ordered targeting rules, prerequisite graphs, activation windows, stable SHA-256 percentage/variant bucketing, recorded decision expectations, candidate comparisons, interactive cohort planning, context NDJSON imports, portable reports/projects, and a standalone evaluator SDK
 - Background-job queue and worker studio with delayed jobs, FIFO/priority scheduling, serial groups, worker leases and heartbeats, exact virtual-clock expiry, retry backoff, dead-letter recovery, interactive lifecycle timelines, recorded regression scenarios, NDJSON traffic imports, portable reports, and standalone queue/Fetch/OpenAPI exports
 - API SLO and error-budget studio with availability/latency objectives, weighted rolling budgets, coverage confidence, paired burn-rate alerts, interactive replay, sampled incidents, HAR/NDJSON traffic imports, regression comparisons, portable projects/reports, a standalone monitor toolkit, and Prometheus alert exports
@@ -131,6 +132,226 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Exploring event-sourced APIs and read models
+
+Open **Event-sourced API and projection studio** in the testing tools. It models
+append-only streams and independently updated read models locally. Load the
+event sourcing and recovery demo, then run all regressions: ten scenarios cover
+normal updates, stale writers, append retries, legacy events, invalid batches,
+projection failures, explicit skips, rebuilds, deletion and independent streams.
+Existing OpenAPI/REST tools remain available, and this studio also works with
+invalid editor text.
+
+The definition contains a latest-version event catalog, optional upcaster steps,
+projection rules and retained capacity. The approach follows the separation
+between event history and materialized read models described in Microsoft's
+[Event Sourcing pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing).
+RSSwag implements the bounded model below without database connections or
+background consumers.
+
+Each stream begins at revision zero. An append specifies a stream, its expected
+revision and one to twenty events:
+
+```json
+{
+  "type": "append",
+  "stream": "account-a",
+  "expectedRevision": 0,
+  "events": [
+    {
+      "id": "opened-1",
+      "type": "AccountOpened",
+      "version": 1,
+      "payload": { "owner": "Ada" }
+    },
+    {
+      "id": "credit-1",
+      "type": "BalanceChanged",
+      "version": 2,
+      "payload": {
+        "accountId": "account-a",
+        "deltaCents": 100,
+        "currency": "EUR"
+      }
+    }
+  ]
+}
+```
+
+The complete batch validates before publication. Successful events receive
+contiguous global positions and per-stream revisions starting at one. A stale
+expected revision, conflicting ID, partial duplicate or capacity overflow rejects
+the batch without adding any events. Only an exact normalized previously
+committed batch, including the original expected revision and event order, is
+deduplicated; that retry can succeed after the stream has advanced. Event IDs
+remain unique across the store. Appending never updates projections implicitly.
+
+Catalog fields specify a JSON Pointer, latest type and required flag. Supported
+types are string, safe integer, finite number, boolean, object, array and null.
+Required absence differs from explicit null, array indexes are canonical, and
+inherited properties are never read. Extra payload fields are retained. Catalog
+checks validate data shape; command-side business invariants belong in the
+actual service producing events.
+
+An older event requires a complete chain of one-version upcasters. Each step
+names the event type and `fromVersion`, simultaneous top-level renames, and
+defaults for absent fields. Renames read the old payload, so swaps are supported;
+an occupied destination not itself being renamed is a conflict. Defaults do not
+overwrite explicit null. The latest contract is checked after transformation.
+Stored events retain their original version and payload. The inspector shows
+original and latest forms side by side.
+
+Projection rules select an event type, entity key source, mode and operations.
+Sources read a payload pointer, literal JSON value, or event metadata (`id`,
+`stream`, `revision`, `position`). String and numeric keys retain their type,
+so `"7"` and `7` identify different entities. Modes are `create`, `update`,
+`upsert` and `delete`; create/update/delete enforce entity existence. Delete
+rules have no operations. Other rules support:
+
+- `set`: replace a field with a source value.
+- `increment`: add a safe integer, with result bounded to ±1,000,000,000,000.
+- `appendUnique`: append a distinct normalized JSON value to a bounded array.
+- `unset`: remove a field.
+- `assert`: require an integer field to fall between inclusive `min` and `max`.
+
+Rules for an event run in definition order. All matching rules for that event
+commit together or roll back together, even when they affect multiple rows.
+Projection processing retains the successful prefix of a batch and stops before
+the first failed position. Other projections remain independent. A failure in a
+projection does not reject or remove the already committed event. The demo uses
+integer cents to illustrate exact counters and a nonnegative read-model check.
+
+Each projection tracks its consumed global position, matched-event count,
+explicit skips and current failure. Lag counts unconsumed positions rather than
+elapsed time, including events a projection will ignore. Processing the same
+checkpoint again does not reapply consumed events. Skip is permitted only for
+the current failed next position and is recorded explicitly. It can make the
+read model differ from the complete history, so skip totals appear in summaries
+and regression budgets even after a rebuild.
+
+Rebuild clears the selected projection's rows, checkpoint and local skip state
+and replays the full log. It intentionally encounters previously skipped failures
+again. Cumulative activity counters remain. The timeline plots committed event
+positions and projection checkpoints after each command; buttons, arrow keys and
+the result slider inspect lag and failure changes. Command samples are not
+uniform wall-clock intervals.
+
+The playground has a single-event composer, atomic batch editor and general JSON
+command composer. **Use current stream revision** prepares a fresh writer after
+a conflict; an exact retry retains its original batch. The template helper seeds
+required top-level catalog fields; nested fields and domain-specific identities
+still need editing. Projection controls process bounded batches, rebuild, or
+explicitly skip a failed event. Filter the event table by stream or search ID,
+stream and type; Escape clears search. Inspect selected entity fields or download
+an explicitly private read model.
+
+Select any global position, including zero, to preview the event prefix and
+rebuild independent read models. A prefix can cut inside a previously atomic
+append batch; it is an exploratory event-prefix view, not a claim about an
+original committed transaction boundary. Fork saves a new unchecked scenario
+from that prefix without changing the playground. Load the fork into the
+playground, append new events and record it to continue an independent branch.
+Branches are not merged automatically.
+
+Scenarios contain an optional initial event log, commands and an expectation.
+Expectations require exact `events`/`streams`, upper bounds `maxRejected`,
+`maxErrors`, `maxLag`, `maxSkipped`, and optional view assertions:
+
+```json
+{
+  "events": 2,
+  "streams": 1,
+  "maxRejected": 0,
+  "maxErrors": 0,
+  "maxLag": 0,
+  "maxSkipped": 0,
+  "views": [
+    {
+      "projectionId": "balances",
+      "key": "account-a",
+      "field": "balanceCents",
+      "value": 100
+    }
+  ]
+}
+```
+
+Use `missing: true` instead of `value` to assert field absence. A null expectation
+is unchecked. Recording the playground captures its initial log, commands and
+summary budgets; add value assertions explicitly when needed. Cases can be
+duplicated, edited or removed, including an empty library. Definition edits reset
+the playground to avoid interpreting existing views under a changed model;
+record or export it first. Scenario edits preserve the playground. Drafts validate
+atomically, and cancellation preserves previous complete results and ignores
+late file reads.
+
+Portable event logs contain accepted append sources, without trusted derived
+events or projection snapshots. Import verifies each batch against expected
+revisions, retained ID history, capacity, upcasters and the latest catalog, then
+derives positions and starts empty projections with a fresh command budget.
+Duplicate or rejected source batches invalidate the import. This validation does
+not prove provenance, and edited upcasters can reinterpret old events. Invalid
+imports preserve current work. Source-only project exports contain definitions
+and saved scenarios; unrecorded playground work needs its own log export.
+
+Reports and CSV contain numeric summaries, scenario/projection metadata, assertion
+verdicts and optionally command timelines/journals. They omit event IDs, stream
+IDs, entity keys, payloads and view/assertion values. Names and configured IDs
+can still be private. Projects, event logs and read-model downloads retain values;
+review them before sharing.
+
+The standalone ES module embeds only the saved definition and exports
+`createEventStore(initialLog?)`, `upcastEvent(event)` and
+`createEventStoreHandler(store)`:
+
+```js
+import {
+  createEventStore,
+  createEventStoreHandler,
+} from "./event-store-toolkit.mjs";
+
+const store = createEventStore();
+store.apply({
+  type: "append",
+  stream: "account-a",
+  expectedRevision: 0,
+  events: [
+    {
+      id: "opened-1",
+      type: "AccountOpened",
+      version: 1,
+      payload: { owner: "Ada" },
+    },
+  ],
+});
+store.apply({ type: "project", projectionId: "balances", limit: 100 });
+console.log(store.summary(), store.view("balances"));
+const log = store.exportLog();
+const restored = createEventStore(log); // empty read models until processed
+const handle = createEventStoreHandler(restored);
+```
+
+The Fetch handler exposes `GET /event-store/status`, `GET /event-store/events`
+with exclusive `after` and bounded `limit`, `GET /event-store/views/{projectionId}`
+and `POST /event-store/commands`. Commands return 200 when accepted, 409 for
+semantic rejection/projection failure, 400 for invalid input, 413 for bounds or
+415 for unsupported content type. Bodies are bounded to 128 KiB before applying
+commands. Status responses are value-free; event/view responses can include
+private data. The OpenAPI 3.1 contract downloads independently without applying
+it to the editor. Authenticate/authorize before mounting the handler and provide
+durable transactions externally; this toolkit is an in-memory demonstration.
+It performs no outbound requests, timers or persistence and deploys nothing.
+Native-module tests verify core parity for the demo and seeded mixed histories.
+
+Limits: 500 events, 20 events per append, 300 commands per instance/case,
+12 scenarios/types, 32 upcasters, 4 projections, 16 rules per projection,
+8 operations per rule, 100 entities/32 fields/256 KiB rows per projection and
+64 values per unique array. Event JSON is bounded to 4 KiB, depth 12/512 nodes;
+configured literals/defaults to 2 KiB. Definitions: 128 KiB; projects: 2 MiB;
+event logs: 4 MiB; UI downloads: 16 MiB. All controls and feedback support English
+and Russian. No editor, authentication, request history or persistent storage is
+changed.
 
 ## Designing feature flags and progressive rollouts
 

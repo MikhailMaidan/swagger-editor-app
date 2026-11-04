@@ -62,6 +62,7 @@ import { SyncPanel } from "@/components/sync-panel";
 import { SloPanel } from "@/components/slo-panel";
 import { QueuePanel } from "@/components/queue-panel";
 import { FlagPanel } from "@/components/flag-panel";
+import { EventStorePanel } from "@/components/event-store-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1956,6 +1957,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-event-store",
+          label: "eventStore.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-flags",
           label: "flag.title",
         },
@@ -2296,6 +2302,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-event-store",
+          label: "eventStore.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-flags",
@@ -3262,6 +3273,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <FlagPanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-event-store"
+          tabIndex={-1}
+        >
+          <EventStorePanel />
         </div>
 
         <div
