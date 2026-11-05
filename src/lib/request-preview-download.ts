@@ -46,14 +46,17 @@ export function downloadRequestPreviewFile(
   const objectUrl = URL.createObjectURL(
     new Blob([content], { type: contentType }),
   );
-  const link = document.createElement("a");
-
-  link.href = objectUrl;
-  link.download = fileName;
-
   try {
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = fileName;
     link.click();
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    try {
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // Cleanup must not mask a download failure or turn success into an error.
+    }
   }
 }
