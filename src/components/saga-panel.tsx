@@ -1,5 +1,12 @@
 "use client";
-import { memo, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useI18n } from "./i18n-provider";
 import { SagaGraph, SagaTimeline } from "./saga-graph";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -269,7 +276,14 @@ export const SagaPanel = memo(function SagaPanel() {
       mounted.current = false;
     };
   }, []);
-  const dirty = source !== serializeSagaProject(project),
+  // Normalizing + pretty-printing a project (up to MAX_SAGA_PROJECT) is not
+  // cheap, and this panel re-renders on every keystroke in the JSON source
+  // and on every run progress update; `project` only changes on publish.
+  const serializedProject = useMemo(
+    () => serializeSagaProject(project),
+    [project],
+  );
+  const dirty = source !== serializedProject,
     locked = busy || dirty,
     snapshot = runtime.snapshot,
     summary = runtime.machine.summary(),

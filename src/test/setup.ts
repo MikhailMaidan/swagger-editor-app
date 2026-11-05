@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
+import { configure } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, vi } from "vitest";
+
+// waitFor/findBy* resolve as soon as their condition holds, so this only
+// matters for slow renders: under full-suite CPU contention the 1s default
+// let some heavy workspace assertions time out before the UI caught up.
+configure({ asyncUtilTimeout: 5000 });
 
 // jsdom does not implement requestAnimationFrame; components that throttle
 // scroll/resize handlers through it need this to run in tests at all.

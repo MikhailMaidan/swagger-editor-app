@@ -173,7 +173,8 @@ export function eventStoreReport(runs: EventStoreRun[], details = false) {
 }
 function csvCell(v: unknown) {
   let s = String(v ?? "");
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  // Only strings can carry a formula payload; numbers must stay numeric.
+  if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return '"' + s.replace(/"/g, '""') + '"';
 }
 export function eventStoreCsv(r: EventStoreRun) {

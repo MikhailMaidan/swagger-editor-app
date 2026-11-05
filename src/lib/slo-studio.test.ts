@@ -236,4 +236,16 @@ describe("SLO traffic, portable projects and regression replay", () => {
       storage.mockRestore();
     }
   });
+  it("keeps negative numbers numeric in the timeline CSV once the budget is overspent", async () => {
+    const [run] = await runSloMatrix(demoSloProject(), "ongoing");
+    run.points[0].window.remainingBad = -25;
+    run.points[0].window.remainingPercent = -12.5;
+    run.objectiveId = "=formula";
+    const firstRow = sloTimelineCsv(run).split("\r\n")[1];
+    expect(firstRow).toContain('"-25"');
+    expect(firstRow).toContain('"-12.5"');
+    expect(firstRow).not.toContain("'-");
+    // String cells are still guarded against formula injection.
+    expect(firstRow).toContain('"\'=formula"');
+  });
 });

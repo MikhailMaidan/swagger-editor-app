@@ -30,5 +30,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
+    // The full-workspace integration tests render the entire editor and
+    // take ~5-7s each even in isolation, so the 5s default failed them
+    // spuriously (and far more often when the whole suite runs in parallel).
+    // A real hang still fails, just later.
+    testTimeout: 30_000,
   },
 });

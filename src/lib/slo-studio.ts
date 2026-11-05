@@ -173,7 +173,10 @@ export function sloRunReport(runs: SloRun[], details = false) {
 }
 function csvCell(value: unknown): string {
   let s = String(value ?? "");
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  // Only strings can carry a formula payload. Guarding numbers too would turn
+  // a negative value (e.g. remainingBad once the budget is overspent) into the
+  // text "'-25", breaking sums and charts in the exported spreadsheet.
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return '"' + s.replace(/"/g, '""') + '"';
 }
 export function sloTimelineCsv(run: SloRun): string {

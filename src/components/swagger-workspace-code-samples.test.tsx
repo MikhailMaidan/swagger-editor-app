@@ -88,7 +88,5 @@ describe("workspace request code languages", () => {
         Reflect.deleteProperty(navigator, "clipboard");
       }
     }
-    // Renders the complete workspace, which can exceed the default timeout
-    // when the whole suite runs in parallel.
-  }, 10_000);
+  });
 });

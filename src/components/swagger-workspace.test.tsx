@@ -701,7 +701,7 @@ paths:
     expect(getPreview()).toHaveTextContent(
       "https://jsonplaceholder.typicode.com/users/",
     );
-  }, 10_000);
+  });
 
   it("applies a persisted request environment to previews and Try It Out", async () => {
     const user = userEvent.setup();
