@@ -7,13 +7,21 @@ import {
 // downloads with its own extension and content type.
 export type RequestPreviewFormat = RequestCodeFormat;
 
-function slugifyEndpointPart(value: string, fallback: string) {
+const MAX_FILE_NAME_LENGTH = 200;
+
+function slugifyEndpointPart(
+  value: string,
+  fallback: string,
+  maxLength: number,
+) {
   return (
     value
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || fallback
+      .replace(/^-+|-+$/g, "")
+      .slice(0, maxLength)
+      .replace(/-+$/g, "") || fallback
   );
 }
 
@@ -23,12 +31,18 @@ export function getRequestPreviewDownloadMetadata(
   path: string,
 ) {
   const { contentType, extension } = REQUEST_CODE_FORMATS[format];
-  const normalizedMethod = slugifyEndpointPart(method, "request");
-  const normalizedPath = slugifyEndpointPart(path, "root");
+  const normalizedMethod = slugifyEndpointPart(method, "request", 32);
+  const prefix = `rsswag-${normalizedMethod}-`;
+  const suffix = `.${extension}`;
+  const normalizedPath = slugifyEndpointPart(
+    path,
+    "root",
+    MAX_FILE_NAME_LENGTH - prefix.length - suffix.length,
+  );
 
   return {
     contentType,
-    fileName: `rsswag-${normalizedMethod}-${normalizedPath}.${extension}`,
+    fileName: `${prefix}${normalizedPath}${suffix}`,
   };
 }
 

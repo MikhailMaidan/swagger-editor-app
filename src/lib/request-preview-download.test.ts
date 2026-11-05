@@ -27,6 +27,30 @@ describe("request preview download helpers", () => {
       fileName: "rsswag-request-root.http",
     });
   });
+
+  it("bounds long endpoint filenames while preserving the method and extension", () => {
+    const metadata = getRequestPreviewDownloadMetadata(
+      "http",
+      "GET",
+      "/segment".repeat(100),
+    );
+    expect(metadata.fileName.length).toBeLessThanOrEqual(200);
+    expect(metadata.fileName).toMatch(/^rsswag-get-segment/);
+    expect(metadata.fileName).toMatch(/\.http$/);
+    expect(metadata.fileName).not.toMatch(/-\./);
+    expect(metadata.contentType).toBe("text/plain;charset=utf-8");
+  });
+
+  it("keeps the endpoint path readable even with an excessively long custom method", () => {
+    const metadata = getRequestPreviewDownloadMetadata(
+      "fetch",
+      "CUSTOM-".repeat(100),
+      "/items",
+    );
+    expect(metadata.fileName.length).toBeLessThanOrEqual(200);
+    expect(metadata.fileName).toMatch(/^rsswag-custom-/);
+    expect(metadata.fileName).toMatch(/-items\.js$/);
+  });
 });
 
 describe("request preview download cleanup", () => {
