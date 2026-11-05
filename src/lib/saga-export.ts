@@ -29,6 +29,7 @@ const runs = project.scenarios.map((scenario) => {
   return { scenarioId: scenario.id, checked, passed, error, summary };
 });
 console.log(JSON.stringify({ kind: "rsswag-saga-report", version: 1, runs }, null, 2));
-if (typeof process !== "undefined") process.exitCode = runs.every((r) => r.passed) ? 0 : 1;
+if (runs.length === 0) console.error("No saga scenarios to run.");
+if (typeof process !== "undefined") process.exitCode = runs.length > 0 && runs.every((r) => r.passed) ? 0 : 1;
 `;
 }

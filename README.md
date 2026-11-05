@@ -330,7 +330,9 @@ delivery guarantee.
 
 **Download Node saga regression runner** embeds the saved scenarios, executes them
 with the same engine, writes a value-free JSON report to stdout, and exits 0 only
-when every case has expectations and passes. Run it with
+when at least one case exists and every case has expectations and passes. Empty
+suites exit 1 with a diagnostic on stderr and retain a valid JSON report on
+stdout. Run it with
 `node saga-regressions.mjs`. Browser and exported runtimes are tested for parity,
 including seeded schedules. The portable source is generated at development time
 from the TypeScript model and scheduler; regenerate with

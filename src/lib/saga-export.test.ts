@@ -97,6 +97,24 @@ describe("portable saga simulator and Node regression runner", () => {
     ).toThrow("command");
     expect(out.snapshot()).toEqual(before);
   });
+  it("fails an exported empty suite with a clear diagnostic and a valid JSON report", () => {
+    const p = emptySagaProject();
+    p.scenarios = [];
+    const result = spawnSync(process.execPath, ["--input-type=module"], {
+      input: generateSagaRunner(p),
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 10000,
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("No saga scenarios to run.");
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      kind: "rsswag-saga-report",
+      version: 1,
+      runs: [],
+    });
+  });
   it("runs the exported Node suite with matching value-free results and a failing exit status for regressions or unchecked cases", async () => {
     const p = demoSagaProject(),
       native = await runSagaScenarios(p);
