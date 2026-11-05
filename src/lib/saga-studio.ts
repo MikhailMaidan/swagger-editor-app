@@ -221,6 +221,7 @@ export function sagaCsv(runs: SagaRun[]) {
       "retries",
       "uncertain",
       "uncompensated",
+      "error",
     ],
     ...runs.map((r) => [
       r.scenarioId,
@@ -231,6 +232,7 @@ export function sagaCsv(runs: SagaRun[]) {
       r.summary.metrics.retries,
       r.summary.uncertain,
       r.summary.uncompensated,
+      r.error ?? "",
     ]),
   ]
     .map((row) => row.map(cell).join(","))

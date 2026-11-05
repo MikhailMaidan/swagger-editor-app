@@ -67,6 +67,12 @@ describe("saga projects, regressions and reports", () => {
     const runs = await runSagaScenarios(p);
     expect(runs).toHaveLength(9);
     expect(runs[4]).toMatchObject({ error: "command", passed: false });
+    const [header, ...rows] = sagaCsv(runs).split("\r\n");
+    expect(header).toBe(
+      '"scenario","checked","passed","status","timeMs","retries","uncertain","uncompensated","error"',
+    );
+    expect(rows[4]).toMatch(/,"command"$/);
+    expect(rows[0]).toMatch(/,""$/);
     await expect(replaySaga(p.definition, p.scenarios[4])).rejects.toThrow(
       "command",
     );

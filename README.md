@@ -303,6 +303,8 @@ be handled accordingly. JSON reports and spreadsheet-safe CSV summaries omit
 inputs, outputs, bindings, fixtures, and source. Optional detailed reports add
 only value-free command summaries and decision journals. Reports retain scenario
 and step identifiers, statuses, counts, and reason codes.
+CSV summaries append an `error` column with the replay command error code, or an
+empty cell when no command failed; existing summary columns retain their order.
 
 ### Standalone exports
 
