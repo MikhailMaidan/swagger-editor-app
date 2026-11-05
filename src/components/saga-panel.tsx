@@ -684,10 +684,7 @@ export const SagaPanel = memo(function SagaPanel() {
               <Select
                 label={t("saga.step")}
                 value={step.id}
-                onChange={(id) => {
-                  setStepId(id);
-                  setRevision((n) => n + 1);
-                }}
+                onChange={setStepId}
               >
                 {project.definition.steps.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -764,10 +761,7 @@ export const SagaPanel = memo(function SagaPanel() {
               definition={project.definition}
               snapshot={snapshot}
               selected={step.id}
-              onSelect={(id) => {
-                setStepId(id);
-                setRevision((n) => n + 1);
-              }}
+              onSelect={setStepId}
             />
             <section className="space-y-3" aria-label={t("saga.playground")}>
               <h3 className="text-sm font-bold">{t("saga.playground")}</h3>

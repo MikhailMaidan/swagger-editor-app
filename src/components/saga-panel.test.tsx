@@ -176,6 +176,35 @@ describe("API saga and compensation studio", () => {
     click("saga.newCase");
     expect(exportedProject().scenarios.at(-1)!.expect).toBe(null);
   });
+  it("preserves unstaged builder edits when reselecting the current step and resets them when switching steps", async () => {
+    await setup(true);
+    fireEvent.click(
+      screen.getByText(en["saga.builder"], { selector: "summary" }),
+    );
+    change("saga.stepName", "Unstaged order name");
+    change("saga.bindings", '{"customer":{"from":"literal","value":"draft"}}');
+    const steps = within(screen.getByRole("group", { name: en["saga.steps"] }));
+    fireEvent.click(steps.getByRole("button", { name: "order: Create order" }));
+    expect(field("saga.stepName")).toHaveValue("Unstaged order name");
+    expect(field("saga.bindings")).toHaveValue(
+      '{"customer":{"from":"literal","value":"draft"}}',
+    );
+    expect(exportedProject().definition.steps[0].name).toBe("Create order");
+
+    change("saga.step", "payment");
+    expect(field("saga.stepName")).toHaveValue("Authorize payment");
+    fireEvent.click(
+      screen.getByText(en["saga.builder"], { selector: "summary" }),
+    );
+    change("saga.timeout", "777");
+    fireEvent.click(
+      steps.getByRole("button", { name: "payment: Authorize payment" }),
+    );
+    expect(field("saga.timeout")).toHaveValue("777");
+    click("saga.stage");
+    click("saga.save");
+    expect(exportedProject().definition.steps[2].forward.timeoutMs).toBe(777);
+  });
   it("stages builder edits atomically, aligns fixtures, clears stale checks, and protects pending source", async () => {
     await setup(true);
     fireEvent.click(
