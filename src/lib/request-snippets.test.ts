@@ -110,6 +110,34 @@ describe("request snippets", () => {
     );
   });
 
+  it("sends top-level JSON null as raw data instead of the absent Requests JSON argument", () => {
+    const code = createRequestCode("python", {
+      ...jsonRequest,
+      requestBody: "null",
+    });
+    expect(code).toContain('payload = "null"');
+    expect(code).toContain(
+      'response = requests.request("POST", url, headers=headers, data=payload)',
+    );
+    expect(code).toContain('"Content-Type": "application/json"');
+    expect(code).not.toContain("json=payload");
+  });
+
+  it.each([
+    ["false", "False"],
+    ["0", "0"],
+    ['""', '""'],
+  ])("keeps the Python JSON argument for the scalar %s", (body, literal) => {
+    const code = createRequestCode("python", {
+      ...jsonRequest,
+      requestBody: body,
+    });
+    expect(code).toContain(`payload = ${literal}`);
+    expect(code).toContain(
+      'response = requests.request("POST", url, headers=headers, json=payload)',
+    );
+  });
+
   it("generates axios and Go requests", () => {
     expect(createRequestCode("javascript-axios", jsonRequest)).toBe(
       [

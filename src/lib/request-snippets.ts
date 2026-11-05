@@ -381,6 +381,8 @@ function toPythonLiteral(value: unknown, indent = ""): string {
 
 function createPythonSnippet(request: SnippetRequest) {
   const json = readJsonBody(request);
+  // Requests treats json=None as an absent argument, so JSON null needs data=.
+  const useJson = json !== undefined && json.value !== null;
   const lines = ["import requests", "", `url = ${quoteJsonStyle(request.url)}`];
   const args = [quoteJsonStyle(request.method), "url"];
 
@@ -398,9 +400,9 @@ function createPythonSnippet(request: SnippetRequest) {
 
   if (request.body !== null) {
     lines.push(
-      `payload = ${json ? toPythonLiteral(json.value) : quoteJsonStyle(request.body)}`,
+      `payload = ${useJson ? toPythonLiteral(json.value) : quoteJsonStyle(request.body)}`,
     );
-    args.push(json ? "json=payload" : "data=payload");
+    args.push(useJson ? "json=payload" : "data=payload");
   }
 
   lines.push(
