@@ -69,6 +69,52 @@ const download = () =>
   screen.getByRole("button", { name: "Download response" });
 
 describe("endpoint response downloads", () => {
+  it.each([
+    ["Application/YAML; charset=utf-8", "name: Ada\n", "yaml"],
+    ["application/x-ndjson; charset=utf-8", '{"id":1}\n{"id":2}\n', "ndjson"],
+    ["application/vnd.oai.openapi+yaml", "openapi: 3.1.0\n", "yaml"],
+  ])(
+    "downloads %s with its matching extension and original bytes",
+    async (contentType, body, extension) => {
+      const user = userEvent.setup();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        Response.json({
+          body,
+          status: "200",
+          headers: { "content-type": contentType },
+          durationMs: 1,
+          requestSize: 0,
+          responseSize: body.length,
+          url: "https://example.test/item",
+          errorDetails: null,
+        }),
+      );
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
+      render(
+        <EndpointCard
+          endpoint={endpoint}
+          canSaveHistory={false}
+          executionMode="live"
+          mockResponseDelayMs={0}
+        />,
+      );
+      await user.click(screen.getByRole("button", { name: "Try It Out" }));
+      await screen.findByLabelText("Response body");
+      await user.click(download());
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(click.mock.contexts[0]).toMatchObject({
+        download: `rsswag-response-200.${extension}`,
+        href: "blob:response-download",
+      });
+      const blob = createObjectURL.mock.calls.at(-1)![0] as Blob;
+      expect(blob.type).toBe(contentType.toLowerCase());
+      expect(await readBlob(blob)).toBe(body);
+      expect(screen.getByText("Response download started.")).toBeVisible();
+    },
+  );
+
   it("reports unavailable or blocked downloads, preserves the response, and retries with the original bytes", async () => {
     const user = userEvent.setup();
     const body = '  {"name":"Ada"}\n';

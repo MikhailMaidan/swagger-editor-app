@@ -1,10 +1,16 @@
 const mediaTypeExtensions: Record<string, string> = {
   "application/json": "json",
+  "application/ndjson": "ndjson",
+  "application/x-ndjson": "ndjson",
+  "application/x-yaml": "yaml",
   "application/xml": "xml",
+  "application/yaml": "yaml",
   "text/csv": "csv",
   "text/html": "html",
   "text/plain": "txt",
+  "text/x-yaml": "yaml",
   "text/xml": "xml",
+  "text/yaml": "yaml",
 };
 
 function getResponseContentType(headers: Record<string, string>) {
@@ -24,6 +30,10 @@ function getResponseFileExtension(contentType: string) {
 
   if (mediaType.endsWith("+xml")) {
     return "xml";
+  }
+
+  if (mediaType.endsWith("+yaml")) {
+    return "yaml";
   }
 
   return Object.hasOwn(mediaTypeExtensions, mediaType)
