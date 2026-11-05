@@ -1,3 +1,4 @@
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { createCurlPreview } from "./openapi";
 import { getRequestPreviewDownloadMetadata } from "./request-preview-download";
@@ -149,6 +150,41 @@ describe("request snippets", () => {
     expect(
       createRequestCode("go", { ...jsonRequest, requestBody: "has `tick`" }),
     ).toContain('strings.NewReader("has `tick`")');
+  });
+
+  it("preserves special JSON and header keys when the generated Axios snippet executes", async () => {
+    const payload = JSON.parse(
+      '{"__proto__":{"inherited":true},"nested":{"__proto__":null},"items":[{"__proto__":"kept"}]}',
+    );
+    payload.text = '"__proto__": remains text';
+    const requestBody = JSON.stringify(payload);
+    const code = createRequestCode("javascript-axios", {
+      ...jsonRequest,
+      requestBody,
+      parameters: [
+        ...jsonRequest.parameters,
+        { location: "header", name: "__proto__", value: "header-value" },
+      ],
+    });
+    let sent: { data: unknown; headers: Record<string, string> } | undefined;
+    await runInNewContext(
+      `(async () => { ${code.replace('import axios from "axios";', "")} })()`,
+      {
+        axios: {
+          request: async (config: NonNullable<typeof sent>) => {
+            sent = config;
+            return { status: 200, data: null };
+          },
+        },
+        console: { log: () => {} },
+      },
+      { timeout: 1000 },
+    );
+    expect(sent).toBeDefined();
+    expect(JSON.stringify(sent!.data)).toBe(requestBody);
+    expect(Object.hasOwn(sent!.headers, "__proto__")).toBe(true);
+    expect(sent!.headers.__proto__).toBe("header-value");
+    expect(sent!.headers["Content-Type"]).toBe("application/json");
   });
 
   it("escapes language-specific interpolation and quoting", () => {

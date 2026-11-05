@@ -269,6 +269,20 @@ function quoteJsonStyle(value: string) {
   return JSON.stringify(value);
 }
 
+function quoteJavaScriptKey(value: string) {
+  return value === "__proto__"
+    ? `[${quoteJsonStyle(value)}]`
+    : quoteJsonStyle(value);
+}
+
+function toJavaScriptJsonLiteral(value: unknown) {
+  // Computed keys preserve JSON data instead of setting an object's prototype.
+  return JSON.stringify(value, null, 2).replace(
+    /^([ \t]*)"__proto__":/gm,
+    '$1["__proto__"]:',
+  );
+}
+
 function quoteBraceUnicode(value: string) {
   let result = '"';
 
@@ -415,7 +429,7 @@ function createAxiosSnippet(request: SnippetRequest) {
       "  headers: {",
       ...request.headers.map(
         ([name, value]) =>
-          `    ${quoteJsonStyle(name)}: ${quoteJsonStyle(value)},`,
+          `    ${quoteJavaScriptKey(name)}: ${quoteJsonStyle(value)},`,
       ),
       "  },",
     );
@@ -425,7 +439,7 @@ function createAxiosSnippet(request: SnippetRequest) {
     lines.push(
       `  data: ${
         json
-          ? indentLines(JSON.stringify(json.value, null, 2), "  ")
+          ? indentLines(toJavaScriptJsonLiteral(json.value), "  ")
           : quoteJsonStyle(request.body)
       },`,
     );
