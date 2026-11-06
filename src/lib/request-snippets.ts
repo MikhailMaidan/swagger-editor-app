@@ -810,7 +810,10 @@ function createHttpieSnippet(request: SnippetRequest) {
     parts.push(`--raw ${quoteShell(request.body)}`);
   }
 
-  parts.push(request.method, quoteShell(request.url));
+  const methodArgument = /^[A-Za-z0-9_-]+$/.test(request.method)
+    ? request.method
+    : quoteShell(request.method);
+  parts.push(methodArgument, quoteShell(request.url));
 
   for (const [name, value] of request.headers) {
     // HTTPie removes a header written as `Name:`; `Name;` sends it empty.

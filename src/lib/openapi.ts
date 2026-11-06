@@ -845,7 +845,13 @@ export function createCurlPreview(
   contentType = "application/json",
 ) {
   const url = buildRequestUrl(serverUrl, path, parameters);
-  const parts = [`curl -X ${method}`, `"${escapeCurlDoubleQuoted(url)}"`];
+  const methodArgument = /^[A-Za-z0-9_-]+$/.test(method)
+    ? method
+    : `"${escapeCurlDoubleQuoted(method)}"`;
+  const parts = [
+    `curl -X ${methodArgument}`,
+    `"${escapeCurlDoubleQuoted(url)}"`,
+  ];
 
   parameters
     .filter((parameter) => parameter.location === "header")

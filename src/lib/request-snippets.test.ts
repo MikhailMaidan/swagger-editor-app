@@ -319,6 +319,22 @@ describe("request snippets", () => {
     );
   });
 
+  it.each([
+    ["X$TRACE", '"X\\$TRACE"', "'X$TRACE'"],
+    ["X`TRACE`", '"X\\`TRACE\\`"', "'X`TRACE`'"],
+  ])(
+    "keeps the custom method %s literal in shell snippets",
+    (method, curlMethod, httpieMethod) => {
+      const input = { ...getRequest, method };
+      expect(createRequestCode("curl", input)).toContain(
+        `curl -X ${curlMethod} `,
+      );
+      expect(createRequestCode("httpie", input)).toContain(
+        `\n  ${httpieMethod} `,
+      );
+    },
+  );
+
   it("handles bodiless and non-standard methods", () => {
     const emptyPost = { ...jsonRequest, requestBody: "" };
 
