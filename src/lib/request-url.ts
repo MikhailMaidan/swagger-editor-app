@@ -52,12 +52,19 @@ export function buildRequestUrl(
   parameters: UrlParameter[],
 ) {
   const normalizedPath = resolvePathParameters(path, parameters);
+  const fragmentIndex = normalizedPath.indexOf("#");
+  const requestPath =
+    fragmentIndex === -1
+      ? normalizedPath
+      : normalizedPath.slice(0, fragmentIndex);
+  const fragment =
+    fragmentIndex === -1 ? "" : normalizedPath.slice(fragmentIndex);
   const query = buildQueryString(parameters);
-  const separator = normalizedPath.includes("?") ? "&" : "?";
+  const separator = requestPath.includes("?") ? "&" : "?";
 
-  return `${normalizeServerUrl(serverUrl)}${normalizedPath}${
+  return `${normalizeServerUrl(serverUrl)}${requestPath}${
     query ? `${separator}${query}` : ""
-  }`;
+  }${fragment}`;
 }
 
 export function buildCookieHeaderValue(parameters: UrlParameter[]) {

@@ -102,6 +102,39 @@ describe("request-url helpers", () => {
     ).toBe("https://api.example.com/users/42");
   });
 
+  it.each([
+    ["/users#details", "https://api.example.com/users?q=a%20b#details"],
+    [
+      "/users#details?tab=all",
+      "https://api.example.com/users?q=a%20b#details?tab=all",
+    ],
+    [
+      "/users?limit=5#details",
+      "https://api.example.com/users?limit=5&q=a%20b#details",
+    ],
+  ])(
+    "keeps added query parameters before the fragment in %s",
+    (path, expected) => {
+      const url = buildRequestUrl("https://api.example.com/", path, [
+        { location: "query", name: "q", value: "a b" },
+      ]);
+      expect(url).toBe(expected);
+      expect(new URL(url).searchParams.get("q")).toBe("a b");
+      expect(new URL(url).hash).toBe(new URL(expected).hash);
+    },
+  );
+
+  it("preserves fragments without query parameters and leaves encoded hashes in paths", () => {
+    expect(
+      buildRequestUrl("https://api.example.com", "/users#details", []),
+    ).toBe("https://api.example.com/users#details");
+    expect(
+      buildRequestUrl("https://api.example.com", "/users%23legacy", [
+        { location: "query", name: "q", value: "one" },
+      ]),
+    ).toBe("https://api.example.com/users%23legacy?q=one");
+  });
+
   it("treats an empty or whitespace-only body as not sendable", () => {
     expect(hasSendableRequestBody("POST", "")).toBe(false);
     expect(hasSendableRequestBody("POST", "   \n")).toBe(false);
