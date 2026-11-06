@@ -148,6 +148,25 @@ describe("request-url helpers", () => {
     ).toBe("https://api.example.com/users%23legacy?q=one");
   });
 
+  it.each([
+    ["/users?", "https://api.example.com/users?q=one"],
+    ["/users?limit=5&", "https://api.example.com/users?limit=5&q=one"],
+    [
+      "/users?limit=5&#details",
+      "https://api.example.com/users?limit=5&q=one#details",
+    ],
+    ["/users&", "https://api.example.com/users&?q=one"],
+    ["/users?search=why?", "https://api.example.com/users?search=why?&q=one"],
+  ])("reuses an existing query separator in %s", (path, expected) => {
+    const url = buildRequestUrl("https://api.example.com", path, [
+      { location: "query", name: "q", value: "one" },
+    ]);
+    expect(url).toBe(expected);
+    const parsed = new URL(url);
+    expect(parsed.searchParams.get("q")).toBe("one");
+    expect(parsed.search.slice(1).split("&")).not.toContain("");
+  });
+
   it("treats an empty or whitespace-only body as not sendable", () => {
     expect(hasSendableRequestBody("POST", "")).toBe(false);
     expect(hasSendableRequestBody("POST", "   \n")).toBe(false);

@@ -60,7 +60,13 @@ export function buildRequestUrl(
   const fragment =
     fragmentIndex === -1 ? "" : normalizedPath.slice(fragmentIndex);
   const query = buildQueryString(parameters);
-  const separator = requestPath.includes("?") ? "&" : "?";
+  const queryIndex = requestPath.indexOf("?");
+  const separator =
+    queryIndex === -1
+      ? "?"
+      : queryIndex === requestPath.length - 1 || requestPath.endsWith("&")
+        ? ""
+        : "&";
 
   return `${normalizeServerUrl(serverUrl)}${requestPath}${
     query ? `${separator}${query}` : ""
