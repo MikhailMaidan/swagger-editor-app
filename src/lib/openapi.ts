@@ -863,10 +863,12 @@ export function createCurlPreview(
 
   if (hasRequestBody) {
     const body = requestBody.trim() ? requestBody : "{...}";
+    // A leading @ is payload text, never a local file or stdin reference.
+    const dataOption = body.startsWith("@") ? "--data-raw" : "-d";
 
     parts.push(
       `-H "Content-Type: ${escapeCurlDoubleQuoted(contentType)}"`,
-      `-d '${body.replaceAll("'", "'\\''")}'`,
+      `${dataOption} '${body.replaceAll("'", "'\\''")}'`,
     );
   }
 

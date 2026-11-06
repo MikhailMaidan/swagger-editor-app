@@ -824,6 +824,24 @@ describe("openapi helpers", () => {
     );
   });
 
+  it.each(["@payload.txt", "@-"])(
+    "sends a cURL body of %s literally instead of reading a file or stdin",
+    (body) => {
+      const preview = createCurlPreview(
+        "POST",
+        "/echo",
+        true,
+        "https://api.example.com",
+        [],
+        body,
+        "text/plain",
+      );
+      expect(preview).toContain(`--data-raw '${body}'`);
+      expect(preview).not.toContain("\n  -d ");
+      expect(preview).toContain('-H "Content-Type: text/plain"');
+    },
+  );
+
   it("uses the endpoint's declared content type instead of always assuming JSON", () => {
     expect(
       createCurlPreview(
