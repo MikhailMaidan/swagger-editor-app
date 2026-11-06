@@ -65,6 +65,7 @@ import { FlagPanel } from "@/components/flag-panel";
 import { EventStorePanel } from "@/components/event-store-panel";
 import { SagaPanel } from "@/components/saga-panel";
 import { DataQueryPanel } from "@/components/data-query-panel";
+import { ConsistencyPanel } from "@/components/consistency-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1959,6 +1960,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-consistency",
+          label: "consistency.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-data-query",
           label: "dataQuery.title",
         },
@@ -2314,6 +2320,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-consistency",
+          label: "consistency.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-data-query",
@@ -3319,6 +3330,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <DataQueryPanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-consistency"
+          tabIndex={-1}
+        >
+          <ConsistencyPanel />
         </div>
 
         <div
