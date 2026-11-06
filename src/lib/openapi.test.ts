@@ -854,6 +854,20 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("keeps dollar-prefixed endpoint paths literal in cURL previews", () => {
+    expect(createCurlPreview("GET", "/odata/$metadata", false)).toBe(
+      'curl -X GET \\\n  "https://api.example.com/odata/\\$metadata"',
+    );
+  });
+
+  it("keeps dollar-prefixed cookie names literal in cURL previews", () => {
+    expect(
+      createCurlPreview("GET", "/users", false, "https://api.example.com", [
+        { location: "cookie", name: "$session", value: "abc 123" },
+      ]),
+    ).toContain('-H "Cookie: \\$session=abc%20123"');
+  });
+
   it("includes cookie parameters in cURL previews, matching the server-side request", () => {
     expect(
       createCurlPreview(

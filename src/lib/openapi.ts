@@ -827,7 +827,7 @@ export function selectDefaultResponse(responses: ResponseSummary[]) {
 }
 
 // Backslash, double quote, `$`, and backtick all have special meaning inside
-// a double-quoted shell string; left raw, a header value containing any of
+// a double-quoted shell string; left raw, a URL or header containing any of
 // them (e.g. `say "hi"`) produces a cURL command with an unterminated quote
 // or, worse, one that runs `$(...)`/backtick command substitution if pasted
 // into a real shell.
@@ -845,7 +845,7 @@ export function createCurlPreview(
   contentType = "application/json",
 ) {
   const url = buildRequestUrl(serverUrl, path, parameters);
-  const parts = [`curl -X ${method}`, `"${url}"`];
+  const parts = [`curl -X ${method}`, `"${escapeCurlDoubleQuoted(url)}"`];
 
   parameters
     .filter((parameter) => parameter.location === "header")
@@ -858,7 +858,7 @@ export function createCurlPreview(
   const cookieHeader = buildCookieHeaderValue(parameters);
 
   if (cookieHeader) {
-    parts.push(`-H "Cookie: ${cookieHeader}"`);
+    parts.push(`-H "Cookie: ${escapeCurlDoubleQuoted(cookieHeader)}"`);
   }
 
   if (hasRequestBody) {
