@@ -1,3 +1,4 @@
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_OPENAPI_SCHEMA,
@@ -928,6 +929,54 @@ describe("openapi helpers", () => {
   },
   "body": "{\\"name\\":\\"Mikhail\\"}"
 });`);
+  });
+
+  it("preserves prototype-named headers when generated Fetch code executes", () => {
+    const body = " \trequest text\n ";
+    const code = createFetchPreview(
+      "POST",
+      "/echo",
+      true,
+      "https://api.example.com",
+      [
+        { location: "header", name: "__proto__", value: "literal-header" },
+        { location: "header", name: "constructor", value: "another-header" },
+      ],
+      body,
+      "text/plain",
+    );
+    const calls: { url: string; options: RequestInit }[] = [];
+    runInNewContext(
+      code,
+      {
+        fetch: (url: string, options: RequestInit) => {
+          calls.push({ url, options });
+        },
+      },
+      { timeout: 1000 },
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe("https://api.example.com/echo");
+    expect(calls[0].options.body).toBe(body);
+    const headers = new Headers(calls[0].options.headers);
+    expect(headers.get("__proto__")).toBe("literal-header");
+    expect(headers.get("constructor")).toBe("another-header");
+    expect(headers.get("content-type")).toBe("text/plain");
+  });
+
+  it("includes prototype-named headers in raw HTTP previews", () => {
+    const preview = createHttpPreview(
+      "GET",
+      "/users",
+      false,
+      "https://api.example.com",
+      [
+        { location: "header", name: "__proto__", value: "literal-header" },
+        { location: "header", name: "toString", value: "another-header" },
+      ],
+    );
+    expect(preview).toContain("\n__proto__: literal-header");
+    expect(preview).toContain("\ntoString: another-header");
   });
 
   it("omits fetch headers and body when they are not needed", () => {

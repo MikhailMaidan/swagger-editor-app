@@ -896,7 +896,10 @@ export function createFetchPreview(
   };
 
   if (Object.keys(headers).length > 0) {
-    options.headers = headers;
+    // Header pairs avoid special prototype-key handling in JavaScript and Headers.
+    options.headers = Object.hasOwn(headers, "__proto__")
+      ? Object.entries(headers)
+      : headers;
   }
 
   if (hasRequestBody) {
@@ -911,7 +914,7 @@ function createRequestPreviewHeaders(
   hasRequestBody: boolean,
   contentType: string,
 ) {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = Object.create(null);
 
   parameters
     .filter((parameter) => parameter.location === "header")
