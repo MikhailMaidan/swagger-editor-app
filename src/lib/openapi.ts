@@ -862,7 +862,7 @@ export function createCurlPreview(
   }
 
   if (hasRequestBody) {
-    const body = requestBody.trim() || "{...}";
+    const body = requestBody.trim() ? requestBody : "{...}";
 
     parts.push(
       `-H "Content-Type: ${escapeCurlDoubleQuoted(contentType)}"`,
@@ -898,7 +898,7 @@ export function createFetchPreview(
   }
 
   if (hasRequestBody) {
-    options.body = requestBody.trim() || "{...}";
+    options.body = requestBody.trim() ? requestBody : "{...}";
   }
 
   return `fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});`;
@@ -957,7 +957,7 @@ export function createHttpPreview(
   });
 
   if (hasRequestBody) {
-    lines.push("", requestBody.trim() || "{...}");
+    lines.push("", requestBody.trim() ? requestBody : "{...}");
   }
 
   return lines.join("\n");

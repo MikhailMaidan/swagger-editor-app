@@ -235,7 +235,7 @@ function createSnippetRequest(input: RequestCodeInput): SnippetRequest {
   }
 
   return {
-    body: hasBody ? input.requestBody.trim() : null,
+    body: hasBody ? input.requestBody : null,
     contentType: hasBody ? input.contentType : "",
     headers,
     method,

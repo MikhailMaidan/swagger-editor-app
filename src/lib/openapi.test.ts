@@ -770,6 +770,41 @@ describe("openapi helpers", () => {
     );
   });
 
+  it("preserves leading, trailing, and line-ending whitespace in request preview bodies", () => {
+    const body = " \tfirst line\r\nsecond line\n ";
+    const args: Parameters<typeof createCurlPreview> = [
+      "POST",
+      "/echo",
+      true,
+      "https://api.example.com",
+      [],
+      body,
+      "text/plain",
+    ];
+    expect(createCurlPreview(...args)).toContain(`-d '${body}'`);
+    expect(createFetchPreview(...args)).toContain(
+      `"body": ${JSON.stringify(body)}`,
+    );
+    expect(createHttpPreview(...args).endsWith(`\n\n${body}`)).toBe(true);
+  });
+
+  it.each(["", " \t\r\n"])(
+    "retains request-body placeholders for blank preview input %j",
+    (body) => {
+      const args: Parameters<typeof createCurlPreview> = [
+        "POST",
+        "/echo",
+        true,
+        "https://api.example.com",
+        [],
+        body,
+      ];
+      expect(createCurlPreview(...args)).toContain("-d '{...}'");
+      expect(createFetchPreview(...args)).toContain('"body": "{...}"');
+      expect(createHttpPreview(...args).endsWith("\n\n{...}")).toBe(true);
+    },
+  );
+
   it("creates cURL previews from current request values", () => {
     expect(
       createCurlPreview(

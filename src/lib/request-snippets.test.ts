@@ -138,6 +138,22 @@ describe("request snippets", () => {
     );
   });
 
+  it("preserves raw request body whitespace across generated client snippets", () => {
+    const body = " \tfirst line\r\nsecond line\n ";
+    const input = {
+      ...jsonRequest,
+      contentType: "text/plain",
+      requestBody: body,
+    };
+    expect(createRequestCode("javascript-axios", input)).toContain(
+      `data: ${JSON.stringify(body)},`,
+    );
+    expect(createRequestCode("go", input)).toContain(
+      `strings.NewReader(${JSON.stringify(body)})`,
+    );
+    expect(createRequestCode("httpie", input)).toContain(`--raw '${body}'`);
+  });
+
   it("generates axios and Go requests", () => {
     expect(createRequestCode("javascript-axios", jsonRequest)).toBe(
       [
