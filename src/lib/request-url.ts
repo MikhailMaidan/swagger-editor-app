@@ -7,7 +7,7 @@ export type UrlParameter = {
 };
 
 export function normalizeServerUrl(serverUrl: string) {
-  return serverUrl.replace(/\/+$/, "");
+  return serverUrl.trim().replace(/\/+$/, "");
 }
 
 export function normalizePath(path: string) {

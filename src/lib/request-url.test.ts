@@ -29,6 +29,19 @@ describe("request-url helpers", () => {
     );
   });
 
+  it("trims surrounding server URL whitespace before joining endpoint paths", () => {
+    const serverUrl = " \thttps://api.example.com/v1// \r\n";
+    expect(normalizeServerUrl(serverUrl)).toBe("https://api.example.com/v1");
+    const url = buildRequestUrl(serverUrl, "/users/{id}", [
+      { location: "path", name: "id", value: " user " },
+      { location: "query", name: "search", value: "Alex Smith" },
+    ]);
+    expect(url).toBe(
+      "https://api.example.com/v1/users/%20user%20?search=Alex%20Smith",
+    );
+    expect(new URL(url).searchParams.get("search")).toBe("Alex Smith");
+  });
+
   it("ensures a path always starts with a slash", () => {
     expect(normalizePath("users")).toBe("/users");
     expect(normalizePath("/users")).toBe("/users");
