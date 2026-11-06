@@ -758,7 +758,12 @@ function createKotlinSnippet(request: SnippetRequest) {
 }
 
 function createPowerShellSnippet(request: SnippetRequest) {
-  const headers = withoutContentType(request.headers);
+  // PowerShell rejects duplicate hashtable keys, including casing variants.
+  const headersByName = new Map<string, [string, string]>();
+  for (const header of withoutContentType(request.headers)) {
+    headersByName.set(header[0].toLowerCase(), header);
+  }
+  const headers = [...headersByName.values()];
   const lines: string[] = [];
   const args = [
     `-Uri ${quotePowerShell(request.url)}`,

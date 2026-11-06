@@ -269,6 +269,34 @@ describe("request snippets", () => {
     );
   });
 
+  it.each(["X-Trace", "x-trace"])(
+    "keeps the last PowerShell header value when X-Trace is repeated as %s",
+    (lastName) => {
+      const code = createRequestCode("powershell", {
+        ...getRequest,
+        parameters: [
+          { location: "header", name: "X-Trace", value: "old-value" },
+          { location: "header", name: lastName, value: "new-value" },
+        ],
+      });
+      expect(code).toContain(`'${lastName}' = 'new-value'`);
+      expect(code).not.toContain("old-value");
+      expect(code).toContain("-Headers $headers");
+    },
+  );
+
+  it("replaces a manual PowerShell Cookie header with the generated cookie parameters", () => {
+    const code = createRequestCode("powershell", {
+      ...getRequest,
+      parameters: [
+        { location: "header", name: "cookie", value: "stale=old" },
+        { location: "cookie", name: "session", value: "a b" },
+      ],
+    });
+    expect(code).toContain("'Cookie' = 'session=a%20b'");
+    expect(code).not.toContain("stale=old");
+  });
+
   it("passes content types the way each client expects", () => {
     const csharp = createRequestCode("csharp", jsonRequest);
 
