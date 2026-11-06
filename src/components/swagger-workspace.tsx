@@ -64,6 +64,7 @@ import { QueuePanel } from "@/components/queue-panel";
 import { FlagPanel } from "@/components/flag-panel";
 import { EventStorePanel } from "@/components/event-store-panel";
 import { SagaPanel } from "@/components/saga-panel";
+import { DataQueryPanel } from "@/components/data-query-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1958,6 +1959,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-data-query",
+          label: "dataQuery.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-sagas",
           label: "saga.title",
         },
@@ -2308,6 +2314,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-data-query",
+          label: "dataQuery.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-sagas",
@@ -3300,6 +3311,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <SagaPanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-data-query"
+          tabIndex={-1}
+        >
+          <DataQueryPanel />
         </div>
 
         <div
