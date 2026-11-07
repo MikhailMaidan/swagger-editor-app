@@ -23,6 +23,67 @@ describe("clipboard helpers", () => {
   });
 
   it.each([
+    { editable: true, backward: true, copied: true },
+    { editable: true, backward: true, copied: false },
+    { editable: false, backward: false, copied: true },
+  ])(
+    "restores page selection (editable=$editable, backward=$backward, copied=$copied)",
+    async ({ editable, backward, copied }) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        document,
+        "execCommand",
+      );
+      const editor = document.createElement("div");
+      editor.contentEditable = String(editable);
+      editor.tabIndex = 0;
+      editor.textContent = "selected content";
+      document.body.appendChild(editor);
+      editor.focus();
+      const selection = document.getSelection()!;
+      const text = editor.firstChild!;
+      selection.setBaseAndExtent(
+        text,
+        backward ? 8 : 2,
+        text,
+        backward ? 2 : 8,
+      );
+
+      Object.defineProperty(document, "execCommand", {
+        configurable: true,
+        value: vi.fn(() => {
+          const fallback = document.querySelector<HTMLTextAreaElement>(
+            "[data-clipboard-fallback]",
+          )!;
+          fallback.focus();
+          selection.selectAllChildren(fallback);
+          return copied;
+        }),
+      });
+
+      try {
+        await expect(
+          writeTextToClipboard("copied text", undefined),
+        ).resolves.toBe(copied);
+        expect(document.activeElement).toBe(editor);
+        expect(selection.toString()).toBe("lected");
+        expect(selection.anchorNode).toBe(text);
+        expect(selection.anchorOffset).toBe(backward ? 8 : 2);
+        expect(selection.focusNode).toBe(text);
+        expect(selection.focusOffset).toBe(backward ? 2 : 8);
+        expect(
+          document.querySelector("[data-clipboard-fallback]"),
+        ).not.toBeInTheDocument();
+      } finally {
+        selection.removeAllRanges();
+        editor.remove();
+        if (descriptor)
+          Object.defineProperty(document, "execCommand", descriptor);
+        else Reflect.deleteProperty(document, "execCommand");
+      }
+    },
+  );
+
+  it.each([
     ["input", "forward"],
     ["input", "backward"],
     ["textarea", "forward"],

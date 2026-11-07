@@ -23,6 +23,16 @@ function writeTextWithLegacyClipboard(value: string) {
   const selectionStart = activeInput?.selectionStart ?? null;
   const selectionEnd = activeInput?.selectionEnd ?? null;
   const selectionDirection = activeInput?.selectionDirection ?? undefined;
+  const selection = activeInput ? null : document.getSelection();
+  const selectedRanges = selection
+    ? Array.from({ length: selection.rangeCount }, (_, index) =>
+        selection.getRangeAt(index).cloneRange(),
+      )
+    : [];
+  const backward =
+    selectedRanges.length === 1 &&
+    selection?.anchorNode === selectedRanges[0].endContainer &&
+    selection.anchorOffset === selectedRanges[0].endOffset;
   const textarea = document.createElement("textarea");
   let copied = false;
 
@@ -42,6 +52,16 @@ function writeTextWithLegacyClipboard(value: string) {
   } finally {
     textarea.remove();
     activeElement?.focus();
+
+    if (selection) {
+      selection.removeAllRanges();
+      for (const range of selectedRanges) selection.addRange(range);
+      if (backward && typeof selection.extend === "function") {
+        const range = selectedRanges[0];
+        selection.collapse(range.endContainer, range.endOffset);
+        selection.extend(range.startContainer, range.startOffset);
+      }
+    }
 
     if (activeInput && selectionStart !== null && selectionEnd !== null) {
       activeInput.setSelectionRange(
