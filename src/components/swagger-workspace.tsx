@@ -66,6 +66,7 @@ import { EventStorePanel } from "@/components/event-store-panel";
 import { SagaPanel } from "@/components/saga-panel";
 import { DataQueryPanel } from "@/components/data-query-panel";
 import { ConsistencyPanel } from "@/components/consistency-panel";
+import { DecisionPanel } from "@/components/decision-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1960,6 +1961,11 @@ export function SwaggerWorkspace({
     ? [
         {
           group: "testing",
+          id: "workspace-tool-decisions",
+          label: "decision.title",
+        },
+        {
+          group: "testing",
           id: "workspace-tool-consistency",
           label: "consistency.title",
         },
@@ -2320,6 +2326,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-decisions",
+          label: "decision.title",
+        },
         {
           group: "testing",
           id: "workspace-tool-consistency",
@@ -3338,6 +3349,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <ConsistencyPanel />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-decisions"
+          tabIndex={-1}
+        >
+          <DecisionPanel />
         </div>
 
         <div

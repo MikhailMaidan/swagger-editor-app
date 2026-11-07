@@ -22,6 +22,7 @@ import { eventStoreTranslations } from "./event-store-translations";
 import { sagaTranslations } from "./saga-translations";
 import { dataQueryTranslations } from "./data-query-translations";
 import { consistencyTranslations } from "./consistency-translations";
+import { decisionTranslations } from "./decision-translations";
 
 export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
 export const LANGUAGE_COOKIE = "rsswagger-language";
@@ -52,6 +53,7 @@ export const translations = {
     ...sagaTranslations.en,
     ...dataQueryTranslations.en,
     ...consistencyTranslations.en,
+    ...decisionTranslations.en,
     "jwtStudio.title": "JWT and signing-key studio",
     "jwtStudio.description":
       "Decode compact JWTs, verify signatures and claim policies, generate signing keys and test tokens, and maintain reusable verification cases entirely in this tab.",
@@ -5337,6 +5339,7 @@ export const translations = {
     ...sagaTranslations.ru,
     ...dataQueryTranslations.ru,
     ...consistencyTranslations.ru,
+    ...decisionTranslations.ru,
     "jwtStudio.title": "Студия JWT и ключей подписи",
     "jwtStudio.description":
       "Декодируйте JWT, проверяйте подписи и политики утверждений, создавайте ключи и тестовые токены и сохраняйте повторяемые проверки полностью в этой вкладке.",
