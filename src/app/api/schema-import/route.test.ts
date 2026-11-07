@@ -227,6 +227,71 @@ describe("schema import route", () => {
     }
   });
 
+  it.each(["rejects", "stalls"])(
+    "preserves oversized download errors when cancellation %s",
+    async (mode) => {
+      const cancel = vi.fn(() =>
+        mode === "rejects"
+          ? Promise.reject(new Error("Cleanup failed"))
+          : new Promise<void>(() => {}),
+      );
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array(MAX_SCHEMA_IMPORT_SIZE_BYTES + 1));
+        },
+        cancel,
+      });
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(body));
+      try {
+        const response = await POST(
+          createImportRequest("https://docs.example.com/large.yaml"),
+        );
+        expect(response.status).toBe(413);
+        await expect(response.json()).resolves.toEqual({ error: "too-large" });
+        expect(cancel).toHaveBeenCalledOnce();
+        expect(body.locked).toBe(false);
+      } finally {
+        fetchMock.mockRestore();
+      }
+    },
+  );
+
+  it.each(["success", "empty", "read-error"])(
+    "releases the remote body reader after %s",
+    async (scenario) => {
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          if (scenario === "read-error") {
+            controller.error(new Error("Connection lost"));
+            return;
+          }
+          controller.enqueue(
+            new TextEncoder().encode(
+              scenario === "success" ? "openapi: 3.0.0" : " ",
+            ),
+          );
+          controller.close();
+        },
+      });
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(body));
+      try {
+        const response = await POST(
+          createImportRequest("https://docs.example.com/schema.yaml"),
+        );
+        expect(response.status).toBe(
+          scenario === "success" ? 200 : scenario === "empty" ? 422 : 502,
+        );
+        expect(body.locked).toBe(false);
+      } finally {
+        fetchMock.mockRestore();
+      }
+    },
+  );
+
   it("reports empty documents and remote HTTP failures", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")

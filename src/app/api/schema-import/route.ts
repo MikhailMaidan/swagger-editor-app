@@ -142,21 +142,25 @@ async function readBoundedResponseBody(response: Response) {
   const chunks: Uint8Array[] = [];
   let byteSize = 0;
 
-  while (true) {
-    const { done, value } = await reader.read();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
 
-    if (done) {
-      break;
+      if (done) {
+        break;
+      }
+
+      byteSize += value.byteLength;
+
+      if (byteSize > MAX_SCHEMA_IMPORT_SIZE_BYTES) {
+        void reader.cancel().catch(() => {});
+        throw new SchemaImportRouteError("too-large");
+      }
+
+      chunks.push(value);
     }
-
-    byteSize += value.byteLength;
-
-    if (byteSize > MAX_SCHEMA_IMPORT_SIZE_BYTES) {
-      await reader.cancel();
-      throw new SchemaImportRouteError("too-large");
-    }
-
-    chunks.push(value);
+  } finally {
+    reader.releaseLock();
   }
 
   if (byteSize === 0) {
