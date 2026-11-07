@@ -53,6 +53,7 @@ async function readDtRequest(request: Request): Promise<unknown> {
       throw new DTBodyError(400, "invalid-json");
     }
   } catch (error) {
+    void reader.cancel().catch(() => {});
     if (error instanceof DTBodyError) throw error;
     throw new DTBodyError(400, "invalid-body");
   } finally {

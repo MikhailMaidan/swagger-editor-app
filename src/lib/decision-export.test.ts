@@ -203,6 +203,38 @@ describe("standalone decision engine and service exports", () => {
     controller.abort();
     expect((await aborted).status).toBe(400);
   });
+  it.each(["local", "exported"])(
+    "cancels malformed body streams in the %s handler",
+    async (mode) => {
+      const handler =
+        mode === "local"
+          ? createDecisionHandler(demoDtProject())
+          : (
+              (await moduleFrom(generateDecisionService(demoDtProject()))) as {
+                handler: (request: Request) => Promise<Response>;
+              }
+            ).handler;
+      const cancel = vi.fn();
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(Uint8Array.of(255));
+        },
+        cancel,
+      });
+      const response = await handler(
+        new Request("https://example.test/decide", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body,
+          duplex: "half",
+        } as RequestInit),
+      );
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: "invalid-body" });
+      expect(cancel).toHaveBeenCalledOnce();
+      expect(body.locked).toBe(false);
+    },
+  );
   it("runs Node regression artifacts with useful exits and reports that omit private values", () => {
     const run = (p: DTProject) =>
       spawnSync(process.execPath, ["--input-type=module"], {
