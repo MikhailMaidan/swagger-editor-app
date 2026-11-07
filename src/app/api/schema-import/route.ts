@@ -111,6 +111,8 @@ async function fetchRemoteSchema(initialUrl: string) {
       return { response, sourceUrl: currentUrl };
     }
 
+    void response.body?.cancel().catch(() => {});
+
     if (redirectCount === MAX_REDIRECTS) {
       throw new SchemaImportRouteError("fetch-failed");
     }
@@ -128,6 +130,7 @@ async function readBoundedResponseBody(response: Response) {
     Number.isFinite(declaredLength) &&
     declaredLength > MAX_SCHEMA_IMPORT_SIZE_BYTES
   ) {
+    void response.body?.cancel().catch(() => {});
     throw new SchemaImportRouteError("too-large");
   }
 
@@ -243,6 +246,7 @@ export async function POST(request: Request) {
     const { response, sourceUrl } = await fetchRemoteSchema(url);
 
     if (!response.ok) {
+      void response.body?.cancel().catch(() => {});
       throw new SchemaImportRouteError("http-error", response.status);
     }
 

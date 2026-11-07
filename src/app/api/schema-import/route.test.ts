@@ -148,6 +148,57 @@ describe("schema import route", () => {
     }
   });
 
+  it.each(["redirect", "http-error", "too-large"])(
+    "cancels unused %s bodies without letting cleanup errors replace the result",
+    async (scenario) => {
+      const cancel = vi.fn().mockRejectedValue(new Error("Cleanup failed"));
+      const body = new ReadableStream<Uint8Array>({ cancel });
+      const headers = new Headers();
+      if (scenario === "redirect") headers.set("Location", "/actual.yaml");
+      if (scenario === "too-large")
+        headers.set("Content-Length", String(MAX_SCHEMA_IMPORT_SIZE_BYTES + 1));
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(body, {
+            status:
+              scenario === "redirect"
+                ? 302
+                : scenario === "http-error"
+                  ? 404
+                  : 200,
+            headers,
+          }),
+        )
+        .mockResolvedValueOnce(new Response("openapi: 3.0.0"));
+
+      try {
+        const response = await POST(
+          createImportRequest("https://docs.example.com/schema.yaml"),
+        );
+        expect(response.status).toBe(
+          scenario === "redirect" ? 200 : scenario === "http-error" ? 502 : 413,
+        );
+        const data = await response.json();
+        if (scenario === "redirect")
+          expect(data.sourceUrl).toBe("https://docs.example.com/actual.yaml");
+        else
+          expect(data).toEqual(
+            scenario === "http-error"
+              ? { error: "http-error", status: 404 }
+              : { error: "too-large" },
+          );
+        expect(cancel).toHaveBeenCalledOnce();
+        expect(body.locked).toBe(false);
+        expect(fetchMock).toHaveBeenCalledTimes(
+          scenario === "redirect" ? 2 : 1,
+        );
+      } finally {
+        fetchMock.mockRestore();
+      }
+    },
+  );
+
   it("rejects declared and streamed bodies above the size limit", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
