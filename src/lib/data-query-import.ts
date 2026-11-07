@@ -237,7 +237,8 @@ export function exportDqCsv(rows: DQRecord[]) {
           ? value
           : JSON.stringify(value);
     text = text.replace(/\u0000/g, "");
-    if (/^[\t\r\n ]*[=+@-]/.test(text)) text = `'${text}`;
+    if (typeof value === "string" && /^[\t\r\n ]*[=+@-]/.test(text))
+      text = `'${text}`;
     return `"${text.replace(/"/g, '""')}"`;
   };
   return [

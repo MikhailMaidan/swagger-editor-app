@@ -145,4 +145,21 @@ describe("API dataset import and export", () => {
     expect(csv).toContain('"{""id"":1}"');
     expect(csv.split("\r\n").at(-1)).toBe('"Ada","","",""');
   });
+  it("preserves negative numeric values while guarding formula-like strings and headers", () => {
+    const csv = exportDqCsv([
+      {
+        negative: -42,
+        fraction: -0.125,
+        exponent: -1e30,
+        zero: 0,
+        text: "-42",
+        formula: " \t=1+1",
+        "-heading": -7,
+      },
+    ]);
+    expect(csv.split("\r\n")).toEqual([
+      '"negative","fraction","exponent","zero","text","formula","\'-heading"',
+      '"-42","-0.125","-1e+30","0","\'-42","\' \t=1+1","-7"',
+    ]);
+  });
 });
