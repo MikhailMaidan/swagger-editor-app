@@ -20,6 +20,8 @@ async function readDtRequest(request: Request): Promise<unknown> {
     void request.body?.cancel().catch(() => {});
     throw new DTBodyError(413, "body-limit");
   }
+  if (request.bodyUsed || request.body?.locked)
+    throw new DTBodyError(400, "invalid-body");
   const reader = request.body?.getReader();
   if (!reader) throw new DTBodyError(400, "body-required");
   let reason: DTBodyError | null = null,

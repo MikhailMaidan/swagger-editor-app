@@ -176,6 +176,61 @@ describe("standalone decision engine and service exports", () => {
     } as RequestInit);
     expect((await handler(invalid)).status).toBe(400);
   });
+  it.each([
+    { mode: "local", locked: true },
+    { mode: "local", locked: false },
+    { mode: "exported", locked: true },
+    { mode: "exported", locked: false },
+  ])(
+    "rejects previously accessed request bodies ($mode, locked=$locked)",
+    async ({ mode, locked }) => {
+      const handler =
+        mode === "local"
+          ? createDecisionHandler(demoDtProject())
+          : (
+              (await moduleFrom(generateDecisionService(demoDtProject()))) as {
+                handler: (request: Request) => Promise<Response>;
+              }
+            ).handler;
+      const encode = new TextEncoder();
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encode.encode("already consumed prefix"));
+          controller.enqueue(
+            encode.encode(
+              JSON.stringify({ decisionId: "membership", context: {} }),
+            ),
+          );
+          controller.close();
+        },
+      });
+      const incoming = new Request("https://example.test/decide", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+        duplex: "half",
+      } as RequestInit);
+      const reader = body.getReader();
+      if (!locked) {
+        await reader.read();
+        reader.releaseLock();
+      }
+      try {
+        const response = await handler(incoming);
+        expect(response.status).toBe(400);
+        expect(await response.json()).toEqual({ error: "invalid-body" });
+        expect(body.locked).toBe(locked);
+        if (locked) {
+          expect(incoming.bodyUsed).toBe(false);
+          expect((await reader.read()).value).toEqual(
+            encode.encode("already consumed prefix"),
+          );
+        }
+      } finally {
+        if (locked) reader.releaseLock();
+      }
+    },
+  );
   it("terminates stalled body reads and respects aborts", async () => {
     const handler = createDecisionHandler(demoDtProject());
     vi.useFakeTimers();
