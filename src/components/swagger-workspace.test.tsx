@@ -296,6 +296,34 @@ describe("SwaggerWorkspace", () => {
     }
   });
 
+  it("leaves editor keys available to text composition", () => {
+    render(<SwaggerWorkspace />);
+    const editor = screen.getByLabelText(
+      "OpenAPI schema editor",
+    ) as HTMLTextAreaElement;
+    editor.focus();
+    editor.setSelectionRange(0, 0);
+    for (const keys of [
+      { key: "Tab" },
+      { key: "f", ctrlKey: true },
+      { key: "f", ctrlKey: true, shiftKey: true },
+      { key: "s", ctrlKey: true },
+      { key: "o", ctrlKey: true },
+      { key: "g", ctrlKey: true },
+      { key: "z", altKey: true },
+    ]) {
+      expect(fireEvent.keyDown(editor, { ...keys, isComposing: true })).toBe(
+        true,
+      );
+      expect(editor.value).toBe(DEFAULT_OPENAPI_SCHEMA);
+      expect(editor).toHaveFocus();
+    }
+    expect(fireEvent.keyDown(editor, { key: "Tab", isComposing: false })).toBe(
+      false,
+    );
+    expect(editor.value).toBe(`  ${DEFAULT_OPENAPI_SCHEMA}`);
+  });
+
   it("supports Tab and Shift+Tab indentation in the schema editor", () => {
     render(<SwaggerWorkspace />);
 
@@ -5169,6 +5197,11 @@ paths:
       expect(
         screen.getByRole("button", { name: "Cancel request" }),
       ).toHaveAttribute("aria-keyshortcuts", "Escape");
+
+      expect(
+        fireEvent.keyDown(pathInput, { key: "Escape", isComposing: true }),
+      ).toBe(true);
+      expect((requestSignal as AbortSignal | null)?.aborted).toBe(false);
 
       fireEvent.keyDown(pathInput, { key: "Escape" });
 

@@ -222,6 +222,67 @@ describe("keyboard shortcut helpers", () => {
     );
   });
 
+  it.each([
+    ["run", isRunRequestShortcut, { ctrlKey: true, key: "Enter" }],
+    ["cancel", isCancelRequestShortcut, { key: "Escape" }],
+    ["endpoint search", isEndpointSearchShortcut, { key: "/" }],
+    ["save", isSaveSchemaShortcut, { ctrlKey: true, key: "s" }],
+    [
+      "download",
+      isDownloadSchemaShortcut,
+      { ctrlKey: true, shiftKey: true, key: "s" },
+    ],
+    [
+      "format",
+      isFormatSchemaShortcut,
+      { ctrlKey: true, shiftKey: true, key: "f" },
+    ],
+    ["find", isFindInSchemaShortcut, { ctrlKey: true, key: "f" }],
+    ["import", isImportSchemaShortcut, { ctrlKey: true, key: "o" }],
+    ["go to line", isGoToLineShortcut, { ctrlKey: true, key: "g" }],
+    ["word wrap", isToggleWordWrapShortcut, { altKey: true, key: "z" }],
+  ] as const)(
+    "ignores the %s shortcut during text composition",
+    (_, matches, overrides) => {
+      expect(
+        matches(createKeyboardEvent({ ...overrides, isComposing: true })),
+      ).toBe(false);
+      expect(
+        matches(
+          createKeyboardEvent({
+            ...overrides,
+            nativeEvent: { isComposing: true },
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        matches(
+          createKeyboardEvent({
+            ...overrides,
+            isComposing: false,
+            nativeEvent: { isComposing: false },
+          }),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each(["Enter", "F3"])(
+    "ignores search navigation during composing %s presses",
+    (key) => {
+      expect(
+        getSchemaSearchNavigationDirection(
+          createKeyboardEvent({ key, isComposing: true }),
+        ),
+      ).toBeNull();
+      expect(
+        getSchemaSearchNavigationDirection(
+          createKeyboardEvent({ key, nativeEvent: { isComposing: true } }),
+        ),
+      ).toBeNull();
+    },
+  );
+
   it("recognizes controls and editable content as typing targets", () => {
     const editable = document.createElement("div");
 

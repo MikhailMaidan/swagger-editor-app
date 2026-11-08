@@ -124,6 +124,7 @@ import type {
 import {
   getSchemaSearchNavigationDirection,
   isCancelRequestShortcut,
+  isComposingKeyboardEvent,
   isDownloadSchemaShortcut,
   isEditableShortcutTarget,
   isEndpointSearchShortcut,
@@ -1735,6 +1736,8 @@ export function SwaggerWorkspace({
   }
 
   function handleEditorKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
+    if (isComposingKeyboardEvent(event)) return;
+
     if (isDownloadSchemaShortcut(event)) {
       event.preventDefault();
       handleDownloadSchema();

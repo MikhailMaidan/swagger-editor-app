@@ -1,13 +1,20 @@
 export type KeyboardShortcutEvent = {
   altKey: boolean;
   ctrlKey: boolean;
+  isComposing?: boolean;
   key: string;
   metaKey: boolean;
+  nativeEvent?: { isComposing?: boolean };
   shiftKey: boolean;
 };
 
+export function isComposingKeyboardEvent(event: KeyboardShortcutEvent) {
+  return Boolean(event.isComposing || event.nativeEvent?.isComposing);
+}
+
 export function isRunRequestShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key === "Enter" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -17,6 +24,7 @@ export function isRunRequestShortcut(event: KeyboardShortcutEvent) {
 
 export function isCancelRequestShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key === "Escape" &&
     !event.altKey &&
     !event.ctrlKey &&
@@ -27,6 +35,7 @@ export function isCancelRequestShortcut(event: KeyboardShortcutEvent) {
 
 export function isEndpointSearchShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key === "/" &&
     !event.altKey &&
     !event.ctrlKey &&
@@ -37,6 +46,7 @@ export function isEndpointSearchShortcut(event: KeyboardShortcutEvent) {
 
 export function isSaveSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "s" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -46,6 +56,7 @@ export function isSaveSchemaShortcut(event: KeyboardShortcutEvent) {
 
 export function isDownloadSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "s" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -55,6 +66,7 @@ export function isDownloadSchemaShortcut(event: KeyboardShortcutEvent) {
 
 export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "f" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -64,6 +76,7 @@ export function isFormatSchemaShortcut(event: KeyboardShortcutEvent) {
 
 export function isFindInSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "f" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -73,6 +86,7 @@ export function isFindInSchemaShortcut(event: KeyboardShortcutEvent) {
 
 export function isImportSchemaShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "o" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -85,7 +99,13 @@ export function getSchemaSearchNavigationDirection(
 ): "next" | "previous" | null {
   const isNavigationKey = event.key === "Enter" || event.key === "F3";
 
-  if (!isNavigationKey || event.altKey || event.ctrlKey || event.metaKey) {
+  if (
+    isComposingKeyboardEvent(event) ||
+    !isNavigationKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey
+  ) {
     return null;
   }
 
@@ -94,6 +114,7 @@ export function getSchemaSearchNavigationDirection(
 
 export function isGoToLineShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "g" &&
     (event.ctrlKey || event.metaKey) &&
     !event.altKey &&
@@ -103,6 +124,7 @@ export function isGoToLineShortcut(event: KeyboardShortcutEvent) {
 
 export function isToggleWordWrapShortcut(event: KeyboardShortcutEvent) {
   return (
+    !isComposingKeyboardEvent(event) &&
     event.key.toLowerCase() === "z" &&
     event.altKey &&
     !event.ctrlKey &&
