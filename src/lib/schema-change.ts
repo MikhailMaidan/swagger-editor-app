@@ -84,6 +84,16 @@ function getEndpointKey(endpoint: Pick<ComparableEndpoint, "method" | "path">) {
   return `${endpoint.method.trim().toUpperCase()} ${endpoint.path.trim()}`;
 }
 
+function getParameterKey(
+  parameter: Pick<EndpointParameter, "location" | "name">,
+) {
+  const name =
+    parameter.location === "header"
+      ? parameter.name.toLowerCase()
+      : parameter.name;
+  return `${parameter.location}:${name}`;
+}
+
 function sortStrings(values: string[]) {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))].sort(
     (first, second) => first.localeCompare(second),
@@ -171,13 +181,13 @@ function compareParameters(
 ) {
   const baselineParameters = new Map(
     baseline.parameters.map((parameter) => [
-      `${parameter.location}:${parameter.name}`,
+      getParameterKey(parameter),
       parameter,
     ]),
   );
   const currentParameters = new Map(
     current.parameters.map((parameter) => [
-      `${parameter.location}:${parameter.name}`,
+      getParameterKey(parameter),
       parameter,
     ]),
   );

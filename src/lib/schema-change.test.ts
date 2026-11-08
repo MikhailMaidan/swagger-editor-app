@@ -125,6 +125,63 @@ describe("schema change analysis", () => {
     ]);
   });
 
+  it("ignores header name casing while still detecting requirement changes", () => {
+    const parameter = {
+      description: "Request ID",
+      example: "request-42",
+      location: "header" as const,
+      name: "X-Request-ID",
+      required: false,
+    };
+    const baseline = [
+      createComparableEndpoint(createEndpoint({ parameters: [parameter] })),
+    ];
+    const current = createEndpoint({
+      parameters: [{ ...parameter, name: "x-request-id" }],
+    });
+    expect(createSchemaChangeReport(baseline, [current])).toMatchObject({
+      breakingCount: 0,
+      changes: [],
+      unchangedCount: 1,
+    });
+    const required = createSchemaChangeReport(baseline, [
+      {
+        ...current,
+        parameters: [{ ...current.parameters[0], required: true }],
+      },
+    ]);
+    expect(required.breakingCount).toBe(1);
+    expect(required.changes[0].details).toEqual([
+      {
+        code: "parameter-became-required",
+        impact: "breaking",
+        location: "header",
+        name: "X-Request-ID",
+      },
+    ]);
+  });
+
+  it.each(["query", "path", "cookie"] as const)(
+    "keeps %s parameter names case-sensitive",
+    (location) => {
+      const parameter = {
+        description: "Identifier",
+        example: "42",
+        location,
+        name: "ID",
+        required: true,
+      };
+      const report = createSchemaChangeReport(
+        [createComparableEndpoint(createEndpoint({ parameters: [parameter] }))],
+        [createEndpoint({ parameters: [{ ...parameter, name: "id" }] })],
+      );
+      expect(report.changes[0].details.map(({ code }) => code)).toEqual([
+        "parameter-removed",
+        "required-parameter-added",
+      ]);
+    },
+  );
+
   it("classifies additive and documentation changes as non-breaking", () => {
     const baselineEndpoint = createEndpoint({ secured: true });
     const report = createSchemaChangeReport(
