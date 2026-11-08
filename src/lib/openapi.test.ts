@@ -736,6 +736,39 @@ describe("openapi helpers", () => {
     });
   });
 
+  it("counts tags named after object properties without omitting or duplicating them", () => {
+    const tags = [
+      "__proto__",
+      "constructor",
+      "toString",
+      "hasOwnProperty",
+      "valueOf",
+    ];
+    const endpoints = extractEndpoints({
+      paths: {
+        "/users": {
+          get: {
+            tags: [...tags, "__proto__"],
+            responses: { "200": { description: "OK" } },
+          },
+          post: {
+            tags,
+            responses: { "201": { description: "Created" } },
+          },
+        },
+      },
+    });
+    const stats = createEndpointStats(endpoints);
+    expect(stats.tags).toHaveLength(tags.length);
+    expect(stats.tags).toEqual(expect.arrayContaining(tags));
+    for (const tag of tags) {
+      expect(Object.hasOwn(stats.tagCounts, tag)).toBe(true);
+      expect(stats.tagCounts[tag]).toBe(2);
+    }
+    expect(Object.getPrototypeOf(stats.tagCounts)).toBe(Object.prototype);
+    expect(stats.methodCounts).toEqual({ GET: 1, POST: 1 });
+  });
+
   it("selects an exact 200 response before other successful responses", () => {
     const endpoints = extractEndpoints({
       paths: {

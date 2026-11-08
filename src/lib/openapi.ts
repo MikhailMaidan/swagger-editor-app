@@ -1077,7 +1077,7 @@ export function createEndpointStats(
 
       return counts;
     },
-    {},
+    Object.create(null) as Record<string, number>,
   );
 
   return {
@@ -1089,7 +1089,7 @@ export function createEndpointStats(
       (endpoint) => endpoint.requestBodies.length > 0,
     ).length,
     securedCount: endpoints.filter((endpoint) => endpoint.secured).length,
-    tagCounts,
+    tagCounts: { ...tagCounts },
     tags: Object.keys(tagCounts).sort((first, second) =>
       first.localeCompare(second),
     ),
