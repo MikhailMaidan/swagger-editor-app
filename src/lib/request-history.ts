@@ -101,14 +101,25 @@ export function parseRequestHistory(value?: string | null) {
 function getHistoryTimestamp(record: RequestHistoryRecord) {
   const timestamp = Date.parse(record.createdAt);
 
-  return Number.isFinite(timestamp) ? timestamp : 0;
+  return Number.isFinite(timestamp) ? timestamp : null;
 }
 
-function compareNewestFirst(
+function compareHistoryDates(
   firstRecord: RequestHistoryRecord,
   secondRecord: RequestHistoryRecord,
+  direction: "newest" | "oldest" = "newest",
 ) {
-  return getHistoryTimestamp(secondRecord) - getHistoryTimestamp(firstRecord);
+  const firstTimestamp = getHistoryTimestamp(firstRecord);
+  const secondTimestamp = getHistoryTimestamp(secondRecord);
+
+  if (firstTimestamp === null || secondTimestamp === null) {
+    if (firstTimestamp === secondTimestamp) return 0;
+    return firstTimestamp === null ? 1 : -1;
+  }
+
+  return direction === "oldest"
+    ? firstTimestamp - secondTimestamp
+    : secondTimestamp - firstTimestamp;
 }
 
 function compareDuration(
@@ -127,7 +138,7 @@ function compareDuration(
 
   if (firstDuration === null || secondDuration === null) {
     if (firstDuration === secondDuration) {
-      return compareNewestFirst(firstRecord, secondRecord);
+      return compareHistoryDates(firstRecord, secondRecord);
     }
 
     return firstDuration === null ? 1 : -1;
@@ -137,7 +148,7 @@ function compareDuration(
     (direction === "fastest"
       ? firstDuration - secondDuration
       : secondDuration - firstDuration) ||
-    compareNewestFirst(firstRecord, secondRecord)
+    compareHistoryDates(firstRecord, secondRecord)
   );
 }
 
@@ -147,7 +158,7 @@ export function sortRequestHistory(
 ) {
   return [...records].sort((firstRecord, secondRecord) => {
     if (sort === "oldest") {
-      return compareNewestFirst(secondRecord, firstRecord);
+      return compareHistoryDates(firstRecord, secondRecord, "oldest");
     }
 
     if (sort === "fastest" || sort === "slowest") {
@@ -158,11 +169,11 @@ export function sortRequestHistory(
       return (
         Number(isErrorStatus(secondRecord.status)) -
           Number(isErrorStatus(firstRecord.status)) ||
-        compareNewestFirst(firstRecord, secondRecord)
+        compareHistoryDates(firstRecord, secondRecord)
       );
     }
 
-    return compareNewestFirst(firstRecord, secondRecord);
+    return compareHistoryDates(firstRecord, secondRecord);
   });
 }
 

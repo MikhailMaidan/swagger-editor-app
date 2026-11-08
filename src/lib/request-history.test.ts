@@ -318,6 +318,46 @@ describe("request history storage", () => {
     ]);
   });
 
+  it.each(["newest", "oldest", "fastest", "slowest", "failures"] as const)(
+    "keeps invalid dates last when sorting history by %s",
+    (sort) => {
+      const base: RequestHistoryRecord = {
+        id: "base",
+        createdAt: "",
+        method: "GET",
+        path: "/users",
+        url: "/users",
+        status: 200,
+        summary: "List users",
+        durationMs: 10,
+        requestSize: 0,
+        responseSize: 0,
+        errorDetails: null,
+      };
+      const records = [
+        { ...base, id: "invalid-first", createdAt: "not a date" },
+        { ...base, id: "epoch", createdAt: "1970-01-01T00:00:00.000Z" },
+        { ...base, id: "older", createdAt: "1969-12-31T23:59:59.000Z" },
+        { ...base, id: "newer", createdAt: "2026-01-01T00:00:00.000Z" },
+        { ...base, id: "invalid-last", createdAt: "" },
+      ];
+      expect(sortRequestHistory(records, sort).map(({ id }) => id)).toEqual([
+        ...(sort === "oldest"
+          ? ["older", "epoch", "newer"]
+          : ["newer", "epoch", "older"]),
+        "invalid-first",
+        "invalid-last",
+      ]);
+      expect(records.map(({ id }) => id)).toEqual([
+        "invalid-first",
+        "epoch",
+        "older",
+        "newer",
+        "invalid-last",
+      ]);
+    },
+  );
+
   it("syncs saved records to the server history route", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("{}", {
