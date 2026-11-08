@@ -140,6 +140,44 @@ describe("request environments", () => {
     expect(isValidRequestHeaderValue("first\r\nsecond")).toBe(false);
   });
 
+  it.each(["\u0000value", "first\u0000second", "value\u0000"])(
+    "rejects null characters in header values %j",
+    (value) => {
+      expect(isValidRequestHeaderValue(value)).toBe(false);
+    },
+  );
+
+  it("excludes null-containing headers from restored settings and merged requests", () => {
+    const environment = {
+      ...developmentEnvironment,
+      headers: [
+        ...developmentEnvironment.headers,
+        {
+          enabled: true,
+          id: "invalid",
+          name: "X-Client",
+          value: "web\u0000client",
+        },
+      ],
+    };
+    expect(mergeRequestEnvironmentHeaders([], environment.headers)).toEqual([
+      {
+        location: "header",
+        name: "Authorization",
+        value: "Bearer local-token",
+      },
+    ]);
+    expect(
+      saveRequestEnvironmentSettings({
+        activeEnvironmentId: environment.id,
+        environments: [environment],
+      }),
+    ).toBe(true);
+    expect(readRequestEnvironmentSettings().environments).toEqual([
+      developmentEnvironment,
+    ]);
+  });
+
   it("removes the active environment without disturbing other profiles", () => {
     const settings = removeRequestEnvironment(
       {

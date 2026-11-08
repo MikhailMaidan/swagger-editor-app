@@ -60,6 +60,7 @@ export function isValidRequestHeaderValue(value: string) {
   return (
     value.length > 0 &&
     value.length <= MAX_HEADER_VALUE_LENGTH &&
+    !value.includes("\0") &&
     !/[\r\n]/.test(value)
   );
 }

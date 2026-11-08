@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -87,6 +87,22 @@ describe("RequestEnvironmentManager", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Each populated header needs a valid HTTP name and a single-line value.",
     );
+  });
+
+  it("rejects pasted null characters in shared header values", async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentHarness />);
+    await user.click(screen.getByRole("button", { name: "New environment" }));
+    await user.type(screen.getByLabelText("Profile name"), "Staging");
+    await user.type(screen.getByLabelText("Header 1 name"), "X-Client");
+    fireEvent.change(screen.getByLabelText("Header 1 value"), {
+      target: { value: "web\u0000client" },
+    });
+    await user.click(screen.getByRole("button", { name: "Save environment" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Each populated header needs a valid HTTP name and a single-line value.",
+    );
+    expect(screen.getByLabelText("Active request environment")).toHaveValue("");
   });
 
   it("edits and removes the active profile with confirmation", async () => {
