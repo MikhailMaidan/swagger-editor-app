@@ -50,13 +50,12 @@ function getIndent(indentSize: number) {
 }
 
 function getIndentLength(value: string, lineStart: number, indent: string) {
-  if (value[lineStart] === "\t") {
-    return 1;
-  }
-
   let length = 0;
 
-  while (length < indent.length && value[lineStart + length] === " ") {
+  while (length < indent.length) {
+    const character = value[lineStart + length];
+    if (character === "\t") return length + 1;
+    if (character !== " ") break;
     length += 1;
   }
 

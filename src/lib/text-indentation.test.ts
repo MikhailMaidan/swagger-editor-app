@@ -82,4 +82,33 @@ describe("text indentation helpers", () => {
       value: "one\ntwo\nthree",
     });
   });
+
+  it.each([
+    { value: " \tchild", width: 2, expected: "child", removed: 2 },
+    { value: "  \tchild", width: 4, expected: "child", removed: 3 },
+    { value: "  \tchild", width: 2, expected: "\tchild", removed: 2 },
+    { value: " \t\tchild", width: 2, expected: "\tchild", removed: 2 },
+  ])(
+    "outdents mixed prefixes at width $width in $value",
+    ({ value, width, expected, removed }) => {
+      expect(
+        changeTextIndentation(value, 0, value.length, true, width),
+      ).toEqual({
+        value: expected,
+        selectionStart: 0,
+        selectionEnd: value.length - removed,
+      });
+    },
+  );
+
+  it("keeps mixed-line selections aligned after removing space-tab prefixes", () => {
+    const value = " \tfirst\r\n  \tsecond\r\nlast";
+    const start = 1;
+    const end = value.indexOf("last");
+    expect(changeTextIndentation(value, start, end, true, 4)).toEqual({
+      value: "first\r\nsecond\r\nlast",
+      selectionStart: 0,
+      selectionEnd: end - 5,
+    });
+  });
 });
