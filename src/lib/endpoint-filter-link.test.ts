@@ -80,6 +80,36 @@ describe("endpoint filter links", () => {
     ).toEqual({});
   });
 
+  it.each([" core", "core ", " core ", " all "])(
+    "preserves the exact tag name %j when creating and restoring links",
+    (tag) => {
+      const current = new URL("https://rsswag.test/?keep=1");
+      current.searchParams.set("endpoint-tag", tag);
+      expect(readEndpointFilterView(current.toString()).tag).toBe(tag);
+
+      const link = createEndpointFilterViewLink(current.toString(), {
+        ...defaultView,
+        tag,
+      });
+      expect(new URL(link).searchParams.get("endpoint-tag")).toBe(tag);
+      expect(readEndpointFilterView(link).tag).toBe(tag);
+    },
+  );
+
+  it.each(["", " \t ", "x".repeat(201)])(
+    "ignores blank and oversized tag names",
+    (tag) => {
+      const current = new URL("https://rsswag.test/");
+      current.searchParams.set("endpoint-tag", tag);
+      expect(readEndpointFilterView(current.toString())).toEqual({});
+      const link = createEndpointFilterViewLink(current.toString(), {
+        ...defaultView,
+        tag,
+      });
+      expect(new URL(link).searchParams.has("endpoint-tag")).toBe(false);
+    },
+  );
+
   it("fails safely for malformed URLs", () => {
     expect(readEndpointFilterView("not a URL")).toEqual({});
     expect(createEndpointFilterViewLink("not a URL", defaultView)).toBe(

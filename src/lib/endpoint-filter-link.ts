@@ -60,6 +60,13 @@ function readBoundedText(value: string | null, maxLength: number) {
     : undefined;
 }
 
+function readTag(value: string | null) {
+  // The workspace matches tag names exactly, including surrounding spaces.
+  return value && value.trim() && value.length <= MAX_TAG_LENGTH
+    ? value
+    : undefined;
+}
+
 function readMethod(value: string | null) {
   const normalizedMethod = value?.trim().toUpperCase() || "";
 
@@ -85,7 +92,7 @@ export function readEndpointFilterView(
     MAX_SEARCH_LENGTH,
   );
   const method = readMethod(url.searchParams.get(PARAMS.method));
-  const tag = readBoundedText(url.searchParams.get(PARAMS.tag), MAX_TAG_LENGTH);
+  const tag = readTag(url.searchParams.get(PARAMS.tag));
   const trait = readEnum(url.searchParams.get(PARAMS.trait), ENDPOINT_TRAITS);
   const response = readEnum(
     url.searchParams.get(PARAMS.response),
@@ -125,8 +132,7 @@ export function createEndpointFilterViewLink(
 
   const search = readBoundedText(view.search, MAX_SEARCH_LENGTH);
   const method = view.method === "all" ? undefined : readMethod(view.method);
-  const tag =
-    view.tag === "all" ? undefined : readBoundedText(view.tag, MAX_TAG_LENGTH);
+  const tag = view.tag === "all" ? undefined : readTag(view.tag);
 
   if (search) url.searchParams.set(PARAMS.search, search);
   if (method) url.searchParams.set(PARAMS.method, method);
