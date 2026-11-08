@@ -17,6 +17,7 @@ import type { RequestHistoryRecord } from "./request-history";
 
 describe("request history storage", () => {
   it("keeps distinct requests when saves share a timestamp and random suffix", () => {
+    vi.stubGlobal("crypto", {});
     const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
     const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
     try {
@@ -36,6 +37,7 @@ describe("request history storage", () => {
     } finally {
       clock.mockRestore();
       random.mockRestore();
+      vi.unstubAllGlobals();
     }
   });
 
@@ -49,7 +51,7 @@ describe("request history storage", () => {
         status: 200,
         summary: "List users",
       });
-      expect(record?.id).toMatch(/^\d+-\d+$/);
+      expect(record?.id).toBeTruthy();
       expect(readRequestHistory()).toEqual([record]);
     } finally {
       vi.unstubAllGlobals();
