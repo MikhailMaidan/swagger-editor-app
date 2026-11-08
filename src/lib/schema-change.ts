@@ -346,7 +346,12 @@ function compareEndpointDetails(
     });
   }
 
-  if (baseline.tags.join("\n") !== current.tags.join("\n")) {
+  const baselineTags = new Set(baseline.tags);
+  const currentTags = new Set(current.tags);
+  if (
+    baselineTags.size !== currentTags.size ||
+    [...baselineTags].some((tag) => !currentTags.has(tag))
+  ) {
     details.push({ code: "tags-changed", impact: "non-breaking" });
   }
 

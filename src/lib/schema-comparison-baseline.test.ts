@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { EndpointSummary } from "./openapi";
+import { createSchemaChangeReport } from "./schema-change";
 import {
   clearSchemaComparisonBaseline,
   createSchemaComparisonBaseline,
@@ -62,6 +63,20 @@ describe("schema comparison baseline", () => {
     expect(
       window.localStorage.getItem(SCHEMA_COMPARISON_BASELINE_STORAGE_KEY),
     ).toBeNull();
+  });
+
+  it("does not report tag changes after restoring a mixed-case tag baseline", () => {
+    const taggedEndpoint = { ...endpoint, tags: ["apple", "Banana"] };
+    const baseline = createSchemaComparisonBaseline([taggedEndpoint], {
+      title: "Users API",
+      version: "1.0.0",
+    });
+    expect(saveSchemaComparisonBaseline(baseline)).toBe(true);
+    const restored = readSchemaComparisonBaseline();
+    expect(restored).not.toBeNull();
+    expect(
+      createSchemaChangeReport(restored!.endpoints, [taggedEndpoint]),
+    ).toMatchObject({ changes: [], unchangedCount: 1 });
   });
 
   it("ignores malformed, outdated, and partially invalid storage", () => {

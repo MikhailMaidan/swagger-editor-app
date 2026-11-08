@@ -228,6 +228,24 @@ describe("schema change analysis", () => {
     ]);
   });
 
+  it.each([
+    { before: ["a\nb"], after: ["a", "b"] },
+    { before: ["a", "b"], after: ["a\nb"] },
+  ])(
+    "distinguishes separate tags from embedded newlines ($before to $after)",
+    ({ before, after }) => {
+      const report = createSchemaChangeReport(
+        [createComparableEndpoint(createEndpoint({ tags: before }))],
+        [createEndpoint({ tags: after })],
+      );
+      expect(report.modifiedCount).toBe(1);
+      expect(report.breakingCount).toBe(0);
+      expect(report.changes[0].details).toEqual([
+        { code: "tags-changed", impact: "non-breaking" },
+      ]);
+    },
+  );
+
   it("ignores server and example changes", () => {
     const baselineEndpoint = createEndpoint();
     const currentEndpoint = createEndpoint({
