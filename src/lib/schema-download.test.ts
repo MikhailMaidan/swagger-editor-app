@@ -13,6 +13,16 @@ describe("schema download helpers", () => {
     });
   });
 
+  it.each([" json", "JSON ", "\tJsOn\r\n"])(
+    "preserves the JSON download format for padded metadata %j",
+    (format) => {
+      expect(getSchemaDownloadMetadata("Catalog API", format)).toEqual({
+        contentType: "application/json",
+        fileName: "catalog-api.json",
+      });
+    },
+  );
+
   it("falls back to a safe YAML filename for unsupported title characters", () => {
     expect(getSchemaDownloadMetadata("Схема", "yaml")).toEqual({
       contentType: "application/yaml",

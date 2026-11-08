@@ -33,7 +33,7 @@ export function getSchemaDownloadMetadata(
   title: string,
   format: string,
 ): SchemaDownloadMetadata {
-  const extension = format.toLowerCase() === "json" ? "json" : "yaml";
+  const extension = format.trim().toLowerCase() === "json" ? "json" : "yaml";
 
   return {
     contentType: extension === "json" ? "application/json" : "application/yaml",
