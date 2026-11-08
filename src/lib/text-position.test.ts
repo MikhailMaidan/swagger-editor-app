@@ -25,5 +25,20 @@ describe("text position helpers", () => {
     expect(getTextOffset(value, { column: 99, line: 2 })).toBe(13);
     expect(getTextOffset(value, { column: 1, line: 99 })).toBe(value.length);
     expect(getTextOffset(value, { column: -2, line: -3 })).toBe(0);
+    expect(getTextOffset(value, { column: Infinity, line: 2 })).toBe(13);
+    expect(getTextOffset(value, { column: 1, line: Infinity })).toBe(
+      value.length,
+    );
   });
+
+  it.each([
+    { line: NaN, column: 2, expected: 1 },
+    { line: 2, column: NaN, expected: 4 },
+    { line: NaN, column: NaN, expected: 0 },
+  ])(
+    "falls back safely for invalid coordinates $line:$column",
+    ({ line, column, expected }) => {
+      expect(getTextOffset("one\nsecond", { line, column })).toBe(expected);
+    },
+  );
 });

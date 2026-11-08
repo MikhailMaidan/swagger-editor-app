@@ -4,8 +4,8 @@ export type TextPosition = {
 };
 
 export function getTextOffset(value: string, position: TextPosition): number {
-  const targetLine = Math.max(Math.floor(position.line), 1);
-  const targetColumn = Math.max(Math.floor(position.column), 1);
+  const targetLine = Math.max(Math.floor(position.line) || 1, 1);
+  const targetColumn = Math.max(Math.floor(position.column) || 1, 1);
   const newlinePattern = /\r\n|\r|\n/g;
   let lineStart = 0;
 
