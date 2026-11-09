@@ -48,12 +48,14 @@ function readTimestamp(value: unknown) {
   return timestamp && !Number.isNaN(date.getTime()) ? date.toISOString() : "";
 }
 
+let fallbackIdSequence = 0;
+
 function createId() {
   const randomUuid = globalThis.crypto?.randomUUID?.();
 
   return randomUuid
     ? `checkpoint-${randomUuid}`
-    : `checkpoint-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    : `checkpoint-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${fallbackIdSequence++}`;
 }
 
 function sanitizeCheckpoint(value: unknown): SchemaCheckpoint | null {

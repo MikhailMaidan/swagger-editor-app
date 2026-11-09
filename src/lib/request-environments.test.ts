@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createEmptyRequestEnvironmentSettings,
+  createRequestEnvironment,
   getActiveRequestEnvironment,
   getEnabledRequestEnvironmentHeaders,
   isValidRequestHeaderName,
@@ -10,6 +11,7 @@ import {
   removeRequestEnvironment,
   REQUEST_ENVIRONMENTS_STORAGE_KEY,
   saveRequestEnvironmentSettings,
+  upsertRequestEnvironment,
   type RequestEnvironment,
 } from "./request-environments";
 
@@ -34,6 +36,46 @@ const developmentEnvironment: RequestEnvironment = {
 };
 
 describe("request environments", () => {
+  it("keeps rapid environment and header creation distinct without UUID support", () => {
+    vi.stubGlobal("crypto", {});
+    const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const environments = ["First", "Second"].map((name) => {
+        const environment = createRequestEnvironment();
+        return {
+          ...environment,
+          name,
+          headers: environment.headers.map((header) => ({
+            ...header,
+            name: "X-Client",
+            value: name,
+          })),
+        };
+      });
+      expect(
+        new Set(
+          environments.flatMap((environment) => [
+            environment.id,
+            ...environment.headers.map((header) => header.id),
+          ]),
+        ).size,
+      ).toBe(4);
+      const settings = environments.reduce(
+        upsertRequestEnvironment,
+        createEmptyRequestEnvironmentSettings(),
+      );
+      expect(settings.environments).toHaveLength(2);
+      expect(getActiveRequestEnvironment(settings)?.name).toBe("Second");
+      expect(saveRequestEnvironmentSettings(settings)).toBe(true);
+      expect(readRequestEnvironmentSettings()).toEqual(settings);
+    } finally {
+      clock.mockRestore();
+      random.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("persists and restores an active versioned environment", () => {
     const settings = {
       activeEnvironmentId: developmentEnvironment.id,

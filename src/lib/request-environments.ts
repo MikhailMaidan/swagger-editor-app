@@ -36,12 +36,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+let fallbackIdSequence = 0;
+
 function createId(prefix: string) {
   const randomUuid = globalThis.crypto?.randomUUID?.();
 
   return randomUuid
     ? `${prefix}-${randomUuid}`
-    : `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    : `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${fallbackIdSequence++}`;
 }
 
 function readText(value: unknown, maxLength: number) {

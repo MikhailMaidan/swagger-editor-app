@@ -129,12 +129,14 @@ function sanitizeRequestPreset(value: unknown): RequestPreset | null {
   };
 }
 
+let fallbackIdSequence = 0;
+
 function createId() {
   const randomUuid = globalThis.crypto?.randomUUID?.();
 
   return randomUuid
     ? `preset-${randomUuid}`
-    : `preset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    : `preset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${fallbackIdSequence++}`;
 }
 
 function normalizeDate(value: Date) {

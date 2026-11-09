@@ -41,6 +41,28 @@ function createCheckpoint(
 }
 
 describe("schema checkpoints", () => {
+  it("keeps rapid checkpoint saves distinct without UUID support", () => {
+    vi.stubGlobal("crypto", {});
+    const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const checkpoints = ["First", "Second"].map((name) => {
+        const result = createSchemaCheckpoint({ ...draft, name });
+        if (!result.ok) throw new Error(result.reason);
+        return result.value;
+      });
+      expect(checkpoints[0].id).not.toBe(checkpoints[1].id);
+      const combined = upsertSchemaCheckpoint([checkpoints[0]], checkpoints[1]);
+      expect(combined).toHaveLength(2);
+      expect(saveSchemaCheckpoints(combined)).toBe(true);
+      expect(readSchemaCheckpoints()).toEqual(combined);
+    } finally {
+      clock.mockRestore();
+      random.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("creates a normalized snapshot with trustworthy metadata", () => {
     const checkpoint = createCheckpoint({
       endpointCount: 2.8,

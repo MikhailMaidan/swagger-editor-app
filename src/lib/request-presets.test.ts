@@ -27,6 +27,25 @@ const draft: RequestPresetDraft = {
 };
 
 describe("request presets", () => {
+  it("keeps rapid preset saves distinct without UUID support", () => {
+    vi.stubGlobal("crypto", {});
+    const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const first = createRequestPreset({ ...draft, name: "First" });
+      const second = createRequestPreset({ ...draft, name: "Second" });
+      expect(first.id).not.toBe(second.id);
+      const presets = upsertRequestPreset([first], second);
+      expect(presets).toHaveLength(2);
+      expect(saveRequestPresets(presets)).toBe(true);
+      expect(readRequestPresets()).toEqual(presets);
+    } finally {
+      clock.mockRestore();
+      random.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("creates and updates a normalized request snapshot", () => {
     const preset = createRequestPreset(
       { ...draft, method: " get ", name: " Happy path " },
