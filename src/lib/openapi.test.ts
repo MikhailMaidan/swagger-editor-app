@@ -795,6 +795,34 @@ describe("openapi helpers", () => {
     expect(selectDefaultResponse(endpoints[1].responses)?.status).toBe("200");
   });
 
+  it.each([
+    { statuses: ["400", " 201 "], expected: " 201 " },
+    { statuses: ["400", "\t2XX\r\n"], expected: "\t2XX\r\n" },
+    { statuses: ["201", " 200 "], expected: " 200 " },
+  ])(
+    "selects successful defaults with padded status labels $statuses",
+    ({ statuses, expected }) => {
+      const [endpoint] = extractEndpoints({
+        paths: {
+          "/users": {
+            get: {
+              responses: Object.fromEntries(
+                statuses.map((status) => [status, { description: "Response" }]),
+              ),
+            },
+          },
+        },
+      });
+      const originalStatuses = endpoint.responses.map(({ status }) => status);
+      expect(selectDefaultResponse(endpoint.responses)).toBe(
+        endpoint.responses.find(({ status }) => status === expected),
+      );
+      expect(endpoint.responses.map(({ status }) => status)).toEqual(
+        originalStatuses,
+      );
+    },
+  );
+
   it("creates cURL previews with optional request bodies", () => {
     expect(createCurlPreview("GET", "/users", false)).toBe(
       'curl -X GET \\\n  "https://api.example.com/users"',

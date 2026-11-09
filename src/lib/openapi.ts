@@ -820,8 +820,10 @@ function normalizeResponses(
 
 export function selectDefaultResponse(responses: ResponseSummary[]) {
   return (
-    responses.find((response) => response.status === "200") ||
-    responses.find((response) => /^2(?:\d{2}|xx)$/i.test(response.status)) ||
+    responses.find((response) => response.status.trim() === "200") ||
+    responses.find((response) =>
+      /^2(?:\d{2}|xx)$/i.test(response.status.trim()),
+    ) ||
     responses[0]
   );
 }
