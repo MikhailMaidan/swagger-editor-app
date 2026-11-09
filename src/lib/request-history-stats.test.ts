@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { RequestHistoryRecord } from "./request-history";
+import {
+  parseRequestHistory,
+  type RequestHistoryRecord,
+} from "./request-history";
 import { createRequestHistoryStats } from "./request-history-stats";
 
 function createRecord(
@@ -46,6 +49,26 @@ describe("request history statistics", () => {
       successRatePercent: 0,
       successful: 0,
       total: 0,
+    });
+  });
+
+  it("keeps imported invalid statuses without counting them as successful requests", () => {
+    const records = parseRequestHistory(
+      JSON.stringify([
+        createRecord(200, 10),
+        createRecord(-1, 20),
+        createRecord(99, 30),
+        createRecord(200.5, 40),
+      ]),
+    );
+
+    expect(records.map(({ status }) => status)).toEqual([200, -1, 99, 200.5]);
+    expect(createRequestHistoryStats(records)).toEqual({
+      averageDurationMs: 25,
+      failed: 3,
+      successRatePercent: 25,
+      successful: 1,
+      total: 4,
     });
   });
 

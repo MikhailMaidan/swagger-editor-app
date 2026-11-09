@@ -1,13 +1,13 @@
 export function isErrorStatus(status: number | string) {
-  // Covers both the numeric 0 stored in history records and the literal
-  // string "0" the try-it-out execution flow uses as its network-failure
-  // sentinel before that value is converted to a number for storage.
+  // Imported history can contain invalid codes. Only whole HTTP status
+  // codes can count as successful; this also treats the numeric or string
+  // network-failure sentinel 0 as an error.
   const numericStatus = Number(status);
 
   return (
-    !Number.isFinite(numericStatus) ||
-    numericStatus >= 400 ||
-    numericStatus === 0
+    !Number.isInteger(numericStatus) ||
+    numericStatus < 100 ||
+    numericStatus >= 400
   );
 }
 
