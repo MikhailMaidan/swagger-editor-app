@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseOpenApiSchema } from "@/lib/openapi";
@@ -67,6 +67,143 @@ function readBlob(blob: Blob) {
 }
 const download = () =>
   screen.getByRole("button", { name: "Download response" });
+
+describe("endpoint request snippet downloads", () => {
+  it("reports unavailable or blocked downloads and retries with the selected snippet", async () => {
+    const user = userEvent.setup();
+    render(
+      <EndpointCard
+        endpoint={endpoint}
+        canSaveHistory={false}
+        executionMode="mock"
+        mockResponseDelayMs={0}
+      />,
+    );
+    const code = screen.getByLabelText("cURL GET /item").textContent;
+    const downloadSnippet = () =>
+      screen.getByRole("button", {
+        name: "Download cURL snippet for GET /item",
+      });
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: undefined,
+    });
+    await user.click(downloadSnippet());
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Could not download the snippet. Try again or copy it.",
+    );
+    expect(screen.getByLabelText("cURL GET /item").textContent).toBe(code);
+    expect(screen.getByRole("button", { name: "Copy cURL" })).toBeEnabled();
+
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: createObjectURL,
+    });
+    createObjectURL.mockImplementationOnce(() => {
+      throw new DOMException("Blocked", "SecurityError");
+    });
+    await user.click(downloadSnippet());
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Could not download the snippet",
+    );
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    const formats = within(
+      screen.getByRole("group", { name: "Request code format" }),
+    );
+    await user.click(formats.getByRole("button", { name: "HTTP" }));
+    expect(
+      screen.queryByText(/Could not download the snippet/),
+    ).not.toBeInTheDocument();
+    const httpCode = screen.getByLabelText("HTTP GET /item").textContent;
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    await user.click(
+      screen.getByRole("button", {
+        name: "Download HTTP snippet for GET /item",
+      }),
+    );
+    expect(screen.getByText("Snippet download started.")).toHaveAttribute(
+      "role",
+      "status",
+    );
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(click.mock.contexts[0]).toMatchObject({
+      download: "rsswag-get-item.http",
+      href: "blob:response-download",
+    });
+    const blob = createObjectURL.mock.calls.at(-1)![0] as Blob;
+    expect(blob.type).toBe("text/plain;charset=utf-8");
+    expect(await readBlob(blob)).toBe(httpCode);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:response-download");
+
+    await user.click(formats.getByRole("button", { name: "Fetch" }));
+    expect(
+      screen.queryByText("Snippet download started."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("cleans up failed clicks, localizes feedback, and hides it when the request changes", async () => {
+    const user = userEvent.setup();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {
+        throw new Error("click blocked");
+      });
+    const { rerender } = render(
+      <EndpointCard
+        endpoint={endpoint}
+        canSaveHistory={false}
+        executionMode="mock"
+        mockResponseDelayMs={0}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: "Download cURL snippet for GET /item",
+      }),
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Could not download the snippet",
+    );
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:response-download");
+    act(() => setAppLanguage("ru"));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Не удалось скачать сниппет",
+    );
+    act(() => setAppLanguage("en"));
+
+    click.mockImplementation(() => {});
+    await user.click(
+      screen.getByRole("button", {
+        name: "Download cURL snippet for GET /item",
+      }),
+    );
+    expect(screen.getByText("Snippet download started.")).toBeVisible();
+    expect(
+      screen.queryByText(/Could not download the snippet/),
+    ).not.toBeInTheDocument();
+    act(() => setAppLanguage("ru"));
+    expect(screen.getByText("Скачивание сниппета началось.")).toBeVisible();
+    act(() => setAppLanguage("en"));
+
+    rerender(
+      <EndpointCard
+        endpoint={{ ...endpoint, serverUrl: "https://staging.example.test" }}
+        canSaveHistory={false}
+        executionMode="mock"
+        mockResponseDelayMs={0}
+      />,
+    );
+    expect(screen.getByLabelText("cURL GET /item")).toHaveTextContent(
+      "staging.example.test",
+    );
+    expect(
+      screen.queryByText("Snippet download started."),
+    ).not.toBeInTheDocument();
+  });
+});
 
 describe("endpoint response downloads", () => {
   it.each([

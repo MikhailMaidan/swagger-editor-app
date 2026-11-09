@@ -4111,6 +4111,9 @@ export const translations = {
     "workspace.downloadRequestCode": "Download snippet",
     "workspace.downloadRequestCodeAriaLabel":
       "Download {format} snippet for {method} {path}",
+    "workspace.requestCodeDownloadSuccess": "Snippet download started.",
+    "workspace.requestCodeDownloadError":
+      "Could not download the snippet. Try again or copy it.",
     "workspace.downloadResponse": "Download response",
     "workspace.responseDownloadSuccess": "Response download started.",
     "workspace.responseDownloadError":
@@ -9433,6 +9436,9 @@ export const translations = {
     "workspace.downloadRequestCode": "Скачать сниппет",
     "workspace.downloadRequestCodeAriaLabel":
       "Скачать сниппет {format} для {method} {path}",
+    "workspace.requestCodeDownloadSuccess": "Скачивание сниппета началось.",
+    "workspace.requestCodeDownloadError":
+      "Не удалось скачать сниппет. Попробуйте ещё раз или скопируйте его.",
     "workspace.downloadResponse": "Скачать ответ",
     "workspace.responseDownloadSuccess": "Скачивание ответа началось.",
     "workspace.responseDownloadError":

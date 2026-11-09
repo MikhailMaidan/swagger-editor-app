@@ -432,6 +432,12 @@ function EndpointCardComponent({
   const [responseDownloadFeedback, setResponseDownloadFeedback] = useState<
     "success" | "error" | null
   >(null);
+  const [requestCodeDownloadFeedback, setRequestCodeDownloadFeedback] =
+    useState<{
+      code: string;
+      format: RequestPreviewFormat;
+      status: "success" | "error";
+    } | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [requestTimeoutMs, setRequestTimeoutMs] = useState(
     DEFAULT_REQUEST_TIMEOUT_MS,
@@ -708,6 +714,11 @@ function EndpointCardComponent({
       : requestCodeFormat === "fetch"
         ? currentFetch
         : currentHttp;
+  const currentRequestCodeDownloadStatus =
+    requestCodeDownloadFeedback?.code === currentRequestCode &&
+    requestCodeDownloadFeedback.format === requestCodeFormat
+      ? requestCodeDownloadFeedback.status
+      : null;
   const requestCodeLabel = snippetLanguage
     ? REQUEST_CODE_FORMATS[snippetLanguage].label
     : requestCodeFormat === "curl"
@@ -820,12 +831,24 @@ function EndpointCardComponent({
   }
 
   function handleDownloadRequestCode() {
-    downloadRequestPreviewFile(
-      currentRequestCode,
-      requestCodeFormat,
-      endpoint.method,
-      endpoint.path,
-    );
+    let status: "success" | "error" = "success";
+
+    try {
+      downloadRequestPreviewFile(
+        currentRequestCode,
+        requestCodeFormat,
+        endpoint.method,
+        endpoint.path,
+      );
+    } catch {
+      status = "error";
+    }
+
+    setRequestCodeDownloadFeedback({
+      code: currentRequestCode,
+      format: requestCodeFormat,
+      status,
+    });
   }
 
   async function handleCopyResponse() {
@@ -1967,6 +1990,22 @@ function EndpointCardComponent({
           >
             {currentRequestCode}
           </pre>
+          {currentRequestCodeDownloadStatus ? (
+            <p
+              className={`mt-2 text-sm font-bold ${currentRequestCodeDownloadStatus === "error" ? "text-red-700" : "text-emerald-700"}`}
+              role={
+                currentRequestCodeDownloadStatus === "error"
+                  ? "alert"
+                  : "status"
+              }
+            >
+              {t(
+                currentRequestCodeDownloadStatus === "error"
+                  ? "workspace.requestCodeDownloadError"
+                  : "workspace.requestCodeDownloadSuccess",
+              )}
+            </p>
+          ) : null}
           {snippetLanguage && isSnippetCopied ? (
             <p
               className="mt-2 text-sm font-bold text-emerald-700"
