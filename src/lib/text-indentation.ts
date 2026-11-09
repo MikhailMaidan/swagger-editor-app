@@ -74,6 +74,22 @@ function adjustOffsetForRemovals(
   );
 }
 
+function applyTextEdits(
+  value: string,
+  edits: Array<{ start: number; length: number; text: string }>,
+) {
+  const parts: string[] = [];
+  let offset = 0;
+
+  for (const edit of edits) {
+    parts.push(value.slice(offset, edit.start), edit.text);
+    offset = edit.start + edit.length;
+  }
+
+  parts.push(value.slice(offset));
+  return parts.join("");
+}
+
 export function changeTextIndentation(
   value: string,
   selectionStart: number,
@@ -99,12 +115,10 @@ export function changeTextIndentation(
   const lineStarts = getSelectedLineStarts(value, boundedStart, boundedEnd);
 
   if (!outdent) {
-    let nextValue = value;
-
-    for (const lineStart of lineStarts.toReversed()) {
-      nextValue =
-        nextValue.slice(0, lineStart) + indent + nextValue.slice(lineStart);
-    }
+    const nextValue = applyTextEdits(
+      value,
+      lineStarts.map((start) => ({ start, length: 0, text: indent })),
+    );
 
     return {
       selectionEnd: boundedEnd + lineStarts.length * indent.length,
@@ -119,13 +133,10 @@ export function changeTextIndentation(
       start: lineStart,
     }))
     .filter((removal) => removal.length > 0);
-  let nextValue = value;
-
-  for (const removal of removals.toReversed()) {
-    nextValue =
-      nextValue.slice(0, removal.start) +
-      nextValue.slice(removal.start + removal.length);
-  }
+  const nextValue = applyTextEdits(
+    value,
+    removals.map((removal) => ({ ...removal, text: "" })),
+  );
 
   return {
     selectionEnd: adjustOffsetForRemovals(boundedEnd, removals),
