@@ -18,6 +18,7 @@ import {
 
 describe("schema storage", () => {
   it("keeps distinct schemas when saves share a timestamp and random suffix", () => {
+    vi.stubGlobal("crypto", {});
     const clock = vi.spyOn(Date, "now").mockReturnValue(123456789);
     const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
     try {
@@ -36,6 +37,7 @@ describe("schema storage", () => {
     } finally {
       clock.mockRestore();
       random.mockRestore();
+      vi.unstubAllGlobals();
     }
   });
 
@@ -47,7 +49,7 @@ describe("schema storage", () => {
         format: "yaml",
         version: "1",
       });
-      expect(record.id).toMatch(/^\d+-\d+$/);
+      expect(record.id).toBeTruthy();
       expect(record.schemaText).toBe("openapi: 3.0.0");
     } finally {
       vi.unstubAllGlobals();

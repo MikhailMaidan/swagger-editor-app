@@ -22,10 +22,12 @@ export type SavedSchemaMeta = {
   createdAt?: string;
 };
 
+let fallbackIdSequence = 0;
+
 function createId() {
   return (
     globalThis.crypto?.randomUUID?.() ??
-    `${Date.now()}-${Math.round(Math.random() * 10000)}`
+    `${Date.now()}-${Math.round(Math.random() * 10000)}-${fallbackIdSequence++}`
   );
 }
 
