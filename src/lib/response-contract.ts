@@ -68,27 +68,29 @@ export function findDocumentedResponse(
   responses: ResponseSummary[],
   actualStatus: string,
 ) {
+  const normalizedStatus = actualStatus.trim().toLowerCase();
   const exactResponse = responses.find(
-    (response) => response.status.toLowerCase() === actualStatus.toLowerCase(),
+    (response) => response.status.trim().toLowerCase() === normalizedStatus,
   );
 
   if (exactResponse) {
     return exactResponse;
   }
 
-  if (!isHttpStatus(actualStatus)) {
+  if (!isHttpStatus(normalizedStatus)) {
     return null;
   }
 
-  const statusClass = actualStatus[0];
+  const statusClass = normalizedStatus[0];
   const rangeResponse = responses.find(
-    (response) =>
-      response.status.toLowerCase() === `${statusClass}xx`.toLowerCase(),
+    (response) => response.status.trim().toLowerCase() === `${statusClass}xx`,
   );
 
   return (
     rangeResponse ||
-    responses.find((response) => response.status.toLowerCase() === "default") ||
+    responses.find(
+      (response) => response.status.trim().toLowerCase() === "default",
+    ) ||
     null
   );
 }
@@ -262,10 +264,11 @@ function createBodyCheck(
     return createCheck("body", "skipped", "body-not-documented");
   }
 
+  const status = input.status.trim();
   if (
     input.method.toUpperCase() === "HEAD" ||
-    input.status === "204" ||
-    input.status === "304"
+    status === "204" ||
+    status === "304"
   ) {
     return createCheck("body", "skipped", "body-not-expected");
   }

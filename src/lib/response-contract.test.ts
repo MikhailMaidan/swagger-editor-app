@@ -73,6 +73,52 @@ describe("response contract checks", () => {
     ).toBe("pass");
   });
 
+  it.each([
+    [" 200 ", "200"],
+    [" 2XX ", "201"],
+    [" default ", "418"],
+    ["2XX", " 201 "],
+    ["200", " 200 "],
+  ])("matches padded status labels %j against %j", (documented, actual) => {
+    const response = createResponse({ status: documented });
+    expect(findDocumentedResponse([response], actual)).toBe(response);
+    const report = createResponseContractReport([response], {
+      body: '{"id":7}',
+      headers: { "content-type": "application/json" },
+      method: "GET",
+      status: actual,
+    });
+    expect(report.result).toBe("pass");
+    expect(report.checks[0].params).toEqual({ actual, documented });
+  });
+
+  it("retains exact, range, and default precedence for padded labels", () => {
+    const fallback = createResponse({ status: " default " });
+    const range = createResponse({ status: " 2XX " });
+    const exact = createResponse({ status: " 201 " });
+    const responses = [fallback, range, exact];
+    expect(findDocumentedResponse(responses, " 201 ")).toBe(exact);
+    expect(findDocumentedResponse(responses, " 202 ")).toBe(range);
+    expect(findDocumentedResponse(responses, " 418 ")).toBe(fallback);
+  });
+
+  it.each(["204", "304"])("keeps padded %s responses bodyless", (status) => {
+    const report = createResponseContractReport(
+      [createResponse({ status, contentTypes: [] })],
+      {
+        body: "",
+        headers: {},
+        method: "GET",
+        status: ` ${status} `,
+      },
+    );
+    expect(report.result).toBe("pass");
+    expect(report.checks[2]).toMatchObject({
+      result: "skipped",
+      code: "body-not-expected",
+    });
+  });
+
   it("prefers an exact media type schema over a wildcard documented first", () => {
     const wildcardSchema = {
       example: "",
@@ -137,7 +183,9 @@ describe("response contract checks", () => {
         status: "200",
       },
     );
-    const bodyCheck = report.checks.find((check) => check.code === "body-empty");
+    const bodyCheck = report.checks.find(
+      (check) => check.code === "body-empty",
+    );
 
     expect(bodyCheck?.params).toMatchObject({ expected: "object" });
   });
