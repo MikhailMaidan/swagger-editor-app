@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ResponseSummary } from "./openapi";
+import { parseOpenApiSchema, type ResponseSummary } from "./openapi";
 import {
   createSchemaMockResponse,
   waitForMockResponseDelay,
@@ -165,6 +165,37 @@ describe("schema mock responses", () => {
       createSchemaMockResponse(emptyExampleResponse, "fallback"),
     ).toMatchObject({ body: "", generated: false });
   });
+
+  it.each(["application/json", "application/problem+json"])(
+    "generates JSON null for a null schema with media type %s",
+    (contentType) => {
+      const parsed = parseOpenApiSchema(`openapi: 3.1.0
+info: { title: Null response, version: '1' }
+paths:
+  /result:
+    get:
+      responses:
+        '200':
+          description: No result
+          content:
+            ${contentType}:
+              schema: { type: 'null' }
+`);
+      if (!parsed.ok) throw new Error(parsed.error);
+
+      expect(
+        createSchemaMockResponse(
+          parsed.value.endpoints[0].responses[0],
+          "No example documented",
+        ),
+      ).toEqual({
+        body: "null",
+        generated: true,
+        headers: { "content-type": contentType },
+        status: "200",
+      });
+    },
+  );
 
   it("completes simulated latency and stops immediately when aborted", async () => {
     vi.useFakeTimers();

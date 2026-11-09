@@ -67,6 +67,8 @@ function createGeneratedResponseBody(
       return "0";
     case "string":
       return '"string"';
+    case "null":
+      return "null";
     default:
       return null;
   }

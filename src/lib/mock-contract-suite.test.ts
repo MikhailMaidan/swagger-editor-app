@@ -149,4 +149,24 @@ describe("mock contract suites", () => {
       totalCount: 0,
     });
   });
+
+  it("validates generated null bodies against their documented JSON schema", () => {
+    const report = createMockContractSuite([
+      createEndpoint("GET", "/result", [
+        createResponse("200", ["application/json"], createSchema("null")),
+      ]),
+    ]);
+
+    expect(report).toMatchObject({
+      failedCount: 0,
+      partialCount: 0,
+      passedCount: 1,
+      totalCount: 1,
+    });
+    expect(report.cases[0]).toMatchObject({
+      bodySource: "generated",
+      result: "pass",
+      skippedCount: 0,
+    });
+  });
 });
