@@ -193,17 +193,29 @@ export function redactAuthQueryFromUrl(
     return requestUrl;
   }
 
-  try {
-    const url = new URL(requestUrl);
+  const queryIndex = requestUrl.indexOf("?");
+  const fragmentIndex = requestUrl.indexOf("#");
 
-    queryParameterNames.forEach((name) => {
-      if (url.searchParams.has(name)) {
-        url.searchParams.set(name, REDACTED_AUTH_VALUE);
-      }
-    });
-
-    return url.toString();
-  } catch {
+  if (
+    queryIndex === -1 ||
+    (fragmentIndex !== -1 && fragmentIndex < queryIndex)
+  ) {
     return requestUrl;
   }
+
+  // Parse only the query so relative server URLs keep their original path.
+  const queryEnd = fragmentIndex === -1 ? requestUrl.length : fragmentIndex;
+  const query = new URLSearchParams(requestUrl.slice(queryIndex, queryEnd));
+  let redacted = false;
+
+  for (const name of queryParameterNames) {
+    if (query.has(name)) {
+      query.set(name, REDACTED_AUTH_VALUE);
+      redacted = true;
+    }
+  }
+
+  return redacted
+    ? `${requestUrl.slice(0, queryIndex)}?${query}${requestUrl.slice(queryEnd)}`
+    : requestUrl;
 }

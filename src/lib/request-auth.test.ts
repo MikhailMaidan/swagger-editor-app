@@ -178,4 +178,54 @@ describe("request authentication", () => {
     expect(redactedUrl).not.toContain("top-secret");
     expect(authParameters[0].value).toBe("top-secret");
   });
+
+  it.each([
+    "/api/reports",
+    "../reports",
+    "reports",
+    "",
+    "//api.example.com/reports",
+    "https://api.example.com/reports",
+  ])("redacts query credentials in the URL reference %j", (prefix) => {
+    const authParameters = [
+      { location: "query" as const, name: "api_key", value: "top-secret" },
+    ];
+    const redactedUrl = redactAuthQueryFromUrl(
+      `${prefix}?page=2&api_key=top-secret#details`,
+      authParameters,
+    );
+
+    expect(redactedUrl).toBe(
+      `${prefix}?page=2&api_key=${encodeURIComponent(REDACTED_AUTH_VALUE)}#details`,
+    );
+    expect(authParameters[0].value).toBe("top-secret");
+  });
+
+  it("redacts every occurrence of encoded query names and preserves other values and fragments", () => {
+    const redactedUrl = redactAuthQueryFromUrl(
+      "/reports?%61pi_key=first-secret&search=a%26b&api_key=second-secret#details?tab=2",
+      [{ location: "query", name: "api_key", value: "first-secret" }],
+    );
+    const url = new URL(redactedUrl, "https://example.test");
+
+    expect(url.searchParams.getAll("api_key")).toEqual([REDACTED_AUTH_VALUE]);
+    expect(url.searchParams.get("search")).toBe("a&b");
+    expect(url.hash).toBe("#details?tab=2");
+    expect(redactedUrl).not.toContain("first-secret");
+    expect(redactedUrl).not.toContain("second-secret");
+  });
+
+  it.each([
+    "/reports",
+    "/reports#details?api_key=fragment-text",
+    "/reports?search=api_key%3Dtext#details",
+    "/reports??api_key=plain-text",
+    "https://api.example.com/reports?search=a%20b#details",
+  ])("keeps a URL without query credentials unchanged: %s", (url) => {
+    expect(
+      redactAuthQueryFromUrl(url, [
+        { location: "query", name: "api_key", value: "top-secret" },
+      ]),
+    ).toBe(url);
+  });
 });
