@@ -125,7 +125,37 @@ export function formatJsonBody(contentType: string, body: string) {
   }
 
   try {
-    return JSON.stringify(JSON.parse(body), null, 2);
+    JSON.parse(body);
+
+    // Format the original tokens so numbers, repeated properties, and string
+    // escapes survive unchanged instead of being rewritten by JSON.stringify.
+    const tokens = body.match(/"(?:\\.|[^"\\])*"|[^\s{}[\],:]+|[{}[\],:]/g)!;
+    const formatted: string[] = [];
+    let depth = 0;
+
+    for (let index = 0; index < tokens.length; index += 1) {
+      const token = tokens[index];
+
+      if (token === "{" || token === "[") {
+        formatted.push(token);
+
+        if (tokens[index + 1] === (token === "{" ? "}" : "]")) {
+          formatted.push(tokens[++index]);
+        } else {
+          depth += 1;
+          formatted.push("\n", "  ".repeat(depth));
+        }
+      } else if (token === "}" || token === "]") {
+        depth -= 1;
+        formatted.push("\n", "  ".repeat(depth), token);
+      } else if (token === ",") {
+        formatted.push(",\n", "  ".repeat(depth));
+      } else {
+        formatted.push(token === ":" ? ": " : token);
+      }
+    }
+
+    return formatted.join("");
   } catch {
     return null;
   }

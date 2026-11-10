@@ -35,6 +35,47 @@ describe("request body helpers", () => {
     expect(formatJsonBody("application/xml", "<active />")).toBeNull();
   });
 
+  it.each([
+    "9007199254740993",
+    "-9007199254740993",
+    "1.234567890123456789",
+    "1e400",
+    "1e-400",
+    "-0",
+    "1.00",
+  ])(
+    "preserves the numeric literal %s when formatting a request",
+    (literal) => {
+      expect(formatJsonBody("application/json", `{"value":${literal}}`)).toBe(
+        `{\n  "value": ${literal}\n}`,
+      );
+      expect(formatJsonBody("application/problem+json", ` ${literal} `)).toBe(
+        literal,
+      );
+    },
+  );
+
+  it("keeps property order, repeated properties, and escaped string contents", () => {
+    const body = String.raw`{"10":"first","2":"second","value":1,"value":2,"text":"[{}],: \"quoted\" \\ \u0041\n"}`;
+    expect(formatJsonBody("application/json", body)).toBe(String.raw`{
+  "10": "first",
+  "2": "second",
+  "value": 1,
+  "value": 2,
+  "text": "[{}],: \"quoted\" \\ \u0041\n"
+}`);
+  });
+
+  it("formats nested and empty containers with consistent indentation", () => {
+    const body =
+      '{ "items": [ {}, [], [true, false, null], { "name": "Ada" } ] }';
+    const formatted = formatJsonBody("application/json", body);
+    expect(formatted).toBe(JSON.stringify(JSON.parse(body), null, 2));
+    expect(formatJsonBody("application/json", formatted!)).toBe(formatted);
+    expect(formatJsonBody("application/json", " { } ")).toBe("{}");
+    expect(formatJsonBody("application/json", " [ ] ")).toBe("[]");
+  });
+
   it("reports matching JSON body types and accepts integers as numbers", () => {
     expect(
       createRequestBodyContractReport("application/json", "42", {

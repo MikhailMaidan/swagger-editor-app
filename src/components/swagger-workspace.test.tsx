@@ -2149,7 +2149,7 @@ paths:
       expect(fetchMock).not.toHaveBeenCalled();
 
       fireEvent.change(screen.getByLabelText("Editable request body"), {
-        target: { value: '{"title":"Custom JSON"}' },
+        target: { value: '{"title":"Custom JSON","id":9007199254740993}' },
       });
 
       expect(
@@ -2160,7 +2160,10 @@ paths:
       await user.click(screen.getByRole("button", { name: "Format JSON" }));
 
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
-        '{\n  "title": "Custom JSON"\n}',
+        '{\n  "title": "Custom JSON",\n  "id": 9007199254740993\n}',
+      );
+      expect(screen.getByLabelText("cURL POST /documents")).toHaveTextContent(
+        '"id": 9007199254740993',
       );
 
       await user.selectOptions(contentTypeSelect, "application/xml");
@@ -2189,7 +2192,7 @@ paths:
       await user.selectOptions(contentTypeSelect, "application/json");
 
       expect(screen.getByLabelText("Editable request body")).toHaveValue(
-        '{\n  "title": "Custom JSON"\n}',
+        '{\n  "title": "Custom JSON",\n  "id": 9007199254740993\n}',
       );
 
       await user.selectOptions(contentTypeSelect, "application/xml");
