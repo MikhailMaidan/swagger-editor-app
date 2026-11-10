@@ -164,6 +164,36 @@ describe("request coverage", () => {
     });
   });
 
+  it("counts fractional statuses as failed requests without dropping their history", () => {
+    const records = [
+      createRecord("fractional-success", "GET", "/jobs", 200.5),
+      createRecord("fractional-redirect", "GET", "/jobs", 399.5),
+      createRecord("success", "GET", "/jobs", 200, "2026-09-04T09:00:00.000Z"),
+    ];
+    const report = createRequestCoverageReport(
+      [createEndpoint("GET", "/jobs", ["200", "default"])],
+      records,
+    );
+
+    expect(report).toMatchObject({
+      failedRequestCount: 2,
+      failingOperationCount: 1,
+      requestCount: 3,
+      undocumentedOperationCount: 0,
+    });
+    expect(report.operations[0]).toMatchObject({
+      attempts: 3,
+      failedAttempts: 2,
+      latestStatus: 200.5,
+      observedDocumentedResponses: ["200"],
+      observedStatuses: [200, 200.5, 399.5],
+      state: "failing",
+      successfulAttempts: 1,
+      undocumentedStatuses: [200.5, 399.5],
+    });
+    expect(records.map(({ status }) => status)).toEqual([200.5, 399.5, 200]);
+  });
+
   it("filters history by age without mutating the source records", () => {
     const records = [
       createRecord("recent", "GET", "/users", 200, "2026-09-04T11:00:00.000Z"),

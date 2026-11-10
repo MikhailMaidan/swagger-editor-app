@@ -169,6 +169,33 @@ describe("RequestCoveragePanel", () => {
     expect(onSelectEndpoint).toHaveBeenCalledWith("DELETE", "/items/{id}");
   });
 
+  it("shows imported fractional statuses in the latest-failed filter", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      REQUEST_HISTORY_STORAGE_KEY,
+      JSON.stringify([record("invalid", "GET", "/items", 200.5)]),
+    );
+    renderPanel();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Latest failed (1)" }),
+    );
+    const row = screen
+      .getByText("Coverage: GET /items summary")
+      .closest("li") as HTMLElement;
+    expect(within(row).getByText("HTTP 200.5")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Export coverage" }));
+    expect(downloadRequestCoverageFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        failedRequestCount: 1,
+        failingOperationCount: 1,
+      }),
+      expect.anything(),
+      "all",
+    );
+  });
+
   it("changes scope and history window and exports the aggregate report", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(

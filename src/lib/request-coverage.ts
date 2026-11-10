@@ -65,7 +65,7 @@ function getTimestamp(value: string) {
 }
 
 function isSuccessfulStatus(status: number) {
-  return status >= 200 && status < 400;
+  return Number.isInteger(status) && status >= 200 && status < 400;
 }
 
 function findDocumentedResponse(endpoint: EndpointSummary, status: number) {
