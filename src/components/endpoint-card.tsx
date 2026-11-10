@@ -182,11 +182,7 @@ type TryItOutPayload = {
 };
 
 function formatResponseBody(value: string) {
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2);
-  } catch {
-    return value;
-  }
+  return formatJsonBody("application/json", value) ?? value;
 }
 
 function readResponseHeaders(value: unknown) {

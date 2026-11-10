@@ -207,13 +207,42 @@ describe("endpoint request snippet downloads", () => {
 
 describe("endpoint response downloads", () => {
   it.each([
-    ["Application/YAML; charset=utf-8", "name: Ada\n", "yaml"],
-    ["application/x-ndjson; charset=utf-8", '{"id":1}\n{"id":2}\n', "ndjson"],
-    ["application/vnd.oai.openapi+yaml", "openapi: 3.1.0\n", "yaml"],
+    ["Application/YAML; charset=utf-8", "name: Ada\n", "yaml", "name: Ada\n"],
+    [
+      "application/x-ndjson; charset=utf-8",
+      '{"id":1}\n{"id":2}\n',
+      "ndjson",
+      '{"id":1}\n{"id":2}\n',
+    ],
+    [
+      "application/vnd.oai.openapi+yaml",
+      "openapi: 3.1.0\n",
+      "yaml",
+      "openapi: 3.1.0\n",
+    ],
+    [
+      "application/json",
+      '{"id":9007199254740993,"decimal":1.234567890123456789,"large":1e400,"small":1e-400,"signed":-0}',
+      "json",
+      '{\n  "id": 9007199254740993,\n  "decimal": 1.234567890123456789,\n  "large": 1e400,\n  "small": 1e-400,\n  "signed": -0\n}',
+    ],
+    [
+      "application/problem+json",
+      String.raw`{"value":1,"value":2,"text":"\u0041\n"}`,
+      "json",
+      String.raw`{
+  "value": 1,
+  "value": 2,
+  "text": "\u0041\n"
+}`,
+    ],
   ])(
-    "downloads %s with its matching extension and original bytes",
-    async (contentType, body, extension) => {
+    "displays, copies, and downloads %s without changing its values",
+    async (contentType, body, extension, displayedBody) => {
       const user = userEvent.setup();
+      const copy = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockResolvedValue();
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
         Response.json({
           body,
@@ -238,7 +267,12 @@ describe("endpoint response downloads", () => {
         />,
       );
       await user.click(screen.getByRole("button", { name: "Try It Out" }));
-      await screen.findByLabelText("Response body");
+      const responseBody = await screen.findByLabelText("Response body");
+      expect(responseBody.textContent).toBe(displayedBody);
+      await user.click(
+        screen.getByRole("button", { name: "Copy response body" }),
+      );
+      expect(copy).toHaveBeenCalledWith(displayedBody);
       await user.click(download());
       expect(click).toHaveBeenCalledTimes(1);
       expect(click.mock.contexts[0]).toMatchObject({
