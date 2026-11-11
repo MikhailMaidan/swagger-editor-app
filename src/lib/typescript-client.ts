@@ -808,16 +808,22 @@ function selectModels(
   const endpointKeys = new Set(
     endpoints.map((endpoint) => `${endpoint.method} ${endpoint.path}`),
   );
-  const operationTypes = operations
-    .flatMap((operation) => [operation.requestBodyType, operation.responseType])
-    .join(" ");
+  const operationTypeNames = new Set(
+    operations
+      .flatMap((operation) => [
+        operation.requestBodyType,
+        operation.responseType,
+      ])
+      .join(" ")
+      .match(/[A-Za-z_$][A-Za-z0-9_$]*/g) ?? [],
+  );
   const selectedNames = new Set(
     models
       .filter(
         (model) =>
           model.usages.some((usage) =>
             endpointKeys.has(`${usage.method} ${usage.path}`),
-          ) || operationTypes.includes(getSchemaTypeScriptName(model.name)),
+          ) || operationTypeNames.has(getSchemaTypeScriptName(model.name)),
       )
       .map((model) => model.name),
   );

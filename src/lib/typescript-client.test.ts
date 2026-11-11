@@ -77,6 +77,65 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each(["UserProfile", "User_Profile"])(
+    "excludes models whose names are only substrings of the referenced type %s",
+    (modelName) => {
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Selected models", version: "1" },
+          components: {
+            schemas: {
+              User: { type: "string" },
+              Profile: { type: "boolean" },
+              [modelName]: {
+                type: "object",
+                properties: { name: { type: "string" } },
+              },
+            },
+          },
+          paths: {
+            "/profile": {
+              get: {
+                responses: {
+                  "200": {
+                    description: "Profile",
+                    content: {
+                      "application/json": {
+                        schema: { $ref: `#/components/schemas/${modelName}` },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
+      const models = extractSchemaModels(parsed.schema);
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        models,
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.summary.modelCount).toBe(1);
+      expect(build.source).toContain(`export interface ${modelName}`);
+      expect(build.source).not.toContain("export type User =");
+      expect(build.source).not.toContain("export type Profile =");
+      expect(
+        createTypeScriptClient(
+          parsed.endpoints,
+          models,
+          parsed.schema,
+          parsed,
+          { includeUnusedModels: true },
+        ).summary.modelCount,
+      ).toBe(3);
+    },
+  );
+
   it("includes models reached through percent-encoded dependency references", () => {
     const parsed = parseSchema(
       JSON.stringify({
