@@ -119,6 +119,33 @@ describe("request presets", () => {
     expect(window.localStorage.getItem(REQUEST_PRESETS_STORAGE_KEY)).toBeNull();
   });
 
+  it("preserves distinct parameter keys when creating, updating, and storing presets", () => {
+    const parameterValues = {
+      "query:search": "plain",
+      "query:search ": "trailing space",
+      "query: search": "leading space",
+      "query:search\t": "trailing tab",
+    };
+    const preset = createRequestPreset({ ...draft, parameterValues });
+
+    expect(preset.parameterValues).toEqual(parameterValues);
+
+    const updated = updateRequestPreset(preset, {
+      ...draft,
+      parameterValues: { ...parameterValues, "query:search ": "updated" },
+      requestBodies: { " application/json ": '{"name":"Alex"}' },
+    });
+    const presets = upsertRequestPreset([preset], updated);
+
+    expect(presets[0].parameterValues).toEqual({
+      ...parameterValues,
+      "query:search ": "updated",
+    });
+    expect(presets[0].requestBodies).toEqual(draft.requestBodies);
+    expect(saveRequestPresets(presets)).toBe(true);
+    expect(readRequestPresets()).toEqual(presets);
+  });
+
   it("sanitizes malformed storage and unsupported timeout values", () => {
     window.localStorage.setItem(
       REQUEST_PRESETS_STORAGE_KEY,

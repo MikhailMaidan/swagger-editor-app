@@ -54,6 +54,7 @@ function sanitizeStringRecord(
   maxEntries: number,
   maxKeyLength: number,
   maxValueLength: number,
+  { trimKeys = true }: { trimKeys?: boolean } = {},
 ) {
   if (!isRecord(value)) {
     return {};
@@ -62,9 +63,10 @@ function sanitizeStringRecord(
   return Object.entries(value)
     .slice(0, maxEntries)
     .reduce<Record<string, string>>((result, [key, item]) => {
-      const normalizedKey = key.slice(0, maxKeyLength).trim();
+      const truncatedKey = key.slice(0, maxKeyLength);
+      const normalizedKey = trimKeys ? truncatedKey.trim() : truncatedKey;
 
-      if (normalizedKey && typeof item === "string") {
+      if (normalizedKey.trim() && typeof item === "string") {
         result[normalizedKey] = item.slice(0, maxValueLength);
       }
 
@@ -104,6 +106,7 @@ function sanitizeRequestPreset(value: unknown): RequestPreset | null {
       MAX_PARAMETER_VALUES,
       MAX_PARAMETER_KEY_LENGTH,
       MAX_PARAMETER_VALUE_LENGTH,
+      { trimKeys: false },
     ),
     path,
     requestBodies: sanitizeStringRecord(
