@@ -335,7 +335,8 @@ function readResponseSchemas(
   }
 
   return Object.entries(operation.responses).flatMap<MediaSchema>(
-    ([status, rawResponse]) => {
+    ([rawStatus, rawResponse]) => {
+      const status = rawStatus.trim();
       const response = resolveReferenceObject(rawResponse, rootSchema);
       const contentSchemas = getContentSchemas(
         response.content,

@@ -77,6 +77,48 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each([" 200 ", " 2XX ", " DeFaUlT "])(
+    "selects the response type and Accept header for the padded status %j",
+    (status) => {
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Response selection", version: "1" },
+          paths: {
+            "/result": {
+              get: {
+                operationId: "getResult",
+                responses: {
+                  "400": {
+                    description: "Error",
+                    content: {
+                      "application/problem+json": {
+                        schema: { type: "object" },
+                      },
+                    },
+                  },
+                  [status]: {
+                    description: "Result",
+                    content: { "text/plain": { schema: { type: "string" } } },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        [],
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.operations[0].responseType).toBe("string");
+      expect(build.source).toContain('accept: input.accept ?? "text/plain",');
+    },
+  );
+
   it.each([{ type: "null" }, { type: ["null"] }])(
     "keeps null-only request and response schemas precise for $type",
     ({ type }) => {
