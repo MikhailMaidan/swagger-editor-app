@@ -140,7 +140,10 @@ function validateParameterValue(
     }
   }
 
-  const characterCount = Array.from(value).length;
+  const characterCount =
+    parameter.minLength !== undefined || parameter.maxLength !== undefined
+      ? Array.from(value).length
+      : 0;
   if (
     parameter.minLength !== undefined &&
     characterCount < parameter.minLength
