@@ -815,6 +815,7 @@ function selectModels(
         operation.responseType,
       ])
       .join(" ")
+      .replace(/"(?:\\.|[^"\\])*"/g, " ")
       .match(/[A-Za-z_$][A-Za-z0-9_$]*/g) ?? [],
   );
   const selectedNames = new Set(

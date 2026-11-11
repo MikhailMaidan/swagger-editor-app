@@ -77,6 +77,78 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each(["request", "response"])(
+    "excludes models whose names appear only in %s string literals",
+    (location) => {
+      const literals = ["User", 'quoted "Escaped"', "\\Backslash"];
+      const content = {
+        "application/json": {
+          schema: {
+            oneOf: [
+              { type: "string", enum: literals },
+              { $ref: "#/components/schemas/Used" },
+            ],
+          },
+        },
+      };
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Literal models", version: "1" },
+          components: {
+            schemas: {
+              User: { type: "boolean" },
+              Escaped: { type: "boolean" },
+              Backslash: { type: "boolean" },
+              Used: { type: "object", properties: { id: { type: "integer" } } },
+            },
+          },
+          paths: {
+            "/result": {
+              post: {
+                requestBody:
+                  location === "request"
+                    ? { required: true, content }
+                    : undefined,
+                responses: {
+                  "200": {
+                    description: "Result",
+                    ...(location === "response" ? { content } : {}),
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
+      const models = extractSchemaModels(parsed.schema);
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        models,
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.summary.modelCount).toBe(1);
+      expect(build.source).toContain("export interface Used");
+      expect(build.source).toContain(
+        `${literals.map((value) => JSON.stringify(value)).join(" | ")} | Used`,
+      );
+      for (const modelName of ["User", "Escaped", "Backslash"]) {
+        expect(build.source).not.toContain(`export type ${modelName} =`);
+      }
+      expect(
+        createTypeScriptClient(
+          parsed.endpoints,
+          models,
+          parsed.schema,
+          parsed,
+          { includeUnusedModels: true },
+        ).summary.modelCount,
+      ).toBe(4);
+    },
+  );
+
   it.each(["UserProfile", "User_Profile"])(
     "excludes models whose names are only substrings of the referenced type %s",
     (modelName) => {
