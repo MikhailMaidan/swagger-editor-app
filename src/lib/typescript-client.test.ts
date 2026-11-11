@@ -77,6 +77,55 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("includes models reached through percent-encoded dependency references", () => {
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Encoded references", version: "1" },
+        components: {
+          schemas: {
+            "User.Profile": { type: "string" },
+            Envelope: {
+              type: "object",
+              properties: {
+                value: { $ref: "#/components/schemas/User%2EProfile" },
+              },
+              required: ["value"],
+            },
+          },
+        },
+        paths: {
+          "/result": {
+            get: {
+              responses: {
+                "200": {
+                  description: "Result",
+                  content: {
+                    "application/json": {
+                      schema: { $ref: "#/components/schemas/Envelope" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      extractSchemaModels(parsed.schema),
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.operations[0].responseType).toBe("Envelope");
+    expect(build.summary.modelCount).toBe(2);
+    expect(build.source).toContain("export type User_Profile = string;");
+    expect(build.source).toContain("value: User_Profile;");
+    expect(build.source).not.toContain("User_2EProfile");
+  });
+
   it.each([
     { version: "3.0.3", schema: { type: "object", nullable: true } },
     { version: "3.1.0", schema: { type: ["object", "null"] } },

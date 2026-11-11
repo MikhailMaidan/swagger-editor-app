@@ -65,26 +65,46 @@ function decodePointerSegment(value: string) {
   return value.replaceAll("~1", "/").replaceAll("~0", "~");
 }
 
+function decodeLocalReference(reference: string) {
+  if (!reference.startsWith("#/")) {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(reference);
+  } catch {
+    return "";
+  }
+}
+
 function getReferencedModelName(reference: string) {
+  const decodedReference = decodeLocalReference(reference);
   const prefixes = ["#/components/schemas/", "#/definitions/"];
-  const prefix = prefixes.find((item) => reference.startsWith(item));
+  const prefix = prefixes.find((item) => decodedReference.startsWith(item));
 
   if (!prefix) {
     return "";
   }
 
-  return decodePointerSegment(reference.slice(prefix.length).split("/")[0]);
+  return decodePointerSegment(
+    decodedReference.slice(prefix.length).split("/")[0],
+  );
 }
 
 function resolveLocalReference(
   rootSchema: Record<string, unknown>,
   reference: string,
 ) {
-  if (!reference.startsWith("#/")) {
+  const decodedReference = decodeLocalReference(reference);
+
+  if (!decodedReference) {
     return null;
   }
 
-  const segments = reference.slice(2).split("/").map(decodePointerSegment);
+  const segments = decodedReference
+    .slice(2)
+    .split("/")
+    .map(decodePointerSegment);
   let current: unknown = rootSchema;
 
   for (const segment of segments) {

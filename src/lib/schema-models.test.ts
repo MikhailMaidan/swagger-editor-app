@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractSchemaModels } from "./schema-models";
+import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it("extracts OpenAPI models, dependencies, examples, and operation usages", () => {
@@ -146,6 +146,79 @@ describe("schema models", () => {
       },
     ]);
   });
+
+  it.each([
+    { name: "User.Profile", encoded: "User%2EProfile" },
+    { name: "User Name", encoded: "User%20Name" },
+    { name: "Модель", encoded: "%D0%9C%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C" },
+    { name: "A/B~C", encoded: "A%7E1B%7E0C" },
+    { name: "100%", encoded: "100%25" },
+  ])(
+    "resolves the percent-encoded model reference $encoded",
+    ({ name, encoded }) => {
+      const reference = `#/components/schemas/${encoded}`;
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            [name]: { type: "string", example: "resolved" },
+            Envelope: {
+              type: "object",
+              properties: { value: { $ref: reference } },
+              required: ["value"],
+            },
+          },
+        },
+        paths: {
+          "/result": {
+            get: {
+              responses: {
+                "200": {
+                  content: {
+                    "application/json": { schema: { $ref: reference } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const referenced = models.find((model) => model.name === name);
+      expect(referenced).toMatchObject({
+        referencedBy: ["Envelope"],
+        usages: [{ kind: "response", method: "GET", path: "/result" }],
+      });
+      const envelope = models.find((model) => model.name === "Envelope");
+      expect(envelope?.references).toEqual([name]);
+      expect(envelope?.example).toBe('{\n  "value": "resolved"\n}');
+      expect(envelope?.typeScript).toContain(
+        `value: ${getSchemaTypeScriptName(name)};`,
+      );
+    },
+  );
+
+  it.each(["%", "%ZZ", "%E0%A4%A"])(
+    "handles malformed percent escapes in references without linking a model: %s",
+    (encoded) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            [encoded]: { type: "string" },
+            Envelope: {
+              type: "object",
+              properties: {
+                value: { $ref: `#/components/schemas/${encoded}` },
+              },
+              required: ["value"],
+            },
+          },
+        },
+      });
+      const envelope = models.find(({ name }) => name === "Envelope");
+      expect(envelope?.references).toEqual([]);
+      expect(envelope?.typeScript).toContain("value: unknown;");
+      expect(envelope?.example).toBe('{\n  "value": null\n}');
+    },
+  );
 
   it("handles recursive and composed models without following cycles forever", () => {
     const models = extractSchemaModels({
