@@ -77,6 +77,57 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each([
+    { version: "3.0.3", schema: { type: "object", nullable: true } },
+    { version: "3.1.0", schema: { type: ["object", "null"] } },
+  ])(
+    "retains nullable response models in generated clients for OpenAPI $version",
+    ({ schema, version }) => {
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: version,
+          info: { title: "Nullable API", version: "1" },
+          components: {
+            schemas: {
+              MaybeUser: {
+                ...schema,
+                properties: { name: { type: "string" } },
+                required: ["name"],
+              },
+            },
+          },
+          paths: {
+            "/user": {
+              get: {
+                responses: {
+                  "200": {
+                    description: "An optional user",
+                    content: {
+                      "application/json": {
+                        schema: { $ref: "#/components/schemas/MaybeUser" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        extractSchemaModels(parsed.schema),
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.operations[0].responseType).toBe("MaybeUser");
+      expect(build.source).toContain(
+        "export type MaybeUser = { name: string; } | null;",
+      );
+    },
+  );
+
   it.each([" 200 ", " 2XX ", " DeFaUlT "])(
     "selects the response type and Accept header for the padded status %j",
     (status) => {

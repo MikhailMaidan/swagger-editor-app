@@ -257,15 +257,20 @@ function formatTypeScriptLiteral(value: unknown) {
   return "unknown";
 }
 
+function isNullableSchema(schema: Record<string, unknown>) {
+  return (
+    schema.nullable === true ||
+    schema.type === "null" ||
+    (Array.isArray(schema.type) && schema.type.includes("null"))
+  );
+}
+
 function addNullableType(
   typeScriptType: string,
   schema: Record<string, unknown>,
 ) {
-  const isNullable =
-    schema.nullable === true ||
-    (Array.isArray(schema.type) && schema.type.includes("null"));
-
-  return isNullable && !typeScriptType.split(" | ").includes("null")
+  return isNullableSchema(schema) &&
+    !typeScriptType.split(" | ").includes("null")
     ? `${typeScriptType} | null`
     : typeScriptType;
 }
@@ -404,7 +409,7 @@ function createTypeScriptDeclaration(
     Array.isArray(schema.anyOf) ||
     Boolean(schema.$ref);
 
-  if (properties.size > 0 && !hasComposition) {
+  if (properties.size > 0 && !hasComposition && !isNullableSchema(schema)) {
     const lines = Array.from(properties.entries()).map(
       ([propertyName, property]) =>
         `  ${getTypeScriptPropertyName(propertyName)}${property.required ? "" : "?"}: ${getSchemaTypeScriptType(property.schema, rootSchema)};`,
@@ -805,11 +810,7 @@ export function extractSchemaModels(
             : [],
           format: readString(displaySchema.format),
           name: propertyName,
-          nullable:
-            displaySchema.nullable === true ||
-            displaySchema.type === "null" ||
-            (Array.isArray(displaySchema.type) &&
-              displaySchema.type.includes("null")),
+          nullable: isNullableSchema(displaySchema),
           readOnly: displaySchema.readOnly === true,
           required: property.required,
           type: getSchemaDisplayType(property.schema, rootSchema),

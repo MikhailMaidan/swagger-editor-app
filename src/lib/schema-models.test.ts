@@ -253,4 +253,41 @@ describe("schema models", () => {
       );
     },
   );
+
+  it.each([{ type: "object", nullable: true }, { type: ["object", "null"] }])(
+    "exports nullable object model $type with its null alternative",
+    (schema) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            MaybeUser: {
+              ...schema,
+              properties: { name: { type: "string" } },
+              required: ["name"],
+            },
+            Holder: {
+              type: "object",
+              properties: { user: { $ref: "#/components/schemas/MaybeUser" } },
+              required: ["user"],
+            },
+          },
+        },
+      });
+
+      const model = models.find(({ name }) => name === "MaybeUser");
+      expect(model?.typeScript).toBe(
+        "export type MaybeUser = { name: string; } | null;",
+      );
+      expect(model?.properties).toEqual([
+        expect.objectContaining({
+          name: "name",
+          required: true,
+          type: "string",
+        }),
+      ]);
+      const holder = models.find(({ name }) => name === "Holder");
+      expect(holder?.typeScript).toContain("export interface Holder");
+      expect(holder?.typeScript).toContain("user: MaybeUser;");
+    },
+  );
 });
