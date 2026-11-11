@@ -34,6 +34,14 @@ const getRequest: RequestCodeInput = {
   requestBody: '{"ignored":true}',
 };
 
+const rawJsonBodies = [
+  '{"id":9007199254740993}',
+  '{"decimal":1.234567890123456789}',
+  '{"large":1e400,"small":1e-400,"signed":-0}',
+  '{"value":1,"value":2}',
+  String.raw`{"text":"\u0041"}`,
+];
+
 describe("request snippets", () => {
   it("defines metadata for every format and recognizes language ids", () => {
     for (const format of Object.keys(REQUEST_CODE_FORMATS)) {
@@ -153,6 +161,46 @@ describe("request snippets", () => {
     );
     expect(createRequestCode("httpie", input)).toContain(`--raw '${body}'`);
   });
+
+  it.each(rawJsonBodies)(
+    "keeps the original Python payload when JSON conversion would alter %s",
+    (body) => {
+      const code = createRequestCode("python", {
+        ...jsonRequest,
+        requestBody: body,
+      });
+      expect(code).toContain(`payload = ${JSON.stringify(body)}`);
+      expect(code).toContain("data=payload");
+      expect(code).not.toContain("json=payload");
+      expect(code).toContain('"Content-Type": "application/json"');
+    },
+  );
+
+  it.each(rawJsonBodies)(
+    "sends the original Axios payload when JSON conversion would alter %s",
+    async (body) => {
+      const code = createRequestCode("javascript-axios", {
+        ...jsonRequest,
+        requestBody: body,
+      });
+      let sent: { data: unknown; headers: Record<string, string> } | undefined;
+      await runInNewContext(
+        `(async () => { ${code.replace('import axios from "axios";', "")} })()`,
+        {
+          axios: {
+            request: async (config: NonNullable<typeof sent>) => {
+              sent = config;
+              return { status: 200, data: null };
+            },
+          },
+          console: { log: () => {} },
+        },
+        { timeout: 1000 },
+      );
+      expect(sent?.data).toBe(body);
+      expect(sent?.headers["Content-Type"]).toBe("application/json");
+    },
+  );
 
   it("generates axios and Go requests", () => {
     expect(createRequestCode("javascript-axios", jsonRequest)).toBe(

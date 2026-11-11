@@ -4,7 +4,7 @@ import {
   createHttpPreview,
   type CurlParameter,
 } from "./openapi";
-import { isJsonMediaType } from "./request-body";
+import { formatJsonBody, isJsonMediaType } from "./request-body";
 import {
   buildCookieHeaderValue,
   buildRequestUrl,
@@ -257,7 +257,18 @@ function readJsonBody(request: SnippetRequest) {
   }
 
   try {
-    return { value: JSON.parse(request.body) as unknown };
+    const value: unknown = JSON.parse(request.body);
+
+    // Use a native JSON value only when conversion preserves the original
+    // tokens; otherwise the generators send the raw body without rewriting it.
+    if (
+      JSON.stringify(value, null, 2) !==
+      formatJsonBody(request.contentType, request.body)
+    ) {
+      return undefined;
+    }
+
+    return { value };
   } catch {
     return undefined;
   }
