@@ -6,6 +6,20 @@ export type UrlParameter = {
   value: string;
 };
 
+function encodeUrlComponent(value: string) {
+  try {
+    return encodeURIComponent(value);
+  } catch {
+    // Imported JSON strings can contain unmatched UTF-16 surrogates. Replace
+    // those with the Unicode replacement character while keeping valid pairs.
+    const normalized = value.replace(
+      /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g,
+      (character) => (character.length === 2 ? character : "\uFFFD"),
+    );
+    return encodeURIComponent(normalized);
+  }
+}
+
 export function normalizeServerUrl(serverUrl: string) {
   return serverUrl.trim().replace(/\/+$/, "");
 }
@@ -24,7 +38,7 @@ export function resolvePathParameters(
       (currentPath, parameter) =>
         currentPath.replaceAll(
           `{${parameter.name}}`,
-          encodeURIComponent(parameter.value),
+          encodeUrlComponent(parameter.value),
         ),
       normalizePath(path),
     );
@@ -39,7 +53,7 @@ export function buildQueryString(parameters: UrlParameter[]) {
     .filter((parameter) => parameter.location === "query")
     .map(
       (parameter) =>
-        `${encodeURIComponent(parameter.name)}=${encodeURIComponent(
+        `${encodeUrlComponent(parameter.name)}=${encodeUrlComponent(
           parameter.value,
         )}`,
     )
@@ -77,7 +91,7 @@ export function buildCookieHeaderValue(parameters: UrlParameter[]) {
   return parameters
     .filter((parameter) => parameter.location === "cookie")
     .map(
-      (parameter) => `${parameter.name}=${encodeURIComponent(parameter.value)}`,
+      (parameter) => `${parameter.name}=${encodeUrlComponent(parameter.value)}`,
     )
     .join("; ");
 }

@@ -63,6 +63,32 @@ describe("request-url helpers", () => {
     ).toBe("/search/a%20b%2Fc");
   });
 
+  it.each([
+    ["\uD800", "%EF%BF%BD"],
+    ["\uDC00", "%EF%BF%BD"],
+    ["a\uD800b\uDC00", "a%EF%BF%BDb%EF%BF%BD"],
+    ["\uD800😀\uDC00", "%EF%BF%BD%F0%9F%98%80%EF%BF%BD"],
+    ["😀", "%F0%9F%98%80"],
+  ])(
+    "safely encodes Unicode parameter value %j across URL locations",
+    (value, encoded) => {
+      expect(
+        buildRequestUrl("https://api.example.com", "/items/{id}", [
+          { location: "path", name: "id", value },
+          { location: "query", name: "q", value },
+          { location: "query", name: value, value: "name" },
+        ]),
+      ).toBe(
+        `https://api.example.com/items/${encoded}?q=${encoded}&${encoded}=name`,
+      );
+      expect(
+        buildCookieHeaderValue([
+          { location: "cookie", name: "session", value },
+        ]),
+      ).toBe(`session=${encoded}`);
+    },
+  );
+
   it("ignores non-path parameters when substituting", () => {
     expect(
       resolvePathParameters("/users/{id}", [
