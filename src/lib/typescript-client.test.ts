@@ -77,6 +77,39 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each([{ type: "null" }, { type: ["null"] }])(
+    "keeps null-only request and response schemas precise for $type",
+    ({ type }) => {
+      const content = { "application/json": { schema: { type } } };
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Null API", version: "1" },
+          paths: {
+            "/result": {
+              post: {
+                operationId: "sendResult",
+                requestBody: { required: true, content },
+                responses: { "200": { description: "Null result", content } },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        extractSchemaModels(parsed.schema),
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.operations[0]).toMatchObject({
+        responseType: "null",
+      });
+      expect(build.source).toContain("body: null;");
+    },
+  );
+
   it("generates typed model closure, request inputs, and Fetch runtime", () => {
     const parsed = parseSchema(openApiSchema);
     const build = createTypeScriptClient(

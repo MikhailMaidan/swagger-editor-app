@@ -210,4 +210,47 @@ describe("schema models", () => {
       }),
     ).toMatchObject([{ name: "Valid", type: "string" }]);
   });
+
+  it.each([{ type: "null" }, { type: ["null"] }])(
+    "preserves the null-only type $type in model declarations and properties",
+    ({ type }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            NullResult: { type },
+            Envelope: {
+              type: "object",
+              required: ["value", "result", "items"],
+              properties: {
+                value: { type },
+                result: { $ref: "#/components/schemas/NullResult" },
+                items: { type: "array", items: { type } },
+              },
+            },
+          },
+        },
+      });
+
+      expect(models.find(({ name }) => name === "NullResult")).toMatchObject({
+        example: "null",
+        type: "null",
+        typeScript: "export type NullResult = null;",
+      });
+      const envelope = models.find(({ name }) => name === "Envelope");
+      expect(envelope?.typeScript).toContain("value: null;");
+      expect(envelope?.typeScript).toContain("result: NullResult;");
+      expect(envelope?.typeScript).toContain("items: Array<null>;");
+      expect(envelope?.properties).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "value",
+            type: "null",
+            nullable: true,
+          }),
+          expect.objectContaining({ name: "result", nullable: true }),
+          expect.objectContaining({ name: "items", type: "array<null>" }),
+        ]),
+      );
+    },
+  );
 });

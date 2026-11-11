@@ -344,7 +344,9 @@ export function getSchemaTypeScriptType(
   const rawTypes = Array.isArray(rawSchema.type)
     ? rawSchema.type.filter((item): item is string => typeof item === "string")
     : [readString(rawSchema.type)].filter(Boolean);
-  const schemaType = rawTypes.find((item) => item !== "null") ?? "";
+  const schemaType =
+    rawTypes.find((item) => item !== "null") ??
+    (rawTypes.includes("null") ? "null" : "");
   let typeScriptType = "unknown";
 
   if (schemaType === "array" || rawSchema.items !== undefined) {
@@ -382,8 +384,8 @@ export function getSchemaTypeScriptType(
     typeScriptType = "number";
   } else if (schemaType === "boolean") {
     typeScriptType = "boolean";
-  } else if (schemaType === "string") {
-    typeScriptType = "string";
+  } else if (schemaType === "string" || schemaType === "null") {
+    typeScriptType = schemaType;
   }
 
   return addNullableType(typeScriptType, rawSchema);
@@ -459,7 +461,8 @@ function getSchemaDisplayType(
   }
 
   const schemaType = Array.isArray(rawSchema.type)
-    ? rawSchema.type.filter((item) => item !== "null").join(" | ")
+    ? rawSchema.type.filter((item) => item !== "null").join(" | ") ||
+      (rawSchema.type.includes("null") ? "null" : "")
     : readString(rawSchema.type);
 
   if (schemaType === "array" || rawSchema.items !== undefined) {
@@ -804,6 +807,7 @@ export function extractSchemaModels(
           name: propertyName,
           nullable:
             displaySchema.nullable === true ||
+            displaySchema.type === "null" ||
             (Array.isArray(displaySchema.type) &&
               displaySchema.type.includes("null")),
           readOnly: displaySchema.readOnly === true,
