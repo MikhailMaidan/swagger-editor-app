@@ -341,7 +341,9 @@ export function getSchemaTypeScriptType(
     }
 
     return addNullableType(
-      intersectionTypes.join(" & ") || "unknown",
+      intersectionTypes
+        .map((type) => (type.includes(" | ") ? `(${type})` : type))
+        .join(" & ") || "unknown",
       rawSchema,
     );
   }

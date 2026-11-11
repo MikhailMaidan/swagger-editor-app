@@ -290,4 +290,44 @@ describe("schema models", () => {
       expect(holder?.typeScript).toContain("user: MaybeUser;");
     },
   );
+
+  it.each([{ unionFirst: true }, { unionFirst: false }])(
+    "keeps union grouping in intersections with unionFirst=$unionFirst",
+    ({ unionFirst }) => {
+      const choice = {
+        oneOf: [
+          {
+            type: "object",
+            properties: { kind: { enum: ["a"] } },
+            required: ["kind"],
+          },
+          {
+            type: "object",
+            properties: { kind: { enum: ["b"] } },
+            required: ["kind"],
+          },
+        ],
+      };
+      const tag = {
+        type: "object",
+        properties: { tag: { type: "string" } },
+        required: ["tag"],
+      };
+      const [model] = extractSchemaModels({
+        components: {
+          schemas: {
+            TaggedValue: { allOf: unionFirst ? [choice, tag] : [tag, choice] },
+          },
+        },
+      });
+
+      const union = '({ kind: "a"; } | { kind: "b"; })';
+      const intersection = unionFirst
+        ? `${union} & { tag: string; }`
+        : `{ tag: string; } & ${union}`;
+      expect(model.typeScript).toBe(
+        `export type TaggedValue = ${intersection};`,
+      );
+    },
+  );
 });
