@@ -491,10 +491,10 @@ function getPathParameters(endpoint: EndpointSummary) {
   const documentedNames = new Set(
     documentedParameters.map((parameter) => parameter.name),
   );
-  const missingParameters = Array.from(
-    endpoint.path.matchAll(/\{([^{}]+)\}/g),
-    (match) => match[1],
-  )
+  const pathParameterNames = new Set(
+    Array.from(endpoint.path.matchAll(/\{([^{}]+)\}/g), (match) => match[1]),
+  );
+  const missingParameters = Array.from(pathParameterNames)
     .filter((name) => !documentedNames.has(name))
     .map<EndpointParameter>((name) => ({
       description: "",
@@ -636,7 +636,7 @@ function createOperationMethod(
 
   getPathParameters(endpoint).forEach((parameter) => {
     lines.push(
-      `      path = path.replace(${JSON.stringify(`{${parameter.name}}`)}, encodeURIComponent(String(input.path${getPropertyAccess(parameter.name)})));`,
+      `      path = path.split(${JSON.stringify(`{${parameter.name}}`)}).join(encodeURIComponent(String(input.path${getPropertyAccess(parameter.name)})));`,
     );
   });
 

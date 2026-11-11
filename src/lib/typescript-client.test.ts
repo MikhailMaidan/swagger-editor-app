@@ -241,6 +241,75 @@ paths:
     expect(build.summary.generatedNameCount).toBe(3);
   });
 
+  it.each([{ documented: true }, { documented: false }])(
+    "replaces every repeated path placeholder with documented=$documented",
+    async ({ documented }) => {
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Repeated paths", version: "1" },
+          paths: {
+            "/users/{id}/connections/{id}": {
+              get: {
+                operationId: "getConnections",
+                parameters: documented
+                  ? [
+                      {
+                        name: "id",
+                        in: "path",
+                        required: true,
+                        schema: { type: "string" },
+                      },
+                    ]
+                  : [],
+                responses: { "200": { description: "OK" } },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        [],
+        parsed.schema,
+        parsed,
+      );
+      expect(build.source).toContain("path: { id: string; };");
+      const compiled = ts.transpileModule(build.source, {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2022,
+        },
+        reportDiagnostics: true,
+      });
+      expect(compiled.diagnostics).toEqual([]);
+      const generatedModule = { exports: {} as Record<string, unknown> };
+      new Function("module", "exports", compiled.outputText)(
+        generatedModule,
+        generatedModule.exports,
+      );
+      const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+      const createClient = generatedModule.exports[build.clientName] as (
+        options: Record<string, unknown>,
+      ) => {
+        getConnections(input: { path: { id: string } }): Promise<unknown>;
+      };
+      const client = createClient({
+        baseUrl: "https://api.example.com",
+        fetch: fetchMock,
+      });
+
+      await expect(
+        client.getConnections({ path: { id: "a b/c" } }),
+      ).resolves.toEqual({ ok: true });
+      expect(fetchMock).toHaveBeenCalledOnce();
+      const url = fetchMock.mock.calls[0][0] as URL;
+      expect(url.href).toBe(
+        "https://api.example.com/users/a%20b%2Fc/connections/a%20b%2Fc",
+      );
+    },
+  );
+
   it("supports Swagger 2 body and response schemas", () => {
     const parsed = parseSchema(`swagger: '2.0'
 info:
