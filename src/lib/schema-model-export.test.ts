@@ -21,6 +21,20 @@ const models: SchemaModel[] = [
 ];
 
 describe("schema model TypeScript export", () => {
+  it.each(["\u2028", "\u2029"])(
+    "keeps Unicode separator %j inside the generated header comment",
+    (separator) => {
+      const modelExport = createSchemaModelsTypeScriptExport(models, {
+        title: `Catalog${separator}API`,
+        version: `2.0${separator}Internal`,
+      });
+
+      expect(modelExport.content).toBe(
+        "// Generated from Catalog API v2.0 Internal by RSSwag.\n\nexport interface User {\n  id: number;\n}\n",
+      );
+    },
+  );
+
   it("creates a deterministic, safely named TypeScript file", () => {
     expect(
       createSchemaModelsTypeScriptExport(models, {

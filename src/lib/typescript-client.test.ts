@@ -77,6 +77,38 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each(["\u2028", "\u2029"])(
+    "generates valid TypeScript when metadata contains Unicode separator %j",
+    (separator) => {
+      const build = createTypeScriptClient(
+        [],
+        [],
+        {},
+        {
+          title: `Catalog${separator}API`,
+          version: `2.0${separator}Internal`,
+          serverUrl: "https://example.test",
+        },
+      );
+      const compiled = ts.transpileModule(build.source, {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2022,
+        },
+        reportDiagnostics: true,
+      });
+
+      expect(
+        compiled.diagnostics?.map((diagnostic) =>
+          ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
+        ),
+      ).toEqual([]);
+      expect(build.source.split("\n")[0]).toBe(
+        "// Generated from Catalog API v2.0 Internal by RSSwag.",
+      );
+    },
+  );
+
   it("retains primitive constants in request and response types", () => {
     const parsed = parseSchema(
       JSON.stringify({

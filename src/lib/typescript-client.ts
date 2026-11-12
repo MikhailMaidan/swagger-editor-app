@@ -593,7 +593,7 @@ function deriveOperationName(endpoint: EndpointSummary) {
 
 function sanitizeComment(value: string) {
   return value
-    .replace(/[\r\n]+/g, " ")
+    .replace(/[\r\n\u2028\u2029]+/g, " ")
     .replaceAll("*/", "* /")
     .trim();
 }
