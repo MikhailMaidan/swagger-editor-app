@@ -61,7 +61,7 @@ function getOperationKey(method: string, path: string) {
 
 function getTimestamp(value: string) {
   const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? timestamp : 0;
+  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
 }
 
 function isSuccessfulStatus(status: number) {

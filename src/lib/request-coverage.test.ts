@@ -194,6 +194,34 @@ describe("request coverage", () => {
     expect(records.map(({ status }) => status)).toEqual([200.5, 399.5, 200]);
   });
 
+  it.each([
+    "1969-12-31T23:59:59.999Z",
+    "1970-01-01T00:00:00.000Z",
+    "2026-09-04T10:00:00.000Z",
+  ])(
+    "prefers valid timestamp %s over invalid history timestamps",
+    (createdAt) => {
+      const records = [
+        createRecord("invalid", "GET", "/jobs", 503, "not-a-date"),
+        createRecord("valid", "GET", "/jobs", 200, createdAt),
+      ];
+      const report = createRequestCoverageReport(
+        [createEndpoint("GET", "/jobs", ["200", "503"])],
+        records,
+      );
+
+      expect(report.operations[0]).toMatchObject({
+        attempts: 2,
+        failedAttempts: 1,
+        latestCreatedAt: createdAt,
+        latestStatus: 200,
+        state: "covered",
+        successfulAttempts: 1,
+      });
+      expect(records.map(({ id }) => id)).toEqual(["invalid", "valid"]);
+    },
+  );
+
   it("filters history by age without mutating the source records", () => {
     const records = [
       createRecord("recent", "GET", "/users", 200, "2026-09-04T11:00:00.000Z"),
