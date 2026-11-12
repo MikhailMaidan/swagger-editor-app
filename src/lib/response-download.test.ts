@@ -21,6 +21,18 @@ describe("response download helpers", () => {
     });
   });
 
+  it.each(["text/json", "Text/JSON; charset=utf-8"])(
+    "uses a JSON extension for response media type %s",
+    (contentType) => {
+      expect(
+        getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
+      ).toEqual({
+        contentType,
+        fileName: "rsswag-response-200.json",
+      });
+    },
+  );
+
   it.each(["constructor", "__proto__"])(
     "uses the text fallback for a malformed Content-Type of %s",
     (contentType) => {

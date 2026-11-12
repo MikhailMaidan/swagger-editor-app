@@ -166,7 +166,7 @@ describe("schema mock responses", () => {
     ).toMatchObject({ body: "", generated: false });
   });
 
-  it.each(["application/json", "application/problem+json"])(
+  it.each(["application/json", "application/problem+json", "text/json"])(
     "generates JSON null for a null schema with media type %s",
     (contentType) => {
       const parsed = parseOpenApiSchema(`openapi: 3.1.0

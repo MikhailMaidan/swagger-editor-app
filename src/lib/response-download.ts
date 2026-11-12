@@ -7,6 +7,7 @@ const mediaTypeExtensions: Record<string, string> = {
   "application/yaml": "yaml",
   "text/csv": "csv",
   "text/html": "html",
+  "text/json": "json",
   "text/plain": "txt",
   "text/x-yaml": "yaml",
   "text/xml": "xml",

@@ -15,6 +15,26 @@ describe("request body helpers", () => {
     expect(isJsonMediaType("application/xml")).toBe(false);
   });
 
+  it.each(["text/json", "Text/JSON; charset=utf-8"])(
+    "formats and validates JSON bodies with media type %s",
+    (contentType) => {
+      expect(isJsonMediaType(contentType)).toBe(true);
+      expect(formatJsonBody(contentType, '{"id":7}')).toBe('{\n  "id": 7\n}');
+      expect(hasInvalidJsonBody(contentType, '{"id":')).toBe(true);
+      expect(
+        createRequestBodyContractReport(contentType, "{}", {
+          properties: ["id"],
+          requiredProperties: ["id"],
+          type: "object",
+        }),
+      ).toEqual({
+        code: "body-missing-required",
+        params: { properties: "id" },
+        result: "fail",
+      });
+    },
+  );
+
   it("only rejects malformed, non-empty JSON bodies", () => {
     expect(hasInvalidJsonBody("application/json", '{"active":true}')).toBe(
       false,

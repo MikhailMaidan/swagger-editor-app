@@ -1,7 +1,11 @@
 export function isJsonMediaType(contentType: string) {
   const mediaType = contentType.split(";", 1)[0].trim().toLowerCase();
 
-  return mediaType === "application/json" || mediaType.endsWith("+json");
+  return (
+    mediaType === "application/json" ||
+    mediaType === "text/json" ||
+    mediaType.endsWith("+json")
+  );
 }
 
 export type RequestBodyContractCode =
