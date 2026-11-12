@@ -737,7 +737,17 @@ function createExampleValue(
   }
 
   if (schemaType === "integer" || schemaType === "number") {
-    return typeof rawSchema.minimum === "number" ? rawSchema.minimum : 0;
+    if (typeof rawSchema.minimum === "number") {
+      return schemaType === "integer"
+        ? Math.ceil(rawSchema.minimum)
+        : rawSchema.minimum;
+    }
+
+    const value =
+      typeof rawSchema.maximum === "number"
+        ? Math.min(0, rawSchema.maximum)
+        : 0;
+    return schemaType === "integer" ? Math.floor(value) : value;
   }
 
   if (schemaType === "boolean") {

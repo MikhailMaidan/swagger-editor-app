@@ -3,6 +3,34 @@ import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it.each([
+    { type: "integer", minimum: 0.5, expected: 1 },
+    { type: "integer", minimum: -1.5, expected: -1 },
+    { type: "integer", maximum: -0.5, expected: -1 },
+    { type: "integer", maximum: 10, expected: 0 },
+    { type: "number", minimum: 0.5, expected: 0.5 },
+    { type: "number", maximum: -0.5, expected: -0.5 },
+  ])(
+    "generates a bounded numeric example for $type: $expected",
+    ({ expected, ...schema }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Value: schema,
+            Envelope: { type: "object", properties: { value: schema } },
+          },
+        },
+      });
+
+      expect(
+        JSON.parse(models.find(({ name }) => name === "Value")!.example),
+      ).toBe(expected);
+      expect(
+        JSON.parse(models.find(({ name }) => name === "Envelope")!.example),
+      ).toEqual({ value: expected });
+    },
+  );
+
+  it.each([
     {
       type: ["string", "array", "null"],
       items: { type: "integer" },
