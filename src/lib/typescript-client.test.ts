@@ -77,6 +77,42 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("preserves mixed type arrays in generated request and response types", () => {
+    const content = {
+      "application/json": {
+        schema: {
+          type: ["string", "array", "null"],
+          items: { type: "integer" },
+        },
+      },
+    };
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Mixed types", version: "1" },
+        paths: {
+          "/values": {
+            post: {
+              requestBody: { required: true, content },
+              responses: { "200": { description: "Value", content } },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      [],
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.source).toContain("body: string | Array<number> | null;");
+    expect(build.operations[0].responseType).toBe(
+      "string | Array<number> | null",
+    );
+  });
+
   it("excludes models whose names appear only as inline property names", () => {
     const content = {
       "application/json": {

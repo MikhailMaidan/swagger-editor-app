@@ -61,6 +61,12 @@ function readStringArray(value: unknown) {
     : [];
 }
 
+function readSchemaTypes(schema: Record<string, unknown>) {
+  return Array.isArray(schema.type)
+    ? schema.type.filter((item): item is string => typeof item === "string")
+    : [readString(schema.type)].filter(Boolean);
+}
+
 function decodePointerSegment(value: string) {
   return value.replaceAll("~1", "/").replaceAll("~0", "~");
 }
@@ -399,23 +405,41 @@ export function getSchemaTypeScriptType(
     );
   }
 
-  const rawTypes = Array.isArray(rawSchema.type)
-    ? rawSchema.type.filter((item): item is string => typeof item === "string")
-    : [readString(rawSchema.type)].filter(Boolean);
+  const rawTypes = readSchemaTypes(rawSchema);
+  const nonNullTypes = Array.from(
+    new Set(rawTypes.filter((type) => type !== "null")),
+  );
+
+  if (nonNullTypes.length > 1) {
+    const types = nonNullTypes.map((type) =>
+      getSchemaTypeScriptType(
+        { ...rawSchema, type, nullable: false },
+        rootSchema,
+        depth,
+      ),
+    );
+
+    return addNullableType(Array.from(new Set(types)).join(" | "), rawSchema);
+  }
+
   const schemaType =
     rawTypes.find((item) => item !== "null") ??
     (rawTypes.includes("null") ? "null" : "");
   let typeScriptType = "unknown";
 
-  if (schemaType === "array" || rawSchema.items !== undefined) {
+  if (
+    schemaType === "array" ||
+    (!schemaType && rawSchema.items !== undefined)
+  ) {
     const itemType = isRecord(rawSchema.items)
       ? getSchemaTypeScriptType(rawSchema.items, rootSchema, depth + 1)
       : "unknown";
     typeScriptType = `Array<${itemType}>`;
   } else if (
     schemaType === "object" ||
-    isRecord(rawSchema.properties) ||
-    rawSchema.additionalProperties !== undefined
+    (!schemaType &&
+      (isRecord(rawSchema.properties) ||
+        rawSchema.additionalProperties !== undefined))
   ) {
     const properties = isRecord(rawSchema.properties)
       ? rawSchema.properties
@@ -457,6 +481,7 @@ function createTypeScriptDeclaration(
   const typeName = getSchemaTypeScriptName(name);
   const properties = collectModelProperties(schema, rootSchema);
   const requiresTypeAlias =
+    new Set(readSchemaTypes(schema)).size > 1 ||
     Array.isArray(schema.allOf) ||
     Array.isArray(schema.oneOf) ||
     Array.isArray(schema.anyOf) ||

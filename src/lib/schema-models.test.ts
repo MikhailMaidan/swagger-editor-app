@@ -2,6 +2,55 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it.each([
+    { type: ["string", "number"], expected: "string | number" },
+    { type: ["integer", "number", "boolean"], expected: "number | boolean" },
+    {
+      type: ["null", "string", "boolean"],
+      expected: "string | boolean | null",
+    },
+    {
+      type: ["object", "string"],
+      properties: { id: { type: "integer" } },
+      required: ["id"],
+      expected: "{ id: number; } | string",
+    },
+    {
+      type: ["string", "array", "null"],
+      items: { type: "integer" },
+      expected: "string | Array<number> | null",
+    },
+    {
+      type: ["array", "object"],
+      items: { type: "string" },
+      properties: { id: { type: "integer" } },
+      expected: "Array<string> | { id?: number; }",
+    },
+  ])(
+    "preserves all schema type alternatives $type",
+    ({ expected, ...schema }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Value: schema,
+            Envelope: {
+              type: "object",
+              properties: { value: schema },
+              required: ["value"],
+            },
+          },
+        },
+      });
+
+      expect(models.find(({ name }) => name === "Value")?.typeScript).toBe(
+        `export type Value = ${expected};`,
+      );
+      expect(
+        models.find(({ name }) => name === "Envelope")?.typeScript,
+      ).toContain(`value: ${expected};`);
+    },
+  );
+
   it.each(["created", "", 42, 0, true, false, null])(
     "preserves the primitive const value %j in TypeScript models and examples",
     (value) => {
