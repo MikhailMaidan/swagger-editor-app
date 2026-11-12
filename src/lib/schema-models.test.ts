@@ -2,6 +2,33 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it.each(["created", "", 42, 0, true, false, null])(
+    "preserves the primitive const value %j in TypeScript models and examples",
+    (value) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Constant: { const: value },
+            Event: {
+              type: "object",
+              properties: { kind: { const: value } },
+              required: ["kind"],
+            },
+          },
+        },
+      });
+      const constant = models.find(({ name }) => name === "Constant");
+      const event = models.find(({ name }) => name === "Event");
+
+      expect(constant?.typeScript).toBe(
+        `export type Constant = ${JSON.stringify(value)};`,
+      );
+      expect(event?.typeScript).toContain(`kind: ${JSON.stringify(value)};`);
+      expect(JSON.parse(constant?.example ?? "")).toEqual(value);
+      expect(JSON.parse(event?.example ?? "")).toEqual({ kind: value });
+    },
+  );
+
   it("extracts OpenAPI models, dependencies, examples, and operation usages", () => {
     const models = extractSchemaModels({
       components: {

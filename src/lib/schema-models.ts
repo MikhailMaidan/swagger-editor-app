@@ -322,6 +322,14 @@ export function getSchemaTypeScriptType(
     }
   }
 
+  if (Object.hasOwn(rawSchema, "const")) {
+    const constantType = formatTypeScriptLiteral(rawSchema.const);
+
+    if (constantType !== "unknown") {
+      return addNullableType(constantType, rawSchema);
+    }
+  }
+
   const enumValues = Array.isArray(rawSchema.enum) ? rawSchema.enum : [];
 
   if (enumValues.length > 0) {
@@ -425,13 +433,15 @@ function createTypeScriptDeclaration(
 ) {
   const typeName = getSchemaTypeScriptName(name);
   const properties = collectModelProperties(schema, rootSchema);
-  const hasComposition =
+  const requiresTypeAlias =
     Array.isArray(schema.allOf) ||
     Array.isArray(schema.oneOf) ||
     Array.isArray(schema.anyOf) ||
-    Boolean(schema.$ref);
+    Boolean(schema.$ref) ||
+    (Object.hasOwn(schema, "const") &&
+      formatTypeScriptLiteral(schema.const) !== "unknown");
 
-  if (properties.size > 0 && !hasComposition && !isNullableSchema(schema)) {
+  if (properties.size > 0 && !requiresTypeAlias && !isNullableSchema(schema)) {
     const lines = Array.from(properties.entries()).map(
       ([propertyName, property]) =>
         `  ${getTypeScriptPropertyName(propertyName)}${property.required ? "" : "?"}: ${getSchemaTypeScriptType(property.schema, rootSchema)};`,
@@ -545,6 +555,10 @@ function createExampleValue(
 
   if ("default" in rawSchema && rawSchema.default !== undefined) {
     return rawSchema.default;
+  }
+
+  if (Object.hasOwn(rawSchema, "const") && rawSchema.const !== undefined) {
+    return rawSchema.const;
   }
 
   if (Array.isArray(rawSchema.enum) && rawSchema.enum.length > 0) {

@@ -77,6 +77,54 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("retains primitive constants in request and response types", () => {
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Constant API", version: "1" },
+        paths: {
+          "/events": {
+            post: {
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      required: ["kind"],
+                      properties: {
+                        kind: { type: "string", const: "created" },
+                      },
+                    },
+                  },
+                },
+              },
+              responses: {
+                "200": {
+                  description: "Acknowledged",
+                  content: {
+                    "application/json": {
+                      schema: { type: "boolean", const: false },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      extractSchemaModels(parsed.schema),
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.source).toContain('body: { kind: "created"; };');
+    expect(build.operations[0].responseType).toBe("false");
+  });
+
   it.each(["request", "response"])(
     "excludes models whose names appear only in %s string literals",
     (location) => {
