@@ -545,12 +545,26 @@ function getSchemaDisplayType(
       .join(" & ");
   }
 
-  const schemaType = Array.isArray(rawSchema.type)
-    ? rawSchema.type.filter((item) => item !== "null").join(" | ") ||
-      (rawSchema.type.includes("null") ? "null" : "")
-    : readString(rawSchema.type);
+  const rawTypes = readSchemaTypes(rawSchema);
+  const nonNullTypes = Array.from(
+    new Set(rawTypes.filter((type) => type !== "null")),
+  );
 
-  if (schemaType === "array" || rawSchema.items !== undefined) {
+  if (nonNullTypes.length > 1) {
+    return nonNullTypes
+      .map((type) =>
+        getSchemaDisplayType({ ...rawSchema, type }, rootSchema, depth),
+      )
+      .join(" | ");
+  }
+
+  const schemaType =
+    nonNullTypes[0] ?? (rawTypes.includes("null") ? "null" : "");
+
+  if (
+    schemaType === "array" ||
+    (!schemaType && rawSchema.items !== undefined)
+  ) {
     return isRecord(rawSchema.items)
       ? `array<${getSchemaDisplayType(rawSchema.items, rootSchema, depth + 1)}>`
       : "array";

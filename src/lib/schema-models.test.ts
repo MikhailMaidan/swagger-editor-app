@@ -3,6 +3,40 @@ import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it.each([
+    {
+      type: ["string", "array", "null"],
+      items: { type: "integer" },
+      expected: "string | array<integer>",
+      nullable: true,
+    },
+    {
+      type: ["array", "object"],
+      items: { type: "string" },
+      expected: "array<string> | object",
+      nullable: false,
+    },
+  ])(
+    "displays every alternative of mixed array types $type",
+    ({ expected, nullable, ...schema }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Mixed: schema,
+            Envelope: { type: "object", properties: { value: schema } },
+          },
+        },
+      });
+
+      expect(models.find(({ name }) => name === "Mixed")?.type).toBe(expected);
+      expect(
+        models.find(({ name }) => name === "Envelope")?.properties,
+      ).toEqual([
+        expect.objectContaining({ name: "value", type: expected, nullable }),
+      ]);
+    },
+  );
+
+  it.each([
     { type: ["string", "number"], expected: "string | number" },
     { type: ["integer", "number", "boolean"], expected: "number | boolean" },
     {
