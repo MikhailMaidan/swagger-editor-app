@@ -699,6 +699,71 @@ paths:
     },
   );
 
+  it.each([
+    { required: true, useReference: false },
+    { required: false, useReference: true },
+  ])(
+    "prefers operation body overrides with required=$required and useReference=$useReference",
+    ({ required, useReference }) => {
+      const sharedBody = {
+        in: "body",
+        name: "payload",
+        required: !required,
+        schema: { type: "string" },
+      };
+      const operationBody = {
+        in: "body",
+        name: "payload",
+        required,
+        schema: {
+          type: "object",
+          required: ["name"],
+          properties: { name: { type: "string" } },
+        },
+      };
+      const parsed = parseSchema(
+        JSON.stringify({
+          swagger: "2.0",
+          info: { title: "Body overrides", version: "1" },
+          consumes: ["application/json"],
+          parameters: { SharedBody: sharedBody, OperationBody: operationBody },
+          paths: {
+            "/items": {
+              parameters: [
+                useReference ? { $ref: "#/parameters/SharedBody" } : sharedBody,
+              ],
+              post: {
+                operationId: "updateItem",
+                parameters: [
+                  useReference
+                    ? { $ref: "#/parameters/OperationBody" }
+                    : operationBody,
+                ],
+                responses: { "204": { description: "Updated" } },
+              },
+              put: {
+                operationId: "inheritItem",
+                parameters: [{ in: "query", name: "filter", type: "string" }],
+                responses: { "204": { description: "Updated" } },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        [],
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.source).toContain(
+        `body${required ? "" : "?"}: { name: string; };`,
+      );
+      expect(build.source).toContain(`body${required ? "?" : ""}: string;`);
+    },
+  );
+
   it("supports Swagger 2 body and response schemas", () => {
     const parsed = parseSchema(`swagger: '2.0'
 info:

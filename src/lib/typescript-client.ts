@@ -299,7 +299,7 @@ function readRequestSchemas(
     };
   }
 
-  const parameters = [pathItem.parameters, operation.parameters]
+  const parameters = [operation.parameters, pathItem.parameters]
     .filter(Array.isArray)
     .flat() as unknown[];
   const bodyParameter = parameters
