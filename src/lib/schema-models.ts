@@ -696,12 +696,16 @@ function createExampleValue(
     );
   }
 
-  const schemaType = Array.isArray(rawSchema.type)
-    ? rawSchema.type.find((item) => item !== "null")
-    : rawSchema.type;
+  const rawTypes = readSchemaTypes(rawSchema);
+  const schemaType =
+    rawTypes.find((type) => type !== "null") ??
+    (rawTypes.includes("null") ? "null" : "");
   const properties = isRecord(rawSchema.properties) ? rawSchema.properties : {};
 
-  if (schemaType === "object" || Object.keys(properties).length > 0) {
+  if (
+    schemaType === "object" ||
+    (!schemaType && Object.keys(properties).length > 0)
+  ) {
     return Object.fromEntries(
       Object.entries(properties)
         .slice(0, MAX_EXAMPLE_PROPERTIES)
@@ -723,7 +727,10 @@ function createExampleValue(
     );
   }
 
-  if (schemaType === "array" || rawSchema.items !== undefined) {
+  if (
+    schemaType === "array" ||
+    (!schemaType && rawSchema.items !== undefined)
+  ) {
     return isRecord(rawSchema.items)
       ? [
           createExampleValue(

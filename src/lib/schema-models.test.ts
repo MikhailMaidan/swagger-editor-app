@@ -3,6 +3,76 @@ import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it.each([
+    {
+      name: "string with object properties",
+      schema: { type: "string", properties: { ignored: { type: "boolean" } } },
+      expected: "string",
+    },
+    {
+      name: "string with array items",
+      schema: { type: "string", items: { type: "integer" } },
+      expected: "string",
+    },
+    {
+      name: "array with object properties",
+      schema: {
+        type: "array",
+        items: { type: "integer" },
+        properties: { ignored: { type: "boolean" } },
+      },
+      expected: [0],
+    },
+    {
+      name: "object with array items",
+      schema: { type: "object", items: { type: "boolean" } },
+      expected: {},
+    },
+    {
+      name: "null-only type with structural keywords",
+      schema: {
+        type: ["null"],
+        items: { type: "integer" },
+        properties: { ignored: { type: "boolean" } },
+      },
+      expected: null,
+    },
+    {
+      name: "first mixed type with array items",
+      schema: { type: ["string", "array"], items: { type: "integer" } },
+      expected: "string",
+    },
+    {
+      name: "inferred object",
+      schema: { properties: { id: { type: "integer" } } },
+      expected: { id: 0 },
+    },
+    {
+      name: "inferred array",
+      schema: { items: { type: "boolean" } },
+      expected: [false],
+    },
+  ])(
+    "generates the correct example shape for $name",
+    ({ schema, expected }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Value: schema,
+            Envelope: { type: "object", properties: { value: schema } },
+          },
+        },
+      });
+
+      expect(
+        JSON.parse(models.find(({ name }) => name === "Value")!.example),
+      ).toEqual(expected);
+      expect(
+        JSON.parse(models.find(({ name }) => name === "Envelope")!.example),
+      ).toEqual({ value: expected });
+    },
+  );
+
+  it.each([
     { type: "integer", minimum: 0.5, expected: 1 },
     { type: "integer", minimum: -1.5, expected: -1 },
     { type: "integer", maximum: -0.5, expected: -1 },
