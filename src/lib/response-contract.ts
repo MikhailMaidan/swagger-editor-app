@@ -55,13 +55,7 @@ function createCheck(
 }
 
 function isHttpStatus(status: string) {
-  const numericStatus = Number(status);
-
-  return (
-    Number.isInteger(numericStatus) &&
-    numericStatus >= 100 &&
-    numericStatus <= 599
-  );
+  return /^[1-5]\d{2}$/.test(status);
 }
 
 export function findDocumentedResponse(
@@ -69,16 +63,17 @@ export function findDocumentedResponse(
   actualStatus: string,
 ) {
   const normalizedStatus = actualStatus.trim().toLowerCase();
+
+  if (!isHttpStatus(normalizedStatus)) {
+    return null;
+  }
+
   const exactResponse = responses.find(
     (response) => response.status.trim().toLowerCase() === normalizedStatus,
   );
 
   if (exactResponse) {
     return exactResponse;
-  }
-
-  if (!isHttpStatus(normalizedStatus)) {
-    return null;
   }
 
   const statusClass = normalizedStatus[0];

@@ -74,6 +74,41 @@ describe("response contract checks", () => {
   });
 
   it.each([
+    "200.0",
+    "2e2",
+    "0xC8",
+    "0200",
+    "+200",
+    "99",
+    "600",
+    "",
+    "default",
+    "2XX",
+  ])(
+    "rejects malformed actual status %j even when documented exactly or by default",
+    (status) => {
+      const fallback = createResponse({ status: "default" });
+      const responses = [createResponse({ status }), fallback];
+
+      expect(findDocumentedResponse(responses, status)).toBeNull();
+      expect(findDocumentedResponse([fallback], status)).toBeNull();
+      const report = createResponseContractReport(responses, {
+        body: '{"id":7}',
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status,
+      });
+
+      expect(report.result).toBe("fail");
+      expect(report.checks[0]).toMatchObject({
+        code: "status-undocumented",
+        params: { actual: status },
+        result: "fail",
+      });
+    },
+  );
+
+  it.each([
     [" 200 ", "200"],
     [" 2XX ", "201"],
     [" default ", "418"],

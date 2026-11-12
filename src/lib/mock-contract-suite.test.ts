@@ -64,6 +64,32 @@ function createEndpoint(
 }
 
 describe("mock contract suites", () => {
+  it.each(["600", "2e2", "200.0"])(
+    "reports an invalid documented status %j as a failed contract",
+    (status) => {
+      const report = createMockContractSuite([
+        createEndpoint("GET", "/invalid", [
+          createResponse(
+            status,
+            ["application/json"],
+            createSchema("object", "{}"),
+          ),
+        ]),
+      ]);
+
+      expect(report).toMatchObject({
+        totalCount: 1,
+        failedCount: 1,
+        passedCount: 0,
+      });
+      expect(report.cases[0]).toMatchObject({
+        actualStatus: status,
+        documentedStatus: status,
+        result: "fail",
+      });
+    },
+  );
+
   it("runs every documented status and media type without network input", () => {
     const jsonSchema = createSchema("object", '{"id":7}', ["id"]);
     const xmlSchema = createSchema("string", '<user id="7" />');
