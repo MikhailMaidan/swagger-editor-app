@@ -79,6 +79,34 @@ describe("schema comparison baseline", () => {
     ).toMatchObject({ changes: [], unchangedCount: 1 });
   });
 
+  it.each(["description", "summary"] as const)(
+    "preserves a long %s when restoring and comparing a baseline",
+    (field) => {
+      const documentation = `${"Documentation ".repeat(400)}Original ending.`;
+      const documentedEndpoint = { ...endpoint, [field]: documentation };
+      const baseline = createSchemaComparisonBaseline([documentedEndpoint], {
+        title: "Users API",
+        version: "1.0.0",
+      });
+
+      expect(saveSchemaComparisonBaseline(baseline)).toBe(true);
+      const restored = readSchemaComparisonBaseline();
+      expect(restored?.endpoints[0][field]).toHaveLength(documentation.length);
+      expect(restored).toEqual(baseline);
+      expect(
+        createSchemaChangeReport(restored!.endpoints, [documentedEndpoint]),
+      ).toMatchObject({ changes: [], unchangedCount: 1 });
+      expect(
+        createSchemaChangeReport(restored!.endpoints, [
+          { ...documentedEndpoint, [field]: `${documentation} Updated.` },
+        ]),
+      ).toMatchObject({
+        modifiedCount: 1,
+        changes: [{ details: [{ code: "documentation-changed" }] }],
+      });
+    },
+  );
+
   it("ignores malformed, outdated, and partially invalid storage", () => {
     window.localStorage.setItem(
       SCHEMA_COMPARISON_BASELINE_STORAGE_KEY,
@@ -97,7 +125,11 @@ describe("schema comparison baseline", () => {
       JSON.stringify({
         baseline: {
           capturedAt: "2026-08-27T08:30:00.000Z",
-          endpoints: [null, { method: "", path: "" }, { ...endpoint }],
+          endpoints: [
+            null,
+            { method: "", path: "" },
+            { ...endpoint, description: 123, summary: { text: "Invalid" } },
+          ],
           title: "Users API",
           version: "1.0.0",
         },
@@ -106,6 +138,10 @@ describe("schema comparison baseline", () => {
     );
 
     expect(readSchemaComparisonBaseline()?.endpoints).toHaveLength(1);
+    expect(readSchemaComparisonBaseline()?.endpoints[0]).toMatchObject({
+      description: "",
+      summary: "",
+    });
   });
 
   it("returns failure when baseline storage is unavailable", () => {

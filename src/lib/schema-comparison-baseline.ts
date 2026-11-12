@@ -102,7 +102,7 @@ function sanitizeEndpoint(value: unknown): ComparableEndpoint | null {
 
   return {
     deprecated: value.deprecated === true,
-    description: readText(value.description),
+    description: typeof value.description === "string" ? value.description : "",
     method,
     operationId: readText(value.operationId).trim(),
     parameters,
@@ -110,7 +110,7 @@ function sanitizeEndpoint(value: unknown): ComparableEndpoint | null {
     requestBodies,
     responseStatuses: Array.from(new Set(responseStatuses)).sort(),
     secured: value.secured === true,
-    summary: readText(value.summary),
+    summary: typeof value.summary === "string" ? value.summary : "",
     tags: Array.from(new Set(tags)).sort(),
   };
 }
