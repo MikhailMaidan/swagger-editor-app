@@ -77,6 +77,42 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("keeps request and response objects nullable when a property accepts null", () => {
+    const content = {
+      "application/json": {
+        schema: {
+          type: ["object", "null"],
+          properties: { value: { enum: ["a", null, "b"] } },
+          required: ["value"],
+        },
+      },
+    };
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Nullable API", version: "1" },
+        paths: {
+          "/values": {
+            post: {
+              requestBody: { required: true, content },
+              responses: { "200": { description: "Value", content } },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      [],
+      parsed.schema,
+      parsed,
+    );
+    const expectedType = '{ value: "a" | null | "b"; } | null';
+
+    expect(build.source).toContain(`body: ${expectedType};`);
+    expect(build.operations[0].responseType).toBe(expectedType);
+  });
+
   it.each(["\u2028", "\u2029"])(
     "generates valid TypeScript when metadata contains Unicode separator %j",
     (separator) => {

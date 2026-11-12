@@ -289,10 +289,33 @@ function addNullableType(
   typeScriptType: string,
   schema: Record<string, unknown>,
 ) {
-  return isNullableSchema(schema) &&
-    !typeScriptType.split(" | ").includes("null")
-    ? `${typeScriptType} | null`
-    : typeScriptType;
+  if (!isNullableSchema(schema)) {
+    return typeScriptType;
+  }
+
+  // Only a top-level union member makes the whole type nullable.
+  let depth = 0;
+  let memberStart = 0;
+  for (const match of typeScriptType.matchAll(
+    /"(?:\\.|[^"\\])*"|[()[\]{}<>|]/g,
+  )) {
+    const token = match[0];
+
+    if (token === "|" && depth === 0) {
+      if (typeScriptType.slice(memberStart, match.index).trim() === "null") {
+        return typeScriptType;
+      }
+      memberStart = match.index + 1;
+    } else if ("([{<".includes(token)) {
+      depth += 1;
+    } else if (")]}>".includes(token)) {
+      depth -= 1;
+    }
+  }
+
+  return typeScriptType.slice(memberStart).trim() === "null"
+    ? typeScriptType
+    : `${typeScriptType} | null`;
 }
 
 export function getSchemaTypeScriptType(

@@ -354,6 +354,62 @@ describe("schema models", () => {
     },
   );
 
+  it.each([
+    {
+      name: "enum text",
+      schema: { type: "string", nullable: true, enum: ["a | null | b"] },
+      expected: '"a | null | b" | null',
+    },
+    {
+      name: "escaped constant text",
+      schema: { const: 'a " | null | " b', nullable: true },
+      expected: `${JSON.stringify('a " | null | " b')} | null`,
+    },
+    {
+      name: "nullable object properties",
+      schema: {
+        type: "object",
+        nullable: true,
+        properties: { value: { enum: ["a", null, "b"] } },
+      },
+      expected: '{ value?: "a" | null | "b"; } | null',
+    },
+    {
+      name: "nullable array items",
+      schema: { type: ["array", "null"], items: { enum: ["a", null, "b"] } },
+      expected: 'Array<"a" | null | "b"> | null',
+    },
+    {
+      name: "model names containing null",
+      schema: { $ref: "#/components/schemas/$null", nullable: true },
+      expected: "$null | null",
+    },
+    {
+      name: "intersections containing null",
+      schema: { allOf: [{ type: "string" }, { type: "null" }], nullable: true },
+      expected: "string & null | null",
+    },
+    ...[
+      { enum: [null, "a", "b"], expected: 'null | "a" | "b"' },
+      { enum: ["a", null, "b"], expected: '"a" | null | "b"' },
+      { enum: ["a", "b", null], expected: '"a" | "b" | null' },
+    ].map(({ enum: values, expected }) => ({
+      name: `top-level null in ${expected}`,
+      schema: { enum: values, nullable: true },
+      expected,
+    })),
+  ])("preserves outer nullability with $name", ({ schema, expected }) => {
+    const models = extractSchemaModels({
+      components: {
+        schemas: { Value: schema, $null: { type: "string" } },
+      },
+    });
+
+    expect(models.find(({ name }) => name === "Value")?.typeScript).toBe(
+      `export type Value = ${expected};`,
+    );
+  });
+
   it.each([{ type: "object", nullable: true }, { type: ["object", "null"] }])(
     "exports nullable object model $type with its null alternative",
     (schema) => {
