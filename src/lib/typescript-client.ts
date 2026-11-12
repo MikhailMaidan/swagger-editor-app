@@ -808,15 +808,18 @@ function selectModels(
   const endpointKeys = new Set(
     endpoints.map((endpoint) => `${endpoint.method} ${endpoint.path}`),
   );
+  const operationTypes = operations
+    .flatMap((operation) => [operation.requestBodyType, operation.responseType])
+    .join(" ");
+  // Quoted literals and property names do not reference model types.
   const operationTypeNames = new Set(
-    operations
-      .flatMap((operation) => [
-        operation.requestBodyType,
-        operation.responseType,
-      ])
-      .join(" ")
-      .replace(/"(?:\\.|[^"\\])*"/g, " ")
-      .match(/[A-Za-z_$][A-Za-z0-9_$]*/g) ?? [],
+    Array.from(
+      operationTypes.matchAll(
+        /"(?:\\.|[^"\\])*"|([A-Za-z_$][A-Za-z0-9_$]*)(\s*\??\s*:)?/g,
+      ),
+    ).flatMap(([, name, propertyMarker]) =>
+      name && !propertyMarker ? [name] : [],
+    ),
   );
   const selectedNames = new Set(
     models

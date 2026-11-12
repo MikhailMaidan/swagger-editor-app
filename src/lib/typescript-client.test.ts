@@ -77,6 +77,62 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("excludes models whose names appear only as inline property names", () => {
+    const content = {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            User: { type: "string" },
+            Profile: { $ref: "#/components/schemas/Used" },
+            $User: { type: "number" },
+          },
+          required: ["User"],
+        },
+      },
+    };
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Inline properties", version: "1" },
+        components: {
+          schemas: {
+            User: { type: "boolean" },
+            Profile: { type: "boolean" },
+            $User: { type: "boolean" },
+            Used: { type: "boolean" },
+          },
+        },
+        paths: {
+          "/users": {
+            post: {
+              requestBody: { required: true, content },
+              responses: { "200": { description: "User", content } },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      extractSchemaModels(parsed.schema),
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.summary.modelCount).toBe(1);
+    expect(build.source).toContain("export type Used = boolean;");
+    expect(build.operations[0].responseType).toBe(
+      "{ User: string; Profile?: Used; $User?: number; }",
+    );
+    expect(build.source).toContain(
+      "body: { User: string; Profile?: Used; $User?: number; };",
+    );
+    for (const name of ["User", "Profile", "$User"]) {
+      expect(build.source).not.toContain(`export type ${name} =`);
+    }
+  });
+
   it("keeps request and response objects nullable when a property accepts null", () => {
     const content = {
       "application/json": {
