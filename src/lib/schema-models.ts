@@ -114,11 +114,14 @@ function resolveLocalReference(
   let current: unknown = rootSchema;
 
   for (const segment of segments) {
-    if (!isRecord(current) || !(segment in current)) {
+    if (
+      (!isRecord(current) && !Array.isArray(current)) ||
+      !Object.hasOwn(current, segment)
+    ) {
       return null;
     }
 
-    current = current[segment];
+    current = (current as Record<string, unknown>)[segment];
   }
 
   return current;

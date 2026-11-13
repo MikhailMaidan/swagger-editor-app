@@ -3,6 +3,59 @@ import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it.each([
+    {
+      reference: "#/x-shared/0",
+      type: "string",
+      tsType: "string",
+      example: "resolved",
+    },
+    {
+      reference: "#/x-shared/1/oneOf/0",
+      type: "integer",
+      tsType: "number",
+      example: 7,
+    },
+    {
+      reference: "#/x-shared/%31/oneOf/%30",
+      type: "integer",
+      tsType: "number",
+      example: 7,
+    },
+    {
+      reference: "#/x-named/__proto__",
+      type: "boolean",
+      tsType: "boolean",
+      example: false,
+    },
+  ])(
+    "resolves schema details through the local pointer $reference",
+    ({ reference, type, tsType, example }) => {
+      const [model] = extractSchemaModels({
+        "x-shared": [
+          { type: "string", example: "resolved" },
+          { oneOf: [{ type: "integer", example: 7 }] },
+        ],
+        "x-named": { ["__proto__"]: { type: "boolean", example: false } },
+        components: {
+          schemas: {
+            Envelope: {
+              type: "object",
+              properties: { value: { $ref: reference } },
+              required: ["value"],
+            },
+          },
+        },
+      });
+
+      expect(model.typeScript).toContain(`value: ${tsType};`);
+      expect(model.properties).toEqual([
+        expect.objectContaining({ name: "value", type }),
+      ]);
+      expect(JSON.parse(model.example)).toEqual({ value: example });
+    },
+  );
+
+  it.each([
     { type: "string", expected: "string" },
     { type: "number", expected: "number" },
     { type: "integer", expected: "number" },
