@@ -481,7 +481,7 @@ function createTypeScriptDeclaration(
   const typeName = getSchemaTypeScriptName(name);
   const properties = collectModelProperties(schema, rootSchema);
   const requiresTypeAlias =
-    new Set(readSchemaTypes(schema)).size > 1 ||
+    readSchemaTypes(schema).some((type) => type !== "object") ||
     Array.isArray(schema.allOf) ||
     Array.isArray(schema.oneOf) ||
     Array.isArray(schema.anyOf) ||

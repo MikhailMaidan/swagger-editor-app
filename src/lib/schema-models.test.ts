@@ -3,6 +3,33 @@ import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
   it.each([
+    { type: "string", expected: "string" },
+    { type: "number", expected: "number" },
+    { type: "integer", expected: "number" },
+    { type: "boolean", expected: "boolean" },
+    { type: "array", expected: "Array<string>" },
+    { type: ["string"], expected: "string" },
+    { type: ["array"], expected: "Array<string>" },
+  ])(
+    "keeps the explicit type $type in model declarations with unrelated properties",
+    ({ type, expected }) => {
+      const [model] = extractSchemaModels({
+        components: {
+          schemas: {
+            Value: {
+              type,
+              properties: { ignored: { type: "boolean" } },
+              items: { type: "string" },
+            },
+          },
+        },
+      });
+
+      expect(model.typeScript).toBe(`export type Value = ${expected};`);
+    },
+  );
+
+  it.each([
     {
       name: "string with object properties",
       schema: { type: "string", properties: { ignored: { type: "boolean" } } },
