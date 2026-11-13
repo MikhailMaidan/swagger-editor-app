@@ -119,15 +119,7 @@ function readStringArray(value: unknown) {
 }
 
 function decodePointerSegment(value: string) {
-  let decoded = value;
-
-  try {
-    decoded = decodeURIComponent(value);
-  } catch {
-    return null;
-  }
-
-  return decoded.replaceAll("~1", "/").replaceAll("~0", "~");
+  return value.replaceAll("~1", "/").replaceAll("~0", "~");
 }
 
 function resolveLocalReference(
@@ -138,22 +130,29 @@ function resolveLocalReference(
     return null;
   }
 
+  let pointer: string;
+  try {
+    pointer = decodeURIComponent(reference.slice(1));
+  } catch {
+    return null;
+  }
+  if (/~(?![01])/.test(pointer)) {
+    return null;
+  }
+
   let current: unknown = rootSchema;
 
-  for (const rawSegment of reference.slice(2).split("/")) {
+  for (const rawSegment of pointer.slice(1).split("/")) {
     const segment = decodePointerSegment(rawSegment);
 
-    if (segment === null) {
+    if (
+      (!isRecord(current) && !Array.isArray(current)) ||
+      !Object.hasOwn(current, segment)
+    ) {
       return null;
     }
 
-    if (Array.isArray(current) && /^\d+$/.test(segment)) {
-      current = current[Number(segment)];
-    } else if (isRecord(current) && segment in current) {
-      current = current[segment];
-    } else {
-      return null;
-    }
+    current = (current as Record<string, unknown>)[segment];
   }
 
   return current;

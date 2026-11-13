@@ -77,6 +77,92 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it.each([
+    {
+      reference: "#/components/requestBodies%2FPayload",
+      name: "Payload",
+      valid: true,
+    },
+    {
+      reference: "#/components%2FrequestBodies%2FPayload",
+      name: "Payload",
+      valid: true,
+    },
+    {
+      reference: "#/components/requestBodies/Payload",
+      name: "Payload",
+      valid: true,
+    },
+    {
+      reference: "#/components/requestBodies/Pay%7E1load~02",
+      name: "Pay/load~2",
+      valid: true,
+    },
+    {
+      reference: "#/components/requestBodies/Payload~2",
+      name: "Payload~2",
+      valid: false,
+    },
+    {
+      reference: "#/components/requestBodies/Payload%7E2",
+      name: "Payload~2",
+      valid: false,
+    },
+  ])(
+    "resolves request and response reference $reference with valid=$valid",
+    ({ reference, name, valid }) => {
+      const parsed = parseSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Reference API", version: "1" },
+          components: {
+            requestBodies: {
+              [name]: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: { value: { type: "string" } },
+                      required: ["value"],
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              [name]: {
+                description: "Value",
+                content: { "application/json": { schema: { type: "number" } } },
+              },
+            },
+          },
+          paths: {
+            "/value": {
+              post: {
+                requestBody: { $ref: reference },
+                responses: {
+                  "200": {
+                    $ref: reference.replace("requestBodies", "responses"),
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
+      const build = createTypeScriptClient(
+        parsed.endpoints,
+        [],
+        parsed.schema,
+        parsed,
+      );
+
+      expect(build.source.includes("body: { value: string; };")).toBe(valid);
+      expect(build.operations[0].responseType).toBe(valid ? "number" : "void");
+    },
+  );
+
   it("preserves mixed type arrays in generated request and response types", () => {
     const content = {
       "application/json": {
