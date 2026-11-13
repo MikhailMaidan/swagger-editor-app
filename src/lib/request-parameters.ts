@@ -38,7 +38,7 @@ function getComparableParameterKey(parameter: {
   const name =
     location === "header"
       ? parameter.name.trim().toLowerCase()
-      : parameter.name.trim();
+      : parameter.name;
 
   return `${location}:${name}`;
 }

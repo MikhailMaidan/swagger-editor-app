@@ -93,6 +93,42 @@ describe("request parameter helpers", () => {
     ).toEqual([]);
   });
 
+  it.each([
+    { location: "query", name: "api_key " },
+    { location: "query", name: " api_key" },
+    { location: "path", name: "api_key " },
+  ] as const)(
+    "matches fallback values to the exact $location parameter name $name",
+    ({ location, name }) => {
+      const parameter: EndpointParameter = {
+        description: "",
+        example: "",
+        location,
+        minLength: 8,
+        name,
+        required: true,
+        type: "string",
+      };
+      const fallback = [{ location, name: "api_key", value: "short" }];
+      const key = getRequestParameterKey(parameter);
+
+      expect(
+        getMissingRequiredParameterKeys([parameter], {}, fallback),
+      ).toEqual([key]);
+      expect(
+        getRequestParameterValidationIssues([parameter], {}, fallback),
+      ).toEqual([]);
+
+      const exactFallback = [{ location, name, value: "short" }];
+      expect(
+        getMissingRequiredParameterKeys([parameter], {}, exactFallback),
+      ).toEqual([]);
+      expect(
+        getRequestParameterValidationIssues([parameter], {}, exactFallback),
+      ).toEqual([expect.objectContaining({ code: "min-length", key })]);
+    },
+  );
+
   it("validates enum, numeric, length, and pattern constraints", () => {
     const constrainedParameters: EndpointParameter[] = [
       {
