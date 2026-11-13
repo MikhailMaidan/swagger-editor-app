@@ -182,6 +182,39 @@ describe("schema change analysis", () => {
     },
   );
 
+  it.each(["id ", " id"])(
+    "detects a query parameter renamed from id to %j",
+    (name) => {
+      const parameter = {
+        description: "Identifier",
+        example: "42",
+        location: "query" as const,
+        name: "id",
+        required: true,
+      };
+      const report = createSchemaChangeReport(
+        [createComparableEndpoint(createEndpoint({ parameters: [parameter] }))],
+        [createEndpoint({ parameters: [{ ...parameter, name }] })],
+      );
+
+      expect(report.breakingCount).toBe(1);
+      expect(report.changes[0].details).toEqual([
+        {
+          code: "parameter-removed",
+          impact: "breaking",
+          location: "query",
+          name: "id",
+        },
+        {
+          code: "required-parameter-added",
+          impact: "breaking",
+          location: "query",
+          name,
+        },
+      ]);
+    },
+  );
+
   it("classifies additive and documentation changes as non-breaking", () => {
     const baselineEndpoint = createEndpoint({ secured: true });
     const report = createSchemaChangeReport(

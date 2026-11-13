@@ -111,7 +111,10 @@ export function createComparableEndpoint(
     parameters: endpoint.parameters
       .map((parameter) => ({
         location: parameter.location,
-        name: parameter.name.trim(),
+        name:
+          parameter.location === "header"
+            ? parameter.name.trim()
+            : parameter.name,
         required: parameter.required,
       }))
       .sort((first, second) =>

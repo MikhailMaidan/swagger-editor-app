@@ -107,6 +107,45 @@ describe("schema comparison baseline", () => {
     },
   );
 
+  it("preserves distinct query parameter names across a baseline reload", () => {
+    const parameters = ["id", "id ", " id"].map((name) => ({
+      description: "Identifier",
+      example: "42",
+      location: "query" as const,
+      name,
+      required: true,
+    }));
+    const namedEndpoint = { ...endpoint, parameters };
+    const baseline = createSchemaComparisonBaseline([namedEndpoint], {
+      title: "Users API",
+      version: "1.0.0",
+    });
+
+    expect(saveSchemaComparisonBaseline(baseline)).toBe(true);
+    const restored = readSchemaComparisonBaseline();
+    expect(restored?.endpoints[0].parameters.map(({ name }) => name)).toEqual(
+      expect.arrayContaining(["id", "id ", " id"]),
+    );
+    expect(restored).toEqual(baseline);
+    expect(
+      createSchemaChangeReport(restored!.endpoints, [namedEndpoint]),
+    ).toMatchObject({
+      changes: [],
+      unchangedCount: 1,
+    });
+    expect(
+      createSchemaChangeReport(restored!.endpoints, [
+        {
+          ...namedEndpoint,
+          parameters: parameters.filter(({ name }) => name !== "id "),
+        },
+      ]),
+    ).toMatchObject({
+      breakingCount: 1,
+      changes: [{ details: [{ code: "parameter-removed", name: "id " }] }],
+    });
+  });
+
   it("ignores malformed, outdated, and partially invalid storage", () => {
     window.localStorage.setItem(
       SCHEMA_COMPARISON_BASELINE_STORAGE_KEY,

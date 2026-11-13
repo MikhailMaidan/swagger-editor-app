@@ -54,7 +54,8 @@ function sanitizeEndpoint(value: unknown): ComparableEndpoint | null {
           return [];
         }
 
-        const name = readText(parameter.name).trim();
+        const rawName = readText(parameter.name);
+        const name = parameter.location === "header" ? rawName.trim() : rawName;
 
         return name
           ? [
