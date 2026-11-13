@@ -77,6 +77,70 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("uses nested schema targets and includes their actual model dependencies", () => {
+    const parsed = parseSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Nested references", version: "1" },
+        components: {
+          schemas: {
+            Child: { type: "object", properties: { name: { type: "string" } } },
+            Unused: { type: "boolean" },
+            Container: {
+              type: "object",
+              properties: {
+                body: { $ref: "#/components/schemas/Child" },
+                code: { type: "integer" },
+                unused: { $ref: "#/components/schemas/Unused" },
+              },
+            },
+          },
+        },
+        paths: {
+          "/value": {
+            post: {
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Container/properties/body",
+                    },
+                  },
+                },
+              },
+              responses: {
+                "200": {
+                  description: "Value",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        $ref: "#/components/schemas/Container/properties/code",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      extractSchemaModels(parsed.schema),
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.operations[0].responseType).toBe("number");
+    expect(build.source).toContain("body: Child;");
+    expect(build.source).toContain("export interface Child");
+    expect(build.source).not.toContain("export interface Container");
+    expect(build.source).not.toContain("export type Unused");
+    expect(build.summary.modelCount).toBe(1);
+  });
+
   it.each([
     {
       reference: "#/components/requestBodies%2FPayload",

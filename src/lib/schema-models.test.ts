@@ -2,6 +2,86 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it.each(["#/components/schemas/", "#/definitions/"])(
+    "resolves nested model pointers under %s without using the container type",
+    (prefix) => {
+      const schemas = {
+        Child: { type: "string", example: "child" },
+        Unused: { type: "boolean" },
+        Container: {
+          type: "object",
+          properties: {
+            code: { type: "integer", example: 7 },
+            child: { $ref: `${prefix}Child` },
+            unused: { $ref: `${prefix}Unused` },
+          },
+        },
+        Envelope: {
+          type: "object",
+          required: ["code", "child", "nullableCode"],
+          properties: {
+            code: { $ref: `${prefix}Container/properties/code` },
+            child: { $ref: `${prefix}Container/properties/child` },
+            nullableCode: {
+              $ref: `${prefix}Container/properties/code`,
+              nullable: true,
+            },
+          },
+        },
+      };
+      const models = extractSchemaModels({
+        ...(prefix.includes("components")
+          ? { components: { schemas } }
+          : { definitions: schemas }),
+        paths: {
+          "/value": {
+            get: {
+              responses: {
+                "200": {
+                  content: {
+                    "application/json": {
+                      schema: { $ref: `${prefix}Envelope` },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const envelope = models.find(({ name }) => name === "Envelope");
+
+      expect(envelope?.typeScript).toContain("code: number;");
+      expect(envelope?.typeScript).toContain("child: Child;");
+      expect(envelope?.typeScript).toContain("nullableCode: number | null;");
+      expect(envelope?.references).toEqual(["Child"]);
+      expect(JSON.parse(envelope!.example)).toEqual({
+        code: 7,
+        child: "child",
+        nullableCode: 7,
+      });
+      expect(envelope?.properties).toEqual([
+        expect.objectContaining({ name: "code", type: "integer" }),
+        expect.objectContaining({ name: "child", type: "Child" }),
+        expect.objectContaining({
+          name: "nullableCode",
+          type: "integer",
+          nullable: true,
+        }),
+      ]);
+      expect(
+        models.find(({ name }) => name === "Child")?.referencedBy,
+      ).toContain("Envelope");
+      expect(models.find(({ name }) => name === "Child")?.usages).toEqual([
+        { kind: "response", method: "GET", path: "/value" },
+      ]);
+      expect(models.find(({ name }) => name === "Container")?.usages).toEqual(
+        [],
+      );
+      expect(models.find(({ name }) => name === "Unused")?.usages).toEqual([]);
+    },
+  );
+
   it.each([
     {
       reference: "#/x-shared/0",

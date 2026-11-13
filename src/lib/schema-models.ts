@@ -93,9 +93,8 @@ function getReferencedModelName(reference: string) {
     return "";
   }
 
-  return decodePointerSegment(
-    decodedReference.slice(prefix.length).split("/")[0],
-  );
+  const name = decodedReference.slice(prefix.length);
+  return name.includes("/") ? "" : decodePointerSegment(name);
 }
 
 function resolveLocalReference(
@@ -186,7 +185,10 @@ function collectReferencedModels(
         referencedModels.add(modelName);
       }
 
-      if (followReferences && !visitedReferences.has(reference)) {
+      if (
+        (followReferences || !modelName) &&
+        !visitedReferences.has(reference)
+      ) {
         visitedReferences.add(reference);
         visit(resolveLocalReference(rootSchema, reference));
       }
@@ -351,7 +353,10 @@ export function getSchemaTypeScriptType(
     const resolved = resolveLocalReference(rootSchema, reference);
 
     if (isRecord(resolved) && resolved !== rawSchema) {
-      return getSchemaTypeScriptType(resolved, rootSchema, depth + 1);
+      return addNullableType(
+        getSchemaTypeScriptType(resolved, rootSchema, depth + 1),
+        rawSchema,
+      );
     }
   }
 
