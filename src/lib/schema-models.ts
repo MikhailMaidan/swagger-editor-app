@@ -77,7 +77,8 @@ function decodeLocalReference(reference: string) {
   }
 
   try {
-    return decodeURIComponent(reference);
+    const decodedReference = decodeURIComponent(reference);
+    return /~(?![01])/.test(decodedReference) ? "" : decodedReference;
   } catch {
     return "";
   }

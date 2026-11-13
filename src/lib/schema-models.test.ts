@@ -440,6 +440,7 @@ describe("schema models", () => {
     { name: "User Name", encoded: "User%20Name" },
     { name: "Модель", encoded: "%D0%9C%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C" },
     { name: "A/B~C", encoded: "A%7E1B%7E0C" },
+    { name: "A~2B", encoded: "A~02B" },
     { name: "100%", encoded: "100%25" },
   ])(
     "resolves the percent-encoded model reference $encoded",
@@ -480,6 +481,39 @@ describe("schema models", () => {
       expect(envelope?.example).toBe('{\n  "value": "resolved"\n}');
       expect(envelope?.typeScript).toContain(
         `value: ${getSchemaTypeScriptName(name)};`,
+      );
+    },
+  );
+
+  it.each([
+    { name: "A~2B", encoded: "A~2B" },
+    { name: "A~", encoded: "A~" },
+    { name: "A~xB", encoded: "A~xB" },
+    { name: "A~2B", encoded: "A%7E2B" },
+  ])(
+    "does not resolve a malformed JSON Pointer escape in $encoded",
+    ({ name, encoded }) => {
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            [name]: { type: "string", example: "must not resolve" },
+            Envelope: {
+              type: "object",
+              properties: {
+                value: { $ref: `#/components/schemas/${encoded}` },
+              },
+              required: ["value"],
+            },
+          },
+        },
+      });
+      const envelope = models.find(({ name }) => name === "Envelope");
+
+      expect(envelope?.references).toEqual([]);
+      expect(envelope?.typeScript).toContain("value: unknown;");
+      expect(JSON.parse(envelope!.example)).toEqual({ value: null });
+      expect(models.find((model) => model.name === name)?.referencedBy).toEqual(
+        [],
       );
     },
   );
