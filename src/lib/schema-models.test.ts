@@ -403,6 +403,27 @@ describe("schema models", () => {
   );
 
   it.each([
+    { type: "array", maxItems: 0, items: { type: "string" } },
+    { maxItems: 0, items: { type: "string" } },
+  ])("generates empty arrays when maxItems is zero: %j", (schema) => {
+    const models = extractSchemaModels({
+      components: {
+        schemas: {
+          Value: schema,
+          Envelope: { type: "object", properties: { value: schema } },
+        },
+      },
+    });
+
+    expect(
+      JSON.parse(models.find(({ name }) => name === "Value")!.example),
+    ).toEqual([]);
+    expect(
+      JSON.parse(models.find(({ name }) => name === "Envelope")!.example),
+    ).toEqual({ value: [] });
+  });
+
+  it.each([
     { type: "integer", minimum: 0.5, expected: 1 },
     { type: "integer", minimum: -1.5, expected: -1 },
     { type: "integer", maximum: -0.5, expected: -1 },

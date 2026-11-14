@@ -766,6 +766,10 @@ function createExampleValue(
     schemaType === "array" ||
     (!schemaType && rawSchema.items !== undefined)
   ) {
+    if (rawSchema.maxItems === 0) {
+      return [];
+    }
+
     return isRecord(rawSchema.items)
       ? [
           createExampleValue(
