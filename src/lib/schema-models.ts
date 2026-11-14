@@ -127,23 +127,23 @@ function resolveLocalReference(
   return current;
 }
 
-function resolvePathItem(
+function resolveReferenceObject(
   rootSchema: Record<string, unknown>,
-  pathItem: Record<string, unknown>,
+  value: Record<string, unknown>,
 ) {
   const visitedReferences = new Set<string>();
-  let current = pathItem;
-  let resolved = pathItem;
+  let current = value;
+  let resolved = value;
 
   while (typeof current.$ref === "string" && current.$ref.startsWith("#/")) {
     const reference = current.$ref;
     if (visitedReferences.has(reference) || visitedReferences.size >= 128) {
-      return pathItem;
+      return value;
     }
     visitedReferences.add(reference);
     const next = resolveLocalReference(rootSchema, reference);
     if (!isRecord(next)) {
-      return pathItem;
+      return value;
     }
 
     resolved = { ...next, ...resolved };
@@ -866,16 +866,34 @@ function readModelUsages(
       return;
     }
 
-    const resolvedPathConfig = resolvePathItem(rootSchema, pathConfig);
+    const resolvedPathConfig = resolveReferenceObject(rootSchema, pathConfig);
     Object.entries(resolvedPathConfig).forEach(([method, operation]) => {
       if (!HTTP_METHODS.has(method) || !isRecord(operation)) {
         return;
       }
 
       const usage = { method: method.toUpperCase(), path };
-      const requestSources = [
+      const parametersByKey = new Map<string, Record<string, unknown>>();
+      for (const parameters of [
         resolvedPathConfig.parameters,
         operation.parameters,
+      ]) {
+        if (!Array.isArray(parameters)) {
+          continue;
+        }
+        for (const rawParameter of parameters) {
+          if (!isRecord(rawParameter)) {
+            continue;
+          }
+          const parameter = resolveReferenceObject(rootSchema, rawParameter);
+          parametersByKey.set(
+            `${readString(parameter.in)}:${readString(parameter.name)}`,
+            parameter,
+          );
+        }
+      }
+      const requestSources = [
+        Array.from(parametersByKey.values()),
         operation.requestBody,
       ];
       const requestModels = collectReferencedModels(

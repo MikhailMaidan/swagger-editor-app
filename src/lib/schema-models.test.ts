@@ -2,6 +2,66 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it.each([false, true])(
+    "ignores overridden parameter model usage with referenced parameters=%s",
+    (referenced) => {
+      const shared = {
+        in: "query",
+        name: "filter",
+        schema: { $ref: "#/components/schemas/Shared" },
+      };
+      const local = {
+        in: "query",
+        name: "filter",
+        schema: { $ref: "#/components/schemas/Local" },
+      };
+      const inherited = {
+        in: "query",
+        name: "other",
+        schema: { $ref: "#/components/schemas/Inherited" },
+      };
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Shared: { type: "string" },
+            Local: { type: "string" },
+            Inherited: { type: "string" },
+          },
+          parameters: { Shared: shared, Local: local },
+        },
+        paths: {
+          "/value": {
+            parameters: [
+              referenced ? { $ref: "#/components/parameters/Shared" } : shared,
+              inherited,
+            ],
+            get: {
+              parameters: [
+                referenced ? { $ref: "#/components/parameters/Local" } : local,
+              ],
+            },
+            post: {
+              responses: {
+                "200": { description: "Inherits shared parameters" },
+              },
+            },
+          },
+        },
+      });
+
+      expect(models.find(({ name }) => name === "Shared")?.usages).toEqual([
+        { kind: "request", method: "POST", path: "/value" },
+      ]);
+      expect(models.find(({ name }) => name === "Local")?.usages).toEqual([
+        { kind: "request", method: "GET", path: "/value" },
+      ]);
+      expect(models.find(({ name }) => name === "Inherited")?.usages).toEqual([
+        { kind: "request", method: "GET", path: "/value" },
+        { kind: "request", method: "POST", path: "/value" },
+      ]);
+    },
+  );
+
   it.each([
     { pathItem: "Shared", overrideParameters: false },
     { pathItem: "Alias", overrideParameters: true },

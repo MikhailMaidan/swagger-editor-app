@@ -77,6 +77,49 @@ paths:
           description: Empty`;
 
 describe("TypeScript client generation", () => {
+  it("excludes Swagger body models replaced by an operation override", () => {
+    const parsed = parseSchema(
+      JSON.stringify({
+        swagger: "2.0",
+        info: { title: "Parameter models", version: "1" },
+        definitions: { Shared: { type: "string" }, Local: { type: "boolean" } },
+        paths: {
+          "/value": {
+            parameters: [
+              {
+                in: "body",
+                name: "payload",
+                schema: { $ref: "#/definitions/Shared" },
+              },
+            ],
+            post: {
+              parameters: [
+                {
+                  in: "body",
+                  name: "payload",
+                  required: true,
+                  schema: { $ref: "#/definitions/Local" },
+                },
+              ],
+              responses: { "204": { description: "Updated" } },
+            },
+          },
+        },
+      }),
+    );
+    const build = createTypeScriptClient(
+      parsed.endpoints,
+      extractSchemaModels(parsed.schema),
+      parsed.schema,
+      parsed,
+    );
+
+    expect(build.source).toContain("body: Local;");
+    expect(build.source).toContain("export type Local = boolean;");
+    expect(build.source).not.toContain("export type Shared");
+    expect(build.summary.modelCount).toBe(1);
+  });
+
   it("uses nested schema targets and includes their actual model dependencies", () => {
     const parsed = parseSchema(
       JSON.stringify({
