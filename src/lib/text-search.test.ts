@@ -32,6 +32,29 @@ describe("text search helpers", () => {
     );
   });
 
+  it("finds whole-word matches overlapping rejected partial matches", () => {
+    expect(findTextMatches("xa.a.a a.a", "a.a", false, true)).toEqual([
+      { end: 6, start: 3 },
+      { end: 10, start: 7 },
+    ]);
+    expect(findTextMatches("xA.A.A a.a", "a.a", false, true)).toEqual([
+      { end: 6, start: 3 },
+      { end: 10, start: 7 },
+    ]);
+    expect(findTextMatches("xA.A.A a.a", "a.a", true, true)).toEqual([
+      { end: 10, start: 7 },
+    ]);
+    expect(findTextMatches("a... ", "..", false, true)).toEqual([
+      { end: 4, start: 2 },
+    ]);
+  });
+
+  it("recognizes word boundaries around letters outside the BMP", () => {
+    expect(
+      findTextMatches("\u{10400}cat cat\u{10400} cat", "cat", false, true),
+    ).toEqual([{ end: 15, start: 12 }]);
+  });
+
   it.each([
     ["cafe\u0301 cafe", "cafe"],
     ["и\u0306 и", "и"],
