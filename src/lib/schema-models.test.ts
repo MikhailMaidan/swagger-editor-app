@@ -2,6 +2,116 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it.each([
+    { pathItem: "Shared", overrideParameters: false },
+    { pathItem: "Alias", overrideParameters: true },
+  ])(
+    "tracks usage through Path Item $pathItem with overrideParameters=$overrideParameters",
+    ({ pathItem, overrideParameters }) => {
+      const response = (name: string) => ({
+        "200": {
+          content: {
+            "application/json": {
+              schema: { $ref: `#/components/schemas/${name}` },
+            },
+          },
+        },
+      });
+      const models = extractSchemaModels({
+        components: {
+          schemas: {
+            Request: { type: "string" },
+            Response: { type: "boolean" },
+            SharedParameter: { type: "string" },
+            Overridden: { type: "number" },
+          },
+          pathItems: {
+            Alias: { $ref: "#/components/pathItems/Shared" },
+            Shared: {
+              parameters: [
+                {
+                  in: "query",
+                  name: "filter",
+                  schema: { $ref: "#/components/schemas/SharedParameter" },
+                },
+              ],
+              get: { responses: response("Overridden") },
+              post: {
+                requestBody: {
+                  content: {
+                    "application/json": {
+                      schema: { $ref: "#/components/schemas/Request" },
+                    },
+                  },
+                },
+                responses: response("Response"),
+              },
+            },
+          },
+        },
+        paths: {
+          "/values": {
+            $ref: `#/components/pathItems/${pathItem}`,
+            ...(overrideParameters ? { parameters: [] } : {}),
+            get: { responses: { "200": { description: "Local override" } } },
+          },
+        },
+      });
+
+      expect(models.find(({ name }) => name === "Request")?.usages).toEqual([
+        { kind: "request", method: "POST", path: "/values" },
+      ]);
+      expect(models.find(({ name }) => name === "Response")?.usages).toEqual([
+        { kind: "response", method: "POST", path: "/values" },
+      ]);
+      expect(
+        models.find(({ name }) => name === "SharedParameter")?.usages,
+      ).toEqual(
+        overrideParameters
+          ? []
+          : [
+              { kind: "request", method: "GET", path: "/values" },
+              { kind: "request", method: "POST", path: "/values" },
+            ],
+      );
+      expect(models.find(({ name }) => name === "Overridden")?.usages).toEqual(
+        [],
+      );
+    },
+  );
+
+  it.each(["Missing", "Cycle"])(
+    "keeps local operation usage when a Path Item reference is %s",
+    (pathItem) => {
+      const [model] = extractSchemaModels({
+        components: {
+          schemas: { Used: { type: "string" } },
+          pathItems: { Cycle: { $ref: "#/components/pathItems/Cycle" } },
+        },
+        paths: {
+          "/value": {
+            $ref: `#/components/pathItems/${pathItem}`,
+            get: {
+              responses: {
+                "200": {
+                  content: {
+                    "application/json": {
+                      schema: { $ref: "#/components/schemas/Used" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(model.usages).toEqual([
+        { kind: "response", method: "GET", path: "/value" },
+      ]);
+    },
+  );
+
   it.each(["#/components/schemas/", "#/definitions/"])(
     "resolves nested model pointers under %s without using the container type",
     (prefix) => {

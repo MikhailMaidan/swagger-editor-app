@@ -127,6 +127,32 @@ function resolveLocalReference(
   return current;
 }
 
+function resolvePathItem(
+  rootSchema: Record<string, unknown>,
+  pathItem: Record<string, unknown>,
+) {
+  const visitedReferences = new Set<string>();
+  let current = pathItem;
+  let resolved = pathItem;
+
+  while (typeof current.$ref === "string" && current.$ref.startsWith("#/")) {
+    const reference = current.$ref;
+    if (visitedReferences.has(reference) || visitedReferences.size >= 128) {
+      return pathItem;
+    }
+    visitedReferences.add(reference);
+    const next = resolveLocalReference(rootSchema, reference);
+    if (!isRecord(next)) {
+      return pathItem;
+    }
+
+    resolved = { ...next, ...resolved };
+    current = next;
+  }
+
+  return resolved;
+}
+
 function readModelDefinitions(rootSchema: Record<string, unknown>) {
   const components = isRecord(rootSchema.components)
     ? rootSchema.components
@@ -840,14 +866,15 @@ function readModelUsages(
       return;
     }
 
-    Object.entries(pathConfig).forEach(([method, operation]) => {
+    const resolvedPathConfig = resolvePathItem(rootSchema, pathConfig);
+    Object.entries(resolvedPathConfig).forEach(([method, operation]) => {
       if (!HTTP_METHODS.has(method) || !isRecord(operation)) {
         return;
       }
 
       const usage = { method: method.toUpperCase(), path };
       const requestSources = [
-        pathConfig.parameters,
+        resolvedPathConfig.parameters,
         operation.parameters,
         operation.requestBody,
       ];
