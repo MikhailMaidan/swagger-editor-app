@@ -27,10 +27,19 @@ export function getTextOffset(value: string, position: TextPosition): number {
 
 export function getTextPosition(value: string, offset: number): TextPosition {
   const boundedOffset = Math.min(Math.max(offset, 0), value.length);
-  const lines = value.slice(0, boundedOffset).split(/\r\n|\r|\n/);
+  const prefix = value.slice(0, boundedOffset);
+  const newlinePattern = /\r\n|\r|\n/g;
+  let line = 1;
+  let lineStart = 0;
+  let newline: RegExpExecArray | null;
+
+  while ((newline = newlinePattern.exec(prefix)) !== null) {
+    line += 1;
+    lineStart = newline.index + newline[0].length;
+  }
 
   return {
-    column: (lines.at(-1)?.length || 0) + 1,
-    line: lines.length,
+    column: prefix.length - lineStart + 1,
+    line,
   };
 }
