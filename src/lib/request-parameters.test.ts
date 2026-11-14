@@ -237,6 +237,39 @@ describe("request parameter helpers", () => {
     ]);
   });
 
+  it.each([
+    { pattern: "^\\p{L}+$", valid: "Жé", invalid: "123" },
+    { pattern: "^.$", valid: "😀", invalid: "😀😀" },
+    { pattern: "^\\u{1F600}$", valid: "😀", invalid: "other" },
+    { pattern: "^\\a+$", valid: "aaa", invalid: "bbb" },
+  ])(
+    "validates Unicode and legacy patterns: $pattern",
+    ({ pattern, valid, invalid }) => {
+      const parameter: EndpointParameter = {
+        ...parameters[1],
+        pattern,
+        type: "string",
+      };
+
+      expect(
+        getRequestParameterValidationIssues([parameter], {
+          "query:search": valid,
+        }),
+      ).toEqual([]);
+      expect(
+        getRequestParameterValidationIssues([parameter], {
+          "query:search": invalid,
+        }),
+      ).toEqual([
+        {
+          code: "pattern",
+          key: "query:search",
+          params: { pattern },
+        },
+      ]);
+    },
+  );
+
   it("does not block requests when an imported schema contains an invalid regex", () => {
     const parameter: EndpointParameter = {
       description: "",

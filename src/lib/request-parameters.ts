@@ -164,7 +164,14 @@ function validateParameterValue(
 
   if (parameter.pattern) {
     try {
-      if (!new RegExp(parameter.pattern).test(value)) {
+      let pattern: RegExp;
+      try {
+        pattern = new RegExp(parameter.pattern, "u");
+      } catch {
+        pattern = new RegExp(parameter.pattern);
+      }
+
+      if (!pattern.test(value)) {
         return createIssue(parameter, "pattern", {
           pattern: parameter.pattern,
         });
