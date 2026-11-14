@@ -25,6 +25,29 @@ function createRecord(
 }
 
 describe("request history statistics", () => {
+  it.each([
+    {
+      durations: [Number.MAX_VALUE, Number.MAX_VALUE],
+      ratio: Number.MAX_VALUE / 1e308,
+    },
+    { durations: [1e308, 1e308, 0], ratio: 2 / 3 },
+  ])(
+    "keeps the average finite when the duration sum overflows: $durations",
+    ({ durations, ratio }) => {
+      const records = parseRequestHistory(
+        JSON.stringify(
+          durations.map((duration) => createRecord(200, duration)),
+        ),
+      );
+      const stats = createRequestHistoryStats(records);
+
+      expect(Number.isFinite(stats.averageDurationMs)).toBe(true);
+      expect(stats.averageDurationMs / 1e308).toBeCloseTo(ratio, 12);
+      expect(stats.total).toBe(durations.length);
+      expect(stats.successful).toBe(durations.length);
+    },
+  );
+
   it("summarizes successful, failed, and average request duration", () => {
     expect(
       createRequestHistoryStats([

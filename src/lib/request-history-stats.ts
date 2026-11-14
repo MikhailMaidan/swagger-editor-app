@@ -15,6 +15,7 @@ export function createRequestHistoryStats(
   let failed = 0;
   let measuredDurationCount = 0;
   let totalDurationMs = 0;
+  let meanDurationMs = 0;
 
   records.forEach((record) => {
     if (isErrorStatus(record.status)) {
@@ -24,6 +25,8 @@ export function createRequestHistoryStats(
     if (Number.isFinite(record.durationMs) && record.durationMs >= 0) {
       measuredDurationCount += 1;
       totalDurationMs += record.durationMs;
+      meanDurationMs +=
+        (record.durationMs - meanDurationMs) / measuredDurationCount;
     }
   });
 
@@ -33,7 +36,11 @@ export function createRequestHistoryStats(
     averageDurationMs:
       measuredDurationCount === 0
         ? 0
-        : Math.round(totalDurationMs / measuredDurationCount),
+        : Math.round(
+            Number.isFinite(totalDurationMs)
+              ? totalDurationMs / measuredDurationCount
+              : meanDurationMs,
+          ),
     failed,
     successRatePercent:
       records.length === 0

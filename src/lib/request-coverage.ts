@@ -181,11 +181,14 @@ export function createRequestCoverageReport(
     let failedAttempts = 0;
     let measuredDurationCount = 0;
     let totalDurationMs = 0;
+    let meanDurationMs = 0;
     for (const record of operationRecords) {
       if (!isSuccessfulStatus(record.status)) failedAttempts += 1;
       if (Number.isFinite(record.durationMs) && record.durationMs >= 0) {
         measuredDurationCount += 1;
         totalDurationMs += record.durationMs;
+        meanDurationMs +=
+          (record.durationMs - meanDurationMs) / measuredDurationCount;
       }
     }
     const latestRecord = operationRecords[0];
@@ -202,7 +205,11 @@ export function createRequestCoverageReport(
       averageDurationMs:
         measuredDurationCount === 0
           ? 0
-          : Math.round(totalDurationMs / measuredDurationCount),
+          : Math.round(
+              Number.isFinite(totalDurationMs)
+                ? totalDurationMs / measuredDurationCount
+                : meanDurationMs,
+            ),
       documentedResponseCount: endpoint.responses.length,
       failedAttempts,
       latestCreatedAt: latestRecord?.createdAt ?? null,

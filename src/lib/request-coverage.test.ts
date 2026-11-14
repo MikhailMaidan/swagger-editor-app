@@ -60,6 +60,32 @@ function createRecord(
 }
 
 describe("request coverage", () => {
+  it.each([
+    {
+      durations: [Number.MAX_VALUE, Number.MAX_VALUE],
+      ratio: Number.MAX_VALUE / 1e308,
+    },
+    { durations: [1e308, 1e308, 0], ratio: 2 / 3 },
+  ])(
+    "keeps coverage averages finite when the duration sum overflows: $durations",
+    ({ durations, ratio }) => {
+      const records = durations.map((durationMs, index) => ({
+        ...createRecord(String(index), "GET", "/jobs", 200),
+        durationMs,
+      }));
+      const report = createRequestCoverageReport(
+        [createEndpoint("GET", "/jobs", ["200"])],
+        records,
+      );
+      const operation = report.operations[0];
+
+      expect(Number.isFinite(operation.averageDurationMs)).toBe(true);
+      expect(operation.averageDurationMs / 1e308).toBeCloseTo(ratio, 12);
+      expect(operation.attempts).toBe(durations.length);
+      expect(operation.successfulAttempts).toBe(durations.length);
+    },
+  );
+
   it("maps recent requests to operations and documented response variants", () => {
     const report = createRequestCoverageReport(
       [
