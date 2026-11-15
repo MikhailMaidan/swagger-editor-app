@@ -51,7 +51,7 @@ function writeTextWithLegacyClipboard(value: string) {
     copied = false;
   } finally {
     textarea.remove();
-    activeElement?.focus();
+    activeElement?.focus({ preventScroll: true });
 
     if (selection) {
       selection.removeAllRanges();
