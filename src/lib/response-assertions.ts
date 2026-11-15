@@ -80,7 +80,7 @@ function parseBody(
   }
   let value: unknown;
   try {
-    value = JSON.parse(body);
+    value = JSON.parse(body.replace(/^\uFEFF/, ""));
   } catch {
     return { ok: false, issue: "unreadable-body" };
   }
@@ -280,7 +280,10 @@ export function evaluateResponseAssertions(
         case "equals":
           passed =
             rule.target === "body"
-              ? jsonEquals(actual, JSON.parse(rule.expected))
+              ? jsonEquals(
+                  actual,
+                  JSON.parse(rule.expected.replace(/^\uFEFF/, "")),
+                )
               : actual ===
                 (rule.target === "status"
                   ? Number(rule.expected)

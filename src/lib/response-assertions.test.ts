@@ -335,6 +335,48 @@ describe("response assertions", () => {
     },
   );
 
+  it("accepts a leading byte-order mark in observed and expected JSON bodies", () => {
+    const value = { "\uFEFFkey": "\uFEFFvalue" };
+    const body = JSON.stringify(value);
+    const data = { ...response, body: `\uFEFF${body}` };
+
+    expect(run({ path: "", expected: body }, data)).toEqual({
+      outcome: "pass",
+    });
+    expect(run({ path: "", expected: `\uFEFF${body}` }, data)).toEqual({
+      outcome: "pass",
+    });
+    expect(
+      run(
+        { path: "/\uFEFFkey", expected: JSON.stringify(value["\uFEFFkey"]) },
+        data,
+      ),
+    ).toEqual({ outcome: "pass" });
+  });
+
+  it("keeps JSON validation and limits for bodies with a byte-order mark", () => {
+    for (const body of [
+      "\uFEFF",
+      "\uFEFFnot json",
+      "\uFEFF\uFEFF{}",
+      "{\uFEFF}",
+    ]) {
+      expect(run({}, { ...response, body })).toEqual({
+        outcome: "error",
+        issue: "unreadable-body",
+      });
+    }
+    expect(run({}, { ...response, body: "\uFEFF9007199254740993" })).toEqual({
+      outcome: "error",
+      issue: "unsafe-number",
+    });
+    const body = `\uFEFF"${"a".repeat(MAX_ASSERTION_BODY_BYTES - 4)}"`;
+    expect(run({}, { ...response, body })).toEqual({
+      outcome: "error",
+      issue: "body-limit",
+    });
+  });
+
   it("reports unavailable status and timing measurements", () => {
     for (const status of ["0", "99", "600", "200.5"]) {
       expect(
