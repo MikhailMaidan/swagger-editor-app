@@ -322,11 +322,13 @@ function createRequestDescription(endpoint: EndpointSummary) {
 }
 
 function getResponseCode(status: string) {
-  if (/^\d{3}$/.test(status)) {
-    return Number(status);
+  const normalizedStatus = status.trim();
+
+  if (/^\d{3}$/.test(normalizedStatus)) {
+    return Number(normalizedStatus);
   }
 
-  const range = status.match(/^([1-5])xx$/i);
+  const range = normalizedStatus.match(/^([1-5])xx$/i);
   return range ? Number(`${range[1]}00`) : 200;
 }
 

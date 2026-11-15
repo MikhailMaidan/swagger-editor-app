@@ -254,6 +254,28 @@ describe("createPostmanCollection", () => {
     },
   );
 
+  it.each([
+    [" 404 ", 404],
+    ["\t201\n", 201],
+    [" 5XX ", 500],
+    [" 4xx ", 400],
+    [" default ", 200],
+  ])("exports documented status %j as HTTP %i", (status, code) => {
+    const build = createPostmanCollection(
+      [
+        endpoint({
+          responses: [
+            { contentTypes: [], description: "Result", schema: null, status },
+          ],
+        }),
+      ],
+      [],
+      { serverUrl: "", title: "Example API", version: "1" },
+    );
+
+    expect(firstRequest(build).response[0].code).toBe(code);
+  });
+
   it("preserves an explicitly empty request body example from OpenAPI", () => {
     const parsed = parseOpenApiSchema(`openapi: 3.0.3
 info: { title: Empty body API, version: '1' }
