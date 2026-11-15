@@ -107,6 +107,62 @@ describe("schema comparison baseline", () => {
     },
   );
 
+  it("preserves long endpoint identifiers across a baseline reload", () => {
+    const identifier = "x".repeat(4200);
+    const parameters = ["first", "second"].map((suffix) => ({
+      description: "",
+      example: "",
+      location: "query" as const,
+      name: `${identifier}${suffix}`,
+      required: true,
+    }));
+    const longEndpoint = {
+      ...endpoint,
+      operationId: identifier,
+      parameters,
+      path: `/${identifier}`,
+      requestBodies: [
+        {
+          contentType: `application/x-${identifier}`,
+          description: "",
+          required: true,
+          schema: {
+            example: "",
+            exampleName: "",
+            properties: [],
+            type: "string",
+          },
+        },
+      ],
+    };
+    const baseline = createSchemaComparisonBaseline([longEndpoint], {
+      title: "Users API",
+      version: "1.0.0",
+    });
+
+    expect(saveSchemaComparisonBaseline(baseline)).toBe(true);
+    const restored = readSchemaComparisonBaseline();
+    expect(restored).not.toBeNull();
+    expect(
+      createSchemaChangeReport(restored!.endpoints, [longEndpoint])
+        .unchangedCount,
+    ).toBe(1);
+    expect(restored).toEqual(baseline);
+
+    const changed = createSchemaChangeReport(restored!.endpoints, [
+      { ...longEndpoint, parameters: parameters.slice(0, 1) },
+    ]);
+    expect(changed.breakingCount).toBe(1);
+    expect(changed.changes[0].details).toEqual([
+      {
+        code: "parameter-removed",
+        impact: "breaking",
+        location: "query",
+        name: parameters[1].name,
+      },
+    ]);
+  });
+
   it("preserves distinct query parameter names across a baseline reload", () => {
     const parameters = ["id", "id ", " id"].map((name) => ({
       description: "Identifier",

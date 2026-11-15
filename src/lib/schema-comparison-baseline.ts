@@ -21,7 +21,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readText(value: unknown, maxLength = MAX_TEXT_LENGTH) {
+function readText(value: unknown, maxLength?: number) {
   return typeof value === "string" ? value.slice(0, maxLength) : "";
 }
 
@@ -103,7 +103,7 @@ function sanitizeEndpoint(value: unknown): ComparableEndpoint | null {
 
   return {
     deprecated: value.deprecated === true,
-    description: typeof value.description === "string" ? value.description : "",
+    description: readText(value.description),
     method,
     operationId: readText(value.operationId).trim(),
     parameters,
@@ -111,7 +111,7 @@ function sanitizeEndpoint(value: unknown): ComparableEndpoint | null {
     requestBodies,
     responseStatuses: Array.from(new Set(responseStatuses)).sort(),
     secured: value.secured === true,
-    summary: typeof value.summary === "string" ? value.summary : "",
+    summary: readText(value.summary),
     tags: Array.from(new Set(tags)).sort(),
   };
 }
@@ -121,7 +121,7 @@ function sanitizeBaseline(value: unknown): SchemaComparisonBaseline | null {
     return null;
   }
 
-  const capturedAt = readText(value.capturedAt);
+  const capturedAt = readText(value.capturedAt, MAX_TEXT_LENGTH);
   const capturedDate = new Date(capturedAt);
 
   if (!capturedAt || Number.isNaN(capturedDate.getTime())) {
@@ -134,8 +134,8 @@ function sanitizeBaseline(value: unknown): SchemaComparisonBaseline | null {
       .slice(0, MAX_BASELINE_ENDPOINTS)
       .map(sanitizeEndpoint)
       .filter((endpoint): endpoint is ComparableEndpoint => endpoint !== null),
-    title: readText(value.title),
-    version: readText(value.version),
+    title: readText(value.title, MAX_TEXT_LENGTH),
+    version: readText(value.version, MAX_TEXT_LENGTH),
   };
 }
 
