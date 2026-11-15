@@ -1,4 +1,5 @@
 import type { EndpointParameter } from "./openapi";
+import { getSelectedCharacterCount } from "./text-stats";
 
 type FallbackRequestParameter = {
   location?: EndpointParameter["location"];
@@ -142,7 +143,7 @@ function validateParameterValue(
 
   const characterCount =
     parameter.minLength !== undefined || parameter.maxLength !== undefined
-      ? Array.from(value).length
+      ? getSelectedCharacterCount(value, 0, value.length)
       : 0;
   if (
     parameter.minLength !== undefined &&
