@@ -12,6 +12,7 @@ const METHOD_ORDER = [
   "DELETE",
   "OPTIONS",
   "HEAD",
+  "TRACE",
 ];
 
 const pathCollator = new Intl.Collator(undefined, { numeric: true });
