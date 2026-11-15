@@ -41,6 +41,47 @@ describe("response comparison", () => {
     expect(report.baseline.bodyBytes).toBeGreaterThan(report.current.bodyBytes);
   });
 
+  it.each([
+    ["\uFEFF", ""],
+    ["", "\uFEFF"],
+    ["\uFEFF", "\uFEFF"],
+  ])(
+    "compares JSON structurally with byte-order marks %j and %j",
+    (before, after) => {
+      const report = compareResponses(
+        response(`${before}{ "b": 2, "a": 1 }`),
+        response(`${after}{"a":1,"b":2}`),
+      );
+
+      expect(report).toMatchObject({
+        bodyMode: "json",
+        differences: [],
+        limited: false,
+      });
+    },
+  );
+
+  it("preserves byte-order marks inside JSON and still honors ignored paths", () => {
+    const report = compareResponses(
+      response(
+        `\uFEFF${JSON.stringify({ "\uFEFFkey": "\uFEFFold", timestamp: 1 })}`,
+      ),
+      response(JSON.stringify({ "\uFEFFkey": "\uFEFFnew", timestamp: 2 })),
+      { ignoredBodyPaths: ["/timestamp"], ignoredHeaders: [] },
+    );
+
+    expect(report.bodyMode).toBe("json");
+    expect(report.differences).toEqual([
+      {
+        area: "body",
+        kind: "changed",
+        path: "/\uFEFFkey",
+        before: JSON.stringify("\uFEFFold"),
+        after: JSON.stringify("\uFEFFnew"),
+      },
+    ]);
+  });
+
   it("identifies added, removed, and changed fields at escaped JSON pointers", () => {
     const report = compare(
       { "a/b~c": { value: 1 }, removed: true },
