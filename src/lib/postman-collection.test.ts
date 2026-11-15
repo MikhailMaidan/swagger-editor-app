@@ -213,6 +213,47 @@ describe("createPostmanCollection", () => {
     expect(build.summary.responseExampleCount).toBe(1);
   });
 
+  it.each([
+    { type: "array", expected: [] },
+    { type: "boolean", expected: false },
+    { type: "integer", expected: 0 },
+    { type: "number", expected: 0 },
+    { type: "string", expected: "string" },
+    { type: "null", expected: null },
+    { type: undefined, expected: { unused: "string" } },
+  ])(
+    "generates request and response examples respecting type $type alongside properties",
+    ({ type, expected }) => {
+      const schema = { type, properties: { unused: { type: "string" } } };
+      const content = { "application/json": { schema } };
+      const parsed = parseOpenApiSchema(
+        JSON.stringify({
+          openapi: "3.1.0",
+          info: { title: "Example API", version: "1" },
+          paths: {
+            "/value": {
+              post: {
+                requestBody: { required: true, content },
+                responses: { "200": { description: "OK", content } },
+              },
+            },
+          },
+        }),
+      );
+      if (!parsed.ok) throw new Error(parsed.error);
+
+      const build = createPostmanCollection(parsed.value.endpoints, [], {
+        serverUrl: "",
+        title: "Example API",
+        version: "1",
+      });
+      const item = firstRequest(build);
+
+      expect(JSON.parse(item.request.body!.raw)).toEqual(expected);
+      expect(JSON.parse(item.response[0].body)).toEqual(expected);
+    },
+  );
+
   it("preserves an explicitly empty request body example from OpenAPI", () => {
     const parsed = parseOpenApiSchema(`openapi: 3.0.3
 info: { title: Empty body API, version: '1' }

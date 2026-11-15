@@ -291,7 +291,11 @@ function createRequestBodyExample(schema: SchemaDetails, contentType: string) {
     return schema.type === "string" ? "string" : "";
   }
 
-  if (schema.type === "object" || schema.properties.length > 0) {
+  if (
+    schema.type === "object" ||
+    ((!schema.type || schema.type === "unknown") &&
+      schema.properties.length > 0)
+  ) {
     return JSON.stringify(
       Object.fromEntries(
         schema.properties.map((property) => [

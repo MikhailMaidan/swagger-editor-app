@@ -42,7 +42,10 @@ function createGeneratedResponseBody(
     return schemaType === "string" ? "string" : null;
   }
 
-  if (schemaType === "object" || schema.properties.length > 0) {
+  if (
+    schemaType === "object" ||
+    ((!schemaType || schemaType === "unknown") && schema.properties.length > 0)
+  ) {
     return JSON.stringify(
       Object.fromEntries(
         schema.properties.map((property) => [
