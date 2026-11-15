@@ -134,6 +134,34 @@ describe("schema import validation", () => {
     }
   });
 
+  it.each([
+    { character: "a", length: MAX_SCHEMA_IMPORT_SIZE_BYTES + 1 },
+    { character: "я", length: MAX_SCHEMA_IMPORT_SIZE_BYTES / 2 + 1 },
+  ])(
+    "rejects oversized schema text despite a smaller reported byte count (case %#)",
+    async ({ character, length }) => {
+      const schemaText = character.repeat(length);
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        Response.json({
+          byteSize: 1,
+          fileName: "openapi.yaml",
+          schemaText,
+          sourceUrl: "https://docs.example.com/openapi.yaml",
+        }),
+      );
+
+      try {
+        await expect(
+          importSchemaFromUrl("https://docs.example.com/openapi.yaml").then(
+            () => undefined,
+          ),
+        ).rejects.toMatchObject({ code: "invalid-response" });
+      } finally {
+        fetchMock.mockRestore();
+      }
+    },
+  );
+
   it("rejects malformed success responses and network failures", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")

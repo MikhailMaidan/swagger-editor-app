@@ -1,4 +1,5 @@
 import { isPublicHttpServerUrl } from "./server-url";
+import { getByteSize } from "./text-encoding";
 
 export const MAX_SCHEMA_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -139,6 +140,8 @@ export async function importSchemaFromUrl(url: string, signal?: AbortSignal) {
     typeof fileName !== "string" ||
     !fileName.trim() ||
     typeof schemaText !== "string" ||
+    schemaText.length > MAX_SCHEMA_IMPORT_SIZE_BYTES ||
+    getByteSize(schemaText) > MAX_SCHEMA_IMPORT_SIZE_BYTES ||
     !schemaText.trim() ||
     typeof sourceUrl !== "string" ||
     !isPublicHttpServerUrl(sourceUrl)
