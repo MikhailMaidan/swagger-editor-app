@@ -35,11 +35,24 @@ describe("getStatusColorClasses", () => {
     expect(getStatusColorClasses("unknown")).toBe("bg-red-100 text-red-700");
   });
 
-  it.each([-1, 1, 99, 200.5, "-1", "99", "200.5", NaN, Infinity, -Infinity])(
-    "marks invalid numeric status %s red",
-    (status) => {
-      expect(isErrorStatus(status)).toBe(true);
-      expect(getStatusColorClasses(status)).toBe("bg-red-100 text-red-700");
-    },
-  );
+  it.each([
+    -1,
+    1,
+    99,
+    200.5,
+    "-1",
+    "99",
+    "200.5",
+    "200.0",
+    "2e2",
+    "0xC8",
+    "0200",
+    "+200",
+    NaN,
+    Infinity,
+    -Infinity,
+  ])("marks invalid numeric status %s red", (status) => {
+    expect(isErrorStatus(status)).toBe(true);
+    expect(getStatusColorClasses(status)).toBe("bg-red-100 text-red-700");
+  });
 });

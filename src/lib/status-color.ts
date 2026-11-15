@@ -5,6 +5,7 @@ export function isErrorStatus(status: number | string) {
   const numericStatus = Number(status);
 
   return (
+    (typeof status === "string" && !/^[1-5]\d{2}$/.test(status.trim())) ||
     !Number.isInteger(numericStatus) ||
     numericStatus < 100 ||
     numericStatus >= 400
