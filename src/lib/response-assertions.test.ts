@@ -309,6 +309,32 @@ describe("response assertions", () => {
     ).toBe("pass");
   });
 
+  it.each(["200.0", "2e2", "2.00e2"])(
+    "rejects malformed observed status %s for every status operator",
+    (status) => {
+      for (const operator of ["equals", "gte", "lte"] as const) {
+        expect(
+          run(
+            { target: "status", operator, expected: "200" },
+            { ...response, status },
+          ),
+        ).toEqual({ outcome: "error", issue: "unavailable" });
+      }
+    },
+  );
+
+  it.each(["100", "200", "599", " 200 "])(
+    "accepts observed HTTP status %s",
+    (status) => {
+      expect(
+        run(
+          { target: "status", expected: status.trim() },
+          { ...response, status },
+        ),
+      ).toEqual({ outcome: "pass" });
+    },
+  );
+
   it("reports unavailable status and timing measurements", () => {
     for (const status of ["0", "99", "600", "200.5"]) {
       expect(

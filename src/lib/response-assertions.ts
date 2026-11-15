@@ -264,7 +264,7 @@ export function evaluateResponseAssertions(
         !Number.isFinite(value) ||
         value < 0 ||
         (rule.target === "status" &&
-          (!Number.isInteger(value) || value < 100 || value > 599))
+          !/^[1-5]\d{2}$/.test(response.status.trim()))
       ) {
         return { outcome: "error", issue: "unavailable" };
       }
