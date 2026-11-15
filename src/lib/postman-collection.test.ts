@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { EndpointSummary, SecuritySchemeSummary } from "./openapi";
+import {
+  parseOpenApiSchema,
+  type EndpointSummary,
+  type SecuritySchemeSummary,
+} from "./openapi";
 import {
   createPostmanCollection,
   type PostmanRequestItem,
@@ -207,6 +211,36 @@ describe("createPostmanCollection", () => {
       ]),
     );
     expect(build.summary.responseExampleCount).toBe(1);
+  });
+
+  it("preserves an explicitly empty request body example from OpenAPI", () => {
+    const parsed = parseOpenApiSchema(`openapi: 3.0.3
+info: { title: Empty body API, version: '1' }
+paths:
+  /empty:
+    post:
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            example: ''
+            schema: { type: string }
+      responses:
+        '204': { description: Accepted }
+`);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    const build = createPostmanCollection(parsed.value.endpoints, [], {
+      serverUrl: "",
+      title: "Empty body API",
+      version: "1",
+    });
+
+    expect(firstRequest(build).request.body).toEqual({
+      mode: "raw",
+      options: { raw: { language: "text" } },
+      raw: "",
+    });
   });
 
   it("adds authentication placeholders without credential values", () => {

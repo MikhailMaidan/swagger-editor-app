@@ -283,7 +283,7 @@ function createGeneratedValue(type: string): unknown {
 }
 
 function createRequestBodyExample(schema: SchemaDetails, contentType: string) {
-  if (schema.example) {
+  if (schema.hasExplicitExample || schema.example) {
     return schema.example;
   }
 
