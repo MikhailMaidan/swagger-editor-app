@@ -137,22 +137,25 @@ describe("response contract checks", () => {
     expect(findDocumentedResponse(responses, " 418 ")).toBe(fallback);
   });
 
-  it.each(["204", "304"])("keeps padded %s responses bodyless", (status) => {
-    const report = createResponseContractReport(
-      [createResponse({ status, contentTypes: [] })],
-      {
-        body: "",
-        headers: {},
-        method: "GET",
-        status: ` ${status} `,
-      },
-    );
-    expect(report.result).toBe("pass");
-    expect(report.checks[2]).toMatchObject({
-      result: "skipped",
-      code: "body-not-expected",
-    });
-  });
+  it.each(["204", "205", "304"])(
+    "keeps padded %s responses bodyless",
+    (status) => {
+      const report = createResponseContractReport(
+        [createResponse({ status, contentTypes: [] })],
+        {
+          body: "",
+          headers: {},
+          method: "GET",
+          status: ` ${status} `,
+        },
+      );
+      expect(report.result).toBe("pass");
+      expect(report.checks[2]).toMatchObject({
+        result: "skipped",
+        code: "body-not-expected",
+      });
+    },
+  );
 
   it("prefers an exact media type schema over a wildcard documented first", () => {
     const wildcardSchema = {

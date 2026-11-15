@@ -263,6 +263,7 @@ function createBodyCheck(
   if (
     input.method.toUpperCase() === "HEAD" ||
     status === "204" ||
+    status === "205" ||
     status === "304"
   ) {
     return createCheck("body", "skipped", "body-not-expected");
