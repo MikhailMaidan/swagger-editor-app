@@ -42,7 +42,9 @@ function escapeCsvCell(value: string | number | boolean) {
     .replaceAll("\0", "")
     .replace(/[\r\n]+/g, " ")
     .trim();
-  const spreadsheetSafeValue = /^[\t ]*[=+\-@]/.test(normalizedValue)
+  const spreadsheetSafeValue = /^[\s\u0000-\u001f]*[=+\-@]/u.test(
+    normalizedValue,
+  )
     ? `'${normalizedValue}`
     : normalizedValue;
 

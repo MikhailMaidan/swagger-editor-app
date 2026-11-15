@@ -112,6 +112,18 @@ describe("endpoint inventory export", () => {
     expect(result.content).toContain('"\'@command(""value"")"');
   });
 
+  it.each(["\u0001=1+1", "\u001b\t+42", "\u001f-2", "\u0007@SUM(1)"])(
+    "escapes formula-like values following control characters: %j",
+    (value) => {
+      const result = createEndpointInventoryExport(
+        [createEndpoint({ summary: value })],
+        { title: "Catalog API", version: "1.0.0" },
+      );
+
+      expect(result.content).toContain(`"'${value}"`);
+    },
+  );
+
   it("exports an empty inventory with headers only", () => {
     const result = createEndpointInventoryExport(
       [],
