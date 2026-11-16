@@ -103,9 +103,12 @@ describe("RequestAuthManager", () => {
         name: "Enable basicAuth authentication",
       }),
     );
-    await user.type(screen.getByLabelText("Username for basicAuth"), "alex");
     await user.type(screen.getByLabelText("Password for basicAuth"), "secret");
 
+    expect(screen.getByLabelText("Username for basicAuth")).toHaveValue("");
+    expect(screen.getByText("Configured: 1")).toBeVisible();
+
+    await user.type(screen.getByLabelText("Username for basicAuth"), "alex");
     expect(screen.getByText("Configured: 1")).toBeVisible();
   });
 });

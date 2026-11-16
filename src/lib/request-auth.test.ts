@@ -89,6 +89,47 @@ describe("request authentication", () => {
     ]);
   });
 
+  it.each(["", " \t"])(
+    "uses password-only Basic credentials with username %j when selecting an alternative",
+    (username) => {
+      const schemes = [
+        createScheme("basicAuth", { scheme: "basic", type: "http" }),
+        createScheme("bearerAuth", { scheme: "bearer", type: "http" }),
+      ];
+
+      expect(
+        createAuthRequestParameters(
+          schemes,
+          {
+            basicAuth: createCredential({ username, password: "secret" }),
+            bearerAuth: createCredential({ token: "fallback" }),
+          },
+          ["basicAuth", "bearerAuth"],
+          [["basicAuth"], ["bearerAuth"]],
+        ),
+      ).toEqual([
+        {
+          location: "header",
+          name: "Authorization",
+          value: "Basic OnNlY3JldA==",
+        },
+      ]);
+    },
+  );
+
+  it.each([
+    { enabled: false, password: "secret" },
+    { enabled: true, password: "" },
+  ])("ignores disabled or empty Basic credentials: %j", (credential) => {
+    expect(
+      createAuthRequestParameters(
+        [createScheme("basicAuth", { scheme: "basic", type: "http" })],
+        { basicAuth: createCredential(credential) },
+        ["basicAuth"],
+      ),
+    ).toEqual([]);
+  });
+
   it("selects a fully configured security alternative", () => {
     const schemes = [
       createScheme("headerKey", {

@@ -42,7 +42,7 @@ export function hasUsableRequestAuthCredential(
   }
 
   if (scheme.type === "http" && scheme.scheme === "basic") {
-    return Boolean(credential.username.trim());
+    return Boolean(credential.username.trim() || credential.password);
   }
 
   return Boolean(credential.token.trim());
