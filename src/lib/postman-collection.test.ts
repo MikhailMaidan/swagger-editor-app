@@ -207,6 +207,52 @@ describe("createPostmanCollection", () => {
     ]);
   });
 
+  it.each([false, true])(
+    "preserves the root endpoint slash with a server path prefix (query: %s)",
+    (includeQuery) => {
+      const build = createPostmanCollection(
+        [
+          endpoint({
+            path: "/",
+            parameters: includeQuery
+              ? [
+                  {
+                    description: "",
+                    example: "yes",
+                    location: "query",
+                    name: "q",
+                    required: true,
+                  },
+                ]
+              : [],
+          }),
+        ],
+        [],
+        {
+          serverUrl: "https://api.example.com/v1",
+          title: "Root API",
+          version: "1",
+        },
+      );
+      const request = firstRequest(build).request;
+      const baseUrl = build.collection.variable.find(
+        ({ key }) => key === "baseUrl",
+      )!.value;
+      const resolvedUrl = new URL(
+        request.url.raw.replace("{{baseUrl}}", baseUrl),
+      );
+
+      expect(resolvedUrl.pathname).toBe("/v1/");
+      expect(resolvedUrl.searchParams.get("q")).toBe(
+        includeQuery ? "yes" : null,
+      );
+      expect(request.url.raw).toBe(
+        `{{baseUrl}}/${includeQuery ? "?q=yes" : ""}`,
+      );
+      expect(request.url.path).toEqual([]);
+    },
+  );
+
   it("creates generated request bodies and documented response examples", () => {
     const build = createPostmanCollection(
       [

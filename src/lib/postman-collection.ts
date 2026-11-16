@@ -431,7 +431,7 @@ function createRequestItem(
         `${encodeUrlComponent(parameter.key)}=${encodeQueryValue(parameter.value)}`,
     )
     .join("&");
-  const rawPath = normalizedPath ? `/` + normalizedPath : "";
+  const rawPath = `/${normalizedPath}`;
   const description = createRequestDescription(endpoint);
   const request: PostmanRequest = {
     ...(auth ? { auth } : {}),
