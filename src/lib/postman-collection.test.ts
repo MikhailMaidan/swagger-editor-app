@@ -253,6 +253,46 @@ describe("createPostmanCollection", () => {
     },
   );
 
+  it.each([
+    {
+      serverUrl: "https://api.example.com/v2/",
+      path: "/users",
+      expected: "https://api.example.com/v2/users",
+    },
+    {
+      serverUrl: " \thttps://api.example.com/v2/// \r\n",
+      path: "/",
+      expected: "https://api.example.com/v2/",
+    },
+    {
+      serverUrl: "",
+      path: "/users",
+      expected: "https://fallback.example.com/v1/users",
+    },
+    {
+      serverUrl: " \t ",
+      path: "/users",
+      expected: "https://fallback.example.com/v1/users",
+    },
+    { serverUrl: "/", path: "/users", expected: "/users" },
+  ])(
+    "normalizes server URL $serverUrl when exporting $path",
+    ({ serverUrl, path, expected }) => {
+      const build = createPostmanCollection(
+        [endpoint({ path, serverUrl: " https://fallback.example.com/v1// " })],
+        [],
+        { serverUrl, title: "Example API", version: "1" },
+      );
+      const baseUrl = build.collection.variable.find(
+        ({ key }) => key === "baseUrl",
+      )!.value;
+
+      expect(
+        firstRequest(build).request.url.raw.replace("{{baseUrl}}", baseUrl),
+      ).toBe(expected);
+    },
+  );
+
   it("creates generated request bodies and documented response examples", () => {
     const build = createPostmanCollection(
       [

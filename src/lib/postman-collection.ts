@@ -6,7 +6,7 @@ import type {
 } from "./openapi";
 import { isJsonMediaType } from "./request-body";
 import { createSchemaMockResponse } from "./request-mock";
-import { encodeUrlComponent } from "./request-url";
+import { encodeUrlComponent, normalizeServerUrl } from "./request-url";
 
 export const POSTMAN_COLLECTION_SCHEMA =
   "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
@@ -489,7 +489,9 @@ export function createPostmanCollection(
   addVariable(
     context,
     "baseUrl",
-    schema.serverUrl || endpoints[0]?.serverUrl || "",
+    normalizeServerUrl(
+      schema.serverUrl.trim() || endpoints[0]?.serverUrl || "",
+    ),
     "Active RSSwag API server",
   );
 
