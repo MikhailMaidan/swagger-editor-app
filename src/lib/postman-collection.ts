@@ -155,11 +155,15 @@ function getParameterValue(
 }
 
 function encodeQueryValue(value: string) {
+  if (!/[^A-Za-z0-9_.*-]/.test(value)) {
+    return value;
+  }
+
   // Keep Postman variable references intact while encoding literal query text.
   return value
     .split(/(\{\{[^{}]+\}\})/g)
     .map((part, index) =>
-      index % 2 === 1
+      index % 2 === 1 || !part
         ? part
         : new URLSearchParams({ value: part })
             .toString()
