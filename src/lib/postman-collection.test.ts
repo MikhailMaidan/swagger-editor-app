@@ -293,6 +293,110 @@ describe("createPostmanCollection", () => {
     },
   );
 
+  it.each([
+    ["user-id", "user_id", "user_id_2"],
+    ["имя", "名前"],
+  ])("keeps colliding parameter variables distinct: %j", (...names) => {
+    const parameters = names.map((name) => ({
+      description: "",
+      example: "",
+      location: "query" as const,
+      name,
+      required: true,
+    }));
+    const build = createPostmanCollection(
+      [
+        endpoint({ path: "/first", parameters }),
+        endpoint({ path: "/second", parameters }),
+      ],
+      [],
+      { serverUrl: "", title: "Variables API", version: "1" },
+      { groupByTags: false },
+    );
+    const items = build.collection.item as PostmanRequestItem[];
+    const references = items[0].request.url.query!.map(({ value }) => value);
+
+    expect(new Set(references).size).toBe(names.length);
+    expect(items[1].request.url.query!.map(({ value }) => value)).toEqual(
+      references,
+    );
+    expect(build.collection.variable).toHaveLength(names.length + 1);
+    expect(references).toEqual(
+      build.collection.variable
+        .filter(({ key }) => key !== "baseUrl")
+        .map(({ key }) => `{{${key}}}`),
+    );
+  });
+
+  it.each([false, true])(
+    "separates colliding authentication and parameter variables (auth first: %s)",
+    (authFirst) => {
+      const schemes = [
+        scheme("query_login", { scheme: "basic" }),
+        ...["query-token", "query_token"].map((name, index) =>
+          scheme(name, {
+            type: "apiKey",
+            scheme: "",
+            location: "header",
+            parameterName: `X-Key-${index}`,
+          }),
+        ),
+      ];
+      const secured = endpoint({
+        path: "/private",
+        secured: true,
+        securityRequirementGroups: [schemes.map(({ name }) => name)],
+        securityRequirements: schemes.map(({ name }) => name),
+      });
+      const publicEndpoint = endpoint({
+        path: "/search",
+        parameters: ["tokenValue", "loginUsername"].map((name) => ({
+          description: "",
+          example: "",
+          location: "query" as const,
+          name,
+          required: true,
+        })),
+      });
+      const build = createPostmanCollection(
+        [
+          ...(authFirst
+            ? [secured, publicEndpoint]
+            : [publicEndpoint, secured]),
+          { ...secured, path: "/private-again" },
+        ],
+        schemes,
+        { serverUrl: "", title: "Variables API", version: "1" },
+        { groupByTags: false },
+      );
+      const items = build.collection.item as PostmanRequestItem[];
+      const privateRequest = items.find(
+        ({ request }) => request.url.path[0] === "private",
+      )!.request;
+      const publicRequest = items.find(
+        ({ request }) => request.url.path[0] === "search",
+      )!.request;
+      const authReferences = [
+        ...(privateRequest.auth?.type === "basic"
+          ? privateRequest.auth.basic.map(({ value }) => value)
+          : []),
+        ...privateRequest.header.map(({ value }) => value),
+      ];
+
+      expect(authReferences).toHaveLength(4);
+      expect(new Set(authReferences).size).toBe(4);
+      expect(build.secretVariableKeys.map((key) => `{{${key}}}`)).toEqual(
+        authReferences,
+      );
+      for (const { value } of publicRequest.url.query!) {
+        expect(authReferences).not.toContain(value);
+      }
+      expect(build.collection.variable).toHaveLength(7);
+      expect(items[2].request.auth).toEqual(privateRequest.auth);
+      expect(items[2].request.header).toEqual(privateRequest.header);
+    },
+  );
+
   it("creates generated request bodies and documented response examples", () => {
     const build = createPostmanCollection(
       [

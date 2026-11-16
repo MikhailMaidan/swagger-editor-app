@@ -101,6 +101,7 @@ const DEFAULT_OPTIONS: PostmanCollectionOptions = {
 type BuildContext = {
   schemesByName: Map<string, SecuritySchemeSummary>;
   secretVariableKeys: Set<string>;
+  variableKeys: Map<string, string>;
   variables: Map<string, PostmanVariable>;
 };
 
@@ -115,12 +116,21 @@ function normalizeVariableKey(value: string) {
 
 function addVariable(
   context: BuildContext,
-  key: string,
+  suggestedKey: string,
   value: string,
   description?: string,
   secret = false,
+  identity = suggestedKey,
 ) {
-  if (!context.variables.has(key)) {
+  let key = context.variableKeys.get(identity);
+
+  if (!key) {
+    key = suggestedKey;
+    let suffix = 2;
+    while (context.variables.has(key)) {
+      key = `${suggestedKey}_${suffix++}`;
+    }
+    context.variableKeys.set(identity, key);
     context.variables.set(key, {
       ...(description ? { description } : {}),
       key,
@@ -132,6 +142,8 @@ function addVariable(
   if (secret) {
     context.secretVariableKeys.add(key);
   }
+
+  return key;
 }
 
 function getParameterVariableKey(parameter: EndpointParameter) {
@@ -148,9 +160,14 @@ function getParameterValue(
     return example;
   }
 
-  const key = getParameterVariableKey(parameter);
-
-  addVariable(context, key, "", parameter.description);
+  const key = addVariable(
+    context,
+    getParameterVariableKey(parameter),
+    "",
+    parameter.description,
+    false,
+    JSON.stringify(["parameter", parameter.location, parameter.name]),
+  );
   return `{{${key}}}`;
 }
 
@@ -201,8 +218,19 @@ function getSelectedSecurityNames(endpoint: EndpointSummary) {
   return securedGroup ?? endpoint.securityRequirements;
 }
 
-function getAuthVariableKey(scheme: SecuritySchemeSummary, suffix: string) {
-  return `${normalizeVariableKey(scheme.name)}${suffix}`;
+function addAuthVariable(
+  context: BuildContext,
+  scheme: SecuritySchemeSummary,
+  suffix: string,
+) {
+  return addVariable(
+    context,
+    `${normalizeVariableKey(scheme.name)}${suffix}`,
+    "",
+    scheme.description,
+    true,
+    JSON.stringify(["security", scheme.name, suffix]),
+  );
 }
 
 function applySecurity(
@@ -221,10 +249,8 @@ function applySecurity(
     }
 
     if (scheme.type === "apiKey" && scheme.location && scheme.parameterName) {
-      const key = getAuthVariableKey(scheme, "Value");
+      const key = addAuthVariable(context, scheme, "Value");
       const value = `{{${key}}}`;
-
-      addVariable(context, key, "", scheme.description, true);
 
       if (scheme.location === "query") {
         setUniqueQuery(query, {
@@ -251,11 +277,8 @@ function applySecurity(
     }
 
     if (scheme.type === "http" && scheme.scheme === "basic") {
-      const usernameKey = getAuthVariableKey(scheme, "Username");
-      const passwordKey = getAuthVariableKey(scheme, "Password");
-
-      addVariable(context, usernameKey, "", scheme.description, true);
-      addVariable(context, passwordKey, "", scheme.description, true);
+      const usernameKey = addAuthVariable(context, scheme, "Username");
+      const passwordKey = addAuthVariable(context, scheme, "Password");
       auth = {
         basic: [
           { key: "username", type: "string", value: `{{${usernameKey}}}` },
@@ -271,9 +294,7 @@ function applySecurity(
       scheme.type === "oauth2" ||
       scheme.type === "openIdConnect"
     ) {
-      const tokenKey = getAuthVariableKey(scheme, "Token");
-
-      addVariable(context, tokenKey, "", scheme.description, true);
+      const tokenKey = addAuthVariable(context, scheme, "Token");
       auth = {
         bearer: [{ key: "token", type: "string", value: `{{${tokenKey}}}` }],
         type: "bearer",
@@ -483,6 +504,7 @@ export function createPostmanCollection(
       securitySchemes.map((scheme) => [scheme.name, scheme]),
     ),
     secretVariableKeys: new Set(),
+    variableKeys: new Map(),
     variables: new Map(),
   };
 
