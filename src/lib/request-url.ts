@@ -6,7 +6,7 @@ export type UrlParameter = {
   value: string;
 };
 
-function encodeUrlComponent(value: string) {
+export function encodeUrlComponent(value: string) {
   try {
     return encodeURIComponent(value);
   } catch {

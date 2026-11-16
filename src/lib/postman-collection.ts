@@ -6,6 +6,7 @@ import type {
 } from "./openapi";
 import { isJsonMediaType } from "./request-body";
 import { createSchemaMockResponse } from "./request-mock";
+import { encodeUrlComponent } from "./request-url";
 
 export const POSTMAN_COLLECTION_SCHEMA =
   "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
@@ -423,7 +424,7 @@ function createRequestItem(
   const rawQuery = query
     .map(
       (parameter) =>
-        `${encodeURIComponent(parameter.key)}=${encodeQueryValue(parameter.value)}`,
+        `${encodeUrlComponent(parameter.key)}=${encodeQueryValue(parameter.value)}`,
     )
     .join("&");
   const rawPath = normalizedPath ? `/` + normalizedPath : "";

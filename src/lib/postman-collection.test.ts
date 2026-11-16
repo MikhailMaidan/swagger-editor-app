@@ -173,6 +173,40 @@ describe("createPostmanCollection", () => {
     },
   );
 
+  it.each([
+    ["\uD800", "%EF%BF%BD"],
+    ["\uDC00", "%EF%BF%BD"],
+    ["a\uD800b", "a%EF%BF%BDb"],
+    ["\uD800😀\uDC00", "%EF%BF%BD%F0%9F%98%80%EF%BF%BD"],
+    ["café 😀", "caf%C3%A9%20%F0%9F%98%80"],
+    ["q name&=+", "q%20name%26%3D%2B"],
+  ])("safely encodes query parameter name %j", (name, encoded) => {
+    const build = createPostmanCollection(
+      [
+        endpoint({
+          path: "/search",
+          parameters: [
+            {
+              description: "",
+              example: "yes",
+              location: "query",
+              name,
+              required: true,
+            },
+          ],
+        }),
+      ],
+      [],
+      { serverUrl: "", title: "Search API", version: "1" },
+    );
+    const request = firstRequest(build).request;
+
+    expect(request.url.raw).toBe(`{{baseUrl}}/search?${encoded}=yes`);
+    expect(request.url.query).toEqual([
+      expect.objectContaining({ key: name, value: "yes" }),
+    ]);
+  });
+
   it("creates generated request bodies and documented response examples", () => {
     const build = createPostmanCollection(
       [
