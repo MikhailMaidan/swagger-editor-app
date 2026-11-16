@@ -153,6 +153,21 @@ function getParameterValue(
   return `{{${key}}}`;
 }
 
+function encodeQueryValue(value: string) {
+  // Keep Postman variable references intact while encoding literal query text.
+  return value
+    .split(/(\{\{[^{}]+\}\})/g)
+    .map((part, index) =>
+      index % 2 === 1
+        ? part
+        : new URLSearchParams({ value: part })
+            .toString()
+            .slice("value=".length)
+            .replaceAll("+", "%20"),
+    )
+    .join("");
+}
+
 function setUniqueHeader(headers: PostmanKeyValue[], header: PostmanKeyValue) {
   if (
     headers.some(
@@ -407,7 +422,8 @@ function createRequestItem(
   const path = normalizedPath ? normalizedPath.split("/") : [];
   const rawQuery = query
     .map(
-      (parameter) => `${encodeURIComponent(parameter.key)}=${parameter.value}`,
+      (parameter) =>
+        `${encodeURIComponent(parameter.key)}=${encodeQueryValue(parameter.value)}`,
     )
     .join("&");
   const rawPath = normalizedPath ? `/` + normalizedPath : "";
