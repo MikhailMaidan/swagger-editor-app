@@ -1,10 +1,13 @@
+const STRUCTURED_JSON_MEDIA_TYPE_PATTERN =
+  /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+\+json$/;
+
 export function isJsonMediaType(contentType: string) {
   const mediaType = contentType.split(";", 1)[0].trim().toLowerCase();
 
   return (
     mediaType === "application/json" ||
     mediaType === "text/json" ||
-    mediaType.endsWith("+json")
+    STRUCTURED_JSON_MEDIA_TYPE_PATTERN.test(mediaType)
   );
 }
 

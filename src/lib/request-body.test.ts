@@ -15,23 +15,43 @@ describe("request body helpers", () => {
     expect(isJsonMediaType("application/xml")).toBe(false);
   });
 
-  it.each(["text/json", "Text/JSON; charset=utf-8"])(
-    "formats and validates JSON bodies with media type %s",
+  it.each([
+    "text/json",
+    "Text/JSON; charset=utf-8",
+    "application/vnd.api+json",
+    "Model/GLTF+JSON; charset=utf-8",
+    "text/custom+json",
+  ])("formats and validates JSON bodies with media type %s", (contentType) => {
+    expect(isJsonMediaType(contentType)).toBe(true);
+    expect(formatJsonBody(contentType, '{"id":7}')).toBe('{\n  "id": 7\n}');
+    expect(hasInvalidJsonBody(contentType, '{"id":')).toBe(true);
+    expect(
+      createRequestBodyContractReport(contentType, "{}", {
+        properties: ["id"],
+        requiredProperties: ["id"],
+        type: "object",
+      }),
+    ).toEqual({
+      code: "body-missing-required",
+      params: { properties: "id" },
+      result: "fail",
+    });
+  });
+
+  it.each([
+    "+json",
+    "problem+json",
+    "application/+json",
+    "/problem+json",
+    "application/problem/json+json",
+    "application/problem json+json",
+    "application/[problem]+json",
+  ])(
+    "does not apply JSON helpers to malformed media type %j",
     (contentType) => {
-      expect(isJsonMediaType(contentType)).toBe(true);
-      expect(formatJsonBody(contentType, '{"id":7}')).toBe('{\n  "id": 7\n}');
-      expect(hasInvalidJsonBody(contentType, '{"id":')).toBe(true);
-      expect(
-        createRequestBodyContractReport(contentType, "{}", {
-          properties: ["id"],
-          requiredProperties: ["id"],
-          type: "object",
-        }),
-      ).toEqual({
-        code: "body-missing-required",
-        params: { properties: "id" },
-        result: "fail",
-      });
+      expect(isJsonMediaType(contentType)).toBe(false);
+      expect(hasInvalidJsonBody(contentType, "not JSON")).toBe(false);
+      expect(formatJsonBody(contentType, "{}")).toBeNull();
     },
   );
 
