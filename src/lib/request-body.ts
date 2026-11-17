@@ -132,7 +132,7 @@ export function formatJsonBody(contentType: string, body: string) {
   }
 
   try {
-    JSON.parse(body);
+    JSON.parse(body.replace(/^\uFEFF/, ""));
 
     // Format the original tokens so numbers, repeated properties, and string
     // escapes survive unchanged instead of being rewritten by JSON.stringify.

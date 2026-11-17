@@ -95,6 +95,24 @@ describe("request body helpers", () => {
     },
   );
 
+  it("formats JSON with a leading byte-order mark without rewriting its values", () => {
+    const body =
+      '\uFEFF{"\\uFEFFkey":"\uFEFFvalue","id":9007199254740993,"id":1}';
+    const formatted = formatJsonBody("application/json", body);
+
+    expect(formatted).toBe(
+      '{\n  "\\uFEFFkey": "\uFEFFvalue",\n  "id": 9007199254740993,\n  "id": 1\n}',
+    );
+    expect(hasInvalidJsonBody("application/json", formatted!)).toBe(false);
+  });
+
+  it.each(["\uFEFF", "\uFEFFnot-json", "\uFEFF\uFEFF{}", "{\uFEFF}"])(
+    "keeps malformed JSON %j unformattable when handling byte-order marks",
+    (body) => {
+      expect(formatJsonBody("application/json", body)).toBeNull();
+    },
+  );
+
   it("keeps property order, repeated properties, and escaped string contents", () => {
     const body = String.raw`{"10":"first","2":"second","value":1,"value":2,"text":"[{}],: \"quoted\" \\ \u0041\n"}`;
     expect(formatJsonBody("application/json", body)).toBe(String.raw`{

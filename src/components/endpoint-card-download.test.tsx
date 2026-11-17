@@ -60,9 +60,14 @@ afterEach(() => {
 function readBlob(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onload = () =>
+      resolve(
+        new TextDecoder("utf-8", { ignoreBOM: true }).decode(
+          reader.result as ArrayBuffer,
+        ),
+      );
     reader.onerror = () => reject(reader.error);
-    reader.readAsText(blob);
+    reader.readAsArrayBuffer(blob);
   });
 }
 const download = () =>
@@ -225,6 +230,12 @@ describe("endpoint response downloads", () => {
       '{"id":9007199254740993,"decimal":1.234567890123456789,"large":1e400,"small":1e-400,"signed":-0}',
       "json",
       '{\n  "id": 9007199254740993,\n  "decimal": 1.234567890123456789,\n  "large": 1e400,\n  "small": 1e-400,\n  "signed": -0\n}',
+    ],
+    [
+      "application/json; charset=utf-8",
+      '\uFEFF{"id":9007199254740993,"text":"\uFEFFvalue"}',
+      "json",
+      '{\n  "id": 9007199254740993,\n  "text": "\uFEFFvalue"\n}',
     ],
     [
       "application/problem+json",
