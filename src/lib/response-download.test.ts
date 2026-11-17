@@ -36,6 +36,24 @@ describe("response download helpers", () => {
   });
 
   it.each([
+    ["application/xml", "xml"],
+    ["Text/XML; charset=utf-8", "xml"],
+    ["application/soap+xml", "xml"],
+    ["Image/SVG+XML; charset=utf-8", "xml"],
+    ["application/yaml", "yaml"],
+    ["text/x-yaml", "yaml"],
+    ["application/vnd.oai.openapi+yaml", "yaml"],
+    ["Application/Vnd.Example+YAML; charset=utf-8", "yaml"],
+  ])("uses the %s media type's extension", (contentType, extension) => {
+    expect(
+      getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
+    ).toEqual({
+      contentType,
+      fileName: `rsswag-response-200.${extension}`,
+    });
+  });
+
+  it.each([
     "constructor",
     "__proto__",
     "+json",
@@ -44,6 +62,15 @@ describe("response download helpers", () => {
     "application/foo/bar+json",
     "application/my type+json",
     "application/[problem]+json",
+    ...["xml", "yaml"].flatMap((suffix) => [
+      `+${suffix}`,
+      `problem+${suffix}`,
+      `application/+${suffix}`,
+      `application/foo/bar+${suffix}`,
+      `application/my type+${suffix}`,
+      `application/[problem]+${suffix}`,
+      `/problem+${suffix}`,
+    ]),
   ])(
     "uses the text fallback for a malformed Content-Type of %s",
     (contentType) => {

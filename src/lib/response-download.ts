@@ -1,5 +1,8 @@
 import { isJsonMediaType } from "./request-body";
 
+const STRUCTURED_TEXT_MEDIA_TYPE_PATTERN =
+  /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+\+(xml|yaml)$/;
+
 const mediaTypeExtensions: Record<string, string> = {
   "application/json": "json",
   "application/ndjson": "ndjson",
@@ -31,12 +34,12 @@ function getResponseFileExtension(contentType: string) {
     return "json";
   }
 
-  if (mediaType.endsWith("+xml")) {
-    return "xml";
-  }
+  const structuredExtension = mediaType.match(
+    STRUCTURED_TEXT_MEDIA_TYPE_PATTERN,
+  )?.[1];
 
-  if (mediaType.endsWith("+yaml")) {
-    return "yaml";
+  if (structuredExtension) {
+    return structuredExtension;
   }
 
   return Object.hasOwn(mediaTypeExtensions, mediaType)
