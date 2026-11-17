@@ -68,6 +68,7 @@ import { DataQueryPanel } from "@/components/data-query-panel";
 import { ConsistencyPanel } from "@/components/consistency-panel";
 import { DecisionPanel } from "@/components/decision-panel";
 import { CombinatorialPanel } from "@/components/combinatorial-panel";
+import { MutationPanel } from "@/components/mutation-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1963,6 +1964,7 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        { group: "testing", id: "workspace-tool-mutations", label: "mt.title" },
         {
           group: "testing",
           id: "workspace-tool-combinatorial",
@@ -2335,6 +2337,7 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        { group: "testing", id: "workspace-tool-mutations", label: "mt.title" },
         {
           group: "testing",
           id: "workspace-tool-combinatorial",
@@ -3379,6 +3382,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <CombinatorialPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-mutations"
+          tabIndex={-1}
+        >
+          <MutationPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
