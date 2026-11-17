@@ -2,6 +2,48 @@ import { describe, expect, it } from "vitest";
 import { extractSchemaModels, getSchemaTypeScriptName } from "./schema-models";
 
 describe("schema models", () => {
+  it("preserves prototype-shaped fields and overrides in composed examples", () => {
+    const models = extractSchemaModels({
+      components: {
+        schemas: {
+          Combined: {
+            allOf: [
+              {
+                type: "object",
+                properties: {
+                  ["__proto__"]: {
+                    type: "object",
+                    example: { nested: "kept" },
+                  },
+                  value: { type: "string", example: "old" },
+                },
+              },
+              {
+                type: "object",
+                properties: {
+                  constructor: { type: "string", example: "own field" },
+                  value: { type: "string", example: "updated" },
+                },
+              },
+            ],
+            properties: { prototype: { type: "boolean", example: true } },
+          },
+        },
+      },
+    });
+    const example = JSON.parse(
+      models.find(({ name }) => name === "Combined")!.example,
+    );
+
+    expect(Object.hasOwn(example, "__proto__")).toBe(true);
+    expect(example).toEqual({
+      ["__proto__"]: { nested: "kept" },
+      constructor: "own field",
+      prototype: true,
+      value: "updated",
+    });
+  });
+
   it.each([false, true])(
     "ignores overridden parameter model usage with referenced parameters=%s",
     (referenced) => {

@@ -712,7 +712,9 @@ function createExampleValue(
     }
 
     if (objectExamples.length > 0) {
-      return Object.assign({}, ...objectExamples);
+      return Object.fromEntries(
+        objectExamples.flatMap((example) => Object.entries(example)),
+      );
     }
   }
 
