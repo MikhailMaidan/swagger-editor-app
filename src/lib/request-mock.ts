@@ -128,7 +128,14 @@ export function createSchemaMockResponse(
   response: ResponseSummary | undefined,
   fallbackBody: string,
 ): SchemaMockResponse {
-  const contentType = response?.contentTypes[0] ?? "";
+  const headers = createMockResponseHeaders(
+    response,
+    response?.contentTypes[0] ?? "",
+  );
+  const contentType =
+    Object.entries(headers).find(
+      ([name]) => name.toLowerCase() === "content-type",
+    )?.[1] ?? "";
   const schema = response?.schema;
   const hasExplicitExample = Boolean(
     schema?.hasExplicitExample || schema?.example,
@@ -142,7 +149,7 @@ export function createSchemaMockResponse(
       ? (schema?.example ?? "")
       : (generatedBody ?? fallbackBody),
     generated: generatedBody !== null,
-    headers: createMockResponseHeaders(response, contentType),
+    headers,
     status: getRepresentativeStatus(response?.status ?? ""),
   };
 }

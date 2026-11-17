@@ -69,6 +69,41 @@ describe("schema mock responses", () => {
     expect(Object.getPrototypeOf(headers)).toBe(Object.prototype);
   });
 
+  it.each([
+    [
+      {
+        name: "Content-Type",
+        value: "application/problem+json; charset=utf-8",
+      },
+    ],
+    [
+      { name: "content-type", value: "text/plain" },
+      { name: "Content-Type", value: "application/json" },
+    ],
+  ])(
+    "uses the effective documented header to generate JSON bodies: %j",
+    (...headers) => {
+      const response = createResponse({
+        contentTypes: [],
+        headers: headers.map((header) => ({ ...header, description: "" })),
+        schema: {
+          example: "",
+          exampleName: "",
+          properties: ["id"],
+          propertyTypes: { id: "integer" },
+          type: "object",
+        },
+      });
+
+      expect(createSchemaMockResponse(response, "fallback")).toEqual({
+        body: '{\n  "id": 0\n}',
+        generated: true,
+        headers: { "Content-Type": headers.at(-1)!.value },
+        status: "200",
+      });
+    },
+  );
+
   it("normalizes status ranges and default responses", () => {
     expect(
       createSchemaMockResponse(createResponse({ status: "2XX" }), "fallback")
