@@ -191,6 +191,44 @@ describe("request parameter helpers", () => {
     ]);
   });
 
+  it.each(["0x10", "0X10", "0b10", "0B10", "0o10", "0O10"])(
+    "rejects non-decimal numeric parameter value %s while allowing it as text",
+    (value) => {
+      for (const type of ["number", "integer"]) {
+        expect(
+          getRequestParameterValidationIssues([{ ...parameters[1], type }], {
+            "query:search": value,
+          }),
+        ).toEqual([{ code: "number", key: "query:search", params: {} }]);
+      }
+      expect(
+        getRequestParameterValidationIssues(
+          [{ ...parameters[1], type: "string" }],
+          {
+            "query:search": value,
+          },
+        ),
+      ).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["integer", "+12"],
+    ["integer", "-3"],
+    ["integer", "01"],
+    ["integer", "1.0"],
+    ["integer", "1e2"],
+    ["number", ".5"],
+    ["number", "1."],
+    ["number", "-2.5e-3"],
+  ])("preserves decimal %s parameter notation %s", (type, value) => {
+    expect(
+      getRequestParameterValidationIssues([{ ...parameters[1], type }], {
+        "query:search": value,
+      }),
+    ).toEqual([]);
+  });
+
   it("validates boolean values and ignores empty optional parameters", () => {
     const booleanParameter: EndpointParameter = {
       description: "",

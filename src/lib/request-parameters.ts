@@ -1,6 +1,9 @@
 import type { EndpointParameter } from "./openapi";
 import { getSelectedCharacterCount } from "./text-stats";
 
+const DECIMAL_NUMBER_PATTERN =
+  /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+
 type FallbackRequestParameter = {
   location?: EndpointParameter["location"];
   name: string;
@@ -120,7 +123,7 @@ function validateParameterValue(
 
   if (parameter.type === "number" || parameter.type === "integer") {
     const numericValue = Number(value);
-    if (!Number.isFinite(numericValue)) {
+    if (!DECIMAL_NUMBER_PATTERN.test(value) || !Number.isFinite(numericValue)) {
       return createIssue(parameter, "number");
     }
 
