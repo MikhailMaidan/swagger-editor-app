@@ -21,19 +21,30 @@ describe("response download helpers", () => {
     });
   });
 
-  it.each(["text/json", "Text/JSON; charset=utf-8"])(
-    "uses a JSON extension for response media type %s",
-    (contentType) => {
-      expect(
-        getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
-      ).toEqual({
-        contentType,
-        fileName: "rsswag-response-200.json",
-      });
-    },
-  );
+  it.each([
+    "text/json",
+    "Text/JSON; charset=utf-8",
+    "application/vnd.api+json",
+    "Model/GLTF+JSON; charset=utf-8",
+  ])("uses a JSON extension for response media type %s", (contentType) => {
+    expect(
+      getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
+    ).toEqual({
+      contentType,
+      fileName: "rsswag-response-200.json",
+    });
+  });
 
-  it.each(["constructor", "__proto__"])(
+  it.each([
+    "constructor",
+    "__proto__",
+    "+json",
+    "problem+json",
+    "application/+json",
+    "application/foo/bar+json",
+    "application/my type+json",
+    "application/[problem]+json",
+  ])(
     "uses the text fallback for a malformed Content-Type of %s",
     (contentType) => {
       expect(

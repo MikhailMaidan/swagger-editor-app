@@ -1,3 +1,5 @@
+import { isJsonMediaType } from "./request-body";
+
 const mediaTypeExtensions: Record<string, string> = {
   "application/json": "json",
   "application/ndjson": "ndjson",
@@ -25,7 +27,7 @@ function getResponseContentType(headers: Record<string, string>) {
 function getResponseFileExtension(contentType: string) {
   const mediaType = contentType.split(";", 1)[0].trim().toLowerCase();
 
-  if (mediaType.endsWith("+json")) {
+  if (isJsonMediaType(mediaType)) {
     return "json";
   }
 
