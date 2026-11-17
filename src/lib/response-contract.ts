@@ -292,7 +292,7 @@ function createBodyCheck(
 
   if (isJsonMediaType(actualContentType) || expectedType !== "string") {
     try {
-      value = JSON.parse(input.body);
+      value = JSON.parse(input.body.replace(/^\uFEFF/, ""));
     } catch {
       return createCheck("body", "fail", "body-invalid-json", {
         expected: expectedType,

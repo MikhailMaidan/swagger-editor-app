@@ -46,6 +46,50 @@ describe("response contract checks", () => {
     ]);
   });
 
+  it.each(["id", "\uFEFFid"])(
+    "validates a JSON response with a leading byte-order mark and required key %j",
+    (key) => {
+      const response = createResponse({
+        schema: {
+          example: "",
+          exampleName: "",
+          properties: [key],
+          requiredProperties: [key],
+          type: "object",
+        },
+      });
+      const report = createResponseContractReport([response], {
+        body: `\uFEFF${JSON.stringify({ [key]: "\uFEFFvalue" })}`,
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status: "200",
+      });
+
+      expect(report.result).toBe("pass");
+      expect(report.checks[2]).toMatchObject({
+        code: "body-matched",
+        result: "pass",
+      });
+    },
+  );
+
+  it.each(["\uFEFFnot-json", "\uFEFF\uFEFF{}", "{\uFEFF}"])(
+    "keeps malformed JSON response %j invalid when handling byte-order marks",
+    (body) => {
+      const report = createResponseContractReport([createResponse()], {
+        body,
+        headers: { "content-type": "application/json" },
+        method: "GET",
+        status: "200",
+      });
+
+      expect(report.checks[2]).toMatchObject({
+        code: "body-invalid-json",
+        result: "fail",
+      });
+    },
+  );
+
   it("matches status ranges, default responses, and media wildcards", () => {
     const rangeResponse = createResponse({
       contentTypes: ["text/*"],
