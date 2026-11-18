@@ -266,6 +266,48 @@ describe("finite-state reliability analysis", () => {
       sets: [],
     });
   });
+  it("returns healthy snapshots without enumerating the state space", async () => {
+    let yields = 0;
+    const result = await findRLRepairs(system("any"), "root", ["e0"], {
+      yield: async () => {
+        yields++;
+      },
+    });
+    expect(result).toEqual({
+      root: "root",
+      down: ["e0"],
+      alreadyHealthy: true,
+      total: 0,
+      truncated: false,
+      sets: [],
+    });
+    expect(yields).toBe(0);
+  });
+  it.each([
+    ["missing", []],
+    ["root", ["missing"]],
+    ["root", ["e0", "e0"]],
+  ] as const)(
+    "rejects invalid repair references without enumerating (%s, %j)",
+    async (root, down) => {
+      let yields = 0;
+      await expect(
+        findRLRepairs(system("any"), root, [...down], {
+          yield: async () => {
+            yields++;
+          },
+        }),
+      ).rejects.toThrow("reference");
+      expect(yields).toBe(0);
+    },
+  );
+  it("honors cancellation before returning an already healthy repair snapshot", async () => {
+    const abort = new AbortController();
+    abort.abort();
+    await expect(
+      findRLRepairs(system("any"), "root", [], { signal: abort.signal }),
+    ).rejects.toThrow("cancelled");
+  });
   it("keeps structural cuts even when their current probability is zero", async () => {
     const root = (
       await analyzeRLProject(system("all", [1, 1]), undefined, fast)

@@ -428,13 +428,15 @@ export async function findRLRepairs(
   down: string[],
   options: RLOptions = {},
 ): Promise<RLRepairs> {
+  checkpoint(options);
   const project = normalizeRLProject(input),
-    truth = await buildTruth(project, options),
     root = project.roots.findIndex((item) => item.node === rootId);
   if (root < 0) throw new RLError("reference");
-  const current = downMask(truth, down),
-    table = truth.tables[root];
-  if (table[current])
+  const compiled = compile(project),
+    current = downMask(compiled, down),
+    values = new Uint8Array(compiled.ordered.length);
+  evaluateMask(compiled, current, values);
+  if (values[compiled.rootPositions[root]])
     return {
       root: rootId,
       down: [...down],
@@ -443,6 +445,8 @@ export async function findRLRepairs(
       truncated: false,
       sets: [],
     };
+  const truth = await buildTruth(project, options),
+    table = truth.tables[root];
   const repairs: number[] = [];
   let work = 0;
   await pause(options, {
