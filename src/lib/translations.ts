@@ -26,6 +26,7 @@ import { decisionTranslations } from "./decision-translations";
 import { combinatorialTranslations } from "./combinatorial-translations";
 import { mutationTranslations } from "./mutation-translations";
 import { reliabilityTranslations } from "./reliability-translations";
+import { routingTranslations } from "./routing-translations";
 
 export const LANGUAGE_STORAGE_KEY = "rsswagger-language";
 export const LANGUAGE_COOKIE = "rsswagger-language";
@@ -60,6 +61,7 @@ export const translations = {
     ...combinatorialTranslations.en,
     ...mutationTranslations.en,
     ...reliabilityTranslations.en,
+    ...routingTranslations.en,
     "jwtStudio.title": "JWT and signing-key studio",
     "jwtStudio.description":
       "Decode compact JWTs, verify signatures and claim policies, generate signing keys and test tokens, and maintain reusable verification cases entirely in this tab.",
@@ -5352,6 +5354,7 @@ export const translations = {
     ...combinatorialTranslations.ru,
     ...mutationTranslations.ru,
     ...reliabilityTranslations.ru,
+    ...routingTranslations.ru,
     "jwtStudio.title": "Студия JWT и ключей подписи",
     "jwtStudio.description":
       "Декодируйте JWT, проверяйте подписи и политики утверждений, создавайте ключи и тестовые токены и сохраняйте повторяемые проверки полностью в этой вкладке.",

@@ -70,6 +70,7 @@ import { DecisionPanel } from "@/components/decision-panel";
 import { CombinatorialPanel } from "@/components/combinatorial-panel";
 import { MutationPanel } from "@/components/mutation-panel";
 import { ReliabilityPanel } from "@/components/reliability-panel";
+import { RoutingPanel } from "@/components/routing-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1965,6 +1966,7 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        { group: "testing", id: "workspace-tool-routing", label: "rt.title" },
         {
           group: "testing",
           id: "workspace-tool-reliability",
@@ -2343,6 +2345,7 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        { group: "testing", id: "workspace-tool-routing", label: "rt.title" },
         {
           group: "testing",
           id: "workspace-tool-reliability",
@@ -3409,6 +3412,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <ReliabilityPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-routing"
+          tabIndex={-1}
+        >
+          <RoutingPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
