@@ -74,7 +74,10 @@ export function projectFromCTEndpoint(endpoint: EndpointSummary): CTProject {
       if (parameter.example)
         values.push(parameterValue(parameter, parameter.example));
       values = values.filter(
-        (v) => typeof v === "number" && v >= min && v <= max,
+        (v) =>
+          typeof v === "number" &&
+          (parameter.minimum === undefined || v >= parameter.minimum) &&
+          (parameter.maximum === undefined || v <= parameter.maximum),
       );
     } else {
       const min = parameter.minLength ?? 0,

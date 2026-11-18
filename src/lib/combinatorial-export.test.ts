@@ -179,6 +179,37 @@ describe("combinatorial interchange and API parameter imports", () => {
       { kind: "value", value: -6 },
     ]);
   });
+  it.each([
+    ["integer", {}, 42, [0, 1, 42]],
+    ["integer", {}, -42, [0, 1, -42]],
+    ["number", { minimum: 10 }, 25.5, [10, 11, 25.5]],
+    ["integer", { maximum: 10 }, -5, [0, 10, -5]],
+    ["number", { maximum: -5 }, -20, [-5, -20]],
+    ["integer", { maximum: -5.5 }, -10, [-6, -10]],
+    ["number", { minimum: 2.5, maximum: 5.5 }, 4.5, [2.5, 5.5, 4.5]],
+    ["integer", { minimum: 0, maximum: 1 }, -5, [0, 1]],
+    ["integer", { minimum: 0, maximum: 1 }, 5, [0, 1]],
+  ])(
+    "filters %s values against documented bounds %j with example %j",
+    (type, bounds, example, expected) => {
+      const project = projectFromCTEndpoint(
+        operation([
+          {
+            name: "n",
+            in: "query",
+            required: true,
+            schema: { type, ...bounds },
+            example,
+          },
+        ]),
+      );
+      expect(
+        project.variables[0].choices.map((choice) =>
+          choice.kind === "value" ? choice.value : undefined,
+        ),
+      ).toEqual(expected);
+    },
+  );
   it("does not silently truncate large enums or operation parameter catalogs", () => {
     expect(() =>
       projectFromCTEndpoint(
