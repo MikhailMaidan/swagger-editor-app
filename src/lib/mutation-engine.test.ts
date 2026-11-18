@@ -137,6 +137,23 @@ describe("mutation project contracts", () => {
   });
 });
 describe("lossless JSON mutation plans", () => {
+  it.each(["status", "duration", "header-remove", "header-change"] as const)(
+    "keeps %s-only plans independent of JSON diagnostics and body scope",
+    (operator) => {
+      for (const body of ["plain text", '{"a":1,"a":2}', '{"a":1}']) {
+        const project = only(operator, body),
+          fixture = project.fixtures[0];
+        fixture.scope = "/missing";
+        const plan = planMTMutations(project, fixture);
+        expect(plan.diagnostic).toBeNull();
+        expect(plan.mutations.length).toBeGreaterThan(0);
+        for (const mutation of plan.mutations)
+          expect(materializeMTMutation(fixture.response, mutation).body).toBe(
+            body,
+          );
+      }
+    },
+  );
   it.each(MT_OPERATORS)(
     "generates applicable %s plans with valid output except deliberate syntax faults",
     (op) => {
@@ -248,6 +265,27 @@ describe("lossless JSON mutation plans", () => {
   });
 });
 describe("mutation scoring and assertion diagnostics", () => {
+  it("still evaluates JSON assertions when only protocol mutations are enabled", async () => {
+    const project = only("status", "not JSON");
+    project.fixtures[0].checks.push({
+      id: "json",
+      enabled: true,
+      pinned: false,
+      rule: {
+        name: "JSON body",
+        target: "body",
+        path: "",
+        operator: "type",
+        expected: "object",
+      },
+    });
+    const [run] = await runMTProject(project, undefined, fast);
+    expect(run).toMatchObject({ blocked: true, score: null, mutants: [] });
+    expect(run.baseline[1]).toEqual({
+      outcome: "error",
+      issue: "unreadable-body",
+    });
+  });
   it("scores weak and strict checks differently while leaving the project untouched", async () => {
     const p = demoMTProject(),
       before = serializeMTProject(p),

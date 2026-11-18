@@ -163,6 +163,14 @@ export function planMTMutations(project: MTProject, fixture: MTFixture) {
       value,
     });
   }
+  if (
+    project.operators.every((operator) =>
+      ["status", "duration", "header-remove", "header-change"].includes(
+        operator,
+      ),
+    )
+  )
+    return { mutations: result, truncated, diagnostic: null };
   const tree = readMutationJson(fixture.response.body);
   const scoped = tree.nodes.filter(
     (node) =>
