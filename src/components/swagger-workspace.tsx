@@ -69,6 +69,7 @@ import { ConsistencyPanel } from "@/components/consistency-panel";
 import { DecisionPanel } from "@/components/decision-panel";
 import { CombinatorialPanel } from "@/components/combinatorial-panel";
 import { MutationPanel } from "@/components/mutation-panel";
+import { ReliabilityPanel } from "@/components/reliability-panel";
 import {
   applyOAuthRequestToken,
   removeOAuthRequestToken,
@@ -1964,6 +1965,11 @@ export function SwaggerWorkspace({
 
   const workspaceTools: WorkspaceTool[] = parseResult.ok
     ? [
+        {
+          group: "testing",
+          id: "workspace-tool-reliability",
+          label: "rl.title",
+        },
         { group: "testing", id: "workspace-tool-mutations", label: "mt.title" },
         {
           group: "testing",
@@ -2337,6 +2343,11 @@ export function SwaggerWorkspace({
           : []),
       ]
     : [
+        {
+          group: "testing",
+          id: "workspace-tool-reliability",
+          label: "rl.title",
+        },
         { group: "testing", id: "workspace-tool-mutations", label: "mt.title" },
         {
           group: "testing",
@@ -3390,6 +3401,14 @@ export function SwaggerWorkspace({
           tabIndex={-1}
         >
           <MutationPanel getSchemaText={toolHandlers.getSchemaText} />
+        </div>
+
+        <div
+          className="workspace-tool scroll-mt-40 outline-none"
+          id="workspace-tool-reliability"
+          tabIndex={-1}
+        >
+          <ReliabilityPanel getSchemaText={toolHandlers.getSchemaText} />
         </div>
 
         <div
