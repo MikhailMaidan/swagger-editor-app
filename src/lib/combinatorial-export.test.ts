@@ -210,6 +210,60 @@ describe("combinatorial interchange and API parameter imports", () => {
       ).toEqual(expected);
     },
   );
+  it.each([
+    [{}, "documented search term", ["documented search term", "", "aaaaaaa"]],
+    [
+      { minLength: 3 },
+      "long documented value",
+      ["long documented value", "aaa", "aaaaaaa"],
+    ],
+    [{ maxLength: 12 }, "long example", ["long example", "", "aaaaaaaaaaaa"]],
+    [{ minLength: 2, maxLength: 5 }, "too long", ["aa", "aaaaa"]],
+    [{ minLength: 5 }, "tiny", ["aaaaa", "aaaaaaa"]],
+    [{ maxLength: 3 }, "😀😀😀", ["😀😀😀", "", "aaa"]],
+    [{ maxLength: 2 }, "😀😀😀", ["", "aa"]],
+    [{ maxLength: 0 }, "nonempty", [""]],
+    [{}, undefined, ["example", "", "aaaaaaa"]],
+  ])(
+    "filters string examples against documented length bounds %j with example %j",
+    (bounds, example, expected) => {
+      const project = projectFromCTEndpoint(
+        operation([
+          {
+            name: "q",
+            in: "query",
+            required: true,
+            schema: { type: "string", ...bounds },
+            example,
+          },
+        ]),
+      );
+      expect(
+        project.variables[0].choices.map((choice) =>
+          choice.kind === "value" ? choice.value : undefined,
+        ),
+      ).toEqual(expected);
+    },
+  );
+  it("preserves long string examples within the studio limit and rejects oversized values", () => {
+    const endpoint = (example: string) =>
+      operation([
+        {
+          name: "q",
+          in: "query",
+          required: true,
+          schema: { type: "string" },
+          example,
+        },
+      ]);
+    const example = "a".repeat(2048);
+    expect(
+      projectFromCTEndpoint(endpoint(example)).variables[0].choices[0],
+    ).toMatchObject({ kind: "value", value: example });
+    expect(() => projectFromCTEndpoint(endpoint(`${example}a`))).toThrow(
+      "limit",
+    );
+  });
   it("does not silently truncate large enums or operation parameter catalogs", () => {
     expect(() =>
       projectFromCTEndpoint(

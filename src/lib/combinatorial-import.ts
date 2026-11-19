@@ -94,11 +94,12 @@ export function projectFromCTEndpoint(endpoint: EndpointSummary): CTProject {
         parameter.example || "example",
         "a".repeat(min),
         "a".repeat(max),
-      ].filter(
-        (v) =>
-          Array.from(String(v)).length >= min &&
-          Array.from(String(v)).length <= max,
-      );
+      ].filter((v) => {
+        const length = Array.from(v).length;
+        return (
+          length >= min && (parameter.maxLength === undefined || length <= max)
+        );
+      });
     }
     values = [
       ...new Map(
