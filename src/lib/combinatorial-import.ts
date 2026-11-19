@@ -59,7 +59,10 @@ export function projectFromCTEndpoint(endpoint: EndpointSummary): CTProject {
             : parameter.minimum;
       const max =
         parameter.maximum === undefined
-          ? Math.max(min + 1, 1)
+          ? Math.min(
+              Math.max(min + 1, 1),
+              integer ? Number.MAX_SAFE_INTEGER : Infinity,
+            )
           : integer
             ? Math.floor(parameter.maximum)
             : parameter.maximum;

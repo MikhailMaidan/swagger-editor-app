@@ -189,6 +189,12 @@ describe("combinatorial interchange and API parameter imports", () => {
     ["number", { minimum: 2.5, maximum: 5.5 }, 4.5, [2.5, 5.5, 4.5]],
     ["integer", { minimum: 0, maximum: 1 }, -5, [0, 1]],
     ["integer", { minimum: 0, maximum: 1 }, 5, [0, 1]],
+    [
+      "number",
+      { minimum: Number.MAX_SAFE_INTEGER },
+      undefined,
+      [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER + 1],
+    ],
   ])(
     "filters %s values against documented bounds %j with example %j",
     (type, bounds, example, expected) => {
@@ -210,6 +216,72 @@ describe("combinatorial interchange and API parameter imports", () => {
       ).toEqual(expected);
     },
   );
+  it.each([
+    [
+      { minimum: Number.MAX_SAFE_INTEGER },
+      undefined,
+      [Number.MAX_SAFE_INTEGER],
+    ],
+    [
+      { minimum: Number.MAX_SAFE_INTEGER - 1 },
+      undefined,
+      [Number.MAX_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER],
+    ],
+    [
+      { minimum: Number.MAX_SAFE_INTEGER },
+      Number.MAX_SAFE_INTEGER,
+      [Number.MAX_SAFE_INTEGER],
+    ],
+    [
+      { minimum: Number.MAX_SAFE_INTEGER, maximum: Number.MAX_SAFE_INTEGER },
+      undefined,
+      [Number.MAX_SAFE_INTEGER],
+    ],
+    [
+      { maximum: Number.MIN_SAFE_INTEGER },
+      undefined,
+      [Number.MIN_SAFE_INTEGER],
+    ],
+  ])(
+    "imports safe integer boundary choices %j with example %j",
+    (bounds, example, expected) => {
+      const project = projectFromCTEndpoint(
+        operation([
+          {
+            name: "id",
+            in: "query",
+            required: true,
+            schema: { type: "integer", ...bounds },
+            example,
+          },
+        ]),
+      );
+      expect(
+        project.variables[0].choices.map((choice) =>
+          choice.kind === "value" ? choice.value : undefined,
+        ),
+      ).toEqual(expected);
+    },
+  );
+  it.each([
+    { minimum: Number.MAX_SAFE_INTEGER + 1 },
+    { maximum: Number.MIN_SAFE_INTEGER - 1 },
+    { minimum: Number.MAX_SAFE_INTEGER, maximum: Number.MAX_SAFE_INTEGER - 1 },
+    { minimum: Number.MAX_SAFE_INTEGER, maximum: Number.MAX_SAFE_INTEGER + 1 },
+  ])("rejects invalid integer bounds %j", (bounds) => {
+    expect(() =>
+      projectFromCTEndpoint(
+        operation([
+          {
+            name: "id",
+            in: "query",
+            required: true,
+            schema: { type: "integer", ...bounds },
+          },
+        ]),
+      ),
+    ).toThrow("schema");
+  });
   it.each([
     [{}, "documented search term", ["documented search term", "", "aaaaaaa"]],
     [
