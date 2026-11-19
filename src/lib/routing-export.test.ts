@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import {
   emptyRTProject,
+  normalizeRTProject,
   serializeRTProject,
   type RTProject,
 } from "./routing-model";
@@ -148,6 +149,7 @@ describe("routing imports and executable exports", () => {
       )) as {
         runRTProject: typeof runRTProject;
         createRTRouter: typeof createRTRouter;
+        normalizeRTProject: typeof normalizeRTProject;
       };
     expect(await sdk.runRTProject(p, undefined, fast)).toEqual(
       await runRTProject(p, undefined, fast),
@@ -162,6 +164,14 @@ describe("routing imports and executable exports", () => {
       };
     expect(a.dispatch(input, 100)).toEqual(b.dispatch(input, 100));
     expect(a.snapshot()).toEqual(b.snapshot());
+    const oversizedRequest = emptyRTProject(),
+      oversizedBackend = emptyRTProject();
+    oversizedRequest.cases[0].requests[0].url = `/${"é".repeat(700)}`;
+    oversizedBackend.backends[0].url = `https://backend.test/${"é".repeat(340)}`;
+    for (const oversized of [oversizedRequest, oversizedBackend]) {
+      expect(() => sdk.normalizeRTProject(oversized)).toThrow("limit");
+      expect(() => normalizeRTProject(oversized)).toThrow("limit");
+    }
     expect(source).not.toMatch(
       /\bfetch\s*\(|\beval\s*\(|new Function|localStorage/,
     );

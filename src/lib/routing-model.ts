@@ -239,10 +239,12 @@ export function normalizeRTConfig(raw: unknown): RTConfig {
         url = parseRTUrl(source);
       if (!/^https?:\/\//i.test(source) || url.search || new URL(source).hash)
         throw new RTError("url");
+      const baseUrl = `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
+      if (baseUrl.length > 2048) throw new RTError("limit");
       return {
         id: id(item.id),
         name: text(item.name),
-        url: `${url.origin}${url.pathname.replace(/\/+$/, "")}`,
+        url: baseUrl,
         weight: integer(item.weight, 1, 100),
         capacity: integer(item.capacity, 1, 32),
         healthy: bool(item.healthy),
@@ -339,11 +341,13 @@ export function normalizeRTConfig(raw: unknown): RTConfig {
   };
 }
 export function normalizeRTRequest(raw: unknown): RTRequest {
-  const value = rtRecord(raw);
+  const value = rtRecord(raw),
+    url = parseRTUrl(value.url).href;
+  if (url.length > 4096) throw new RTError("limit");
   return {
     id: id(value.id),
     method: method(value.method),
-    url: parseRTUrl(value.url).href,
+    url,
     headers: normalizeRTHeaders(value.headers),
   };
 }

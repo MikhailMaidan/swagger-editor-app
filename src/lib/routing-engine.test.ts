@@ -133,6 +133,37 @@ describe("routing project contracts", () => {
       parseRTProject(`{"padding":"${"\u20ac".repeat(710000)}"}`),
     ).toThrow("limit");
   });
+  it.each([
+    ["request", 4096, "https://client.test/"],
+    ["backend", 2048, "https://backend.test/"],
+  ] as const)(
+    "keeps normalized %s URLs within their %i-character limit",
+    (target, limit, prefix) => {
+      const projectWithUrl = (url: string) => {
+        const project = emptyRTProject();
+        if (target === "request") project.cases[0].requests[0].url = url;
+        else project.backends[0].url = url;
+        return project;
+      };
+      const unicodeUrl =
+        prefix + "é".repeat(Math.floor((limit - prefix.length) / 6));
+      const boundaryUrl =
+        unicodeUrl + "a".repeat(limit - new URL(unicodeUrl).href.length);
+      expect(new URL(boundaryUrl).href).toHaveLength(limit);
+      const normalized = normalizeRTProject(projectWithUrl(boundaryUrl));
+      expect(normalizeRTProject(normalized)).toEqual(normalized);
+      expect(parseRTProject(serializeRTProject(normalized))).toEqual(
+        normalized,
+      );
+
+      const expandedUrl = prefix + "é".repeat(Math.ceil(limit / 6));
+      expect(expandedUrl.length).toBeLessThan(limit);
+      expect(new URL(expandedUrl).href.length).toBeGreaterThan(limit);
+      expect(() => normalizeRTProject(projectWithUrl(expandedUrl))).toThrow(
+        "limit",
+      );
+    },
+  );
 });
 describe("stateful routing decisions", () => {
   it("balances smooth round-robin weights exactly for sequential completed calls", () => {

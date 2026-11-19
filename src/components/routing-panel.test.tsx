@@ -209,6 +209,27 @@ describe("API routing and load-balancing studio", () => {
     await job();
     expect(report().runs[0].forwarded).toBe(9);
   });
+  it("rejects URLs that exceed stored limits after encoding without replacing the saved policy", async () => {
+    await setup();
+    const before = snapshot();
+    expand("rt.backendSource");
+    change(
+      "rt.backendSource",
+      JSON.stringify({
+        ...before.backends[0],
+        url: `https://backend.test/${"é".repeat(340)}`,
+      }),
+    );
+    click("rt.applyBackend");
+    expect(screen.getByRole("alert")).toHaveTextContent(en["rt.error.limit"]);
+    expect(snapshot()).toEqual(before);
+    change("rt.requestUrl", `/${"é".repeat(700)}`);
+    click("rt.addRequest");
+    expect(screen.getByRole("alert")).toHaveTextContent(en["rt.error.limit"]);
+    expect(snapshot()).toEqual(before);
+    await job();
+    expect(report().runs[0].forwarded).toBe(8);
+  });
   it("imports HAR traffic with original metadata and rejects ambiguous captures atomically", async () => {
     await setup(false);
     expand("rt.importHar");
