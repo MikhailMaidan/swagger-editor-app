@@ -64,6 +64,36 @@ describe("schema storage", () => {
     );
     expect(readSavedSchema()).toBe("openapi: 3.0.0");
   });
+  it.each(["access", "generation"] as const)(
+    "saves distinct schema records when UUID %s throws",
+    (failure) => {
+      const crypto = Object.defineProperty({}, "randomUUID", {
+        get() {
+          if (failure === "access")
+            throw new DOMException("UUID access blocked", "SecurityError");
+          return () => {
+            throw new DOMException(
+              "UUID generation blocked",
+              "NotSupportedError",
+            );
+          };
+        },
+      });
+      vi.stubGlobal("crypto", crypto);
+      try {
+        const meta = { title: "API", format: "yaml", version: "1" },
+          first = saveSchema("first schema", meta),
+          second = saveSchema("second schema", meta);
+        expect(first).toMatchObject({ ...meta, schemaText: "first schema" });
+        expect(second).toMatchObject({ ...meta, schemaText: "second schema" });
+        expect(first?.id).toBeTruthy();
+        expect(second?.id).not.toBe(first?.id);
+        expect(readSavedSchema()).toBe("second schema");
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    },
+  );
 
   it("clears the locally saved schema", () => {
     saveSchema("openapi: 3.0.0");

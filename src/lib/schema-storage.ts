@@ -25,8 +25,14 @@ export type SavedSchemaMeta = {
 let fallbackIdSequence = 0;
 
 function createId() {
+  let uuid: string | undefined;
+  try {
+    uuid = globalThis.crypto?.randomUUID?.();
+  } catch {
+    // Keep schema saving available if UUID access or generation is blocked.
+  }
   return (
-    globalThis.crypto?.randomUUID?.() ??
+    uuid ??
     `${Date.now()}-${Math.round(Math.random() * 10000)}-${fallbackIdSequence++}`
   );
 }
