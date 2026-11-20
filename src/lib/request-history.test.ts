@@ -219,6 +219,42 @@ describe("request history storage", () => {
     }
   });
 
+  it.each([-1, Number.NaN, Infinity, -Infinity])(
+    "normalizes invalid request and response sizes %s before saving history",
+    (size) => {
+      const record = saveRequestHistoryRecord({
+        durationMs: 12,
+        method: "GET",
+        path: "/users",
+        status: 200,
+        summary: "List users",
+        requestSize: size,
+        responseSize: size,
+      });
+      expect(record).toMatchObject({ requestSize: 0, responseSize: 0 });
+      expect(readRequestHistory()).toEqual([record]);
+    },
+  );
+
+  it("normalizes negative and overflowing byte counts in imported history", () => {
+    const records = parseRequestHistory(`[
+      {
+        "id": "invalid-sizes",
+        "method": "GET",
+        "path": "/users",
+        "status": 200,
+        "summary": "Imported request",
+        "durationMs": 12,
+        "createdAt": "2026-11-20T12:00:00Z",
+        "requestSize": -1,
+        "responseSize": 1e400
+      }
+    ]`);
+    expect(records).toMatchObject([
+      { id: "invalid-sizes", status: 200, requestSize: 0, responseSize: 0 },
+    ]);
+  });
+
   it("normalizes nonnumeric statuses before saving history", () => {
     const record = saveRequestHistoryRecord({
       durationMs: 8,

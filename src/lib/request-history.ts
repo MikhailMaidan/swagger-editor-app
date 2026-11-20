@@ -73,6 +73,12 @@ export function isRequestHistoryRecord(
   );
 }
 
+function normalizeHistorySize(size: unknown) {
+  return typeof size === "number" && Number.isFinite(size) && size >= 0
+    ? size
+    : 0;
+}
+
 function normalizeRequestHistoryRecord(
   record: RequestHistoryRecord,
 ): RequestHistoryRecord {
@@ -80,10 +86,8 @@ function normalizeRequestHistoryRecord(
     ...record,
     errorDetails:
       typeof record.errorDetails === "string" ? record.errorDetails : null,
-    requestSize:
-      typeof record.requestSize === "number" ? record.requestSize : 0,
-    responseSize:
-      typeof record.responseSize === "number" ? record.responseSize : 0,
+    requestSize: normalizeHistorySize(record.requestSize),
+    responseSize: normalizeHistorySize(record.responseSize),
     url: typeof record.url === "string" ? record.url : record.path,
   };
 }
@@ -226,8 +230,8 @@ export function saveRequestHistoryRecord(record: RequestHistoryDraft) {
     createdAt: new Date().toISOString(),
     errorDetails: record.errorDetails || null,
     id: createId(),
-    requestSize: record.requestSize || 0,
-    responseSize: record.responseSize || 0,
+    requestSize: normalizeHistorySize(record.requestSize),
+    responseSize: normalizeHistorySize(record.responseSize),
     status: Number.isFinite(record.status) ? record.status : 0,
     url: record.url || record.path,
   };
