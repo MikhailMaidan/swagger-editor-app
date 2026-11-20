@@ -58,6 +58,47 @@ describe("request history storage", () => {
     }
   });
 
+  it.each(["access", "generation"] as const)(
+    "records requests and notifies listeners when UUID %s throws",
+    (failure) => {
+      const crypto = Object.defineProperty({}, "randomUUID", {
+          get() {
+            if (failure === "access")
+              throw new DOMException("UUID access blocked", "SecurityError");
+            return () => {
+              throw new DOMException(
+                "UUID generation blocked",
+                "NotSupportedError",
+              );
+            };
+          },
+        }),
+        listener = vi.fn();
+      vi.stubGlobal("crypto", crypto);
+      window.addEventListener(REQUEST_HISTORY_CHANGED_EVENT, listener);
+      try {
+        const draft = {
+            durationMs: 12,
+            method: "GET",
+            path: "/users",
+            status: 200,
+            summary: "List users",
+          },
+          first = saveRequestHistoryRecord(draft),
+          second = saveRequestHistoryRecord({ ...draft, path: "/items" });
+        expect(first).toMatchObject(draft);
+        expect(second).toMatchObject({ ...draft, path: "/items" });
+        expect(first?.id).toBeTruthy();
+        expect(second?.id).not.toBe(first?.id);
+        expect(readRequestHistory()).toEqual([second, first]);
+        expect(listener).toHaveBeenCalledTimes(2);
+      } finally {
+        window.removeEventListener(REQUEST_HISTORY_CHANGED_EVENT, listener);
+        vi.unstubAllGlobals();
+      }
+    },
+  );
+
   it("saves newest request records first", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-01T12:00:00.000Z"));

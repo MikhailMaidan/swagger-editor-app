@@ -37,8 +37,14 @@ export type RequestHistoryDraft = Omit<
 let fallbackIdSequence = 0;
 
 function createId() {
+  let uuid: string | undefined;
+  try {
+    uuid = globalThis.crypto?.randomUUID?.();
+  } catch {
+    // Keep request history available if UUID access or generation is blocked.
+  }
   return (
-    globalThis.crypto?.randomUUID?.() ??
+    uuid ??
     `${Date.now()}-${Math.round(Math.random() * 10000)}-${fallbackIdSequence++}`
   );
 }
