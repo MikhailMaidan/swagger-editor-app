@@ -64,11 +64,15 @@ function writeTextWithLegacyClipboard(value: string) {
     }
 
     if (activeInput && selectionStart !== null && selectionEnd !== null) {
-      activeInput.setSelectionRange(
-        selectionStart,
-        selectionEnd,
-        selectionDirection,
-      );
+      try {
+        activeInput.setSelectionRange(
+          selectionStart,
+          selectionEnd,
+          selectionDirection,
+        );
+      } catch {
+        // The input may stop supporting selection during copy/focus handlers.
+      }
     }
   }
 

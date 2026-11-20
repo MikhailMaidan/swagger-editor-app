@@ -125,6 +125,44 @@ describe("clipboard helpers", () => {
     },
   );
 
+  it.each([false, true])(
+    "preserves the copy result when the original input no longer supports selection (copied=%s)",
+    async (copied) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+          document,
+          "execCommand",
+        ),
+        input = document.createElement("input");
+      input.value = "selected content";
+      document.body.appendChild(input);
+      input.focus();
+      input.setSelectionRange(1, 4);
+      Object.defineProperty(document, "execCommand", {
+        configurable: true,
+        value: vi.fn(() => {
+          input.type = "number";
+          return copied;
+        }),
+      });
+      try {
+        await expect(
+          writeTextToClipboard("copied text", {
+            writeText: vi.fn().mockRejectedValue(new Error("Use fallback")),
+          }),
+        ).resolves.toBe(copied);
+        expect(document.activeElement).toBe(input);
+        expect(
+          document.querySelector("[data-clipboard-fallback]"),
+        ).not.toBeInTheDocument();
+      } finally {
+        input.remove();
+        if (descriptor)
+          Object.defineProperty(document, "execCommand", descriptor);
+        else Reflect.deleteProperty(document, "execCommand");
+      }
+    },
+  );
+
   it.each([
     ["input", "forward"],
     ["input", "backward"],
