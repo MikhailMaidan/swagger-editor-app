@@ -332,6 +332,27 @@ describe("stateful routing decisions", () => {
     p.routes[0].enabled = false;
     expect(routingDiagnostics(p)).toEqual([]);
   });
+  it.each([
+    ["header", "exists", true],
+    ["header", "absent", true],
+    ["query", "exists", true],
+    ["query", "absent", true],
+    ["header", "equals", false],
+    ["query", "contains", false],
+  ] as const)(
+    "compares %s %s filters using only their effective fields",
+    (target, op, duplicate) => {
+      const p = balanced();
+      p.routes = ["first", "second"].map((id) => ({
+        ...p.routes[0],
+        id,
+        filters: [{ target, name: "x-flag", op, value: id }],
+      }));
+      expect(routingDiagnostics(p)).toEqual(
+        duplicate ? [{ route: "second", shadowedBy: "first" }] : [],
+      );
+    },
+  );
 });
 describe("deterministic traffic replay and comparisons", () => {
   it("releases capacity before same-time arrivals and leaves no active reservations", async () => {

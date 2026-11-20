@@ -200,7 +200,18 @@ export function routingDiagnostics(input: RTConfig) {
           : [segment.kind],
       ),
       [...route.methods].sort(),
-      route.filters.map((filter) => JSON.stringify(filter)).sort(),
+      route.filters
+        .map((filter) =>
+          JSON.stringify([
+            filter.target,
+            filter.name,
+            filter.op,
+            filter.op === "exists" || filter.op === "absent"
+              ? null
+              : filter.value,
+          ]),
+        )
+        .sort(),
     ]);
     const previous = seen.get(signature);
     if (previous) result.push({ route: route.id, shadowedBy: previous });
