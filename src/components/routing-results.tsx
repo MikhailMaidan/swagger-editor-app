@@ -34,7 +34,7 @@ export function RoutingResults({
                 ? request.backend !== null && request.status >= 500
                 : request.matched === false)) &&
         words.every((word) =>
-          `${request.requestId} ${request.route ?? ""} ${request.backend ?? ""} ${request.status} ${request.reason}`
+          `${request.requestId} ${request.route ?? ""} ${request.backend ?? ""} ${request.status} ${request.reason} ${t(`rt.reason.${request.reason}`)}`
             .toLowerCase()
             .includes(word),
         ),

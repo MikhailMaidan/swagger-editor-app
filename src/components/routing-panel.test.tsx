@@ -131,6 +131,34 @@ describe("API routing and load-balancing studio", () => {
       screen.getByRole("region", { name: en["rt.inspector"] }),
     ).toHaveTextContent("capacity exhausted");
   });
+  it.each(["en", "ru"] as const)(
+    "searches displayed decision labels in %s while retaining ID, status and internal-code searches",
+    async (language) => {
+      await setup();
+      change("rt.case", "canary-capacity");
+      await job();
+      act(() => setAppLanguage(language));
+      const labels = routingTranslations[language],
+        search = screen.getByLabelText(labels["rt.search"]),
+        requests = within(
+          screen.getByRole("region", { name: labels["rt.requests"] }),
+        );
+      for (const query of [
+        labels["rt.reason.capacity"].toUpperCase(),
+        "capacity",
+        "canary-2 503",
+      ]) {
+        fireEvent.change(search, { target: { value: query } });
+        expect(
+          requests.getByRole("button", { name: /canary-2/ }),
+        ).toBeVisible();
+        expect(
+          requests.queryByRole("button", { name: /canary-1/ }),
+        ).not.toBeInTheDocument();
+        expect(requests.getAllByRole("row")).toHaveLength(2);
+      }
+    },
+  );
   it("records all routing expectations and detects changed backend weights", async () => {
     await setup();
     await job("rt.runAll");
