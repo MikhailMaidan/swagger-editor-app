@@ -97,8 +97,19 @@ export function RoutingResults({
           <button
             type="button"
             key={backend.id}
-            onClick={() => reset(() => setBackendFilter(backend.id))}
-            className="rounded-lg border border-violet-200 p-3 text-left text-xs"
+            aria-pressed={backendFilter === backend.id}
+            onClick={() =>
+              reset(() =>
+                setBackendFilter((current) =>
+                  current === backend.id ? "" : backend.id,
+                ),
+              )
+            }
+            className={`rounded-lg border p-3 text-left text-xs ${
+              backendFilter === backend.id
+                ? "border-violet-600 bg-violet-50"
+                : "border-violet-200"
+            }`}
           >
             <span className="block font-bold">
               {backend.name}: {run.backendCounts[backend.id]}
