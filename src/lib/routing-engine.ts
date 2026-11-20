@@ -162,15 +162,15 @@ function hash(value: string) {
 }
 function upstreamUrl(
   backend: RTBackend,
-  route: RTRoute,
+  rewrite: RTSegment[] | null,
   captures: Record<string, string>,
   incoming: URL,
 ) {
   const path =
-    route.rewrite === null
+    rewrite === null
       ? incoming.pathname
       : "/" +
-        parseRTPattern(route.rewrite, true)
+        rewrite
           .map((segment) =>
             segment.kind === "literal"
               ? encodeURIComponent(segment.value)
@@ -226,6 +226,12 @@ export function createRTRouter(input: RTConfig) {
   );
   const patterns = new Map(
       config.routes.map((route) => [route.id, parseRTPattern(route.path)]),
+    ),
+    rewrites = new Map(
+      config.routes.map((route) => [
+        route.id,
+        route.rewrite === null ? null : parseRTPattern(route.rewrite, true),
+      ]),
     ),
     currents = new Map(
       config.pools.map((pool) => [
@@ -359,7 +365,7 @@ export function createRTRouter(input: RTConfig) {
     const backend = select(pool, eligible, key);
     let target: string;
     try {
-      target = upstreamUrl(backend, selected, captures, url);
+      target = upstreamUrl(backend, rewrites.get(selected.id)!, captures, url);
     } catch {
       return { ...decision, status: 400, reason: "rewrite" };
     }
