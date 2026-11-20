@@ -77,17 +77,19 @@ function writeTextWithLegacyClipboard(value: string) {
 
 export async function writeTextToClipboard(
   value: string,
-  clipboard: ClipboardWriter | undefined = typeof navigator === "undefined"
-    ? undefined
-    : navigator.clipboard,
+  clipboard?: ClipboardWriter,
 ) {
-  if (clipboard) {
-    try {
-      await clipboard.writeText(value);
+  try {
+    const writer =
+      clipboard === undefined && typeof navigator !== "undefined"
+        ? navigator.clipboard
+        : clipboard;
+    if (writer) {
+      await writer.writeText(value);
       return true;
-    } catch {
-      // Older or restricted contexts may still support the legacy copy path.
     }
+  } catch {
+    // Restricted clipboard access or writes may still allow the legacy path.
   }
 
   return writeTextWithLegacyClipboard(value);

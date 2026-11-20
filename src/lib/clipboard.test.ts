@@ -22,6 +22,48 @@ describe("clipboard helpers", () => {
     );
   });
 
+  it.each([undefined, false, true])(
+    "handles blocked clipboard lookup with legacy copy result %s",
+    async (copied) => {
+      const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+          navigator,
+          "clipboard",
+        ),
+        execCommandDescriptor = Object.getOwnPropertyDescriptor(
+          document,
+          "execCommand",
+        ),
+        execCommand =
+          copied === undefined ? undefined : vi.fn().mockReturnValue(copied);
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        get() {
+          throw new DOMException("Clipboard access blocked", "SecurityError");
+        },
+      });
+      Object.defineProperty(document, "execCommand", {
+        configurable: true,
+        value: execCommand,
+      });
+      try {
+        await expect(writeTextToClipboard("copied text")).resolves.toBe(
+          copied ?? false,
+        );
+        if (execCommand) expect(execCommand).toHaveBeenCalledWith("copy");
+        expect(
+          document.querySelector("[data-clipboard-fallback]"),
+        ).not.toBeInTheDocument();
+      } finally {
+        if (clipboardDescriptor)
+          Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+        else Reflect.deleteProperty(navigator, "clipboard");
+        if (execCommandDescriptor)
+          Object.defineProperty(document, "execCommand", execCommandDescriptor);
+        else Reflect.deleteProperty(document, "execCommand");
+      }
+    },
+  );
+
   it.each([
     { editable: true, backward: true, copied: true },
     { editable: true, backward: true, copied: false },
