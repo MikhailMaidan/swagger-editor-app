@@ -103,6 +103,7 @@ export function filterRequestHistory(
     if (searchTerms.length === 0) return true;
 
     const searchableText = [
+      record.id,
       record.method,
       record.path,
       record.url,
