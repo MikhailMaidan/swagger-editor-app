@@ -324,11 +324,16 @@ export function createRTRouter(input: RTConfig) {
     let selected: RTRoute | undefined,
       captures: Record<string, string> = {};
     for (const route of config.routes) {
-      const path = matchRTPath(patterns.get(route.id)!, url.pathname);
+      const acceptsMethod =
+          route.enabled &&
+          (route.methods.includes("*") ||
+            route.methods.includes(request.method)),
+        path = acceptsMethod
+          ? matchRTPath(patterns.get(route.id)!, url.pathname)
+          : null;
       const reason: RTTrace["reason"] = !route.enabled
         ? "disabled"
-        : !route.methods.includes("*") &&
-            !route.methods.includes(request.method)
+        : !acceptsMethod
           ? "method"
           : path === null
             ? "path"
