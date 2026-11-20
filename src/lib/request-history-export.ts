@@ -1,4 +1,5 @@
 import type { RequestHistoryRecord } from "./request-history";
+import { downloadTextFile } from "./schema-download";
 
 export type RequestHistoryExport = {
   content: string;
@@ -60,36 +61,7 @@ function downloadRequestHistoryExport({
   contentType,
   fileName,
 }: RequestHistoryExport) {
-  if (
-    typeof document === "undefined" ||
-    typeof URL === "undefined" ||
-    typeof URL.createObjectURL !== "function"
-  ) {
-    return false;
-  }
-
-  let objectUrl = "";
-
-  try {
-    objectUrl = URL.createObjectURL(new Blob([content], { type: contentType }));
-    const link = document.createElement("a");
-
-    link.href = objectUrl;
-    link.download = fileName;
-    link.click();
-
-    return true;
-  } catch {
-    return false;
-  } finally {
-    if (objectUrl) {
-      try {
-        URL.revokeObjectURL(objectUrl);
-      } catch {
-        // Cleanup failure does not mean the browser failed to start a download.
-      }
-    }
-  }
+  return downloadTextFile(content, fileName, contentType);
 }
 
 export function downloadRequestHistoryFile(records: RequestHistoryRecord[]) {
