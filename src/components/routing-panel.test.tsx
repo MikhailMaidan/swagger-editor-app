@@ -119,6 +119,21 @@ describe("API routing and load-balancing studio", () => {
     ).toBeVisible();
     change("rt.search", "nothing-matches");
     expect(screen.getByText(en["rt.none"])).toBeVisible();
+    for (const modifier of [
+      "ctrlKey",
+      "metaKey",
+      "altKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      fireEvent.keyDown(screen.getByLabelText(en["rt.search"]), {
+        key: "Escape",
+        [modifier]: true,
+      });
+      expect(screen.getByLabelText(en["rt.search"])).toHaveValue(
+        "nothing-matches",
+      );
+    }
     fireEvent.keyDown(screen.getByLabelText(en["rt.search"]), {
       key: "Escape",
     });

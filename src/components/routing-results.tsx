@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { RTButton, RTField, RTSelect } from "./routing-controls";
+import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import type { RTProject, RTCase } from "@/lib/routing-model";
 import type { RTCaseRun } from "@/lib/routing-engine";
 
@@ -185,7 +186,7 @@ export function RoutingResults({
         <div className="grid gap-3 sm:grid-cols-3">
           <div
             onKeyDown={(e) => {
-              if (e.key === "Escape") reset(() => setQuery(""));
+              if (isCancelRequestShortcut(e)) reset(() => setQuery(""));
             }}
           >
             <RTField
