@@ -327,6 +327,25 @@ describe("response contract checks", () => {
     expect(bodyCheck?.params).toMatchObject({ expected: "object" });
   });
 
+  it.each(["", " ", "\t", " \r\n\t "])(
+    "reports a blank Content-Type value %j as missing",
+    (contentType) => {
+      const report = createResponseContractReport([createResponse()], {
+        body: '{"id":7}',
+        headers: { "Content-Type": contentType },
+        method: "GET",
+        status: "200",
+      });
+      expect(report.checks[1]).toEqual({
+        code: "content-type-missing",
+        params: { expected: "application/json" },
+        result: "fail",
+        type: "content-type",
+      });
+      expect(report).toMatchObject({ result: "fail", failedCount: 1 });
+    },
+  );
+
   it("reports media type and top-level body type drift", () => {
     const report = createResponseContractReport([createResponse()], {
       body: "[]",

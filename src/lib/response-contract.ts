@@ -151,7 +151,7 @@ function readContentType(headers: Record<string, string>) {
     ([name]) => name.toLowerCase() === "content-type",
   );
 
-  return contentTypeEntry?.[1] || "";
+  return (contentTypeEntry?.[1] || "").trim();
 }
 
 function createStatusCheck(responses: ResponseSummary[], actualStatus: string) {
