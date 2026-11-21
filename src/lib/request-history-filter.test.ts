@@ -128,6 +128,16 @@ describe("request history filters", () => {
     );
   });
 
+  it("distinguishes a custom ALL method from the lowercase all-methods option", () => {
+    const custom = { ...records[0], id: "custom-all", method: "ALL" },
+      history = [...records, custom];
+    expect(getRequestHistoryMethods(history)).toEqual(["ALL", "GET", "POST"]);
+    for (const method of ["ALL", " ALL ", "All"])
+      expect(filterRequestHistoryByMethod(history, method)).toEqual([custom]);
+    for (const method of ["all", " all ", ""])
+      expect(filterRequestHistoryByMethod(history, method)).toBe(history);
+  });
+
   it("filters durations at exact bucket boundaries", () => {
     const durationRecords = [
       { ...records[0], durationMs: 99, id: "fast" },

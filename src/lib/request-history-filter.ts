@@ -33,7 +33,8 @@ export function filterRequestHistoryByMethod(
 ) {
   const normalizedMethod = method.trim().toUpperCase();
 
-  if (!normalizedMethod || normalizedMethod === "ALL") {
+  // The lowercase UI option is distinct from a custom HTTP method named ALL.
+  if (!normalizedMethod || method.trim() === "all") {
     return records;
   }
 

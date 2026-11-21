@@ -18,6 +18,45 @@ const localRecord = {
 };
 
 describe("HistoryList", () => {
+  it("filters a custom ALL method separately from the all-methods option", async () => {
+    const user = userEvent.setup();
+    render(
+      <HistoryList
+        initialRecords={[
+          {
+            ...localRecord,
+            id: "custom-all",
+            method: "ALL",
+            errorDetails: null,
+            url: "/custom",
+          },
+          {
+            ...localRecord,
+            id: "standard-get",
+            method: "GET",
+            errorDetails: null,
+            url: "/standard",
+          },
+        ]}
+      />,
+    );
+    const method = screen.getByLabelText("Filter history by HTTP method");
+    await user.selectOptions(method, "ALL");
+    expect(
+      document.querySelector('a[href="/history/custom-all"]'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('a[href="/history/standard-get"]'),
+    ).not.toBeInTheDocument();
+    await user.selectOptions(method, "all");
+    expect(
+      document.querySelector('a[href="/history/custom-all"]'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('a[href="/history/standard-get"]'),
+    ).toBeInTheDocument();
+  });
+
   it("clears only the search with Escape while preserving focus and other filters", async () => {
     const user = userEvent.setup();
     render(
