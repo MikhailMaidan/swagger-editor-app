@@ -4,7 +4,7 @@ import { useI18n } from "./i18n-provider";
 import { RTButton, RTField, RTSelect } from "./routing-controls";
 import { isCancelRequestShortcut } from "@/lib/keyboard-shortcut";
 import type { RTProject, RTCase } from "@/lib/routing-model";
-import type { RTCaseRun } from "@/lib/routing-engine";
+import type { RTCaseRun, RTRequestRun } from "@/lib/routing-engine";
 
 export function RoutingResults({
   project,
@@ -22,24 +22,26 @@ export function RoutingResults({
     [selected, setSelected] = useState(run.requests[0].requestId),
     [playhead, setPlayhead] = useState(run.journal.length - 1),
     [page, setPage] = useState(0);
-  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean),
-    filtered = run.requests.filter(
-      (request) =>
-        (!backendFilter || request.backend === backendFilter) &&
-        (filter === "all" ||
-          (filter === "forwarded"
-            ? request.backend !== null
-            : filter === "rejected"
-              ? request.backend === null
-              : filter === "upstream-failed"
-                ? request.backend !== null && request.status >= 500
-                : request.matched === false)) &&
-        words.every((word) =>
-          `${request.requestId} ${request.route ?? ""} ${request.backend ?? ""} ${request.status} ${request.reason} ${t(`rt.reason.${request.reason}`)}`
-            .toLowerCase()
-            .includes(word),
-        ),
-    );
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matchesSearch = (request: RTRequestRun) => {
+    if (!words.length) return true;
+    const searchableText =
+      `${request.requestId} ${request.route ?? ""} ${request.backend ?? ""} ${request.status} ${request.reason} ${t(`rt.reason.${request.reason}`)}`.toLowerCase();
+    return words.every((word) => searchableText.includes(word));
+  };
+  const filtered = run.requests.filter(
+    (request) =>
+      (!backendFilter || request.backend === backendFilter) &&
+      (filter === "all" ||
+        (filter === "forwarded"
+          ? request.backend !== null
+          : filter === "rejected"
+            ? request.backend === null
+            : filter === "upstream-failed"
+              ? request.backend !== null && request.status >= 500
+              : request.matched === false)) &&
+      matchesSearch(request),
+  );
   const currentPage = Math.min(
       page,
       Math.max(0, Math.ceil(filtered.length / 30) - 1),
