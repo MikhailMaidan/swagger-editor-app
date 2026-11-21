@@ -74,18 +74,20 @@ export function getNextTextMatchIndex(
 
   const start = Math.min(selectionStart, selectionEnd);
   const end = Math.max(selectionStart, selectionEnd);
+  let low = 0;
+  let high = matches.length;
 
-  if (direction === "next") {
-    const nextIndex = matches.findIndex((match) => match.start >= end);
-
-    return nextIndex === -1 ? 0 : nextIndex;
+  // Matches are nonoverlapping and ordered by source position.
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    const beforeBoundary =
+      direction === "next"
+        ? matches[middle].start < end
+        : matches[middle].end <= start;
+    if (beforeBoundary) low = middle + 1;
+    else high = middle;
   }
 
-  for (let index = matches.length - 1; index >= 0; index -= 1) {
-    if (matches[index].end <= start) {
-      return index;
-    }
-  }
-
-  return matches.length - 1;
+  if (direction === "next") return low === matches.length ? 0 : low;
+  return low === 0 ? matches.length - 1 : low - 1;
 }

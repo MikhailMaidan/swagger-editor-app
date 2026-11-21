@@ -104,5 +104,27 @@ describe("text search helpers", () => {
     expect(getNextTextMatchIndex(matches, 8, 11, "previous")).toBe(0);
     expect(getNextTextMatchIndex(matches, 0, 3, "previous")).toBe(1);
     expect(getNextTextMatchIndex([], 0, 0, "next")).toBe(-1);
+    expect(getNextTextMatchIndex([], 0, 0, "previous")).toBe(-1);
   });
+
+  it.each([
+    [0, 0, 0, 2],
+    [3, 3, 1, 0],
+    [6, 6, 1, 0],
+    [8, 11, 2, 0],
+    [12, 12, 2, 1],
+    [16, 19, 0, 1],
+    [19, 19, 0, 2],
+    [5, 14, 2, 0],
+    [14, 5, 2, 0],
+  ])(
+    "navigates selection %i..%i through match boundaries and gaps",
+    (start, end, next, previous) => {
+      const matches = findTextMatches("one two one two one", "one");
+      expect(getNextTextMatchIndex(matches, start, end, "next")).toBe(next);
+      expect(getNextTextMatchIndex(matches, start, end, "previous")).toBe(
+        previous,
+      );
+    },
+  );
 });
