@@ -1,6 +1,9 @@
 import type { ResponseSummary, SchemaDetails } from "./openapi";
 import { isJsonMediaType } from "./request-body";
 
+const MEDIA_TYPE_PATTERN =
+  /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+$/;
+
 export type ResponseContractCheckResult = "fail" | "pass" | "skipped";
 
 export type ResponseContractCheckCode =
@@ -125,6 +128,9 @@ function findBestMediaTypeMatch<T>(
   entries: [string, T][],
   actualContentType: string,
 ) {
+  if (!MEDIA_TYPE_PATTERN.test(normalizeMediaType(actualContentType))) {
+    return undefined;
+  }
   let bestMatch: [string, T] | undefined;
 
   for (const entry of entries) {

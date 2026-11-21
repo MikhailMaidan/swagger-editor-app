@@ -117,6 +117,61 @@ describe("response contract checks", () => {
     ).toBe("pass");
   });
 
+  it.each(["*/*", "text/*"])(
+    "rejects malformed actual media types with documented wildcard %s",
+    (documented) => {
+      for (const actual of [
+        "text/",
+        "/plain",
+        "not-a-media-type",
+        "text/foo/bar",
+        "text/pl ain",
+        "text/[plain]",
+        "text/plain,application/json",
+      ]) {
+        const report = createResponseContractReport(
+          [createResponse({ contentTypes: [documented], schema: null })],
+          {
+            body: "response",
+            headers: { "content-type": actual },
+            method: "GET",
+            status: "200",
+          },
+        );
+        expect(report.checks[1], actual).toMatchObject({
+          code: "content-type-mismatch",
+          result: "fail",
+        });
+        expect(report.result, actual).toBe("fail");
+      }
+    },
+  );
+
+  it.each([
+    ["*/*", "text/plain"],
+    ["text/*", " Text/Plain; charset=utf-8 "],
+    ["*/*", "application/vnd.example+json"],
+    ["text/*", "text/x.custom+v1"],
+  ])(
+    "keeps documented media range %s matched against %s",
+    (documented, actual) => {
+      const report = createResponseContractReport(
+        [createResponse({ contentTypes: [documented], schema: null })],
+        {
+          body: "response",
+          headers: { "content-type": actual },
+          method: "GET",
+          status: "200",
+        },
+      );
+      expect(report.checks[1]).toMatchObject({
+        code: "content-type-matched",
+        result: "pass",
+      });
+      expect(report.result).toBe("pass");
+    },
+  );
+
   it.each([
     "200.0",
     "2e2",
