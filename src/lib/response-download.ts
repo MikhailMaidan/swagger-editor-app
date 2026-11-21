@@ -21,11 +21,10 @@ const mediaTypeExtensions: Record<string, string> = {
 };
 
 function getResponseContentType(headers: Record<string, string>) {
-  return (
-    Object.entries(headers).find(
-      ([header]) => header.toLowerCase() === "content-type",
-    )?.[1] || "text/plain;charset=utf-8"
-  );
+  const contentType = Object.entries(headers).find(
+    ([header]) => header.toLowerCase() === "content-type",
+  )?.[1];
+  return contentType?.trim() ? contentType : "text/plain;charset=utf-8";
 }
 
 function getResponseFileExtension(contentType: string) {

@@ -21,6 +21,25 @@ describe("response download helpers", () => {
     });
   });
 
+  it.each(["", " ", "\t", " \r\n\t "])(
+    "uses the text fallback for a blank Content-Type value %j",
+    (contentType) => {
+      expect(
+        getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
+      ).toEqual({
+        contentType: "text/plain;charset=utf-8",
+        fileName: "rsswag-response-200.txt",
+      });
+    },
+  );
+
+  it("preserves a nonblank Content-Type value including its original whitespace", () => {
+    const contentType = " \tapplication/json; charset=utf-8 \t";
+    expect(
+      getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
+    ).toEqual({ contentType, fileName: "rsswag-response-200.json" });
+  });
+
   it.each([
     "text/json",
     "Text/JSON; charset=utf-8",
