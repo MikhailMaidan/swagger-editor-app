@@ -39,7 +39,7 @@ describe("response download helpers", () => {
     ["application/xml", "xml"],
     ["Text/XML; charset=utf-8", "xml"],
     ["application/soap+xml", "xml"],
-    ["Image/SVG+XML; charset=utf-8", "xml"],
+    ["Image/SVG+XML; charset=utf-8", "svg"],
     ["application/yaml", "yaml"],
     ["text/x-yaml", "yaml"],
     ["application/vnd.oai.openapi+yaml", "yaml"],

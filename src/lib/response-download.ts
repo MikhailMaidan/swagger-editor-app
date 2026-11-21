@@ -10,6 +10,7 @@ const mediaTypeExtensions: Record<string, string> = {
   "application/x-yaml": "yaml",
   "application/xml": "xml",
   "application/yaml": "yaml",
+  "image/svg+xml": "svg",
   "text/csv": "csv",
   "text/html": "html",
   "text/json": "json",
@@ -30,6 +31,11 @@ function getResponseContentType(headers: Record<string, string>) {
 function getResponseFileExtension(contentType: string) {
   const mediaType = contentType.split(";", 1)[0].trim().toLowerCase();
 
+  // Prefer known formats before the generic JSON/XML/YAML suffix fallbacks.
+  if (Object.hasOwn(mediaTypeExtensions, mediaType)) {
+    return mediaTypeExtensions[mediaType];
+  }
+
   if (isJsonMediaType(mediaType)) {
     return "json";
   }
@@ -42,9 +48,7 @@ function getResponseFileExtension(contentType: string) {
     return structuredExtension;
   }
 
-  return Object.hasOwn(mediaTypeExtensions, mediaType)
-    ? mediaTypeExtensions[mediaType]
-    : "txt";
+  return "txt";
 }
 
 export function getResponseDownloadMetadata(
