@@ -362,7 +362,10 @@ export function createRTRouter(input: RTConfig) {
     };
     if (!selected) return decision;
     const pool = pools.get(selected.pool)!,
-      key = valuesFor(request, url, pool.key.target, pool.key.name)[0] ?? "";
+      key =
+        pool.algorithm === "sticky"
+          ? (valuesFor(request, url, pool.key.target, pool.key.name)[0] ?? "")
+          : "";
     if (pool.algorithm === "sticky" && !key)
       return { ...decision, status: 400, reason: "sticky-key" };
     const healthy = pool.members
