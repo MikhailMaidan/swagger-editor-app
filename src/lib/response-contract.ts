@@ -288,7 +288,10 @@ function createBodyCheck(
       ? "object"
       : schema?.type || "unknown";
 
-  if (!input.body.trim()) {
+  const parseAsJson =
+    isJsonMediaType(actualContentType) || expectedType !== "string";
+
+  if (input.body.length === 0 || (parseAsJson && !input.body.trim())) {
     return createCheck("body", "fail", "body-empty", {
       expected: expectedType,
     });
@@ -296,7 +299,7 @@ function createBodyCheck(
 
   let value: unknown = input.body;
 
-  if (isJsonMediaType(actualContentType) || expectedType !== "string") {
+  if (parseAsJson) {
     try {
       value = JSON.parse(input.body.replace(/^\uFEFF/, ""));
     } catch {

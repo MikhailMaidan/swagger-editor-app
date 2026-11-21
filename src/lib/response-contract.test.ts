@@ -369,6 +369,36 @@ describe("response contract checks", () => {
     );
   });
 
+  it.each([
+    ["text/plain", "   ", "pass", "body-matched"],
+    ["text/plain", "\t\r\n", "pass", "body-matched"],
+    ["text/plain", "\u00a0", "pass", "body-matched"],
+    ["text/plain", "", "fail", "body-empty"],
+    ["application/json", "   ", "fail", "body-empty"],
+    ["application/problem+json", "\t\r\n", "fail", "body-empty"],
+  ])(
+    "checks whitespace string responses for %s with body %j",
+    (contentType, body, result, code) => {
+      const response = createResponse({
+        contentTypes: [contentType],
+        schema: {
+          example: "",
+          exampleName: "",
+          properties: [],
+          type: "string",
+        },
+      });
+      const report = createResponseContractReport([response], {
+        body,
+        headers: { "content-type": contentType },
+        method: "GET",
+        status: "200",
+      });
+      expect(report.checks[2]).toMatchObject({ code, result });
+      expect(report.result).toBe(result);
+    },
+  );
+
   it("reports missing required response properties", () => {
     const report = createResponseContractReport([createResponse()], {
       body: '{"name":"Ada"}',
