@@ -204,7 +204,14 @@ const STANDARD_METHODS = new Set([
   "PUT",
   "TRACE",
 ]);
-const BODY_REQUIRED_METHODS = new Set(["PATCH", "POST", "PUT"]);
+const BODY_REQUIRED_METHODS = new Set([
+  "PATCH",
+  "POST",
+  "PROPPATCH",
+  "PUT",
+  "QUERY",
+  "REPORT",
+]);
 
 export function isSnippetLanguage(value: string): value is SnippetLanguage {
   return SNIPPET_LANGUAGES.includes(value as SnippetLanguage);
@@ -744,7 +751,7 @@ function createKotlinSnippet(request: SnippetRequest) {
       `    val body = ${quoteKotlin(request.body)}.toRequestBody(${quoteKotlin(request.contentType)}.toMediaType())`,
     );
   } else if (needsEmptyBody) {
-    // OkHttp rejects POST, PUT, and PATCH requests without a body object.
+    // OkHttp requires a body object for these methods, even when empty.
     lines.push('    val body = "".toRequestBody()');
   }
 

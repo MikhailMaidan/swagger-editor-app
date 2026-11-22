@@ -411,4 +411,22 @@ describe("request snippets", () => {
       ".request(Method::POST, ",
     );
   });
+
+  it.each(["post", "PUT", "PATCH", "proppatch", "REPORT", "query"])(
+    "supplies the required empty Kotlin body for %s",
+    (method) => {
+      const code = createRequestCode("kotlin", {
+        ...jsonRequest,
+        method,
+        requestBody: "",
+      });
+
+      expect(code).toContain(
+        "import okhttp3.RequestBody.Companion.toRequestBody",
+      );
+      expect(code).toContain('val body = "".toRequestBody()');
+      expect(code).toContain(`.method("${method.toUpperCase()}", body)`);
+      expect(code).not.toContain("toMediaType");
+    },
+  );
 });
