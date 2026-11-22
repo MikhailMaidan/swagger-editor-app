@@ -40,7 +40,7 @@ describe("saved schema filters", () => {
     expect(filterSavedSchemas(schemas, " \t\n ")).toEqual(schemas);
     expect(JSON.stringify(schemas)).toBe(original);
   });
-  it("searches titles, versions, and formats without changing the input", () => {
+  it("searches IDs, titles, versions, and formats without changing the input", () => {
     expect(filterSavedSchemas(schemas, " store ").map(({ id }) => id)).toEqual([
       "petstore",
     ]);
@@ -50,6 +50,17 @@ describe("saved schema filters", () => {
     expect(filterSavedSchemas(schemas, "json").map(({ id }) => id)).toEqual([
       "billing",
     ]);
+    const duplicateTitles = [
+      { ...schemas[0], id: "schema-a8f2" },
+      { ...schemas[0], id: "schema-b9e3" },
+    ];
+    expect(
+      filterSavedSchemas(duplicateTitles, "A8F2 store 1.0", "yaml").map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["schema-a8f2"]);
+    expect(filterSavedSchemas(duplicateTitles, "a8f2", "json")).toEqual([]);
+    expect(duplicateTitles).toHaveLength(2);
     expect(schemas).toHaveLength(2);
   });
 

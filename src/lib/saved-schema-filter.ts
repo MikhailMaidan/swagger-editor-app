@@ -25,7 +25,12 @@ export function filterSavedSchemas(
 
     if (searchTerms.length === 0) return true;
 
-    const searchableText = [schema.title, schema.version, schema.format]
+    const searchableText = [
+      schema.id,
+      schema.title,
+      schema.version,
+      schema.format,
+    ]
       .join(" ")
       .toLowerCase();
 
