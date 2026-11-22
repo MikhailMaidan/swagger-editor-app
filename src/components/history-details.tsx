@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import { formatEuropeanDateTime } from "@/lib/date-format";
@@ -17,6 +17,7 @@ export function HistoryDetails({
   record: RequestHistoryRecord | null;
 }) {
   const { language, t } = useI18n();
+  const actionGeneration = useRef(0);
   const [actionStatus, setActionStatus] = useState<
     | "copy-error"
     | "copy-success"
@@ -26,6 +27,7 @@ export function HistoryDetails({
   >("idle");
 
   async function handleCopyDetails() {
+    const generation = ++actionGeneration.current;
     setActionStatus("idle");
 
     if (!record) {
@@ -37,10 +39,12 @@ export function HistoryDetails({
       serializeRequestHistoryRecord(record),
     );
 
+    if (generation !== actionGeneration.current) return;
     setActionStatus(copied ? "copy-success" : "copy-error");
   }
 
   function handleDownloadDetails() {
+    actionGeneration.current += 1;
     if (!record) {
       setActionStatus("download-error");
       return;

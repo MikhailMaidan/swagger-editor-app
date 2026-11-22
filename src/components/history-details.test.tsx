@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { getEndpointEditorHref } from "@/lib/endpoint-link";
@@ -251,6 +251,85 @@ describe("HistoryDetails", () => {
       createElementSpy.mockRestore();
     }
   });
+
+  it.each(["copy", "download"] as const)(
+    "keeps the latest %s feedback when an earlier copy completes later",
+    async (action) => {
+      const user = userEvent.setup();
+      let rejectCopy!: (error: Error) => void;
+      const writeText = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((_resolve, reject) => {
+              rejectCopy = reject;
+            }),
+        )
+        .mockResolvedValue(undefined);
+      const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+        navigator,
+        "clipboard",
+      );
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+      });
+      const createObjectURL = vi
+        .spyOn(URL, "createObjectURL")
+        .mockReturnValue("blob:history-record");
+      const revokeObjectURL = vi
+        .spyOn(URL, "revokeObjectURL")
+        .mockImplementation(() => {});
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
+
+      try {
+        render(
+          <HistoryDetails
+            record={{
+              createdAt: "2026-07-11T08:00:00.000Z",
+              durationMs: 42,
+              errorDetails: null,
+              id: "history-1",
+              method: "GET",
+              path: "/users/{id}",
+              requestSize: 80,
+              responseSize: 120,
+              status: 200,
+              summary: "Get user",
+              url: "https://api.example.com/users/42",
+            }}
+          />,
+        );
+        await user.click(
+          screen.getByRole("button", { name: "Copy request details" }),
+        );
+        await user.click(
+          screen.getByRole("button", {
+            name: action === "copy" ? "Copy request details" : "Download JSON",
+          }),
+        );
+        const message =
+          action === "copy"
+            ? "Request details copied."
+            : "Request export started.";
+        expect(screen.getByRole("status")).toHaveTextContent(message);
+
+        await act(async () => rejectCopy(new Error("Clipboard unavailable")));
+
+        expect(screen.getByRole("status")).toHaveTextContent(message);
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      } finally {
+        if (clipboardDescriptor)
+          Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
+        else Reflect.deleteProperty(navigator, "clipboard");
+        createObjectURL.mockRestore();
+        revokeObjectURL.mockRestore();
+        click.mockRestore();
+      }
+    },
+  );
 
   it("shows a friendly message for a missing record", () => {
     render(<HistoryDetails record={null} />);
