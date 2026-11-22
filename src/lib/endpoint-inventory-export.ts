@@ -1,4 +1,5 @@
 import type { EndpointSummary } from "./openapi";
+import { downloadTextFile } from "./schema-download";
 
 export type EndpointInventoryExport = {
   content: string;
@@ -99,40 +100,15 @@ export function downloadEndpointInventoryFile(
   endpoints: EndpointSummary[],
   schema: { title: string; version: string },
 ) {
-  if (
-    typeof document === "undefined" ||
-    typeof URL === "undefined" ||
-    typeof URL.createObjectURL !== "function"
-  ) {
-    return false;
-  }
-
-  let objectUrl = "";
-
   try {
     const inventoryExport = createEndpointInventoryExport(endpoints, schema);
 
-    objectUrl = URL.createObjectURL(
-      new Blob([inventoryExport.content], {
-        type: inventoryExport.contentType,
-      }),
+    return downloadTextFile(
+      inventoryExport.content,
+      inventoryExport.fileName,
+      inventoryExport.contentType,
     );
-    const link = document.createElement("a");
-
-    link.href = objectUrl;
-    link.download = inventoryExport.fileName;
-    link.click();
-
-    return true;
   } catch {
     return false;
-  } finally {
-    if (objectUrl) {
-      try {
-        URL.revokeObjectURL(objectUrl);
-      } catch {
-        // Cleanup failures should not change the completed action result.
-      }
-    }
   }
 }

@@ -188,4 +188,26 @@ describe("endpoint inventory export", () => {
       URL.createObjectURL = originalCreateObjectURL;
     }
   });
+
+  it("returns failure when checking download API availability throws", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      get() {
+        throw new DOMException("Download access blocked", "SecurityError");
+      },
+    });
+
+    try {
+      expect(
+        downloadEndpointInventoryFile([createEndpoint()], {
+          title: "Catalog API",
+          version: "1.0.0",
+        }),
+      ).toBe(false);
+    } finally {
+      if (descriptor) Object.defineProperty(URL, "createObjectURL", descriptor);
+      else Reflect.deleteProperty(URL, "createObjectURL");
+    }
+  });
 });
