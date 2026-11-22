@@ -39,7 +39,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 let fallbackIdSequence = 0;
 
 function createId(prefix: string) {
-  const randomUuid = globalThis.crypto?.randomUUID?.();
+  let randomUuid: string | undefined;
+  try {
+    randomUuid = globalThis.crypto?.randomUUID?.();
+  } catch {
+    // Keep environment and header creation available when UUID access is blocked.
+  }
 
   return randomUuid
     ? `${prefix}-${randomUuid}`
