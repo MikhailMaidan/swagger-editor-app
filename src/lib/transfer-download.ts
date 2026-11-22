@@ -2,13 +2,14 @@ export function downloadTransferBytes(
   bytes: Uint8Array,
   fileName: string,
 ): boolean {
-  if (
-    typeof document === "undefined" ||
-    typeof URL.createObjectURL !== "function"
-  )
-    return false;
   let url = "";
   try {
+    if (
+      typeof document === "undefined" ||
+      typeof URL === "undefined" ||
+      typeof URL.createObjectURL !== "function"
+    )
+      return false;
     url = URL.createObjectURL(
       new Blob([new Uint8Array(bytes).buffer], {
         type: "application/octet-stream",
