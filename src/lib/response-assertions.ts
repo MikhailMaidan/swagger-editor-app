@@ -235,14 +235,7 @@ export function evaluateResponseAssertions(
     return rules.map(() => ({ outcome: "error", issue: "invalid-rule" }));
   }
   let parsedBody: ReturnType<typeof parseBody> | undefined;
-  const headers = new Map<string, string>();
-  for (const [name, value] of Object.entries(response.headers)) {
-    const key = name.trim().toLowerCase();
-    headers.set(
-      key,
-      headers.has(key) ? `${headers.get(key)}, ${value.trim()}` : value.trim(),
-    );
-  }
+  let headers: Map<string, string> | undefined;
   return rules.map((rule): AssertionResult => {
     const invalid = validateResponseAssertion(rule);
     if (invalid) return { outcome: "error", issue: invalid };
@@ -252,6 +245,18 @@ export function evaluateResponseAssertions(
       if (!parsedBody.ok) return { outcome: "error", issue: parsedBody.issue };
       selected = resolvePointer(parsedBody.value, rule.path);
     } else if (rule.target === "header") {
+      if (!headers) {
+        headers = new Map<string, string>();
+        for (const [name, value] of Object.entries(response.headers)) {
+          const key = name.trim().toLowerCase();
+          headers.set(
+            key,
+            headers.has(key)
+              ? `${headers.get(key)}, ${value.trim()}`
+              : value.trim(),
+          );
+        }
+      }
       const key = rule.path.toLowerCase();
       selected = { exists: headers.has(key), value: headers.get(key) };
     } else {
