@@ -129,4 +129,21 @@ describe("schema download helpers", () => {
       URL.createObjectURL = originalCreateObjectURL;
     }
   });
+
+  it("returns failure when checking download API availability throws", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      get() {
+        throw new DOMException("Download access blocked", "SecurityError");
+      },
+    });
+
+    try {
+      expect(downloadSchemaFile("openapi: 3.0.0", "Demo", "yaml")).toBe(false);
+    } finally {
+      if (descriptor) Object.defineProperty(URL, "createObjectURL", descriptor);
+      else Reflect.deleteProperty(URL, "createObjectURL");
+    }
+  });
 });

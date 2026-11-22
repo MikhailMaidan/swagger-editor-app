@@ -72,17 +72,17 @@ export function downloadTextFile(
   fileName: string,
   contentType: string,
 ) {
-  if (
-    typeof document === "undefined" ||
-    typeof URL === "undefined" ||
-    typeof URL.createObjectURL !== "function"
-  ) {
-    return false;
-  }
-
   let objectUrl = "";
 
   try {
+    if (
+      typeof document === "undefined" ||
+      typeof URL === "undefined" ||
+      typeof URL.createObjectURL !== "function"
+    ) {
+      return false;
+    }
+
     objectUrl = URL.createObjectURL(new Blob([content], { type: contentType }));
     const link = document.createElement("a");
 
