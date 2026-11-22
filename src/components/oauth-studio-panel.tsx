@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -268,7 +269,7 @@ export const OAuthStudioPanel = memo(function OAuthStudioPanel({
   function addProfile() {
     try {
       const p = normalizeOAuthProfile({
-          ...defaultOAuthProfile(crypto.randomUUID()),
+          ...defaultOAuthProfile(randomUuid()),
           name: `OAuth client ${project.profiles.length + 1}`,
         }),
         next = checked({ ...project, profiles: [...project.profiles, p] });

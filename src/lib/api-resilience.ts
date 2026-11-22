@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import { parseTransformValue } from "./api-transform";
 import { getByteSize } from "./text-encoding";
 
@@ -1069,7 +1070,7 @@ export function resilienceFromHar(source: string): ResilienceScenario {
   });
   const origin = Math.min(...entries.map((e) => e.time));
   return normalizeResilienceScenario({
-    ...defaultResilienceScenario(crypto.randomUUID(), "Recorded HAR arrivals"),
+    ...defaultResilienceScenario(randomUuid(), "Recorded HAR arrivals"),
     arrivals: entries.map((e, i) => ({
       id: `har-${i + 1}`,
       name: `Recorded request ${i + 1}`,

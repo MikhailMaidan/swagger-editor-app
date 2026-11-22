@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -527,11 +528,11 @@ export const ApiResiliencePanel = memo(function ApiResiliencePanel() {
       const s = duplicate
         ? {
             ...selectedScenario,
-            id: crypto.randomUUID(),
+            id: randomUuid(),
             name: `${selectedScenario.name.slice(0, 105)} (copy)`,
           }
         : defaultResilienceScenario(
-            crypto.randomUUID(),
+            randomUuid(),
             `Scenario ${project.scenarios.length + 1}`,
           );
       const next = parseResilienceProject(
@@ -550,11 +551,11 @@ export const ApiResiliencePanel = memo(function ApiResiliencePanel() {
       const p = duplicate
         ? {
             ...selectedPolicy,
-            id: crypto.randomUUID(),
+            id: randomUuid(),
             name: `${selectedPolicy.name.slice(0, 105)} (copy)`,
           }
         : defaultResiliencePolicy(
-            crypto.randomUUID(),
+            randomUuid(),
             `Policy ${project.policies.length + 1}`,
           );
       const next = parseResilienceProject(

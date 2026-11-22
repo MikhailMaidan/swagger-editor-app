@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import { executePayloadMapping } from "./payload-mapping-runtime";
 import {
   parseTransformPointer,
@@ -776,7 +777,7 @@ export function createMappingModule(recipe: MappingRecipe): string {
 }
 export function newMappingRule(): MappingRule {
   return {
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     enabled: true,
     source: "",
     target: "/value",
@@ -788,7 +789,7 @@ export function newMappingRule(): MappingRule {
 }
 export function newMappingStage(): MappingStage {
   return {
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     name: "Mapping stage",
     enabled: true,
     base: "object",

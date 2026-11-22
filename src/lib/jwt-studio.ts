@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import { parseTransformValue, type JsonValue } from "./api-transform";
 import { getByteSize } from "./text-encoding";
 
@@ -366,7 +367,7 @@ export function parseJwtKeys(
     if (!record(raw)) throw new JwtError("key");
     const alg = raw.alg === undefined ? defaultAlgorithm : raw.alg;
     const key = normalizeJwtKey({
-      id: crypto.randomUUID(),
+      id: randomUuid(),
       name: `${name}${list.length > 1 ? ` ${keys.length + 1}` : ""}`.slice(
         0,
         120,
@@ -378,7 +379,7 @@ export function parseJwtKeys(
     if (jwtKeyKind(key) === "private")
       keys.push({
         ...jwtPublicKey(key),
-        id: crypto.randomUUID(),
+        id: randomUuid(),
         name: `${key.name} (public)`.slice(0, 120),
       });
   }
@@ -401,7 +402,7 @@ export function jwtSecretKey(
   const bytes =
     encoding === "base64url" ? jwtDecode(source, 128) : utf8(source);
   return normalizeJwtKey({
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     name,
     algorithm: "HS256",
     jwk: {
@@ -454,7 +455,7 @@ export async function generateJwtKeys(
       const jwk = await subtle().exportKey("jwk", key);
       keys.push(
         normalizeJwtKey({
-          id: crypto.randomUUID(),
+          id: randomUuid(),
           name: `${name}${list.length > 1 ? (key.type === "private" ? " (private)" : " (public)") : ""}`.slice(
             0,
             120,
@@ -959,7 +960,7 @@ export async function demoJwtProject(): Promise<JwtProject> {
     ["Not active yet", early, "rejected"],
     ["Tampered claims", parts.join("."), "rejected"],
   ].map(([name, token, expected]) => ({
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     name,
     token,
     keyId: "",

@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -52,7 +53,7 @@ const inputClass =
   "mt-1 w-full min-w-0 rounded-lg border border-[color:var(--color-brand-border)] bg-white p-2 text-xs";
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 const newCase = (token = ""): JwtCase => ({
-  id: crypto.randomUUID(),
+  id: randomUuid(),
   name: "Verification case",
   token,
   keyId: "",

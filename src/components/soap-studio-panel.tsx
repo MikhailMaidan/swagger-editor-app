@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -303,7 +304,7 @@ export const SoapStudioPanel = memo(function SoapStudioPanel() {
       }
       const next = normalizeSoapCase(
         {
-          id: crypto.randomUUID(),
+          id: randomUuid(),
           name: `Response ${project.cases.length + 1}`,
           operationId,
           response: xml,

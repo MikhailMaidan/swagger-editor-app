@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -268,11 +269,11 @@ export const StreamingHttpPanel = memo(function StreamingHttpPanel() {
       const c = duplicate
         ? {
             ...savedCase,
-            id: crypto.randomUUID(),
+            id: randomUuid(),
             name: `${savedCase.name.slice(0, 105)} (copy)`,
           }
         : defaultStreamCase(
-            crypto.randomUUID(),
+            randomUuid(),
             `Replay case ${project.cases.length + 1}`,
           );
       const next = parseStreamProject(

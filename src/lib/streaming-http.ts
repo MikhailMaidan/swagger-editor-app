@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import { parseTransformValue } from "./api-transform";
 import {
   evaluateResponseAssertions,
@@ -980,7 +981,7 @@ export function streamCaseFromTranscript(
     )
     .join("");
   return normalizeStreamCase({
-    ...defaultStreamCase(crypto.randomUUID(), "Captured stream records"),
+    ...defaultStreamCase(randomUuid(), "Captured stream records"),
     format: t.format,
     wire,
     minRecords: t.records.length,

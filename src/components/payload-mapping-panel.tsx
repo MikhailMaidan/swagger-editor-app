@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import {
@@ -292,7 +293,7 @@ export const PayloadMappingPanel = memo(function PayloadMappingPanel({
         throw new MappingError("case");
       parseMappingInput(project.input);
       const c: MappingCase = {
-        id: crypto.randomUUID(),
+        id: randomUuid(),
         name: caseName,
         input: project.input,
         expected: run ? JSON.stringify(run.execution.output, null, 2) : "",

@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -653,7 +654,7 @@ export const WebSocketStudioPanel = memo(function WebSocketStudioPanel() {
                 "wsStudio.addConversation",
                 () => {
                   const c = {
-                    id: crypto.randomUUID(),
+                    id: randomUuid(),
                     name: "Conversation",
                     steps: [],
                   };
@@ -671,11 +672,11 @@ export const WebSocketStudioPanel = memo(function WebSocketStudioPanel() {
                 () => {
                   const c = {
                     ...conversation,
-                    id: crypto.randomUUID(),
+                    id: randomUuid(),
                     name: `${conversation.name} copy`.slice(0, 120),
                     steps: conversation.steps.map((s) => ({
                       ...s,
-                      id: crypto.randomUUID(),
+                      id: randomUuid(),
                     })),
                   };
                   editProject({

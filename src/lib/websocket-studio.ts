@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import {
   parseTransformPointer,
   parseTransformValue,
@@ -398,7 +399,7 @@ export function newWsStep(type: "pause"): Extract<WsStep, { type: "pause" }>;
 export function newWsStep(type: WsStep["type"]): WsStep;
 export function newWsStep(type: WsStep["type"]): WsStep {
   const base = {
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     name:
       type === "send"
         ? "Send message"
@@ -435,7 +436,7 @@ export function emptyWsProject(): WsProject {
     },
     variables: {},
     conversations: [
-      { id: crypto.randomUUID(), name: "Conversation", steps: [] },
+      { id: randomUuid(), name: "Conversation", steps: [] },
     ],
     fixtures: [],
   };
@@ -779,7 +780,7 @@ export function conversationFromWsTranscript(
   const clean = parseWsTranscript(serializeWsTranscript(messages));
   if (!clean.length || clean.length > MAX_WS_STEPS) throw new WsError("limit");
   return validateWsConversation({
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     name: "Recorded conversation",
     steps: clean.map((m) =>
       m.direction === "send"

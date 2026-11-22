@@ -1,5 +1,6 @@
 "use client";
 
+import { randomUuid } from "@/lib/random-id";
 import { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 import { downloadTextFile } from "@/lib/schema-download";
@@ -239,7 +240,7 @@ export const ApiCollectionPanel = memo(function ApiCollectionPanel() {
   function addPlan() {
     try {
       const next = {
-        ...defaultCollectionPlan(crypto.randomUUID()),
+        ...defaultCollectionPlan(randomUuid()),
         name: `Collection ${project.plans.length + 1}`,
       };
       const p = checked({ ...project, plans: [...project.plans, next] });
@@ -263,7 +264,7 @@ export const ApiCollectionPanel = memo(function ApiCollectionPanel() {
   }
   function addFixture() {
     try {
-      const id = crypto.randomUUID(),
+      const id = randomUuid(),
         url = new URL(collectionStartUrl(selected));
       if (
         project.fixtures.some(
@@ -372,7 +373,7 @@ export const ApiCollectionPanel = memo(function ApiCollectionPanel() {
             id: fixtures[index].id,
             name: fixtures[index].name,
           };
-        else fixtures.push({ ...f, id: crypto.randomUUID() });
+        else fixtures.push({ ...f, id: randomUuid() });
       }
       const p = checked({ ...project, fixtures });
       setProject(p);

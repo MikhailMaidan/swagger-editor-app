@@ -1,3 +1,4 @@
+import { randomUuid } from "./random-id";
 import * as protobuf from "protobufjs";
 import {
   parseTransformValue,
@@ -1181,7 +1182,7 @@ export function saveProtoCase(
     throw new ProtoStudioError("case");
   if (!id && project.cases.length >= MAX_PROTO_CASES)
     throw new ProtoStudioError("limit");
-  const item = { ...project.draft, id: id || crypto.randomUUID() };
+  const item = { ...project.draft, id: id || randomUuid() };
   return {
     ...project,
     cases: id
