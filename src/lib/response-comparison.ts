@@ -230,7 +230,10 @@ export function compareResponses(
   };
   try {
     beforeBody = JSON.parse(baseline.body.replace(/^\uFEFF/, ""), revive);
-    afterBody = JSON.parse(current.body.replace(/^\uFEFF/, ""), revive);
+    afterBody =
+      baseline.body === current.body
+        ? beforeBody
+        : JSON.parse(current.body.replace(/^\uFEFF/, ""), revive);
     // Comparing rounded large IDs could incorrectly report equality.
     if (unsafeNumber) {
       if (baseline.body !== current.body)

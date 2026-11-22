@@ -42,6 +42,39 @@ describe("response comparison", () => {
   });
 
   it.each([
+    ["structured JSON", '{"items":[1,true,null,"😀"]}', "json", false],
+    ["JSON with a byte-order mark", '\uFEFF{"id":1}', "json", false],
+    ["unsafe numeric IDs", '{"id":9007199254740993}', "text", false],
+    ["overflowing numbers", "1e999", "text", false],
+    ["plain text", "not JSON", "text", false],
+    [
+      "oversized bodies",
+      "x".repeat(MAX_COMPARISON_BODY_BYTES + 1),
+      "too-large",
+      true,
+    ],
+  ])(
+    "preserves classification and metadata comparisons for identical %s",
+    (_label, body, bodyMode, limited) => {
+      const report = compareResponses(
+        response(body, { headers: { "X-Version": "1" } }),
+        response(body, {
+          headers: { "X-Version": "2" },
+          status: "201",
+          durationMs: 35,
+        }),
+      );
+
+      expect(report).toMatchObject({ bodyMode, limited, durationDeltaMs: 25 });
+      expect(report.differences).toEqual([
+        expect.objectContaining({ area: "status", path: "/status" }),
+        expect.objectContaining({ area: "headers", path: "/x-version" }),
+      ]);
+      expect(report.baseline.bodyBytes).toBe(report.current.bodyBytes);
+    },
+  );
+
+  it.each([
     ["\uFEFF", ""],
     ["", "\uFEFF"],
     ["\uFEFF", "\uFEFF"],
