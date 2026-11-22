@@ -232,6 +232,79 @@ describe("ResponseComparisonPanel", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
+  it.each(["copy", "download"] as const)(
+    "keeps the latest %s feedback when an earlier copy completes later",
+    async (action) => {
+      let resolve!: (value: boolean) => void;
+      vi.mocked(writeTextToClipboard).mockImplementationOnce(
+        () =>
+          new Promise((done) => {
+            resolve = done;
+          }),
+      );
+      const { user } = await compare();
+      await user.click(
+        screen.getByRole("button", { name: "Copy comparison report" }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name:
+            action === "copy"
+              ? "Copy comparison report"
+              : "Download comparison report",
+        }),
+      );
+      const message =
+        action === "copy"
+          ? "Response comparison copied."
+          : "Response comparison download started.";
+      expect(screen.getByRole("status")).toHaveTextContent(message);
+
+      await act(async () => resolve(false));
+
+      expect(screen.getByRole("status")).toHaveTextContent(message);
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    },
+  );
+
+  it.each(["replace", "clear"] as const)(
+    "ignores a pending copy after a baseline %s even when report content is unchanged",
+    async (action) => {
+      let resolve!: (value: boolean) => void;
+      vi.mocked(writeTextToClipboard).mockImplementationOnce(
+        () =>
+          new Promise((done) => {
+            resolve = done;
+          }),
+      );
+      const user = userEvent.setup();
+      render(panel(before));
+      await user.click(
+        screen.getByRole("button", { name: "Pin response baseline" }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Copy comparison report" }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name:
+            action === "replace"
+              ? "Use current as baseline"
+              : "Clear response baseline",
+        }),
+      );
+      if (action === "clear") {
+        await user.click(
+          screen.getByRole("button", { name: "Pin response baseline" }),
+        );
+      }
+
+      await act(async () => resolve(true));
+
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    },
+  );
+
   it("explains mixed modes, text comparisons, unavailable timing, and size limits", async () => {
     const { rerender } = await compare();
     rerender(

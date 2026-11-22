@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useId, useMemo, useState } from "react";
+import { memo, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
@@ -47,6 +47,7 @@ export const ResponseComparisonPanel = memo(function ResponseComparisonPanel({
   const [kind, setKind] = useState("all");
   const [search, setSearch] = useState("");
   const [includeValues, setIncludeValues] = useState(false);
+  const exportGeneration = useRef(0);
   const [feedback, setFeedback] = useState<{
     content: string;
     key: TranslationKey;
@@ -100,6 +101,7 @@ export const ResponseComparisonPanel = memo(function ResponseComparisonPanel({
 
   function pin() {
     if (!response) return;
+    exportGeneration.current += 1;
     // Copy only response fields. Request bodies, parameters, and URLs are not
     // retained by this workbench, even if the caller supplies a richer object.
     setBaseline({
@@ -114,7 +116,9 @@ export const ResponseComparisonPanel = memo(function ResponseComparisonPanel({
 
   async function copy() {
     if (!reportJson) return;
+    const generation = ++exportGeneration.current;
     const success = await writeTextToClipboard(reportJson);
+    if (generation !== exportGeneration.current) return;
     setFeedback({
       content: reportJson,
       key: success ? "comparison.copySuccess" : "comparison.copyError",
@@ -124,6 +128,7 @@ export const ResponseComparisonPanel = memo(function ResponseComparisonPanel({
 
   function download() {
     if (!reportJson) return;
+    exportGeneration.current += 1;
     const slug = `${endpoint.method}-${endpoint.path}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -174,6 +179,7 @@ export const ResponseComparisonPanel = memo(function ResponseComparisonPanel({
               className={buttonClass}
               type="button"
               onClick={() => {
+                exportGeneration.current += 1;
                 setBaseline(null);
                 setFeedback(null);
               }}
