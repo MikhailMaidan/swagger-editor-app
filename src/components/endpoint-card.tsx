@@ -128,6 +128,8 @@ const parameterValidationMessageKeys: Record<
 > = {
   boolean: "workspace.parameterBoolean",
   enum: "workspace.parameterEnum",
+  "exclusive-maximum": "workspace.parameterExclusiveMaximum",
+  "exclusive-minimum": "workspace.parameterExclusiveMinimum",
   integer: "workspace.parameterInteger",
   maximum: "workspace.parameterMaximum",
   "max-length": "workspace.parameterMaxLength",

@@ -4448,6 +4448,9 @@ export const translations = {
     "workspace.parameterExamplePlaceholder": "Example: {value}",
     "workspace.parameterBoolean": "{name} must be true or false.",
     "workspace.parameterEnum": "{name} must be one of: {values}.",
+    "workspace.parameterExclusiveMaximum": "{name} must be less than {maximum}.",
+    "workspace.parameterExclusiveMinimum":
+      "{name} must be greater than {minimum}.",
     "workspace.parameterInputLabel": "{location} parameter {name}",
     "workspace.parameterInteger": "{name} must be a whole number.",
     "workspace.parameterMaximum": "{name} must be at most {maximum}.",
@@ -9755,6 +9758,10 @@ export const translations = {
       "Параметр {name} должен быть равен true или false.",
     "workspace.parameterEnum":
       "Параметр {name} должен иметь одно из значений: {values}.",
+    "workspace.parameterExclusiveMaximum":
+      "Параметр {name} должен быть меньше {maximum}.",
+    "workspace.parameterExclusiveMinimum":
+      "Параметр {name} должен быть больше {minimum}.",
     "workspace.parameterInputLabel": "{location} параметр {name}",
     "workspace.parameterInteger": "Параметр {name} должен быть целым числом.",
     "workspace.parameterMaximum":

@@ -11,6 +11,9 @@ export type EndpointParameter = {
   example: string;
   required: boolean;
   enumValues?: string[];
+  /** Normalized exclusive bounds: a value must be strictly greater / less. */
+  exclusiveMaximum?: number;
+  exclusiveMinimum?: number;
   maximum?: number;
   maxLength?: number;
   minimum?: number;
@@ -539,6 +542,17 @@ function readFiniteNumber(value: unknown) {
     : undefined;
 }
 
+function readExclusiveBound(exclusive: unknown, inclusive: unknown) {
+  // OpenAPI 3.1 / JSON Schema: the exclusive bound is itself a number.
+  const numericBound = readFiniteNumber(exclusive);
+  if (numericBound !== undefined) {
+    return numericBound;
+  }
+
+  // OpenAPI 3.0: a boolean flag that makes `minimum`/`maximum` exclusive.
+  return exclusive === true ? readFiniteNumber(inclusive) : undefined;
+}
+
 function readNonNegativeInteger(value: unknown) {
   return typeof value === "number" && Number.isInteger(value) && value >= 0
     ? value
@@ -598,6 +612,14 @@ function normalizeParameters(
         parameter.example,
         parameterSchema.example,
         parameterSchema.default,
+      ),
+      exclusiveMaximum: readExclusiveBound(
+        parameterSchema.exclusiveMaximum,
+        parameterSchema.maximum,
+      ),
+      exclusiveMinimum: readExclusiveBound(
+        parameterSchema.exclusiveMinimum,
+        parameterSchema.minimum,
       ),
       location: parameter.in,
       maximum: readFiniteNumber(parameterSchema.maximum),

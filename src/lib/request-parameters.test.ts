@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EndpointParameter } from "./openapi";
+import { parseOpenApiSchema, type EndpointParameter } from "./openapi";
 import {
   getMissingRequiredParameterKeys,
   getRequestParameterValidationIssues,
@@ -227,6 +227,57 @@ describe("request parameter helpers", () => {
         "query:search": value,
       }),
     ).toEqual([]);
+  });
+
+  it.each([
+    [
+      "OpenAPI 3.0 boolean flags",
+      "3.0.3",
+      { minimum: 0, exclusiveMinimum: true, maximum: 100, exclusiveMaximum: true },
+    ],
+    [
+      "OpenAPI 3.1 numeric bounds",
+      "3.1.0",
+      { exclusiveMinimum: 0, exclusiveMaximum: 100 },
+    ],
+  ])("enforces exclusive bounds written as %s", (_label, version, bounds) => {
+    const result = parseOpenApiSchema(
+      JSON.stringify({
+        openapi: version,
+        info: { title: "Bounds", version: "1.0.0" },
+        paths: {
+          "/items": {
+            get: {
+              parameters: [
+                {
+                  in: "query",
+                  name: "limit",
+                  schema: { type: "integer", ...bounds },
+                },
+              ],
+              responses: { "200": { description: "OK" } },
+            },
+          },
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const [limit] = result.value.endpoints[0].parameters;
+    const validate = (value: string) =>
+      getRequestParameterValidationIssues([limit], {
+        "query:limit": value,
+      }).map((issue) => issue.code);
+
+    expect(validate("0")).toEqual(["exclusive-minimum"]);
+    expect(validate("-5")).not.toEqual([]);
+    expect(validate("100")).toEqual(["exclusive-maximum"]);
+    expect(validate("1")).toEqual([]);
+    expect(validate("99")).toEqual([]);
   });
 
   it("validates boolean values and ignores empty optional parameters", () => {

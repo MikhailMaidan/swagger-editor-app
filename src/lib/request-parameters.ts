@@ -13,6 +13,8 @@ type FallbackRequestParameter = {
 export type RequestParameterValidationCode =
   | "boolean"
   | "enum"
+  | "exclusive-maximum"
+  | "exclusive-minimum"
   | "integer"
   | "maximum"
   | "max-length"
@@ -137,9 +139,27 @@ function validateParameterValue(
       });
     }
 
+    if (
+      parameter.exclusiveMinimum !== undefined &&
+      numericValue <= parameter.exclusiveMinimum
+    ) {
+      return createIssue(parameter, "exclusive-minimum", {
+        minimum: String(parameter.exclusiveMinimum),
+      });
+    }
+
     if (parameter.maximum !== undefined && numericValue > parameter.maximum) {
       return createIssue(parameter, "maximum", {
         maximum: String(parameter.maximum),
+      });
+    }
+
+    if (
+      parameter.exclusiveMaximum !== undefined &&
+      numericValue >= parameter.exclusiveMaximum
+    ) {
+      return createIssue(parameter, "exclusive-maximum", {
+        maximum: String(parameter.exclusiveMaximum),
       });
     }
   }
