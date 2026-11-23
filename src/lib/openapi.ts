@@ -224,6 +224,22 @@ function readString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
+function readSchemaType(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  // OpenAPI 3.1 dropped `nullable` in favour of type arrays such as
+  // ["integer", "null"]. Collapse those to their single concrete type so the
+  // parameter keeps its controls and validation; a genuine union such as
+  // ["integer", "string"] stays untyped rather than rejecting valid input.
+  const concreteTypes = readStringArray(value).filter(
+    (type) => type !== "null",
+  );
+
+  return concreteTypes.length === 1 ? concreteTypes[0] : "";
+}
+
 function readStringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
@@ -629,7 +645,7 @@ function normalizeParameters(
       name: readString(parameter.name, "Unnamed parameter"),
       pattern: readString(parameterSchema.pattern),
       required: parameter.required === true || parameter.in === "path",
-      type: readString(parameterSchema.type),
+      type: readSchemaType(parameterSchema.type),
     });
 
     return parameters;

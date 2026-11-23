@@ -280,6 +280,64 @@ describe("request parameter helpers", () => {
     expect(validate("99")).toEqual([]);
   });
 
+  it("keeps the concrete type of OpenAPI 3.1 nullable type arrays", () => {
+    const result = parseOpenApiSchema(
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: { title: "Nullable", version: "1.0.0" },
+        paths: {
+          "/items": {
+            get: {
+              parameters: [
+                {
+                  in: "query",
+                  name: "limit",
+                  schema: { type: ["integer", "null"], minimum: 1 },
+                },
+                {
+                  in: "query",
+                  name: "verbose",
+                  schema: { type: ["null", "boolean"] },
+                },
+                {
+                  in: "query",
+                  name: "token",
+                  schema: { type: ["integer", "string"] },
+                },
+              ],
+              responses: { "200": { description: "OK" } },
+            },
+          },
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const [limit, verbose, token] = result.value.endpoints[0].parameters;
+    expect([limit.type, verbose.type, token.type]).toEqual([
+      "integer",
+      "boolean",
+      "",
+    ]);
+
+    const codes = (parameter: EndpointParameter, value: string) =>
+      getRequestParameterValidationIssues([parameter], {
+        [getRequestParameterKey(parameter)]: value,
+      }).map((issue) => issue.code);
+
+    expect(codes(limit, "2.5")).toEqual(["integer"]);
+    expect(codes(limit, "0")).toEqual(["minimum"]);
+    expect(codes(limit, "3")).toEqual([]);
+    expect(codes(verbose, "yes")).toEqual(["boolean"]);
+    // A genuine union must not reject values valid for one of its members.
+    expect(codes(token, "abc")).toEqual([]);
+    expect(codes(token, "42")).toEqual([]);
+  });
+
   it("validates boolean values and ignores empty optional parameters", () => {
     const booleanParameter: EndpointParameter = {
       description: "",
