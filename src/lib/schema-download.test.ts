@@ -24,9 +24,20 @@ describe("schema download helpers", () => {
   );
 
   it("falls back to a safe YAML filename for unsupported title characters", () => {
-    expect(getSchemaDownloadMetadata("Схема", "yaml")).toEqual({
+    expect(getSchemaDownloadMetadata("🚀 / : ? *", "yaml")).toEqual({
       contentType: "application/yaml",
       fileName: "openapi-schema.yaml",
+    });
+  });
+
+  it.each([
+    ["Схема / v2", "схема-v2.yaml"],
+    ["利用者 API", "利用者-api.yaml"],
+    ["Cafe\u0301", "café.yaml"],
+  ])("keeps Unicode title %s readable in filenames", (title, fileName) => {
+    expect(getSchemaDownloadMetadata(title, "yaml")).toEqual({
+      contentType: "application/yaml",
+      fileName,
     });
   });
 
@@ -55,6 +66,15 @@ describe("schema download helpers", () => {
     expect(
       getSchemaDownloadMetadata(`${"B".repeat(119)} / API`, "yaml").fileName,
     ).toBe(`${"b".repeat(119)}.yaml`);
+  });
+
+  it("keeps complete Unicode letters at the filename length boundary", () => {
+    expect(
+      getSchemaDownloadMetadata(`${"A".repeat(118)}\u{10400}`, "json").fileName,
+    ).toBe(`${"a".repeat(118)}\u{10428}.json`);
+    expect(
+      getSchemaDownloadMetadata(`${"A".repeat(119)}\u{10400}`, "json").fileName,
+    ).toBe(`${"a".repeat(119)}.json`);
   });
 
   it("creates a dated, versioned export of saved schema records", () => {

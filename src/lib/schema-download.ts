@@ -15,10 +15,12 @@ export type SchemaCollectionExportScope = "all" | "visible";
 
 function slugifyTitle(title: string) {
   const slug = title
+    .normalize("NFC")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{L}\p{M}0-9]+/gu, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 120)
+    .replace(/[\uD800-\uDBFF]$/u, "")
     .replace(/-+$/g, "");
 
   // Windows device names remain reserved even with a file extension.
