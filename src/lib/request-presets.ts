@@ -135,7 +135,12 @@ function sanitizeRequestPreset(value: unknown): RequestPreset | null {
 let fallbackIdSequence = 0;
 
 function createId() {
-  const randomUuid = globalThis.crypto?.randomUUID?.();
+  let randomUuid: string | undefined;
+  try {
+    randomUuid = globalThis.crypto?.randomUUID?.();
+  } catch {
+    // Keep preset creation available when UUID access or generation is blocked.
+  }
 
   return randomUuid
     ? `preset-${randomUuid}`
