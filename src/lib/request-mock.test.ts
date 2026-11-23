@@ -201,6 +201,39 @@ describe("schema mock responses", () => {
     ).toMatchObject({ body: "", generated: false });
   });
 
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "generates property %s safely with partial or explicit type metadata",
+    (property) => {
+      const schema = {
+        example: "",
+        exampleName: "",
+        properties: ["id", property],
+        propertyTypes: { id: "integer" },
+        type: "object",
+      };
+      const response = createResponse({ schema });
+
+      expect(
+        JSON.parse(createSchemaMockResponse(response, "fallback").body),
+      ).toEqual(
+        Object.fromEntries([
+          ["id", 0],
+          [property, null],
+        ]),
+      );
+
+      schema.propertyTypes = { ...schema.propertyTypes, [property]: "string" };
+      expect(
+        JSON.parse(createSchemaMockResponse(response, "fallback").body),
+      ).toEqual(
+        Object.fromEntries([
+          ["id", 0],
+          [property, "string"],
+        ]),
+      );
+    },
+  );
+
   it.each(["application/json", "application/problem+json", "text/json"])(
     "generates JSON null for a null schema with media type %s",
     (contentType) => {

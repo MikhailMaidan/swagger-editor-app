@@ -54,6 +54,42 @@ function firstRequest(build: ReturnType<typeof createPostmanCollection>) {
 }
 
 describe("createPostmanCollection", () => {
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "generates request property %s safely when its type metadata is missing",
+    (property) => {
+      const build = createPostmanCollection(
+        [
+          endpoint({
+            method: "POST",
+            requestBodies: [
+              {
+                contentType: "application/json",
+                description: "",
+                required: true,
+                schema: {
+                  example: "",
+                  exampleName: "",
+                  properties: ["id", property],
+                  propertyTypes: { id: "integer" },
+                  type: "object",
+                },
+              },
+            ],
+          }),
+        ],
+        [],
+        { serverUrl: "", title: "API", version: "1" },
+      );
+
+      expect(JSON.parse(firstRequest(build).request.body!.raw)).toEqual(
+        Object.fromEntries([
+          ["id", 0],
+          [property, null],
+        ]),
+      );
+    },
+  );
+
   it("groups operations by their primary tag and preserves parameters", () => {
     const build = createPostmanCollection(
       [

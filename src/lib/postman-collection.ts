@@ -341,7 +341,12 @@ function createRequestBodyExample(schema: SchemaDetails, contentType: string) {
       Object.fromEntries(
         schema.properties.map((property) => [
           property,
-          createGeneratedValue(schema.propertyTypes?.[property] ?? "unknown"),
+          createGeneratedValue(
+            schema.propertyTypes &&
+              Object.hasOwn(schema.propertyTypes, property)
+              ? (schema.propertyTypes[property] ?? "unknown")
+              : "unknown",
+          ),
         ]),
       ),
       null,

@@ -51,7 +51,10 @@ function createGeneratedResponseBody(
         schema.properties.map((property) => [
           property,
           createGeneratedPropertyValue(
-            schema.propertyTypes?.[property] ?? "unknown",
+            schema.propertyTypes &&
+              Object.hasOwn(schema.propertyTypes, property)
+              ? (schema.propertyTypes[property] ?? "unknown")
+              : "unknown",
           ),
         ]),
       ),
