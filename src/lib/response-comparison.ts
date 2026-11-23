@@ -85,12 +85,12 @@ function measuredDuration(value: number) {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function metadata(response: ComparisonResponse) {
+function metadata(response: ComparisonResponse, bodyBytes: number) {
   return {
     status: response.status,
     source: response.source,
     durationMs: measuredDuration(response.durationMs),
-    bodyBytes: getByteSize(response.body),
+    bodyBytes,
   };
 }
 
@@ -132,12 +132,18 @@ export function compareResponses(
       ),
     ].slice(0, 64),
   };
+  const baselineBodyBytes = getByteSize(baseline.body);
   const report: ResponseComparison = {
     differences: [],
     bodyMode: "text",
     limited: false,
-    baseline: metadata(baseline),
-    current: metadata(current),
+    baseline: metadata(baseline, baselineBodyBytes),
+    current: metadata(
+      current,
+      baseline.body === current.body
+        ? baselineBodyBytes
+        : getByteSize(current.body),
+    ),
     durationDeltaMs: null,
     options: normalizedOptions,
   };
