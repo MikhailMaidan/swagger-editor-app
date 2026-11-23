@@ -60,17 +60,17 @@ export function downloadHtmlDocumentationFile(
 }
 
 export function previewHtmlDocumentation(build: HtmlDocumentationBuild) {
-  if (
-    typeof window === "undefined" ||
-    typeof URL === "undefined" ||
-    typeof URL.createObjectURL !== "function"
-  ) {
-    return false;
-  }
-
   let objectUrl = "";
 
   try {
+    if (
+      typeof window === "undefined" ||
+      typeof URL === "undefined" ||
+      typeof URL.createObjectURL !== "function"
+    ) {
+      return false;
+    }
+
     objectUrl = URL.createObjectURL(
       new Blob([build.html], { type: "text/html;charset=utf-8" }),
     );

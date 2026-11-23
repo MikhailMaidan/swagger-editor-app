@@ -101,4 +101,23 @@ describe("HTML documentation export", () => {
       URL.revokeObjectURL = originalRevokeObjectURL;
     }
   });
+
+  it("returns failure when checking preview API availability throws", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      get() {
+        throw new DOMException("Preview access blocked", "SecurityError");
+      },
+    });
+
+    try {
+      expect(previewHtmlDocumentation(build)).toBe(false);
+      expect(open).not.toHaveBeenCalled();
+    } finally {
+      if (descriptor) Object.defineProperty(URL, "createObjectURL", descriptor);
+      else Reflect.deleteProperty(URL, "createObjectURL");
+    }
+  });
 });
