@@ -6,6 +6,29 @@ import type { RequestHistoryRecord } from "@/lib/request-history";
 import { HistoryDetails } from "./history-details";
 
 describe("HistoryDetails", () => {
+  it("shows unavailable durations while preserving valid zero-length measurements", () => {
+    const record: RequestHistoryRecord = {
+      createdAt: "2026-07-11T08:00:00.000Z",
+      durationMs: 0,
+      errorDetails: null,
+      id: "history-timing",
+      method: "GET",
+      path: "/timing",
+      requestSize: 0,
+      responseSize: 0,
+      status: 200,
+      summary: "Timing request",
+      url: "/timing",
+    };
+    const { rerender } = render(<HistoryDetails record={record} />);
+
+    expect(screen.getByText("0 ms")).toBeVisible();
+    for (const durationMs of [-1, NaN, Infinity, -Infinity]) {
+      rerender(<HistoryDetails record={{ ...record, durationMs }} />);
+      expect(screen.getByText("—")).toBeVisible();
+    }
+  });
+
   it("shows every required server analytics field", () => {
     render(
       <HistoryDetails

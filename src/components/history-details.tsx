@@ -98,7 +98,11 @@ export function HistoryDetails({
             <Detail label={t("history.summary")} value={record.summary} />
             <Detail
               label={t("history.duration")}
-              value={`${record.durationMs} ms`}
+              value={
+                Number.isFinite(record.durationMs) && record.durationMs >= 0
+                  ? `${record.durationMs} ms`
+                  : "—"
+              }
             />
             <Detail
               label={t("history.timestamp")}

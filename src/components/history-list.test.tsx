@@ -18,6 +18,23 @@ const localRecord = {
 };
 
 describe("HistoryList", () => {
+  it("shows unavailable durations without hiding records or zero-length measurements", () => {
+    render(
+      <HistoryList
+        initialRecords={[-1, Infinity, 0].map((durationMs, index) => ({
+          ...localRecord,
+          id: `timing-${index}`,
+          durationMs,
+          errorDetails: null,
+          url: `/timing/${index}`,
+        }))}
+      />,
+    );
+
+    expect(screen.getAllByRole("cell", { name: "—" })).toHaveLength(2);
+    expect(screen.getByRole("cell", { name: "0 ms" })).toBeVisible();
+  });
+
   it("filters a custom ALL method separately from the all-methods option", async () => {
     const user = userEvent.setup();
     render(

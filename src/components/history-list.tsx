@@ -553,7 +553,10 @@ export function HistoryList({
                     </span>
                   </td>
                   <td className="px-4 py-4 font-medium">
-                    {record.durationMs} ms
+                    {Number.isFinite(record.durationMs) &&
+                    record.durationMs >= 0
+                      ? `${record.durationMs} ms`
+                      : "—"}
                   </td>
                   <td className="px-4 py-4 font-medium">
                     {record.requestSize ?? 0} B
