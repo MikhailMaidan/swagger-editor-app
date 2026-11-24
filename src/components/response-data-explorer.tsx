@@ -117,9 +117,11 @@ function ExplorerContent({
   function download(kind: "json" | "csv") {
     exportGeneration.current += 1;
     const slug = `${endpoint.method}-${endpoint.path}`
+      .normalize("NFC")
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/[^\p{L}\p{M}0-9]+/gu, "-")
       .slice(0, 80)
+      .replace(/[\uD800-\uDBFF]$/u, "")
       .replace(/^-+|-+$/g, "");
     const content =
       kind === "csv" && table.ok
