@@ -22,11 +22,14 @@ export function sortSavedSchemaRecords(
   insightsById: ReadonlyMap<string, SavedSchemaSortInsight>,
 ) {
   const sortedSchemas = [...schemas];
-  const titleCollator = new Intl.Collator(locale, { numeric: true });
+  let titleCollator: Intl.Collator | undefined;
   const compareTitles = (
     firstSchema: SavedSchemaRecord,
     secondSchema: SavedSchemaRecord,
-  ) => titleCollator.compare(firstSchema.title, secondSchema.title);
+  ) => {
+    titleCollator ??= new Intl.Collator(locale, { numeric: true });
+    return titleCollator.compare(firstSchema.title, secondSchema.title);
+  };
 
   sortedSchemas.sort((firstSchema, secondSchema) => {
     if (sort === "title") {
