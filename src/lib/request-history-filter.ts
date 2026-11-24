@@ -105,6 +105,7 @@ export function filterRequestHistory(
 
     const searchableText = [
       record.id,
+      record.createdAt,
       record.method,
       record.path,
       record.url,
