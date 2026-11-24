@@ -128,6 +128,11 @@ describe("response contract checks", () => {
         "text/pl ain",
         "text/[plain]",
         "text/plain,application/json",
+        "*/*",
+        "text/*",
+        "*/plain",
+        "application/*+json",
+        " Text/*; charset=utf-8 ",
       ]) {
         const report = createResponseContractReport(
           [createResponse({ contentTypes: [documented], schema: null })],

@@ -1,8 +1,8 @@
 import type { ResponseSummary, SchemaDetails } from "./openapi";
 import { isJsonMediaType } from "./request-body";
 
-const MEDIA_TYPE_PATTERN =
-  /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+$/;
+// Actual response media types must be concrete; documented types may use wildcards.
+const MEDIA_TYPE_PATTERN = /^[!#$%&'+.^_`|~0-9a-z-]+\/[!#$%&'+.^_`|~0-9a-z-]+$/;
 
 export type ResponseContractCheckResult = "fail" | "pass" | "skipped";
 
