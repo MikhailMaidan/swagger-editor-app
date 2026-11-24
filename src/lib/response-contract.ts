@@ -97,10 +97,10 @@ function normalizeMediaType(contentType: string) {
   return contentType.split(";", 1)[0].trim().toLowerCase();
 }
 
-function mediaTypeMatches(documented: string, actual: string) {
-  const documentedMediaType = normalizeMediaType(documented);
-  const actualMediaType = normalizeMediaType(actual);
-
+function mediaTypeMatches(
+  documentedMediaType: string,
+  actualMediaType: string,
+) {
   if (documentedMediaType === "*/*") {
     return Boolean(actualMediaType);
   }
@@ -112,9 +112,7 @@ function mediaTypeMatches(documented: string, actual: string) {
   return documentedMediaType === actualMediaType;
 }
 
-function mediaTypeSpecificity(documented: string) {
-  const mediaType = normalizeMediaType(documented);
-
+function mediaTypeSpecificity(mediaType: string) {
   if (mediaType === "*/*") {
     return 0;
   }
@@ -128,18 +126,20 @@ function findBestMediaTypeMatch<T>(
   entries: [string, T][],
   actualContentType: string,
 ) {
-  if (!MEDIA_TYPE_PATTERN.test(normalizeMediaType(actualContentType))) {
+  const actualMediaType = normalizeMediaType(actualContentType);
+  if (!MEDIA_TYPE_PATTERN.test(actualMediaType)) {
     return undefined;
   }
   let bestMatch: [string, T] | undefined;
+  let bestSpecificity = -1;
 
   for (const entry of entries) {
-    if (
-      mediaTypeMatches(entry[0], actualContentType) &&
-      (!bestMatch ||
-        mediaTypeSpecificity(entry[0]) > mediaTypeSpecificity(bestMatch[0]))
-    ) {
+    const documentedMediaType = normalizeMediaType(entry[0]);
+    if (!mediaTypeMatches(documentedMediaType, actualMediaType)) continue;
+    const specificity = mediaTypeSpecificity(documentedMediaType);
+    if (specificity > bestSpecificity) {
       bestMatch = entry;
+      bestSpecificity = specificity;
     }
   }
 
