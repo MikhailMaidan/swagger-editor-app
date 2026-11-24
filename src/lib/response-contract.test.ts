@@ -236,7 +236,7 @@ describe("response contract checks", () => {
     expect(findDocumentedResponse(responses, " 418 ")).toBe(fallback);
   });
 
-  it.each(["204", "205", "304"])(
+  it.each(["100", "101", "102", "103", "199", "204", "205", "304"])(
     "keeps padded %s responses bodyless",
     (status) => {
       const report = createResponseContractReport(

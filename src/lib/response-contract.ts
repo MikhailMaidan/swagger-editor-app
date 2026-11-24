@@ -268,6 +268,7 @@ function createBodyCheck(
   const status = input.status.trim();
   if (
     input.method.toUpperCase() === "HEAD" ||
+    /^1\d{2}$/.test(status) ||
     status === "204" ||
     status === "205" ||
     status === "304"
