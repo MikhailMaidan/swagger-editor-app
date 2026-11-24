@@ -17,10 +17,12 @@ function slugifyEndpointPart(
   return (
     value
       .trim()
+      .normalize("NFC")
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/[^\p{L}\p{M}0-9]+/gu, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, maxLength)
+      .replace(/[\uD800-\uDBFF]$/u, "")
       .replace(/-+$/g, "") || fallback
   );
 }

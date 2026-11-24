@@ -28,6 +28,17 @@ describe("request preview download helpers", () => {
     });
   });
 
+  it.each([
+    ["/пользователи/{id}", "rsswag-get-пользователи-id.js"],
+    ["/利用者/一覧", "rsswag-get-利用者-一覧.js"],
+    ["/Cafe\u0301", "rsswag-get-café.js"],
+  ])("keeps Unicode path %s readable in filenames", (path, fileName) => {
+    expect(getRequestPreviewDownloadMetadata("fetch", "GET", path)).toEqual({
+      contentType: "text/javascript;charset=utf-8",
+      fileName,
+    });
+  });
+
   it("bounds long endpoint filenames while preserving the method and extension", () => {
     const metadata = getRequestPreviewDownloadMetadata(
       "http",
@@ -50,6 +61,23 @@ describe("request preview download helpers", () => {
     expect(metadata.fileName.length).toBeLessThanOrEqual(200);
     expect(metadata.fileName).toMatch(/^rsswag-custom-/);
     expect(metadata.fileName).toMatch(/-items\.js$/);
+  });
+
+  it("preserves Unicode letters at the full filename length boundary", () => {
+    expect(
+      getRequestPreviewDownloadMetadata(
+        "fetch",
+        "GET",
+        `/${"a".repeat(184)}\u{10400}`,
+      ).fileName,
+    ).toBe(`rsswag-get-${"a".repeat(184)}\u{10428}.js`);
+    expect(
+      getRequestPreviewDownloadMetadata(
+        "fetch",
+        "GET",
+        `/${"a".repeat(185)}\u{10400}`,
+      ).fileName,
+    ).toBe(`rsswag-get-${"a".repeat(185)}.js`);
   });
 });
 
