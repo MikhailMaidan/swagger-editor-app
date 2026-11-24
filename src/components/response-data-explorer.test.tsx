@@ -202,7 +202,7 @@ describe("ResponseDataExplorer", () => {
     await user.click(screen.getByText("Choose table columns"));
     await user.click(screen.getByRole("checkbox", { name: '"extra"' }));
     fireEvent.change(screen.getByLabelText("Filter response table rows"), {
-      target: { value: "grace" },
+      target: { value: "GRACE\t2" },
     });
     expect(screen.getByText("1 matching rows of 2")).toBeVisible();
     await user.click(

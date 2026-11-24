@@ -185,23 +185,24 @@ export function filterExplorerRows(
   columns: (string | null)[],
   query: string,
 ) {
-  const search = query.trim().toLowerCase();
+  const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
   const matches: { row: JsonValue; index: number }[] = [];
   table.rows.forEach((row, index) => {
-    if (
-      !search ||
-      columns.some((column) => {
-        const value = explorerCell(row, column);
-        return (
-          value !== undefined &&
-          (typeof value === "string" ? value : JSON.stringify(value))
-            .toLowerCase()
-            .includes(search)
-        );
-      })
-    ) {
-      matches.push({ row, index });
+    if (terms.length) {
+      const text = columns
+        .map((column) => {
+          const value = explorerCell(row, column);
+          return value === undefined
+            ? ""
+            : typeof value === "string"
+              ? value
+              : JSON.stringify(value);
+        })
+        .join(" ")
+        .toLowerCase();
+      if (!terms.every((term) => text.includes(term))) return;
     }
+    matches.push({ row, index });
   });
   return matches;
 }

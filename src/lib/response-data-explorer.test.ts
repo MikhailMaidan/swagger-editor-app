@@ -236,6 +236,34 @@ describe("response data explorer", () => {
     expect(filterExplorerRows(result, ["name"], "")).toHaveLength(3);
   });
 
+  it("matches all search words across visible cells and uses the same rows in CSV", () => {
+    const result = table([
+      { name: "Ada Lovelace", state: "active", id: 1 },
+      { name: "Grace Hopper", state: "active", id: 2 },
+      { name: "Ada Byron", state: "pending", id: 3 },
+    ]);
+    const original = JSON.stringify(result.rows);
+
+    expect(
+      filterExplorerRows(result, result.columns, "  ACTIVE\tada\n1 ").map(
+        ({ index }) => index,
+      ),
+    ).toEqual([0]);
+    expect(
+      filterExplorerRows(result, ["name"], "lovelace ada").map(
+        ({ index }) => index,
+      ),
+    ).toEqual([0]);
+    expect(filterExplorerRows(result, ["name"], "ada active")).toEqual([]);
+    expect(filterExplorerRows(result, result.columns, "ada missing")).toEqual(
+      [],
+    );
+    expect(exportExplorerCsv(result, ["name", "state"], "ACTIVE\tada")).toBe(
+      '\uFEFF"#","name","state"\r\n"0","Ada Lovelace","active"\r\n',
+    );
+    expect(JSON.stringify(result.rows)).toBe(original);
+  });
+
   it("exports all filtered rows and only selected columns as BOM-prefixed CSV", () => {
     const result = table(
       Array.from({ length: 60 }, (_, i) => ({
