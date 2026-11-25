@@ -300,6 +300,27 @@ describe("keyboard shortcut helpers", () => {
     },
   );
 
+  it.each(["inherit", "unexpected", " true ", " false "])(
+    "inherits the editing state for contenteditable=%j",
+    (value) => {
+      for (const parentValue of [null, "true", "false"] as const) {
+        const parent = document.createElement("div");
+        if (parentValue !== null)
+          parent.setAttribute("contenteditable", parentValue);
+        const container = document.createElement("div");
+        container.setAttribute("contenteditable", value);
+        const child = document.createElement("span");
+        container.appendChild(child);
+        parent.appendChild(container);
+
+        expect(isEditableShortcutTarget(container)).toBe(
+          parentValue === "true",
+        );
+        expect(isEditableShortcutTarget(child)).toBe(parentValue === "true");
+      }
+    },
+  );
+
   it("recognizes controls and editable content as typing targets", () => {
     const editable = document.createElement("div");
 

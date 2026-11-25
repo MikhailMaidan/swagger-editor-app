@@ -138,7 +138,10 @@ export function isEditableShortcutTarget(target: EventTarget | null) {
     return false;
   }
 
-  const editableContainer = target.closest<HTMLElement>("[contenteditable]");
+  // Missing and invalid values inherit from the nearest explicit editing state.
+  const editableContainer = target.closest<HTMLElement>(
+    '[contenteditable=""], [contenteditable="true" i], [contenteditable="plaintext-only" i], [contenteditable="false" i]',
+  );
   const hasEditableContainer =
     editableContainer !== null &&
     editableContainer.getAttribute("contenteditable")?.toLowerCase() !==
