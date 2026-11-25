@@ -25,7 +25,15 @@ export function getAuthenticatedUserId(token?: string | null) {
 
   const payload = getTokenPayload(token);
 
-  return payload?.sub || payload?.email || null;
+  if (typeof payload?.sub === "string" && payload.sub) {
+    return payload.sub;
+  }
+
+  if (typeof payload?.email === "string" && payload.email) {
+    return payload.email;
+  }
+
+  return null;
 }
 
 export function getRequestUserId(request: Request) {

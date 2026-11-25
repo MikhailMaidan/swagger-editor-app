@@ -30,6 +30,57 @@ describe("server auth", () => {
     ).toBeNull();
   });
 
+  it.each([
+    {
+      sub: { id: "wrong" },
+      email: "mikhail@example.com",
+      expected: "mikhail@example.com",
+    },
+    {
+      sub: ["wrong"],
+      email: "mikhail@example.com",
+      expected: "mikhail@example.com",
+    },
+    { sub: 42, email: "mikhail@example.com", expected: "mikhail@example.com" },
+    {
+      sub: true,
+      email: "mikhail@example.com",
+      expected: "mikhail@example.com",
+    },
+    { sub: "", email: { address: "wrong" }, expected: null },
+    { sub: "", email: ["wrong"], expected: null },
+    { sub: "", email: 42, expected: null },
+    { sub: "", email: true, expected: null },
+    { sub: "user-42", email: "mikhail@example.com", expected: "user-42" },
+  ])(
+    "resolves a usable user id from token claims: %j",
+    ({ sub, email, expected }) => {
+      const baseToken = createDemoToken("mikhail@example.com");
+      const [header, body, signature] = baseToken.split(".");
+      const payload = JSON.parse(
+        Buffer.from(body, "base64url").toString("utf8"),
+      );
+      const encodedPayload = Buffer.from(
+        JSON.stringify({ ...payload, sub, email }),
+      ).toString("base64url");
+      const token = `${header}.${encodedPayload}.${signature}`;
+
+      expect(getAuthenticatedUserId(token)).toBe(expected);
+      expect(
+        getRequestUserId(
+          new Request("http://localhost/api/history", {
+            headers: { cookie: `${AUTH_TOKEN_COOKIE}=${token}` },
+          }),
+        ),
+      ).toBe(expected);
+      expect(
+        getAuthenticatedUserIdFromCookies({
+          get: () => ({ value: token }),
+        }),
+      ).toBe(expected);
+    },
+  );
+
   it.each(["%", "%E0%A4%A", "%C3%28"])(
     "rejects malformed cookie encoding %s without throwing",
     (value) => {
