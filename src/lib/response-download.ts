@@ -24,7 +24,7 @@ const mediaTypeExtensions: Record<string, string> = {
 
 function getResponseContentType(headers: Record<string, string>) {
   const contentType = Object.entries(headers).find(
-    ([header]) => header.toLowerCase() === "content-type",
+    ([header]) => header.trim().toLowerCase() === "content-type",
   )?.[1];
   return contentType?.trim() ? contentType : "text/plain;charset=utf-8";
 }
