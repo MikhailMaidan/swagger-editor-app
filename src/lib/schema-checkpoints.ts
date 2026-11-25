@@ -51,7 +51,12 @@ function readTimestamp(value: unknown) {
 let fallbackIdSequence = 0;
 
 function createId() {
-  const randomUuid = globalThis.crypto?.randomUUID?.();
+  let randomUuid: string | undefined;
+  try {
+    randomUuid = globalThis.crypto?.randomUUID?.();
+  } catch {
+    // Keep checkpoint creation available when UUID access or generation is blocked.
+  }
 
   return randomUuid
     ? `checkpoint-${randomUuid}`
