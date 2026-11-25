@@ -141,7 +141,8 @@ export function isEditableShortcutTarget(target: EventTarget | null) {
   const editableContainer = target.closest<HTMLElement>("[contenteditable]");
   const hasEditableContainer =
     editableContainer !== null &&
-    editableContainer.getAttribute("contenteditable") !== "false";
+    editableContainer.getAttribute("contenteditable")?.toLowerCase() !==
+      "false";
 
   return (
     target.isContentEditable ||

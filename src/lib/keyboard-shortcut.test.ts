@@ -283,6 +283,23 @@ describe("keyboard shortcut helpers", () => {
     },
   );
 
+  it.each(["false", "FALSE", "FaLsE"])(
+    "allows shortcuts in nested content with contenteditable=%s",
+    (value) => {
+      const editor = document.createElement("div");
+      editor.setAttribute("contenteditable", "true");
+      const readOnly = document.createElement("div");
+      readOnly.setAttribute("contenteditable", value);
+      const child = document.createElement("span");
+      readOnly.appendChild(child);
+      editor.appendChild(readOnly);
+
+      expect(isEditableShortcutTarget(editor)).toBe(true);
+      expect(isEditableShortcutTarget(readOnly)).toBe(false);
+      expect(isEditableShortcutTarget(child)).toBe(false);
+    },
+  );
+
   it("recognizes controls and editable content as typing targets", () => {
     const editable = document.createElement("div");
 
