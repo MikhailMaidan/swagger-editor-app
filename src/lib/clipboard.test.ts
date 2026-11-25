@@ -64,6 +64,43 @@ describe("clipboard helpers", () => {
     },
   );
 
+  it.each(["unavailable", "rejected"] as const)(
+    "reports a blocked legacy clipboard API when modern copying is %s",
+    async (mode) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        document,
+        "execCommand",
+      );
+      Object.defineProperty(document, "execCommand", {
+        configurable: true,
+        get() {
+          throw new DOMException(
+            "Legacy clipboard access blocked",
+            "SecurityError",
+          );
+        },
+      });
+
+      try {
+        const writer =
+          mode === "rejected"
+            ? { writeText: vi.fn().mockRejectedValue(new Error("Not allowed")) }
+            : undefined;
+
+        await expect(writeTextToClipboard("copied text", writer)).resolves.toBe(
+          false,
+        );
+        expect(
+          document.querySelector("[data-clipboard-fallback]"),
+        ).not.toBeInTheDocument();
+      } finally {
+        if (descriptor)
+          Object.defineProperty(document, "execCommand", descriptor);
+        else Reflect.deleteProperty(document, "execCommand");
+      }
+    },
+  );
+
   it.each([
     { editable: true, backward: true, copied: true },
     { editable: true, backward: true, copied: false },

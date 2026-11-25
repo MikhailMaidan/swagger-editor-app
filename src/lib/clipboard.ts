@@ -96,5 +96,10 @@ export async function writeTextToClipboard(
     // Restricted clipboard access or writes may still allow the legacy path.
   }
 
-  return writeTextWithLegacyClipboard(value);
+  try {
+    return writeTextWithLegacyClipboard(value);
+  } catch {
+    // Legacy clipboard access can also be blocked by the browser.
+    return false;
+  }
 }
