@@ -856,6 +856,7 @@ export function SwaggerWorkspace({
 
       if (
         !filterInput ||
+        event.defaultPrevented ||
         !isEndpointSearchShortcut(event) ||
         isEditableShortcutTarget(event.target)
       ) {

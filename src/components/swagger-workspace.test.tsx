@@ -1183,6 +1183,16 @@ paths:
 
     expect(filterInput).toHaveAttribute("aria-keyshortcuts", "/");
 
+    const handledSlash = new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      key: "/",
+    });
+    handledSlash.preventDefault();
+    fireEvent(document.body, handledSlash);
+
+    expect(filterInput).not.toHaveFocus();
+
     fireEvent.keyDown(document.body, { key: "/" });
 
     expect(filterInput).toHaveFocus();
