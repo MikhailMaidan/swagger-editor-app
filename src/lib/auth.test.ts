@@ -72,4 +72,35 @@ describe("auth helpers", () => {
     expect(getTokenPayload("wrong-token")).toBeNull();
     expect(getUserNameFromToken("wrong-token")).toBe("User");
   });
+
+  it.each([
+    { sub: "", email: "" },
+    { sub: "", email: null },
+    { sub: null, email: "" },
+    { sub: "", email: 42 },
+    { sub: 42, email: "" },
+  ])("rejects tokens without a usable user identity: %j", (claims) => {
+    const baseToken = createDemoToken("alex.smith@example.com");
+    const [header, , signature] = baseToken.split(".");
+    const body = Buffer.from(
+      JSON.stringify({
+        ...getTokenPayload(baseToken),
+        ...claims,
+      }),
+    ).toString("base64url");
+
+    expect(isTokenValid(`${header}.${body}.${signature}`)).toBe(false);
+  });
+
+  it.each(["1e999", "-1e999"])(
+    "rejects a token with a non-finite expiration of %s",
+    (expiration) => {
+      const [header] = createDemoToken("alex.smith@example.com").split(".");
+      const body = Buffer.from(
+        `{"sub":"alex.smith@example.com","exp":${expiration}}`,
+      ).toString("base64url");
+
+      expect(isTokenValid(`${header}.${body}.demo`)).toBe(false);
+    },
+  );
 });

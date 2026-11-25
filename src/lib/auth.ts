@@ -83,7 +83,9 @@ export function isTokenValid(token?: string | null) {
   if (
     !payload ||
     typeof payload.exp !== "number" ||
-    (typeof payload.sub !== "string" && typeof payload.email !== "string")
+    !Number.isFinite(payload.exp) ||
+    ((typeof payload.sub !== "string" || !payload.sub) &&
+      (typeof payload.email !== "string" || !payload.email))
   ) {
     return false;
   }
