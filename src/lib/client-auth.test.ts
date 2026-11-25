@@ -31,6 +31,42 @@ describe("client auth helpers", () => {
     });
   });
 
+  it.each(["%", "%E0%A4%A", "%C3%28"])(
+    "ignores a malformed authentication cookie %s and recovers from a stored session",
+    (value) => {
+      document.cookie = `${AUTH_TOKEN_COOKIE}=${value}; path=/`;
+
+      expect(getClientAuth()).toEqual({
+        isAuthenticated: false,
+        userName: "User",
+      });
+
+      const token = createDemoToken("stored-user@example.com");
+      window.localStorage.setItem(AUTH_TOKEN_COOKIE, token);
+
+      expect(getClientAuth()).toEqual({
+        isAuthenticated: true,
+        userName: "Stored User",
+      });
+      expect(document.cookie).toContain(`${AUTH_TOKEN_COOKIE}=${token}`);
+      expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBe(token);
+    },
+  );
+
+  it.each(["%", "%E0%A4%A", "%C3%28"])(
+    "uses the token display name when the username cookie is malformed: %s",
+    (value) => {
+      const { token } = saveClientAuth("cookie-user@example.com");
+      document.cookie = `${AUTH_USER_COOKIE}=${value}; path=/`;
+
+      expect(getClientAuth()).toEqual({
+        isAuthenticated: true,
+        userName: "Cookie User",
+      });
+      expect(window.localStorage.getItem(AUTH_TOKEN_COOKIE)).toBe(token);
+    },
+  );
+
   it("uses cookie authentication when local storage is unavailable", () => {
     const setItemSpy = vi
       .spyOn(Storage.prototype, "setItem")

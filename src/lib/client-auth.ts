@@ -39,7 +39,12 @@ function readCookie(name: string) {
     return null;
   }
 
-  return decodeURIComponent(cookie.split("=").slice(1).join("="));
+  try {
+    return decodeURIComponent(cookie.split("=").slice(1).join("="));
+  } catch {
+    // Ignore malformed cookie encoding so stored-token and display-name fallbacks work.
+    return null;
+  }
 }
 
 function writeCookie(name: string, value: string, maxAge: number) {
