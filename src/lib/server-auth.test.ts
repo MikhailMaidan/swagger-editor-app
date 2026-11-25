@@ -8,17 +8,20 @@ import {
 } from "./server-auth";
 
 describe("server auth", () => {
-  it("reads encoded cookies and returns the authenticated user id", () => {
-    const token = createDemoToken("mikhail@example.com");
-    const request = new Request("http://localhost/api/history", {
-      headers: {
-        cookie: `theme=light; ${AUTH_TOKEN_COOKIE}=${encodeURIComponent(token)}`,
-      },
-    });
+  it.each(["; ", ";", ";   ", ";\t"])(
+    "reads encoded cookies separated by %j and returns the authenticated user id",
+    (separator) => {
+      const token = createDemoToken("mikhail@example.com");
+      const request = new Request("http://localhost/api/history", {
+        headers: {
+          cookie: `theme=light${separator}${AUTH_TOKEN_COOKIE}=${encodeURIComponent(token)}${separator}language=en`,
+        },
+      });
 
-    expect(readRequestCookie(request, AUTH_TOKEN_COOKIE)).toBe(token);
-    expect(getRequestUserId(request)).toBe("mikhail@example.com");
-  });
+      expect(readRequestCookie(request, AUTH_TOKEN_COOKIE)).toBe(token);
+      expect(getRequestUserId(request)).toBe("mikhail@example.com");
+    },
+  );
 
   it("rejects missing and expired tokens", () => {
     expect(getAuthenticatedUserId(null)).toBeNull();

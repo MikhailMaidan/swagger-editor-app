@@ -3,7 +3,8 @@ import { AUTH_TOKEN_COOKIE, getTokenPayload, isTokenValid } from "./auth";
 export function readRequestCookie(request: Request, name: string) {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookie = cookieHeader
-    .split("; ")
+    .split(";")
+    .map((item) => item.trim())
     .find((item) => item.startsWith(`${name}=`));
 
   if (!cookie) {
