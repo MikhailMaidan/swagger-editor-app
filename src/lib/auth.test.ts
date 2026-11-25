@@ -22,6 +22,43 @@ describe("auth helpers", () => {
     expect(getUserNameFromToken(token)).toBe("Alex Smith");
   });
 
+  it.each([
+    {
+      name: { label: "Alex" },
+      email: "alex.smith@example.com",
+      expected: "Alex Smith",
+    },
+    { name: ["Alex"], email: "alex.smith@example.com", expected: "Alex Smith" },
+    { name: 42, email: "alex.smith@example.com", expected: "Alex Smith" },
+    { name: true, email: "alex.smith@example.com", expected: "Alex Smith" },
+    { name: "", email: { address: "alex@example.com" }, expected: "User" },
+    { name: "", email: ["alex@example.com"], expected: "User" },
+    { name: "", email: 42, expected: "User" },
+    { name: "", email: true, expected: "User" },
+    {
+      name: "Display Name",
+      email: { address: "alex@example.com" },
+      expected: "Display Name",
+    },
+  ])(
+    "resolves a string display name for malformed claims: %j",
+    ({ name, email, expected }) => {
+      const baseToken = createDemoToken("alex.smith@example.com");
+      const [header, , signature] = baseToken.split(".");
+      const body = Buffer.from(
+        JSON.stringify({
+          ...getTokenPayload(baseToken),
+          name,
+          email,
+        }),
+      ).toString("base64url");
+      const token = `${header}.${body}.${signature}`;
+
+      expect(isTokenValid(token)).toBe(true);
+      expect(getUserNameFromToken(token)).toBe(expected);
+    },
+  );
+
   it("rejects malformed or expired tokens", () => {
     const expiredToken = createDemoToken("old@example.com", -10);
 

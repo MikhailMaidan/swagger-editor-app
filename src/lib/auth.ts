@@ -94,11 +94,11 @@ export function isTokenValid(token?: string | null) {
 export function getUserNameFromToken(token?: string | null) {
   const payload = getTokenPayload(token);
 
-  if (payload?.name) {
+  if (typeof payload?.name === "string" && payload.name) {
     return payload.name;
   }
 
-  if (payload?.email) {
+  if (typeof payload?.email === "string" && payload.email) {
     return getDisplayName(payload.email);
   }
 
