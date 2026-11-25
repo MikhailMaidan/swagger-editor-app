@@ -30,6 +30,18 @@ describe("server auth", () => {
     ).toBeNull();
   });
 
+  it.each(["%", "%E0%A4%A", "%C3%28"])(
+    "rejects malformed cookie encoding %s without throwing",
+    (value) => {
+      const request = new Request("http://localhost/api/history", {
+        headers: { cookie: `${AUTH_TOKEN_COOKIE}=${value}` },
+      });
+
+      expect(readRequestCookie(request, AUTH_TOKEN_COOKIE)).toBeNull();
+      expect(getRequestUserId(request)).toBeNull();
+    },
+  );
+
   it("resolves the authenticated user id from a next/headers-style cookie store", () => {
     const token = createDemoToken("mikhail@example.com");
     const cookieStore = {

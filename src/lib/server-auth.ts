@@ -10,7 +10,12 @@ export function readRequestCookie(request: Request, name: string) {
     return null;
   }
 
-  return decodeURIComponent(cookie.split("=").slice(1).join("="));
+  try {
+    return decodeURIComponent(cookie.split("=").slice(1).join("="));
+  } catch {
+    // Treat malformed encoding as an absent cookie so API requests can recover.
+    return null;
+  }
 }
 
 export function getAuthenticatedUserId(token?: string | null) {

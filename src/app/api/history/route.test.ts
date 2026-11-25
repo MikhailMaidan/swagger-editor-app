@@ -57,6 +57,50 @@ describe("history route", () => {
     expect(response.status).toBe(401);
   });
 
+  it.each([
+    ["GET", GET],
+    ["POST", POST],
+    ["DELETE", DELETE],
+  ] as const)(
+    "returns 401 for %s with a malformed authentication cookie",
+    async (method, handler) => {
+      const response = await handler(
+        new Request("http://localhost/api/history", {
+          headers: { cookie: `${AUTH_TOKEN_COOKIE}=%C3%28` },
+          method,
+        }),
+      );
+
+      expect(response.status).toBe(401);
+    },
+  );
+
+  it("reads and saves history when the fallback cookie has malformed encoding", async () => {
+    const headers = {
+      cookie: `${authCookie}; ${SERVER_REQUEST_HISTORY_COOKIE}=%E0%A4%A`,
+    };
+    const response = await GET(
+      new Request("http://localhost/api/history", { headers }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ records: [] });
+
+    const savedResponse = await POST(
+      new Request("http://localhost/api/history", {
+        body: JSON.stringify(currentRecord),
+        headers,
+        method: "POST",
+      }),
+    );
+
+    expect(savedResponse.status).toBe(200);
+    expect(await savedResponse.json()).toEqual({ records: [currentRecord] });
+    expect(savedResponse.headers.get("set-cookie")).toContain(
+      SERVER_REQUEST_HISTORY_COOKIE,
+    );
+  });
+
   it("stores a request history record in a cookie", async () => {
     const response = await POST(
       new Request("http://localhost/api/history", {
