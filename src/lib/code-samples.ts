@@ -199,10 +199,10 @@ export function createEndpointCodeSamples(
 }
 
 function getFence(source: string) {
-  const longestRun = Math.max(
-    2,
-    ...Array.from(source.matchAll(/`+/g), (match) => match[0].length),
-  );
+  let longestRun = 2;
+  for (const match of source.matchAll(/`+/g)) {
+    longestRun = Math.max(longestRun, match[0].length);
+  }
 
   return "`".repeat(longestRun + 1);
 }

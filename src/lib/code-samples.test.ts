@@ -287,6 +287,18 @@ describe("code samples", () => {
     ).toContain("# Примеры кода Items");
   });
 
+  it("exports large snippets with many backtick runs using a safe fence", () => {
+    const source = "`x".repeat(200_000) + "```````";
+    const markdown = createCodeSamplesMarkdown(
+      [{ endpoint: endpoint(), samples: [{ format: "curl", source }] }],
+      { title: "Large sample", version: "1" },
+    );
+
+    expect(markdown).toContain(
+      `\n\n\`\`\`\`\`\`\`\`bash\n${source}\n\`\`\`\`\`\`\`\`\n`,
+    );
+  });
+
   it("injects x-codeSamples without mutating the source document", () => {
     const root = {
       openapi: "3.0.3",
