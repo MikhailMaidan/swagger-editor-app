@@ -211,6 +211,10 @@ function setUniqueQuery(query: PostmanKeyValue[], parameter: PostmanKeyValue) {
 }
 
 function getSelectedSecurityNames(endpoint: EndpointSummary) {
+  if (endpoint.securityRequirementGroups?.some((group) => group.length === 0)) {
+    return [];
+  }
+
   const securedGroup = endpoint.securityRequirementGroups?.find(
     (group) => group.length > 0,
   );

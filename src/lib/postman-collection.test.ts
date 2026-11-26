@@ -54,6 +54,58 @@ function firstRequest(build: ReturnType<typeof createPostmanCollection>) {
 }
 
 describe("createPostmanCollection", () => {
+  it.each(["first", "last"] as const)(
+    "keeps optional authentication anonymous when the empty alternative is %s",
+    (position) => {
+      const securedGroup = ["bearer", "headerKey", "queryKey", "cookieKey"];
+      const build = createPostmanCollection(
+        [
+          endpoint({
+            securityRequirementGroups:
+              position === "first" ? [[], securedGroup] : [securedGroup, []],
+            securityRequirements: securedGroup,
+            parameters: [
+              {
+                description: "Trace request",
+                example: "trace-1",
+                location: "header",
+                name: "X-Trace-Id",
+                required: false,
+              },
+            ],
+          }),
+        ],
+        [
+          scheme("bearer"),
+          scheme("headerKey", {
+            type: "apiKey",
+            location: "header",
+            parameterName: "X-API-Key",
+          }),
+          scheme("queryKey", {
+            type: "apiKey",
+            location: "query",
+            parameterName: "api_key",
+          }),
+          scheme("cookieKey", {
+            type: "apiKey",
+            location: "cookie",
+            parameterName: "session",
+          }),
+        ],
+        { serverUrl: "", title: "Optional auth", version: "1" },
+      );
+      const request = firstRequest(build).request;
+
+      expect(request.auth).toBeUndefined();
+      expect(request.header).toEqual([
+        expect.objectContaining({ key: "X-Trace-Id", value: "trace-1" }),
+      ]);
+      expect(request.url.query ?? []).toEqual([]);
+      expect(build.secretVariableKeys).toEqual([]);
+    },
+  );
+
   it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
     "generates request property %s safely when its type metadata is missing",
     (property) => {
