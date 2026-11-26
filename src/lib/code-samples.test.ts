@@ -117,6 +117,49 @@ describe("code samples", () => {
     });
   });
 
+  it.each(["query", "cookie"] as const)(
+    "keeps differently cased %s auth names distinct while preserving exact example overrides",
+    (location) => {
+      const securedEndpoint = endpoint({
+        parameters: [
+          {
+            description: "",
+            example: "documented-key",
+            location,
+            name: "API_KEY",
+            required: false,
+          },
+        ],
+        securityRequirements: ["key"],
+      });
+      const apiKeyScheme = scheme({
+        location,
+        name: "key",
+        parameterName: "api_key",
+        type: "apiKey",
+      });
+
+      expect(
+        createEndpointCodeInput(securedEndpoint, [apiKeyScheme], true)
+          .parameters,
+      ).toEqual([
+        { location, name: "API_KEY", value: "documented-key" },
+        { location, name: "api_key", value: "YOUR_API_KEY" },
+      ]);
+
+      const exactMatch = endpoint({
+        ...securedEndpoint,
+        parameters: securedEndpoint.parameters.map((parameter) => ({
+          ...parameter,
+          name: "api_key",
+        })),
+      });
+      expect(
+        createEndpointCodeInput(exactMatch, [apiKeyScheme], true).parameters,
+      ).toEqual([{ location, name: "api_key", value: "documented-key" }]);
+    },
+  );
+
   it("uses scheme-specific placeholders and skips optional security", () => {
     const authFor = (groups: string[][]) =>
       createEndpointCodeInput(

@@ -139,7 +139,9 @@ export function createEndpointCodeInput(
       const exists = parameters.some(
         (parameter) =>
           parameter.location === authParameter.location &&
-          parameter.name.toLowerCase() === authParameter.name.toLowerCase(),
+          (parameter.location === "header"
+            ? parameter.name.toLowerCase() === authParameter.name.toLowerCase()
+            : parameter.name === authParameter.name),
       );
 
       if (!exists) {
