@@ -54,6 +54,52 @@ function firstRequest(build: ReturnType<typeof createPostmanCollection>) {
 }
 
 describe("createPostmanCollection", () => {
+  it.each([
+    scheme("unsupported", { scheme: "digest" }),
+    scheme("unsupported", { type: "unsupported" }),
+    scheme("unsupported", { type: "apiKey", location: "header" }),
+  ])(
+    "selects a fully supported authentication alternative: %j",
+    (unsupported) => {
+      const build = createPostmanCollection(
+        [
+          endpoint({
+            secured: true,
+            securityRequirementGroups: [
+              ["unsupported", "tenantKey"],
+              ["basicAuth"],
+            ],
+            securityRequirements: ["unsupported", "tenantKey", "basicAuth"],
+          }),
+        ],
+        [
+          unsupported,
+          scheme("tenantKey", {
+            type: "apiKey",
+            location: "query",
+            parameterName: "tenant",
+          }),
+          scheme("basicAuth", { scheme: "basic" }),
+        ],
+        { serverUrl: "", title: "Auth alternatives", version: "1" },
+      );
+      const request = firstRequest(build).request;
+
+      expect(request.auth).toEqual({
+        type: "basic",
+        basic: [
+          { key: "username", type: "string", value: "{{basicAuthUsername}}" },
+          { key: "password", type: "string", value: "{{basicAuthPassword}}" },
+        ],
+      });
+      expect(request.url.query ?? []).toEqual([]);
+      expect(build.secretVariableKeys).toEqual([
+        "basicAuthUsername",
+        "basicAuthPassword",
+      ]);
+    },
+  );
+
   it.each(["first", "last"] as const)(
     "keeps optional authentication anonymous when the empty alternative is %s",
     (position) => {

@@ -5,6 +5,7 @@ import type {
   SecuritySchemeSummary,
 } from "./openapi";
 import { isJsonMediaType } from "./request-body";
+import { isSupportedSecurityScheme } from "./request-auth";
 import { createSchemaMockResponse } from "./request-mock";
 import { encodeUrlComponent, normalizeServerUrl } from "./request-url";
 
@@ -210,16 +211,25 @@ function setUniqueQuery(query: PostmanKeyValue[], parameter: PostmanKeyValue) {
   query.push(parameter);
 }
 
-function getSelectedSecurityNames(endpoint: EndpointSummary) {
-  if (endpoint.securityRequirementGroups?.some((group) => group.length === 0)) {
+function getSelectedSecurityNames(
+  context: BuildContext,
+  endpoint: EndpointSummary,
+) {
+  const groups = endpoint.securityRequirementGroups?.length
+    ? endpoint.securityRequirementGroups
+    : [endpoint.securityRequirements];
+  if (groups.some((group) => group.length === 0)) {
     return [];
   }
 
-  const securedGroup = endpoint.securityRequirementGroups?.find(
-    (group) => group.length > 0,
+  return (
+    groups.find((group) =>
+      group.every((name) => {
+        const scheme = context.schemesByName.get(name);
+        return scheme && isSupportedSecurityScheme(scheme);
+      }),
+    ) ?? []
   );
-
-  return securedGroup ?? endpoint.securityRequirements;
 }
 
 function addAuthVariable(
@@ -245,7 +255,7 @@ function applySecurity(
 ) {
   let auth: PostmanAuth | undefined;
 
-  getSelectedSecurityNames(endpoint).forEach((name) => {
+  getSelectedSecurityNames(context, endpoint).forEach((name) => {
     const scheme = context.schemesByName.get(name);
 
     if (!scheme) {
