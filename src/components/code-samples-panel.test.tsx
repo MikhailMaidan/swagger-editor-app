@@ -1,8 +1,10 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import YAML from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import * as clipboard from "@/lib/clipboard";
 import type { EndpointSummary, SecuritySchemeSummary } from "@/lib/openapi";
+import * as downloads from "@/lib/schema-download";
 import { CodeSamplesPanel } from "./code-samples-panel";
 
 function endpoint(
@@ -88,6 +90,41 @@ describe("CodeSamplesPanel", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
+
+  it.each([
+    ["Copy Markdown guide", "Markdown guide copied."],
+    ["Download Markdown guide", "Markdown guide download started."],
+    [
+      "Download spec with x-codeSamples",
+      "Spec download started with code samples on 2 operations.",
+    ],
+  ])(
+    "keeps the latest %s feedback when an earlier copy completes later",
+    async (action, message) => {
+      let resolve!: (value: boolean) => void;
+      vi.spyOn(clipboard, "writeTextToClipboard")
+        .mockResolvedValue(true)
+        .mockImplementationOnce(
+          () =>
+            new Promise<boolean>((done) => {
+              resolve = done;
+            }),
+        );
+      vi.spyOn(downloads, "downloadTextFile").mockReturnValue(true);
+      const user = userEvent.setup();
+      const panel = renderPanel();
+
+      await user.click(
+        panel.getByRole("button", { name: "Copy Markdown guide" }),
+      );
+      await user.click(panel.getByRole("button", { name: action }));
+      expect(panel.getByRole("status")).toHaveTextContent(message);
+
+      await act(async () => resolve(false));
+
+      expect(panel.getByRole("status")).toHaveTextContent(message);
+    },
+  );
 
   it("previews samples per endpoint and language with auth placeholders", async () => {
     const user = userEvent.setup();

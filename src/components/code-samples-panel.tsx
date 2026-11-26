@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { writeTextToClipboard } from "@/lib/clipboard";
 import {
@@ -72,6 +72,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
     "",
   );
   const [actionStatus, setActionStatus] = useState<ActionStatus>(null);
+  const exportGeneration = useRef(0);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const endpoints = scope === "all" ? allEndpoints : visibleEndpoints;
   const orderedFormats = ALL_FORMATS.filter((format) =>
@@ -120,7 +121,9 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
   }
 
   async function copyText(text: string, successKey: TranslationKey) {
+    const generation = ++exportGeneration.current;
     const copied = await writeTextToClipboard(text);
+    if (generation !== exportGeneration.current) return;
 
     setActionStatus(
       copied
@@ -130,6 +133,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
   }
 
   function handleDownloadMarkdown() {
+    exportGeneration.current += 1;
     const file = getCodeSamplesFile(schemaTitle, "markdown", schemaFormat);
     const downloaded = downloadTextFile(
       createCodeSamplesMarkdown(
@@ -149,6 +153,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
   }
 
   function handleDownloadSpec() {
+    exportGeneration.current += 1;
     const { document, operationCount } = injectCodeSamples(
       rootSchema,
       buildSamples(),
