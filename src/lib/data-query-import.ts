@@ -1,3 +1,4 @@
+import { isJsonMediaType } from "./request-body";
 import { getByteSize } from "./text-encoding";
 import {
   DataQueryError,
@@ -146,14 +147,7 @@ export function readDqHar(text: string): {
         throw new DataQueryError("import");
       const content = entry.response.content;
       if (typeof content.text !== "string") throw new DataQueryError("import");
-      const mediaType = String(content.mimeType ?? "")
-        .split(";", 1)[0]
-        .trim()
-        .toLowerCase();
-      if (
-        mediaType !== "application/json" &&
-        !/^[^/]+\/[^/]+\+json$/.test(mediaType)
-      )
+      if (!isJsonMediaType(String(content.mimeType ?? "")))
         throw new DataQueryError("import");
       let source = content.text;
       if (content.encoding === "base64") {

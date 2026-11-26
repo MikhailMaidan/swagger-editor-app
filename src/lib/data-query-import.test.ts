@@ -100,6 +100,9 @@ describe("API dataset import and export", () => {
             "application/problem+json",
             "base64",
           ),
+          content('[{"id":2}]', " Text/JSON; charset=utf-8 "),
+          content('[{"id":3}]', "application/my type+json"),
+          content('[{"id":4}]', "application/[problem]+json"),
           content("<html/>", "text/html"),
           content("%%%", "application/json", "base64"),
           content("/w==", "application/json", "base64"),
@@ -107,11 +110,12 @@ describe("API dataset import and export", () => {
       },
     });
     const har = readDqHar(source);
-    expect(har.skipped).toBe(3);
-    expect(har.entries.map((e) => e.index)).toEqual([0, 1]);
+    expect(har.skipped).toBe(5);
+    expect(har.entries.map((e) => e.index)).toEqual([0, 1, 2]);
     expect(extractDqRows(har.entries[1].value, "/rows")).toEqual([
       { name: "Ada" },
     ]);
+    expect(extractDqRows(har.entries[2].value)).toEqual([{ id: 2 }]);
   });
   it("inventories escaped object pointers and distinguishes missing, null and array types", () => {
     const inventory = dqDatasetInventory([
