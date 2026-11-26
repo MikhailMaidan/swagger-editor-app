@@ -253,6 +253,7 @@ function applySecurity(
   headers: PostmanKeyValue[],
   query: PostmanKeyValue[],
 ) {
+  const authCookies = new Map<string, string>();
   let auth: PostmanAuth | undefined;
 
   getSelectedSecurityNames(context, endpoint).forEach((name) => {
@@ -272,14 +273,15 @@ function applySecurity(
           type: "text",
           value,
         });
+      } else if (scheme.location === "cookie") {
+        if (!authCookies.has(scheme.parameterName)) {
+          authCookies.set(scheme.parameterName, value);
+        }
       } else {
         setUniqueHeader(headers, {
-          key: scheme.location === "cookie" ? "Cookie" : scheme.parameterName,
+          key: scheme.parameterName,
           type: "text",
-          value:
-            scheme.location === "cookie"
-              ? `${scheme.parameterName}=${value}`
-              : value,
+          value,
         });
       }
 
@@ -315,6 +317,17 @@ function applySecurity(
       };
     }
   });
+
+  if (authCookies.size > 0) {
+    setUniqueHeader(headers, {
+      key: "Cookie",
+      type: "text",
+      value: Array.from(
+        authCookies,
+        ([name, value]) => `${name}=${value}`,
+      ).join("; "),
+    });
+  }
 
   return auth;
 }

@@ -55,6 +55,50 @@ function firstRequest(build: ReturnType<typeof createPostmanCollection>) {
 
 describe("createPostmanCollection", () => {
   it.each([
+    {
+      first: "session",
+      second: "tenant",
+      expected: "session={{firstCookieValue}}; tenant={{secondCookieValue}}",
+    },
+    {
+      first: "Session",
+      second: "session",
+      expected: "Session={{firstCookieValue}}; session={{secondCookieValue}}",
+    },
+    {
+      first: "session",
+      second: "session",
+      expected: "session={{firstCookieValue}}",
+    },
+  ])(
+    "combines cookie authentication placeholders without duplicate names: %j",
+    ({ first, second, expected }) => {
+      const names = ["firstCookie", "secondCookie"];
+      const build = createPostmanCollection(
+        [
+          endpoint({
+            secured: true,
+            securityRequirementGroups: [names],
+            securityRequirements: names,
+          }),
+        ],
+        names.map((name, index) =>
+          scheme(name, {
+            type: "apiKey",
+            location: "cookie",
+            parameterName: index === 0 ? first : second,
+          }),
+        ),
+        { serverUrl: "", title: "Cookie authentication", version: "1" },
+      );
+
+      expect(firstRequest(build).request.header).toEqual([
+        { key: "Cookie", type: "text", value: expected },
+      ]);
+    },
+  );
+
+  it.each([
     scheme("unsupported", { scheme: "digest" }),
     scheme("unsupported", { type: "unsupported" }),
     scheme("unsupported", { type: "apiKey", location: "header" }),
