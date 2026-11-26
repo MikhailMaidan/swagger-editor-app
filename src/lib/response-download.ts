@@ -4,6 +4,7 @@ const STRUCTURED_TEXT_MEDIA_TYPE_PATTERN =
   /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+\+(xml|yaml)$/;
 
 const mediaTypeExtensions: Record<string, string> = {
+  "application/javascript": "js",
   "application/json": "json",
   "application/ndjson": "ndjson",
   "application/x-ndjson": "ndjson",
@@ -11,8 +12,10 @@ const mediaTypeExtensions: Record<string, string> = {
   "application/xml": "xml",
   "application/yaml": "yaml",
   "image/svg+xml": "svg",
+  "text/css": "css",
   "text/csv": "csv",
   "text/html": "html",
+  "text/javascript": "js",
   "text/json": "json",
   "text/markdown": "md",
   "text/plain": "txt",
