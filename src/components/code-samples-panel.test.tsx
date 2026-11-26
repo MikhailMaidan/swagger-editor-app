@@ -126,6 +126,53 @@ describe("CodeSamplesPanel", () => {
     },
   );
 
+  it.each(["language", "select all", "clear", "scope"] as const)(
+    "does not restore cleared copy feedback after a %s change",
+    async (change) => {
+      let resolve!: (value: boolean) => void;
+      vi.spyOn(clipboard, "writeTextToClipboard").mockImplementationOnce(
+        () =>
+          new Promise<boolean>((done) => {
+            resolve = done;
+          }),
+      );
+      const user = userEvent.setup();
+      const panel = renderPanel();
+
+      await user.click(
+        panel.getByRole("button", { name: "Copy Markdown guide" }),
+      );
+      await user.click(
+        panel.getByRole("button", { name: "Choose languages and preview" }),
+      );
+      if (change === "scope") {
+        await user.selectOptions(panel.getByLabelText("Endpoints"), "visible");
+      } else if (change === "language") {
+        await user.click(
+          within(panel.getByRole("group", { name: "Languages" })).getByRole(
+            "button",
+            { name: "cURL" },
+          ),
+        );
+      } else {
+        await user.click(
+          panel.getByRole("button", {
+            name: change === "clear" ? "Clear" : "Select all",
+          }),
+        );
+      }
+
+      await act(async () => resolve(false));
+
+      expect(panel.queryByRole("alert")).not.toBeInTheDocument();
+      if (change === "clear") {
+        expect(panel.getByRole("status")).toHaveTextContent(
+          "Select at least one language to generate samples.",
+        );
+      }
+    },
+  );
+
   it("previews samples per endpoint and language with auth placeholders", async () => {
     const user = userEvent.setup();
     const panel = renderPanel();

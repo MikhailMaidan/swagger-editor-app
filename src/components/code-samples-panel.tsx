@@ -111,13 +111,18 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
     });
   }
 
+  function clearActionStatus() {
+    exportGeneration.current += 1;
+    setActionStatus(null);
+  }
+
   function toggleFormat(format: RequestCodeFormat) {
     setFormats((current) =>
       current.includes(format)
         ? current.filter((item) => item !== format)
         : [...current, format],
     );
-    setActionStatus(null);
+    clearActionStatus();
   }
 
   async function copyText(text: string, successKey: TranslationKey) {
@@ -247,7 +252,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
                   type="button"
                   onClick={() => {
                     setFormats(ALL_FORMATS);
-                    setActionStatus(null);
+                    clearActionStatus();
                   }}
                 >
                   {t("workspace.codeSamplesSelectAll")}
@@ -257,7 +262,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
                   type="button"
                   onClick={() => {
                     setFormats([]);
-                    setActionStatus(null);
+                    clearActionStatus();
                   }}
                 >
                   {t("workspace.codeSamplesSelectNone")}
@@ -299,7 +304,7 @@ export const CodeSamplesPanel = memo(function CodeSamplesPanel({
                 value={scope}
                 onChange={(event) => {
                   setScope(event.target.value as Scope);
-                  setActionStatus(null);
+                  clearActionStatus();
                 }}
               >
                 <option value="all">
