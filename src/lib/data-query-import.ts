@@ -92,7 +92,8 @@ export function importDqText(
   pointer = "",
   mode: DQImportMode = "records",
 ): DQRecord[] {
-  if (getByteSize(text) > MAX_DQ_IMPORT) throw new DataQueryError("limit");
+  if (text.length > MAX_DQ_IMPORT || getByteSize(text) > MAX_DQ_IMPORT)
+    throw new DataQueryError("limit");
   text = text.replace(/^\uFEFF/, "");
   if (format === "json")
     return extractDqRows(parseDqJson(text, MAX_DQ_IMPORT), pointer, mode);
