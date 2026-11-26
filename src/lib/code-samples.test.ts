@@ -198,6 +198,38 @@ describe("code samples", () => {
     ).toEqual([]);
   });
 
+  it.each([
+    scheme({ name: "unsupported", scheme: "digest" }),
+    scheme({ name: "unsupported", type: "unsupported" }),
+    scheme({ name: "unsupported", type: "apiKey", location: "header" }),
+  ])("skips unusable authentication alternatives: %j", (unsupported) => {
+    const authFor = (groups: string[][]) =>
+      createEndpointCodeInput(
+        endpoint({
+          securityRequirementGroups: groups,
+          securityRequirements: groups.flat(),
+        }),
+        [...schemes, unsupported],
+        true,
+      ).parameters;
+
+    expect(authFor([["unsupported"]])).toEqual([]);
+    expect(authFor([["unsupported"], ["basic"]])).toEqual([
+      {
+        location: "header",
+        name: "Authorization",
+        value: "Basic YOUR_BASE64_CREDENTIALS",
+      },
+    ]);
+    expect(authFor([["unsupported", "basic"], ["oauth"]])).toEqual([
+      {
+        location: "header",
+        name: "Authorization",
+        value: "Bearer YOUR_ACCESS_TOKEN",
+      },
+    ]);
+  });
+
   it("creates a Markdown guide with safe code fences", () => {
     const samples = createEndpointCodeSamples(
       [

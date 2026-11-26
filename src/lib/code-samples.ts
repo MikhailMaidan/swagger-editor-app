@@ -60,7 +60,19 @@ function createAuthPlaceholderParameters(
   endpoint: EndpointSummary,
   schemes: SecuritySchemeSummary[],
 ): CurlParameter[] {
-  const schemesByName = new Map(schemes.map((scheme) => [scheme.name, scheme]));
+  const schemesByName = new Map(
+    schemes
+      .filter(
+        (scheme) =>
+          (scheme.type === "apiKey" &&
+            Boolean(scheme.location && scheme.parameterName)) ||
+          (scheme.type === "http" &&
+            ["basic", "bearer"].includes(scheme.scheme.toLowerCase())) ||
+          scheme.type === "oauth2" ||
+          scheme.type === "openIdConnect",
+      )
+      .map((scheme) => [scheme.name, scheme]),
+  );
   const groups = endpoint.securityRequirementGroups?.length
     ? endpoint.securityRequirementGroups
     : [endpoint.securityRequirements];
