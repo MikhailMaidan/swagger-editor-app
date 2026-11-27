@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import {
   AuthFormErrors,
@@ -30,6 +30,8 @@ const authErrorKeys: Record<string, TranslationKey> = {
 export function AuthForm({ mode }: AuthFormProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -56,6 +58,10 @@ export function AuthForm({ mode }: AuthFormProps) {
     setErrors(formErrors);
 
     if (hasAuthFormErrors(formErrors)) {
+      const invalidInput = formErrors.email
+        ? emailInputRef.current
+        : passwordInputRef.current;
+      invalidInput?.focus();
       return;
     }
 
@@ -88,6 +94,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               autoComplete="email"
               className="h-12 rounded-2xl border border-[color:var(--color-brand-border)] px-4 text-base font-medium outline-none transition focus:border-[color:var(--color-brand-purple)]"
               name="email"
+              ref={emailInputRef}
               type="email"
               value={email}
               onChange={(event) => {
@@ -127,6 +134,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 minLength={8}
                 name="password"
                 placeholder={t("auth.passwordPlaceholder")}
+                ref={passwordInputRef}
                 required
                 type={isPasswordVisible ? "text" : "password"}
                 value={password}
