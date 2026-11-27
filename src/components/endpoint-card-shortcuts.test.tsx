@@ -43,6 +43,16 @@ describe("endpoint shortcuts during text composition", () => {
           key: "Enter",
           ctrlKey: true,
           isComposing: false,
+          keyCode: 229,
+        }),
+      ).toBe(true);
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(
+        fireEvent.keyDown(input, {
+          key: "Enter",
+          ctrlKey: true,
+          isComposing: false,
+          keyCode: 13,
         }),
       ).toBe(false);
       await screen.findByLabelText("Response body");

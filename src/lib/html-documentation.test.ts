@@ -174,6 +174,16 @@ describe("createHtmlDocumentation", () => {
       expect(search.value).toBe("missing");
       expect(event.defaultPrevented).toBe(false);
     }
+    const legacy = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+      isComposing: false,
+      keyCode: 229,
+    });
+    search.dispatchEvent(legacy);
+    expect(search.value).toBe("missing");
+    expect(legacy.defaultPrevented).toBe(false);
+
     const handled = new KeyboardEvent("keydown", {
       key: "Escape",
       cancelable: true,

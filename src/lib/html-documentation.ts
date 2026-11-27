@@ -775,7 +775,7 @@ function renderDocument({
       }
       search.addEventListener("input", update);
       search.addEventListener("keydown", function (event) {
-        if (event.defaultPrevented || event.key !== "Escape" || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !search.value) return;
+        if (event.defaultPrevented || event.key !== "Escape" || event.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !search.value) return;
         event.preventDefault();
         event.stopPropagation();
         search.value = "";

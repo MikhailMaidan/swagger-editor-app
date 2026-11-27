@@ -3,13 +3,20 @@ export type KeyboardShortcutEvent = {
   ctrlKey: boolean;
   isComposing?: boolean;
   key: string;
+  keyCode?: number;
   metaKey: boolean;
-  nativeEvent?: { isComposing?: boolean };
+  nativeEvent?: { isComposing?: boolean; keyCode?: number };
   shiftKey: boolean;
 };
 
 export function isComposingKeyboardEvent(event: KeyboardShortcutEvent) {
-  return Boolean(event.isComposing || event.nativeEvent?.isComposing);
+  // IME boundary events may retain keyCode 229 after isComposing resets.
+  return Boolean(
+    event.isComposing ||
+    event.nativeEvent?.isComposing ||
+    event.keyCode === 229 ||
+    event.nativeEvent?.keyCode === 229,
+  );
 }
 
 export function isRunRequestShortcut(event: KeyboardShortcutEvent) {

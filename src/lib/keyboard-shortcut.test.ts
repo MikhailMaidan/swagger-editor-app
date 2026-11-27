@@ -28,6 +28,11 @@ function createKeyboardEvent(
   };
 }
 
+const legacyCompositionEvents: Partial<KeyboardShortcutEvent>[] = [
+  { isComposing: false, keyCode: 229 },
+  { isComposing: false, nativeEvent: { isComposing: false, keyCode: 229 } },
+];
+
 describe("keyboard shortcut helpers", () => {
   it("recognizes primary-modifier Enter on every platform", () => {
     expect(isRunRequestShortcut(createKeyboardEvent({ ctrlKey: true }))).toBe(
@@ -244,6 +249,11 @@ describe("keyboard shortcut helpers", () => {
   ] as const)(
     "ignores the %s shortcut during text composition",
     (_, matches, overrides) => {
+      for (const legacy of legacyCompositionEvents) {
+        expect(matches(createKeyboardEvent({ ...overrides, ...legacy }))).toBe(
+          false,
+        );
+      }
       expect(
         matches(createKeyboardEvent({ ...overrides, isComposing: true })),
       ).toBe(false);
@@ -270,6 +280,13 @@ describe("keyboard shortcut helpers", () => {
   it.each(["Enter", "F3"])(
     "ignores search navigation during composing %s presses",
     (key) => {
+      for (const legacy of legacyCompositionEvents) {
+        expect(
+          getSchemaSearchNavigationDirection(
+            createKeyboardEvent({ key, ...legacy }),
+          ),
+        ).toBeNull();
+      }
       expect(
         getSchemaSearchNavigationDirection(
           createKeyboardEvent({ key, isComposing: true }),
