@@ -48,6 +48,7 @@ describe("response download helpers", () => {
     "Text/JSON; charset=utf-8",
     "application/vnd.api+json",
     "Model/GLTF+JSON; charset=utf-8",
+    'application/problem+json; profile="*"',
   ])("uses a JSON extension for response media type %s", (contentType) => {
     expect(
       getResponseDownloadMetadata({ "Content-Type": contentType }, "200"),
@@ -84,6 +85,12 @@ describe("response download helpers", () => {
     "application/foo/bar+json",
     "application/my type+json",
     "application/[problem]+json",
+    ...["json", "xml", "yaml"].flatMap((suffix) => [
+      `application/*+${suffix}`,
+      `*/problem+${suffix}`,
+      `application/prob*lem+${suffix}`,
+      ` Application/*+${suffix.toUpperCase()}; charset=utf-8 `,
+    ]),
     ...["xml", "yaml"].flatMap((suffix) => [
       `+${suffix}`,
       `problem+${suffix}`,

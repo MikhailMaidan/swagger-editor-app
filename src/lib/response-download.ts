@@ -38,6 +38,10 @@ function getResponseContentType(headers: Record<string, string>) {
 function getResponseFileExtension(contentType: string) {
   const mediaType = contentType.split(";", 1)[0].trim().toLowerCase();
 
+  if (mediaType.includes("*")) {
+    return "txt";
+  }
+
   // Prefer known formats before the generic JSON/XML/YAML suffix fallbacks.
   if (Object.hasOwn(mediaTypeExtensions, mediaType)) {
     return mediaTypeExtensions[mediaType];
