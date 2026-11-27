@@ -93,18 +93,23 @@ const metadata = {
   version: schema.version,
 };
 
+function createDocumentationPage() {
+  const build = createHtmlDocumentation(
+    schema.endpoints,
+    models,
+    schema.securitySchemes,
+    metadata,
+  );
+  const page = new DOMParser().parseFromString(build.html, "text/html");
+  new Function("document", page.body.querySelector("script")!.textContent!)(
+    page,
+  );
+  return page;
+}
+
 describe("createHtmlDocumentation", () => {
   it("searches words across endpoint details while keeping navigation and method filters synchronized", () => {
-    const build = createHtmlDocumentation(
-      schema.endpoints,
-      models,
-      schema.securitySchemes,
-      metadata,
-    );
-    const page = new DOMParser().parseFromString(build.html, "text/html");
-    new Function("document", page.body.querySelector("script")!.textContent!)(
-      page,
-    );
+    const page = createDocumentationPage();
     const search = page.getElementById("docs-search") as HTMLInputElement;
     const method = page.getElementById("method-filter") as HTMLSelectElement;
     const endpoints = Array.from(
@@ -142,6 +147,65 @@ describe("createHtmlDocumentation", () => {
       "1 of 2 endpoints",
     );
     expect(page.getElementById("empty-state")!.hidden).toBe(true);
+  });
+
+  it("clears search with Escape while preserving the method filter and ignoring modified keys", () => {
+    const page = createDocumentationPage();
+    const search = page.getElementById("docs-search") as HTMLInputElement;
+    const method = page.getElementById("method-filter") as HTMLSelectElement;
+    method.value = "DELETE";
+    method.dispatchEvent(new Event("change"));
+    search.value = "missing";
+    search.dispatchEvent(new Event("input"));
+
+    for (const modifier of [
+      "ctrlKey",
+      "altKey",
+      "metaKey",
+      "shiftKey",
+      "isComposing",
+    ]) {
+      const event = new KeyboardEvent("keydown", {
+        key: "Escape",
+        cancelable: true,
+        [modifier]: true,
+      });
+      search.dispatchEvent(event);
+      expect(search.value).toBe("missing");
+      expect(event.defaultPrevented).toBe(false);
+    }
+    const handled = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+    });
+    handled.preventDefault();
+    search.dispatchEvent(handled);
+    expect(search.value).toBe("missing");
+
+    const escape = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+    });
+    search.dispatchEvent(escape);
+    expect(search.value).toBe("");
+    expect(escape.defaultPrevented).toBe(true);
+    expect(method.value).toBe("DELETE");
+    for (const selector of ["[data-endpoint]", "[data-nav-item]"]) {
+      expect(
+        Array.from(page.querySelectorAll<HTMLElement>(selector))
+          .filter((item) => !item.hidden)
+          .map((item) => item.dataset.method),
+      ).toEqual(["DELETE"]);
+    }
+    expect(page.getElementById("result-count")!.textContent).toBe(
+      "1 of 2 endpoints",
+    );
+    expect(page.getElementById("empty-state")!.hidden).toBe(true);
+    expect(
+      search.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", cancelable: true }),
+      ),
+    ).toBe(true);
   });
 
   it("builds searchable documentation with scoped model and security dependencies", () => {

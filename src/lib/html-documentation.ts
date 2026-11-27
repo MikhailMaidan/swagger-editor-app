@@ -64,6 +64,7 @@ type DocumentationLabels = {
   resultCount: string;
   schema: string;
   search: string;
+  searchClearShortcut: string;
   searchPlaceholder: string;
   security: string;
   securityCount: string;
@@ -114,6 +115,7 @@ const labelsByLanguage: Record<Language, DocumentationLabels> = {
     resultCount: "{visible} of {total} endpoints",
     schema: "Schema",
     search: "Search documentation",
+    searchClearShortcut: "Press Escape to clear search",
     searchPlaceholder: "Path, summary, tag, or ID",
     security: "Security schemes",
     securityCount: "Auth schemes",
@@ -162,6 +164,7 @@ const labelsByLanguage: Record<Language, DocumentationLabels> = {
     resultCount: "Эндпоинты: {visible} из {total}",
     schema: "Схема",
     search: "Поиск по документации",
+    searchClearShortcut: "Нажмите Escape, чтобы очистить поиск",
     searchPlaceholder: "Путь, описание, тег или ID",
     security: "Схемы безопасности",
     securityCount: "Схемы доступа",
@@ -713,7 +716,7 @@ function renderDocument({
   </section>
   <div class="shell">
     <aside class="sidebar">
-      <label class="control" for="docs-search">${escapeHtml(labels.search)}<input id="docs-search" type="search" placeholder="${escapeHtml(labels.searchPlaceholder)}" autocomplete="off"></label>
+      <label class="control" for="docs-search">${escapeHtml(labels.search)}<input id="docs-search" type="search" aria-keyshortcuts="Escape" title="${escapeHtml(labels.searchClearShortcut)}" placeholder="${escapeHtml(labels.searchPlaceholder)}" autocomplete="off"></label>
       <label class="control" for="method-filter">${escapeHtml(labels.methodFilter)}<select id="method-filter"><option value="all">${escapeHtml(labels.allMethods)}</option>${methods.map((method) => `<option value="${escapeHtml(method)}">${escapeHtml(method)}</option>`).join("")}</select></label>
       <p class="result-count" data-result-template="${escapeHtml(labels.resultCount)}" id="result-count">${escapeHtml(resultTemplate)}</p>
       <h2 class="nav-title">${escapeHtml(labels.endpoints)}</h2>
@@ -771,6 +774,13 @@ function renderDocument({
         empty.hidden = visible !== 0;
       }
       search.addEventListener("input", update);
+      search.addEventListener("keydown", function (event) {
+        if (event.defaultPrevented || event.key !== "Escape" || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !search.value) return;
+        event.preventDefault();
+        event.stopPropagation();
+        search.value = "";
+        update();
+      });
       method.addEventListener("change", update);
       themeButton.addEventListener("click", function () {
         var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
