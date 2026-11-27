@@ -13,6 +13,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { AUTH_TOKEN_COOKIE, createDemoToken } from "@/lib/auth";
 import { ENDPOINT_COLLAPSE_STORAGE_KEY } from "@/lib/endpoint-collapse";
 import { ENDPOINT_FAVORITES_STORAGE_KEY } from "@/lib/endpoint-favorites";
+import { createEndpointFilterViewLink } from "@/lib/endpoint-filter-link";
 import {
   createEndpointPermalink,
   getEndpointAnchor,
@@ -1209,6 +1210,34 @@ paths:
 
     expect(editor).toHaveFocus();
     expect(filterInput).not.toHaveFocus();
+  });
+
+  it("restores schema order from a copied default view over a saved sort preference", async () => {
+    const previousUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.localStorage.setItem(ENDPOINT_SORT_STORAGE_KEY, "path");
+    const link = createEndpointFilterViewLink(window.location.href, {
+      favoritesOnly: false,
+      method: "all",
+      response: "all",
+      search: "",
+      sort: "schema",
+      tag: "all",
+      trait: "all",
+    });
+    window.history.replaceState(null, "", link);
+
+    try {
+      await act(async () => {
+        render(<SwaggerWorkspace />);
+      });
+
+      expect(screen.getByLabelText("Sort endpoints")).toHaveValue("schema");
+      expect(window.localStorage.getItem(ENDPOINT_SORT_STORAGE_KEY)).toBe(
+        "path",
+      );
+    } finally {
+      window.history.replaceState(null, "", previousUrl);
+    }
   });
 
   it("restores endpoint filters from a shared view link", async () => {

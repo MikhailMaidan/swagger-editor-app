@@ -143,9 +143,8 @@ export function createEndpointFilterViewLink(
   if (view.response !== "all") {
     url.searchParams.set(PARAMS.response, view.response);
   }
-  if (view.sort !== "schema") {
-    url.searchParams.set(PARAMS.sort, view.sort);
-  }
+  // Include the default sort so shared links override saved preferences.
+  url.searchParams.set(PARAMS.sort, view.sort);
   if (view.favoritesOnly) {
     url.searchParams.set(PARAMS.favoritesOnly, "1");
   }

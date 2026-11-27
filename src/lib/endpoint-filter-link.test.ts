@@ -42,7 +42,7 @@ describe("endpoint filter links", () => {
     expect(url.hash).toBe("");
   });
 
-  it("removes stale endpoint parameters when the default view is copied", () => {
+  it("clears stale filters and records the default sort when copying a view", () => {
     const link = createEndpointFilterViewLink(
       "https://rsswag.test/?endpoint-search=old&endpoint-sort=method&keep=1",
       defaultView,
@@ -51,7 +51,8 @@ describe("endpoint filter links", () => {
 
     expect(url.searchParams.get("keep")).toBe("1");
     expect(url.searchParams.has("endpoint-search")).toBe(false);
-    expect(url.searchParams.has("endpoint-sort")).toBe(false);
+    expect(url.searchParams.get("endpoint-sort")).toBe("schema");
+    expect(readEndpointFilterView(link)).toEqual({ sort: "schema" });
   });
 
   it("restores supported filter values", () => {
