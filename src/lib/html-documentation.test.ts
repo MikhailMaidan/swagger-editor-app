@@ -94,6 +94,56 @@ const metadata = {
 };
 
 describe("createHtmlDocumentation", () => {
+  it("searches words across endpoint details while keeping navigation and method filters synchronized", () => {
+    const build = createHtmlDocumentation(
+      schema.endpoints,
+      models,
+      schema.securitySchemes,
+      metadata,
+    );
+    const page = new DOMParser().parseFromString(build.html, "text/html");
+    new Function("document", page.body.querySelector("script")!.textContent!)(
+      page,
+    );
+    const search = page.getElementById("docs-search") as HTMLInputElement;
+    const method = page.getElementById("method-filter") as HTMLSelectElement;
+    const endpoints = Array.from(
+      page.querySelectorAll<HTMLElement>("[data-endpoint]"),
+    );
+    const navigation = Array.from(
+      page.querySelectorAll<HTMLElement>("[data-nav-item]"),
+    );
+    const visibleMethods = (items: HTMLElement[]) =>
+      items.filter((item) => !item.hidden).map((item) => item.dataset.method);
+
+    search.value = "  USERS\tGETUSER  ";
+    search.dispatchEvent(new Event("input"));
+    expect(visibleMethods(endpoints)).toEqual(["GET"]);
+    expect(visibleMethods(navigation)).toEqual(["GET"]);
+    expect(page.getElementById("result-count")!.textContent).toBe(
+      "1 of 2 endpoints",
+    );
+    expect(page.getElementById("empty-state")!.hidden).toBe(true);
+
+    method.value = "DELETE";
+    method.dispatchEvent(new Event("change"));
+    expect(visibleMethods(endpoints)).toEqual([]);
+    expect(visibleMethods(navigation)).toEqual([]);
+    expect(page.getElementById("result-count")!.textContent).toBe(
+      "0 of 2 endpoints",
+    );
+    expect(page.getElementById("empty-state")!.hidden).toBe(false);
+
+    search.value = " \t ";
+    search.dispatchEvent(new Event("input"));
+    expect(visibleMethods(endpoints)).toEqual(["DELETE"]);
+    expect(visibleMethods(navigation)).toEqual(["DELETE"]);
+    expect(page.getElementById("result-count")!.textContent).toBe(
+      "1 of 2 endpoints",
+    );
+    expect(page.getElementById("empty-state")!.hidden).toBe(true);
+  });
+
   it("builds searchable documentation with scoped model and security dependencies", () => {
     const build = createHtmlDocumentation(
       schema.endpoints,

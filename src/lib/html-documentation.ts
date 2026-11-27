@@ -751,16 +751,21 @@ function renderDocument({
       var empty = document.getElementById("empty-state");
       var themeButton = document.getElementById("theme-toggle");
       function update() {
-        var query = search.value.trim().toLowerCase();
+        var terms = search.value.trim().toLowerCase().split(/\\s+/).filter(Boolean);
         var selectedMethod = method.value;
         var visible = 0;
+        function matchesFilters(item) {
+          return (selectedMethod === "all" || item.dataset.method === selectedMethod) && terms.every(function (term) {
+            return item.dataset.search.indexOf(term) !== -1;
+          });
+        }
         endpoints.forEach(function (endpoint) {
-          var matches = (selectedMethod === "all" || endpoint.dataset.method === selectedMethod) && (!query || endpoint.dataset.search.indexOf(query) !== -1);
+          var matches = matchesFilters(endpoint);
           endpoint.hidden = !matches;
           if (matches) visible += 1;
         });
         navItems.forEach(function (item) {
-          item.hidden = !((selectedMethod === "all" || item.dataset.method === selectedMethod) && (!query || item.dataset.search.indexOf(query) !== -1));
+          item.hidden = !matchesFilters(item);
         });
         count.textContent = count.dataset.resultTemplate.replace("{visible}", String(visible)).replace("{total}", String(endpoints.length));
         empty.hidden = visible !== 0;
