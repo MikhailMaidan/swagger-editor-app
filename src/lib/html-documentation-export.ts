@@ -9,10 +9,12 @@ export type HtmlDocumentationExport = {
 
 function slugifyTitle(title: string) {
   const slug = title
+    .normalize("NFC")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{L}\p{M}0-9]+/gu, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64)
+    .replace(/[\uD800-\uDBFF]$/u, "")
     .replace(/-+$/g, "");
 
   return slug || "openapi-schema";
