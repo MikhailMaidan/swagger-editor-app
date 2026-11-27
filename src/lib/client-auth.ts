@@ -113,8 +113,7 @@ export function clearClientAuth() {
 
 export function getClientAuth(): ClientAuthState {
   const cookieToken = readCookie(AUTH_TOKEN_COOKIE);
-  const storedToken = readStoredToken();
-  const token = cookieToken || storedToken;
+  const token = cookieToken || readStoredToken();
 
   if (!isTokenValid(token)) {
     if (token) {
